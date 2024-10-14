@@ -1,0 +1,865 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { parseString } from 'xml2js';
+import './styles.css';
+import Swal from 'sweetalert2';
+// import ErrorLogger from './ErrorLogger';
+const BookingContinue = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [flightErrors, setFlighterrors] = useState([]);
+    const [pnr, setPnr] = useState([]);
+    const [resegments, setresegments] = useState([]);
+    const [respricings, setrespricings] = useState([]);
+    const reservationData = location.state && location.state.bookingCompleteData.reservationdata;
+    const apiairports = location.state && location.state.bookingCompleteData.apiairportsdata;
+    const segments = location.state && location.state.bookingCompleteData.segmentParse;
+    const Passengers = location.state && location.state.bookingCompleteData.Passengers;
+    const packageSelected = location.state && location.state.bookingCompleteData.PackageSelected;
+    const Airports = location.state && location.state.bookingCompleteData.Airports;
+    const Airlines = location.state && location.state.bookingCompleteData.Airlines;
+    const request = location.state?.bookingCompleteData || {};
+    
+    useEffect(() => {
+        const disableBackButton = () => {
+            window.history.pushState(null, '', window.location.href);
+            window.onpopstate = () => {
+                window.history.pushState(null, '', window.location.href);
+                navigate('/'); // Redirect to main home page
+            };
+        };
+
+        disableBackButton();
+
+        return () => {
+            window.onpopstate = null;
+        };
+    }, [navigate]);
+    const handleAirline = (carrier) => {
+        const airline = Airlines.find((airlineInfo) => {
+            return airlineInfo['$'] && airlineInfo['$']['Code'] === carrier;
+        });
+        if (airline) {
+            return airline['$']['Description'];
+        } else {
+            return "Airline"; 
+        }
+    }
+    const handleAirport = (airportcode) => {
+        if(airportcode){
+            const airport = Airports.find((airportInfo) => {
+                return airportInfo['$'] && airportInfo['$']['Code'] === airportcode;
+            });
+            if (airport) {
+                return airport['$']['Name'];
+            } else {
+                return "Airport"; 
+            }
+        }
+    }
+    const handleApiAirport = (airportcode) => {
+        const airportapi = apiairports.find((apiairportsInfo) => {
+            return apiairportsInfo && apiairportsInfo['airport_iata_code'] === airportcode;
+        });
+        if (airportapi) {
+            return (airportapi['airport_name']);
+        } else {
+            return ""; 
+        }
+      }
+    const calculateAge = (birthdate) => {
+        const today = new Date();
+        const birthDate = new Date(birthdate);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    };
+    useEffect(() => {
+        parseString(reservationData, { explicitArray: false }, (err, reservationresult) => {
+          if (err) {
+            console.error('Error parsing XML:', err);
+            return;
+          }
+          const ReservationRsp = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp'];
+          if (ReservationRsp !== null && ReservationRsp !== undefined) {
+
+            const passnegrinfo = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['common_v52_0:BookingTraveler'];
+            const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode'];
+            const ressegmentinfo = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
+            const respricinginfo = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirPricingInfo'];
+            setPnr(pnrCode);
+            setresegments(Array.isArray(ressegmentinfo) ? ressegmentinfo : [ressegmentinfo]);
+            setrespricings(Array.isArray(respricinginfo) ? respricinginfo : [respricinginfo]);
+          }else{
+            const error = reservationresult['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
+            setFlighterrors(error);
+          }
+        });
+        
+        
+      }, []);
+
+      useEffect(() => {
+        let timeoutId;
+        const timeoutDuration = 5 * 60 * 1000;
+        const handleInactive = () => {
+          Swal.fire({
+            title: 'Something went Wrong !',
+            text: 'Your session has expired. You will be redirected to the homepage.',
+            confirmButtonText: 'OK'
+        });
+          navigate('/');
+        };
+        const resetTimer = () => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(handleInactive, timeoutDuration);
+        };
+        const resetOnActivity = () => {
+          resetTimer();
+          window.addEventListener('mousemove', resetTimer);
+          window.addEventListener('keydown', resetTimer);
+        };
+        resetOnActivity();
+        return () => {
+          clearTimeout(timeoutId);
+          window.removeEventListener('mousemove', resetTimer);
+          window.removeEventListener('keydown', resetTimer);
+        };
+    }, [navigate]);
+    return (
+            <div className="yield-content">
+                {/* <div class="loader2">
+                        <img src="https://selfbooking.taxivaxi.com/img/ticket-gif-5.gif" alt="Loader">
+                    </div> */}
+                {/* main-cont */}
+                <div className="main-cont" id="main_cont">
+                    <div className="body-wrapper">
+                        <div className="wrapper-padding">
+                            <div className="sp-page">
+                                <div className="sp-page-a">
+                                    <div className="sp-page-l">
+                                        <div className="sp-page-lb">
+                                            <div className="sp-page-p">
+                                                <div className="booking-left">
+                                                    <div className="comlete-alert">
+                                                        <div className="booked">
+                                                            <form
+                                                                id="submit-form1"
+                                                                action="/ticketgenerate"
+                                                                method="POST"
+                                                                autoComplete="off"
+                                                            >
+                                                                <input
+                                                                    type="hidden"
+                                                                    name="_token"
+                                                                    defaultValue="Odi3IALVDJk4gYRrhrhwZUvCtAVCkAhnFgwfyHca"
+                                                                />{" "}
+                                                                <img
+                                                                    alt=""
+                                                                    src="https://selfbooking.taxivaxi.com/img/taxivaxi/bookingconfirmedicon/animation_lkari8vv_small.gif"
+                                                                    style={{
+                                                                        verticalAlign:
+                                                                            "middle" /* textAlign: 'center', */,
+                                                                        display: "block",
+                                                                        width: 68,
+                                                                        padding: 8,
+                                                                        marginLeft: "auto",
+                                                                        marginRight: "auto"
+                                                                    }}
+                                                                />
+                                                                <h2 className="success_booked">
+                                                                    {" "}
+                                                                    Booking Confirmed !{" "}
+                                                                </h2>
+                                                                <p className="success_booked_p">
+                                                                    PNR No.{" "}
+                                                                    <b>
+                                                                        {pnr}
+                                                                        <input
+                                                                            type="hidden"
+                                                                            name="pnr"
+                                                                            defaultValue="1UXOQP"
+                                                                        />
+                                                                    </b>{" "}
+                                                                </p>
+                                                                <input
+                                                                    type="hidden"
+                                                                    name="searchReturns"
+                                                                    defaultValue="Add Return Date"
+                                                                />
+                                                                <input
+                                                                    type="hidden"
+                                                                    name="total_price"
+                                                                    defaultValue="INR6521"
+                                                                />
+                                                                <input
+                                                                    type="hidden"
+                                                                    name="base_price"
+                                                                    defaultValue="INR5380"
+                                                                />
+                                                                <input
+                                                                    type="hidden"
+                                                                    name="taxes"
+                                                                    defaultValue="INR1141"
+                                                                />
+                                                                <button
+                                                                    className="success_booked_button"
+                                                                    type="submit"
+                                                                    id="dowloadeTikcetbtn"
+                                                                >
+                                                                    Download E-ticket
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    <div className="complete-info">
+                                                        <div className="complete-info-table">
+                                                            <div className="complete-info-i">
+                                                            {resegments && resegments.map((segmentinfo, segmentindex) => {
+                                                                if (segmentinfo['$'] && segmentinfo['$']['Group'] === "0") {
+                                                                    return (
+                                                                        <div key={segmentindex}>
+                                                                            <div id="Flight Details" className="tabcontent">
+                                                                                    <div className="flight-details-a">
+                                                                                        <img
+                                                                                            src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
+                                                                                            width="20px"
+                                                                                        />
+                                                                                        || {handleAirport(segmentinfo['$']['Origin'])} to {handleAirport(segmentinfo['$']['Destination'])} , &nbsp;
+                                                                                                    {segmentinfo['$'] && 
+                                                                                                      (() => {
+                                                                                                        const arrivalTime = new Date(segmentinfo['$']['DepartureTime']);
+                                                                                                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                                                                                                        const day = arrivalTime.getDate();
+                                                                                                        const month = months[arrivalTime.getMonth()];
+                                                                                                        const formattedDateString = `${day} ${month}`;
+
+                                                                                                        return formattedDateString;
+                                                                                                      })()
+                                                                                                    } . {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
+                                                                                                    <span className='equipmentno'>{segmentinfo['$']['Equipment']}</span>
+                                                                                    </div>
+                                                                                    <br className="clear" />
+                                                                                    <div className="clear" />
+                                                                                    <div
+                                                                                        className="flight-details-l"
+                                                                                        style={{ width: 290 }}
+                                                                                    >
+                                                                                        <div className="flight-details-b">{/*21:55*/}
+                                                                                        {new Date(segmentinfo['$']['DepartureTime']).toLocaleTimeString('en-US', {
+                                                                                            hour: 'numeric',
+                                                                                            minute: 'numeric',
+                                                                                            hour12: false,
+                                                                                        })}
+                                                                                        </div>
+                                                                                        <div className="flight-details-b">
+                                                                                                    {segmentinfo['$'] && 
+                                                                                                      (() => {
+                                                                                                        const arrivalTime = new Date(segmentinfo['$']['DepartureTime']);
+                                                                                                        const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                                                                                                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                                                                                                        const weekday = weekdays[arrivalTime.getDay()];
+                                                                                                        const day = arrivalTime.getDate();
+                                                                                                        const month = months[arrivalTime.getMonth()];
+                                                                                                        const year = arrivalTime.getFullYear();
+
+                                                                                                        // Construct the final formatted date string
+                                                                                                        const formattedDateString = `${weekday}, ${day} ${month} ${year}`;
+
+                                                                                                        return formattedDateString;
+                                                                                                      })()
+                                                                                                    }
+                                                                                        </div>
+                                                                                        <div className="flight-details-c">{handleAirport(segmentinfo['$'] && segmentinfo['$']['Origin'])} </div>
+                                                                                        <div className="flight-details-c1">{handleApiAirport(segmentinfo['$'] && segmentinfo['$']['Origin'])} {segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['OriginTerminal'] ? `. T-${segmentinfo['air:FlightDetails']['$']['OriginTerminal']}` : ''}</div>
+                                                                                    </div>
+                                                                                    <div className="flight-details-m">
+                                                                                        <div
+                                                                                            className="flight-details-b"
+                                                                                            style={{ textAlign: "center" }}
+                                                                                        >
+                                                                                            {segmentinfo['$'] 
+                                                                                                    && (() => {
+                                                                                                      const flightTimeInMinutes = parseInt(segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['FlightTime']);
+                                                                                                      const hours = Math.floor(flightTimeInMinutes / 60);
+                                                                                                      const minutes = flightTimeInMinutes % 60;
+                                                                                                      const formattedHours = String(hours).padStart(2, '0');
+                                                                                                      const formattedMinutes = String(minutes).padStart(2, '0');
+                                                                                                      const formattedFlightTime = `${formattedHours}h ${formattedMinutes}m`;
+                                                                                                      return formattedFlightTime;
+                                                                                                    })
+                                                                                                  ()}
+                                                                                            {/* 2h 20m */}
+                                                                                        </div>
+                                                                                        <div className="flight-details-b">
+                                                                                            <hr
+                                                                                                style={{
+                                                                                                    padding: 2,
+                                                                                                    backgroundColor: "#bd8100",
+                                                                                                    color: "#bd8100",
+                                                                                                    margin: 2
+                                                                                                }}
+                                                                                            />
+                                                                                        </div>
+                                                                                        <div className="flight-details-c" />
+                                                                                    </div>
+                                                                                    <div className="flight-details-r">
+                                                                                        <div className="flight-details-b">{/*00:15*/}
+                                                                                        {new Date(segmentinfo['$']['ArrivalTime']).toLocaleTimeString('en-US', {
+                                                                                            hour: 'numeric',
+                                                                                            minute: 'numeric',
+                                                                                            hour12: false,
+                                                                                        })}
+                                                                                        </div>
+                                                                                        <div className="flight-details-b">
+                                                                                            {/* Thu,25 Jan 24 */}
+                                                                                            {segmentinfo['$'] && 
+                                                                                                      (() => {
+                                                                                                        const arrivalTime = new Date(segmentinfo['$']['ArrivalTime']);
+                                                                                                        const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                                                                                                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                                                                                                        const weekday = weekdays[arrivalTime.getDay()];
+                                                                                                        const day = arrivalTime.getDate();
+                                                                                                        const month = months[arrivalTime.getMonth()];
+                                                                                                        const year = arrivalTime.getFullYear();
+
+                                                                                                        // Construct the final formatted date string
+                                                                                                        const formattedDateString = `${weekday}, ${day} ${month} ${year}`;
+
+                                                                                                        return formattedDateString;
+                                                                                                      })()
+                                                                                                    }
+                                                                                           
+                                                                                        </div>
+                                                                                        <div className="flight-details-c">{handleAirport(segmentinfo['$']['Destination'])}</div>
+                                                                                        <div className="flight-details-c1">
+                                                                                        {handleApiAirport(segmentinfo['$']['Destination'])} {segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['DestinationTerminal'] ? `. T-${segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['DestinationTerminal']}` : ''}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="clear" />
+                                                                            </div>
+                                                                            <br className="clear" />
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                            })}
+                                                            {resegments && resegments.map((segmentinfo, segmentindex) => {
+                                                                if (segmentinfo['$'] && segmentinfo['$']['Group'] === "1") {
+                                                                    return (
+                                                                        <div key={segmentindex}>
+                                                                            <div id="Flight Details" className="tabcontent">
+                                                                                    <div className="flight-details-a">
+                                                                                        <img
+                                                                                            src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
+                                                                                            width="20px"
+                                                                                        />
+                                                                                        || {handleAirport(segmentinfo['$']['Origin'])} to {handleAirport(segmentinfo['$']['Destination'])} , &nbsp;
+                                                                                                    {segmentinfo['$'] && 
+                                                                                                      (() => {
+                                                                                                        const arrivalTime = new Date(segmentinfo['$']['DepartureTime']);
+                                                                                                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                                                                                                        const day = arrivalTime.getDate();
+                                                                                                        const month = months[arrivalTime.getMonth()];
+                                                                                                        const formattedDateString = `${day} ${month}`;
+
+                                                                                                        return formattedDateString;
+                                                                                                      })()
+                                                                                                    } . {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
+                                                                                                    <span className='equipmentno'>{segmentinfo['$']['Equipment']}</span>
+                                                                                    </div>
+                                                                                    <br className="clear" />
+                                                                                    <div className="clear" />
+                                                                                    <div
+                                                                                        className="flight-details-l"
+                                                                                        style={{ width: 290 }}
+                                                                                    >
+                                                                                        <div className="flight-details-b">{/*21:55*/}
+                                                                                        {new Date(segmentinfo['$']['DepartureTime']).toLocaleTimeString('en-US', {
+                                                                                            hour: 'numeric',
+                                                                                            minute: 'numeric',
+                                                                                            hour12: false,
+                                                                                        })}
+                                                                                        </div>
+                                                                                        <div className="flight-details-b">
+                                                                                                    {segmentinfo['$'] && 
+                                                                                                      (() => {
+                                                                                                        const arrivalTime = new Date(segmentinfo['$']['DepartureTime']);
+                                                                                                        const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                                                                                                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                                                                                                        const weekday = weekdays[arrivalTime.getDay()];
+                                                                                                        const day = arrivalTime.getDate();
+                                                                                                        const month = months[arrivalTime.getMonth()];
+                                                                                                        const year = arrivalTime.getFullYear();
+
+                                                                                                        // Construct the final formatted date string
+                                                                                                        const formattedDateString = `${weekday}, ${day} ${month} ${year}`;
+
+                                                                                                        return formattedDateString;
+                                                                                                      })()
+                                                                                                    }
+                                                                                        </div>
+                                                                                        <div className="flight-details-c">{handleAirport(segmentinfo['$']['Origin'])} </div>
+                                                                                        <div className="flight-details-c1">{handleApiAirport(segmentinfo['$']['Origin'])} {segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['OriginTerminal'] ? `. T-${segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['OriginTerminal']}` : ''}</div>
+                                                                                    </div>
+                                                                                    <div className="flight-details-m">
+                                                                                        <div
+                                                                                            className="flight-details-b"
+                                                                                            style={{ textAlign: "center" }}
+                                                                                        >
+                                                                                            {segmentinfo['$'] 
+                                                                                                    && (() => {
+                                                                                                      const flightTimeInMinutes = parseInt(segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['FlightTime']);
+                                                                                                      const hours = Math.floor(flightTimeInMinutes / 60);
+                                                                                                      const minutes = flightTimeInMinutes % 60;
+                                                                                                      const formattedHours = String(hours).padStart(2, '0');
+                                                                                                      const formattedMinutes = String(minutes).padStart(2, '0');
+                                                                                                      const formattedFlightTime = `${formattedHours}h ${formattedMinutes}m`;
+                                                                                                      return formattedFlightTime;
+                                                                                                    })
+                                                                                                  ()}
+                                                                                            {/* 2h 20m */}
+                                                                                        </div>
+                                                                                        <div className="flight-details-b">
+                                                                                            <hr
+                                                                                                style={{
+                                                                                                    padding: 2,
+                                                                                                    backgroundColor: "#bd8100",
+                                                                                                    color: "#bd8100",
+                                                                                                    margin: 2
+                                                                                                }}
+                                                                                            />
+                                                                                        </div>
+                                                                                        <div className="flight-details-c" />
+                                                                                    </div>
+                                                                                    <div className="flight-details-r">
+                                                                                        <div className="flight-details-b">{/*00:15*/}
+                                                                                        {new Date(segmentinfo['$']['ArrivalTime']).toLocaleTimeString('en-US', {
+                                                                                            hour: 'numeric',
+                                                                                            minute: 'numeric',
+                                                                                            hour12: false,
+                                                                                        })}
+                                                                                        </div>
+                                                                                        <div className="flight-details-b">
+                                                                                            {/* Thu,25 Jan 24 */}
+                                                                                            {segmentinfo['$'] && 
+                                                                                                      (() => {
+                                                                                                        const arrivalTime = new Date(segmentinfo['$']['ArrivalTime']);
+                                                                                                        const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                                                                                                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                                                                                                        const weekday = weekdays[arrivalTime.getDay()];
+                                                                                                        const day = arrivalTime.getDate();
+                                                                                                        const month = months[arrivalTime.getMonth()];
+                                                                                                        const year = arrivalTime.getFullYear();
+
+                                                                                                        // Construct the final formatted date string
+                                                                                                        const formattedDateString = `${weekday}, ${day} ${month} ${year}`;
+
+                                                                                                        return formattedDateString;
+                                                                                                      })()
+                                                                                                    }
+                                                                                           
+                                                                                        </div>
+                                                                                        <div className="flight-details-c">{handleAirport(segmentinfo['$']['Destination'])} </div>
+                                                                                        <div className="flight-details-c1">
+                                                                                        {handleApiAirport(segmentinfo['$']['Destination'])} {segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['DestinationTerminal'] ? `. T-${segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['DestinationTerminal']}` : ''}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="clear" />
+                                                                            </div>
+                                                                            <br className="clear" />
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                            })}
+                                                            <br className="clear" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="complete-devider" />
+                                                        <div className="complete-txt">
+                                                            <div className='serviceinfo'>
+                                                           
+                                                                <div className='servicess'>Passenger Details</div>
+                                                                <div className='servicedetails'>
+                                                                <div className='row' style={{width:'100%'}}>
+                                                                    <div className="passengers" style={{ width: "100%" }}>
+                                                                    {Passengers && Passengers.keys && Passengers.keys.length > 1 ? (
+                                                                        Passengers.keys.map((key, index) => (
+                                                                                <>
+                                                                                    <div className="countpassenger">
+                                                                                        {Passengers.codes[index] === 'ADT' ? 'Adult' : 
+                                                                                            Passengers.codes[index] === 'CNN' ? 'Child' :
+                                                                                            Passengers.codes[index] === 'INF' ? 'Infant' : 'Unknown'}-P{index+1} :
+                                                                                    </div>
+
+                                                                                    <div className="passengerdetail">
+                                                                                    {Passengers.namesWithPrefix[index]}&nbsp;
+                                                                                    {Passengers.firstNames[index]}&nbsp;
+                                                                                    {Passengers.lastNames[index]}&nbsp;
+                                                                                    ({Passengers.genderNames[index] === 'M' ? 'Male' : 'Female'},Age - {calculateAge(Passengers.ageNames[index])})
+                                                                                    </div>
+                                                                                </>
+                                                                        ))
+                                                                    )
+                                                                    : (
+                                                                        <>
+                                                                            {Passengers && Passengers.keys && (
+                                                                                <>
+                                                                                    <div className="countpassenger">
+                                                                                        {Passengers.codes[0] === 'ADT' ? 'Adult' : 
+                                                                                            Passengers.codes[0] === 'CNN' ? 'Child' :
+                                                                                            Passengers.codes[0] === 'INF' ? 'Infant' : 'Unknown'}-P1 :
+                                                                                    </div>
+
+                                                                                    <div className="passengerdetail">
+                                                                                    {Passengers.namesWithPrefix[0]}&nbsp;
+                                                                                    {Passengers.firstNames[0]}&nbsp;
+                                                                                    {Passengers.lastNames[0]}&nbsp;
+                                                                                    ({Passengers.genderNames[0] === 'M' ? 'Male' : 'Female'},Age - {calculateAge(Passengers.ageNames[0])})
+                                                                                    </div>
+                                                                                </>
+                                                                            )}
+                                                                        </>
+                                                                    )}
+                                                                    
+                                                                    
+                                                                        
+                                                                    </div>
+                                                                    <div className="complete-txt-link">
+                                                                    {Passengers && Passengers.keys && Passengers.keys.length > 1 ? (
+                                                                        
+                                                                            <>
+                                                                                <a href="#">
+                                                                                    Mail ID: 
+                                                                                    {Passengers.email && Passengers.email} || 
+                                                                                    Contact No. :
+                                                                                    {Passengers.contactNo && Passengers.contactNo}
+                                                                                </a>
+                                                                            </>
+                                                                        
+                                                                    )
+                                                                    : (
+                                                                            <>
+                                                                            {Passengers && Passengers.keys &&
+                                                                                <a href="#">
+                                                                                    Mail ID: 
+                                                                                    {Passengers.email && Passengers.email} || 
+                                                                                    Contact No. :
+                                                                                    {Passengers.contactNo && Passengers.contactNo}
+                                                                                </a>
+                                                                            }
+                                                                            </>
+                                                                    )}
+                                                                    </div>
+                                                                </div></div>
+                                                            </div>
+                                                        </div>
+                                                        <div className='complete-txt'>
+                                                        
+                                                            {respricings && 
+                                                            respricings.map((respriceinginfo,respriceingindex)=>(
+                                                                <div key={respriceingindex} className='serviceinfo'>
+                                                                    
+                                                                    <div className='servicess' style={{width:'100%'}}>Included Services</div>
+                                                                    <div className='servicedetails'>
+                                                                    <div className='row'>
+                                                                    {respriceinginfo && respriceinginfo['air:FareInfo'] &&
+                                                                    Array.isArray(respriceinginfo['air:FareInfo'])
+                                                                    ? (
+                                                                        respriceinginfo['air:FareInfo'].map((resfareinfo,resfareindex)=>(
+                                                                            <div key={resfareindex} className='col-md-6'>
+                                                                                <div className='servicesdiv'>
+                                                                                <div className='servicesdivhead'>{handleAirport(resfareinfo['$']['Origin'])} - {handleAirport(resfareinfo['$']['Destination'])}</div>
+                                                                                {resfareinfo['air:Brand'] && 
+                                                                                resfareinfo['air:Brand']['air:OptionalServices'] && 
+                                                                                resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService'] && 
+                                                                                Array.isArray(resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService'])
+                                                                                ? (
+                                                                                    resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService'].map((reserviceinfo,reserviceindex)=>{
+                                                                                        if(reserviceinfo['$']['Chargeable'] === "Included in the brand" && reserviceinfo['$']['Type'] === "Baggage" || reserviceinfo['$']['Type'] === "PreReservedSeatAssignment" || reserviceinfo['$']['Type'] === "MealOrBeverage"){
+                                                                                            return (
+                                                                                            <div key={reserviceindex}>
+                                                                                                <div className='reservehead'>{reserviceinfo['$']['Tag']}</div>
+                                                                                                {reserviceinfo['air:Text'] && 
+                                                                                                    Array.isArray(reserviceinfo['air:Text'])
+                                                                                                    ?(
+                                                                                                        reserviceinfo['air:Text'].map((restextinfo,restextindex)=>{
+                                                                                                            if(restextinfo['$']['Type'] === "MarketingConsumer"){
+                                                                                                                const infoArray = restextinfo['_'].split('\n').filter(item => item.trim() !== '');
+                                                                                                                return (
+                                                                                                                    <div className='service_details' key={restextindex}>
+                                                                                                                        <ul>
+                                                                                                                            {infoArray.map((item, index) => (
+                                                                                                                            <li key={index}>{item.trim()}</li>
+                                                                                                                            ))}
+                                                                                                                        </ul>
+                                                                                                                    </div>
+                                                                                                                );
+                                                                                                            }
+                                                                                                        })
+                                                                                                    ):null
+                                                                                                }
+                                                                                            </div>
+                                                                                            );
+                                                                                        }
+                                                                                        
+                                                                                    })
+                                                                                    
+                                                                                ):(
+                                                                                    resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService']['Chargeable'] && (
+                                                                                    
+                                                                                        resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService']['$']['Chargeable'] === "Included in the brand" &&  resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService']['$']['Type'] === "Baggage" ||  resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService']['$']['Type'] === "PreReservedSeatAssignment" ||  resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService']['$']['Type'] === "MealOrBeverage" ? 
+                                                                                            <div>
+                                                                                                <div className='reservehead'>{resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService']['$']['Tag']}</div>
+                                                                                                {resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService']['air:Text'] && 
+                                                                                                    Array.isArray(resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService']['air:Text'])
+                                                                                                    ?(
+                                                                                                        resfareinfo['air:Brand']['air:OptionalServices']['air:OptionalService']['air:Text'].map((restextinfo,restextindex)=>{
+                                                                                                            if(restextinfo['$']['Type'] === "MarketingConsumer"){
+                                                                                                                const infoArray = restextinfo['_'].split('\n').filter(item => item.trim() !== '');
+                                                                                                                return (
+                                                                                                                    <div className='service_details' key={restextindex}>
+                                                                                                                        <ul>
+                                                                                                                            {infoArray.map((item, index) => (
+                                                                                                                            <li key={index}>{item.trim()}</li>
+                                                                                                                            ))}
+                                                                                                                        </ul>
+                                                                                                                    </div>
+                                                                                                                );
+                                                                                                            }
+                                                                                                        })
+                                                                                                    ):null
+                                                                                                }
+                                                                                            </div>
+                                                                                            : null
+                                                                                        
+                                                                                    ) 
+                                                                                    
+                                                                                    
+                                                                                )}
+                                                                            </div>
+                                                                            </div>
+                                                                        ))
+                                                                        
+                                                                    ) : (
+                                                                        respriceinginfo && respriceinginfo['air:FareInfo'] && (
+                                                                            <div className='col-md-6'>
+                                                                                <div className=' servicesdiv'>
+                                                                                <div className='servicesdivhead'>{handleAirport(respriceinginfo['air:FareInfo']['$']['Origin'])} - {handleAirport(respriceinginfo['air:FareInfo']['$']['Destination'])}</div>
+                                                                                {respriceinginfo['air:FareInfo']['air:Brand'] && 
+                                                                                respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices'] && 
+                                                                                respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService'] && 
+                                                                                Array.isArray(respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService'])
+                                                                                ? (
+                                                                                    respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService'].map((reserviceinfo,reserviceindex)=>{
+                                                                                        if(reserviceinfo['$']['Chargeable'] === "Included in the brand" && reserviceinfo['$']['Type'] === "Baggage" || reserviceinfo['$']['Type'] === "PreReservedSeatAssignment" || reserviceinfo['$']['Type'] === "MealOrBeverage"){
+                                                                                            return (
+                                                                                            <div key={reserviceindex}>
+                                                                                                <div className='reservehead'>{reserviceinfo['$']['Tag']}</div>
+                                                                                                {reserviceinfo['air:Text'] && 
+                                                                                                    Array.isArray(reserviceinfo['air:Text'])
+                                                                                                    ?(
+                                                                                                        reserviceinfo['air:Text'].map((restextinfo,restextindex)=>{
+                                                                                                            if(restextinfo['$']['Type'] === "MarketingConsumer"){
+                                                                                                                const infoArray = restextinfo['_'].split('\n').filter(item => item.trim() !== '');
+                                                                                                                return (
+                                                                                                                    <div className='service_details' key={restextindex}>
+                                                                                                                        <ul>
+                                                                                                                            {infoArray.map((item, index) => (
+                                                                                                                            <li key={index}>{item.trim()}</li>
+                                                                                                                            ))}
+                                                                                                                        </ul>
+                                                                                                                    </div>
+                                                                                                                );
+                                                                                                            }
+                                                                                                        })
+                                                                                                    ):null
+                                                                                                }
+                                                                                            </div>
+                                                                                            );
+                                                                                        }
+                                                                                        
+                                                                                    })
+                                                                                    
+                                                                                ):(
+                                                                                    respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService']['Chargeable'] && (
+                                                                                    
+                                                                                        respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService']['$']['Chargeable'] === "Included in the brand" &&  respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService']['$']['Type'] === "Baggage" ||  respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService']['$']['Type'] === "PreReservedSeatAssignment" ||  respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService']['$']['Type'] === "MealOrBeverage" ? 
+                                                                                            <div>
+                                                                                                <div className='reservehead'>{respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService']['$']['Tag']}</div>
+                                                                                                {respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService']['air:Text'] && 
+                                                                                                    Array.isArray(respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService']['air:Text'])
+                                                                                                    ?(
+                                                                                                        respriceinginfo['air:FareInfo']['air:Brand']['air:OptionalServices']['air:OptionalService']['air:Text'].map((restextinfo,restextindex)=>{
+                                                                                                            if(restextinfo['$']['Type'] === "MarketingConsumer"){
+                                                                                                                const infoArray = restextinfo['_'].split('\n').filter(item => item.trim() !== '');
+                                                                                                                return (
+                                                                                                                    <div className='service_details' key={restextindex}>
+                                                                                                                        <ul>
+                                                                                                                            {infoArray.map((item, index) => (
+                                                                                                                            <li key={index}>{item.trim()}</li>
+                                                                                                                            ))}
+                                                                                                                        </ul>
+                                                                                                                    </div>
+                                                                                                                );
+                                                                                                            }
+                                                                                                        })
+                                                                                                    ):null
+                                                                                                }
+                                                                                            </div>
+                                                                                            : null
+                                                                                        
+                                                                                    ) 
+                                                                                    
+                                                                                    
+                                                                                )}
+                                                                            </div>
+                                                                            </div>
+                                                                        )
+                                                                        
+                                                                    )}
+                                                                    </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <div className="complete-devider" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="clear" />
+                                    </div>
+                                </div>
+                                <div className="sp-page-r">
+                                    <div className="h-help">
+                                        <div className="h-help-lbl">Need Taxivaxi Help?</div>
+                                        <div className="h-help-lbl-a">
+                                            We would be happy to help you!
+                                        </div>
+                                        <div className="h-help-phone">0124-423-4958</div>
+                                        <div className="h-help-email">info@taxivaxi.com</div>
+                                    </div>
+                                    <div className="h-reasons">
+                                        <div className="h-liked-lbl">Ticket Price Information</div>
+                                        <div className="h-reasons-row">
+                                            <div className="reasons-i">
+                                                <div className="reasons-h">
+                                                    <div className="reasons-l">Total Price</div>
+                                                    <div className="reasons-r">
+                                                        <div className="reasons-rb">
+                                                            <div className="reasons-p">
+                                                                <div className="reasons-i-lbl">
+                                                                {packageSelected && packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                {packageSelected && packageSelected.$.TotalPrice.replace('INR', '')}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <br className="clear" />
+                                                    </div>
+                                                </div>
+                                                <div className="clear" />
+                                            </div>
+                                            {packageSelected && packageSelected['air:AirPricingInfo'] && (
+                                                    Array.isArray(packageSelected['air:AirPricingInfo'])
+                                                    ? (  
+                                                        packageSelected['air:AirPricingInfo'].map((priceInfo, priceIndex) => ( 
+                                                            <div key={priceIndex} className="reasons-i">
+                                                                <div className="reasons-h">
+                                                                    <div className="reasons-l">
+                                                                                {priceInfo['air:PassengerType']['$'] ? (
+                                                                                    <>
+                                                                                    {
+                                                                                        priceInfo['air:PassengerType']['$']['Code'] === 'ADT' ? `Adult X ${request.adult}` : 
+                                                                                        priceInfo['air:PassengerType']['$']['Code'] === 'CNN' ? `Child X ${request.child}` :
+                                                                                        priceInfo['air:PassengerType']['$']['Code'] === 'INF' ? `Infant X ${request.infant}` : 'Unknown'
+                                                                                    }
+                                                                                    </>
+                                                                                    ) : (
+                                                                                        <>
+                                                                                            {
+                                                                                                priceInfo['air:PassengerType'][0]['$']['Code'] === 'ADT' ? `Adult X ${request.adult}` : 
+                                                                                                priceInfo['air:PassengerType'][0]['$']['Code'] === 'CNN' ? `Child X ${request.child}` :
+                                                                                                priceInfo['air:PassengerType'][0]['$']['Code'] === 'INF' ? `Infant X ${request.infant}` : 'Unknown'
+                                                                                            }
+                                                                                        </>
+                                                                                    )
+                                                                                } 
+                                                                    </div>
+                                                                    <div className="reasons-r">
+                                                                        <div className="reasons-rb">
+                                                                            <div className="reasons-p">
+                                                                                <div className="reasons-i-lbl">
+                                                                                    {priceInfo.$.ApproximateBasePrice.includes('INR') ? '₹ ' : ''}
+                                                                                    {priceInfo.$.ApproximateBasePrice.replace('INR', '')}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <br className="clear" />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="clear" />
+                                                            </div> 
+                                                        ))
+                                                    ):(
+                                                        <div className="reasons-i">
+                                                            <div className="reasons-h">
+                                                                <div className="reasons-l">Adult X {request.adult}</div>
+                                                                <div className="reasons-r">
+                                                                    <div className="reasons-rb">
+                                                                        <div className="reasons-p">
+                                                                            <div className="reasons-i-lbl">
+                                                                                {packageSelected['air:AirPricingInfo'].$.ApproximateBasePrice.includes('INR') ? '₹ ' : ''}
+                                                                                {packageSelected['air:AirPricingInfo'].$.ApproximateBasePrice.replace('INR', '')}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <br className="clear" />
+                                                                </div>
+                                                            </div>
+                                                            <div className="clear" />
+                                                        </div>
+                                                    )
+                                                )}
+                                            <div className="reasons-i">
+                                                <div className="reasons-h">
+                                                    <div className="reasons-l">All Taxes (includes)</div>
+                                                    <div className="reasons-r">
+                                                        <div className="reasons-rb">
+                                                            <div className="reasons-p">
+                                                                <div className="reasons-i-lbl">
+                                                                    {packageSelected && packageSelected.$.ApproximateTaxes.includes('INR') ? '₹ ' : ''}
+                                                                    {packageSelected && packageSelected.$.ApproximateTaxes.replace('INR', '')}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <br className="clear" />
+                                                    </div>
+                                                </div>
+                                                <div className="clear" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="clear" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/* /main-cont */}
+            </div>
+            
+
+    )
+}
+
+export default BookingContinue

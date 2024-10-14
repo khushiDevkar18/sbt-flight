@@ -1,35 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%PUBLIC_URL%/img/taxivaxi_icon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Web site created using create-react-app" />
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+  <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
     -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
+  <!-- <link rel="icon" href="img/taxivaxi_icon.png" /> -->
+  <meta name="description" content="" />
+  <meta name="keywords" content="" />
+  <meta charset="utf-8" />
+  <link rel="icon" href="img/taxivaxi_icon.png" />
+  <meta name="csrf-token" content="W8GLj0BR9HaMvJag02UBpoS7rnRHO3yZSHZ7Hqd4">
+  <script>
+    window.csrfToken = "W8GLj0BR9HaMvJag02UBpoS7rnRHO3yZSHZ7Hqd4";
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <link rel="stylesheet" href="css/jquery-ui.css" />
+  <link rel="stylesheet" href="css/owl.carousel.css" />
+  <link rel="stylesheet" href="css/idangerous.swiper.css" />
+  
+  <link rel="stylesheet" href="css/newstyle.css" />
+  <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css' />
+  <link href='https://fonts.googleapis.com/css?family=Lora:400,400italic' rel='stylesheet' type='text/css' />
+  <link href='https://fonts.googleapis.com/css?family=Raleway:100,200,300,400,600,700,800' rel='stylesheet'
+    type='text/css' />
+  <link href='https://fonts.googleapis.com/css?family=Raleway:400,600' rel='stylesheet' type='text/css' />
+  <link href='https://fonts.googleapis.com/css?family=PT+Sans:400,700&amp;subset=latin,cyrillic' rel='stylesheet'
+    type='text/css' />
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700&amp;subset=latin,latin-ext' rel='stylesheet'
+    type='text/css' />
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700&amp;subset=latin,cyrillic' rel='stylesheet'
+    type='text/css' />
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCnfQ-TTa0kZzAPvcgc9qyorD34aIxaZhk&libraries=places"></script>
+  <title>SelfBooking Tool</title>
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+  <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
 
@@ -39,5 +62,1612 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
-  </body>
+
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+    integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+    crossorigin="anonymous"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+    integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+    crossorigin="anonymous"></script> -->
+
+
+  <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"></script> -->
+  
+
+
+
+
+
+
+  <script>
+    $(document).ready(function () {
+      // Get the current date
+      var currentDate = new Date();
+
+      $('#searchdeparture').datepicker({
+        minDate: currentDate, // Set the minimum date to the current date
+        dateFormat: 'dd/mm/yy',
+        onSelect: function (selectedDate) {
+          $('#searchreturn').prop('disabled', false).datepicker('option', 'minDate', selectedDate);
+          //   $('#hiddenDeparture').val(selectedDate);
+          //   var formattedDate = formatDate(selectedDate);
+          $('#searchdeparture').val(selectedDate);
+          $('#searchdeparture').data('originalValue', selectedDate);
+        }
+      });
+
+      $('#searchreturn').datepicker({
+        minDate: currentDate,
+        dateFormat: 'dd/mm/yy',
+        onSelect: function (selectedDate) {
+          //   $('#searchreturn').val(selectedDate);
+          $('#returnRadio').prop('checked', true);
+          // alert(selectedDate);
+          // var formattedDate = formatDate(selectedDate);
+          $('#searchreturn').val(selectedDate);
+          $('#searchreturn').data('originalValue', selectedDate);
+        }
+      });
+
+      // Initialize the return date picker (initially disabled)
+      $('#searchreturn').prop('disabled', false).datepicker({
+        minDate: currentDate,
+        dateFormat: 'dd/mm/yy',
+        onSelect: function (selectedDate) {
+          //   $('#searchreturn').val(selectedDate);
+          $('#returnRadio').prop('checked', true);
+          //   var formattedDate = formatDate(selectedDate);
+          $('#searchreturn').val(selectedDate);
+          $('#searchreturn').data('originalValue', selectedDate);
+        }
+      });
+
+      var originalDepartureValue = $('#searchdeparture').data('originalValue');
+      if (originalDepartureValue) {
+        var formattedDepartureDate = formatDate(originalDepartureValue);
+        $('#searchdeparture').val(formattedDepartureDate);
+      }
+
+      var originalReturnValue = $('#searchreturn').data('originalValue');
+      //   console.log(originalReturnValue);
+      if (originalReturnValue) {
+        var formattedReturnDate = formatDate(originalReturnValue);
+        $('#searchreturn').val(formattedReturnDate);
+      }
+    });
+
+    function formatDate(dateString) {
+      var parts = dateString.split('index.html');
+      var day = parts[1];
+      var month = parts[0];
+      var year = parts[2];
+
+      return day + '/' + month + '/' + year;
+    }
+
+
+  </script>
+  <script>
+    $(document).ready(function () {
+      //   $('#btnSearch').click(function() {
+      //     showLoader(); // Show the loader when the button is clicked
+      //     $(this).unbind('click').click(); // Trigger the button click event
+      //   });
+
+      // Show the loader when the form is submitted
+      $('#submit-form').submit(function () {
+        showLoader();
+      });
+
+      // Hide the loader after navigating to another page
+      window.addEventListener('pageshow', function (event) {
+        if (event.persisted) {
+          showLoader(); // Show the loader again when navigating back to the main page
+        }
+        hideLoader(); // Hide the loader after the page is fully loaded
+      });
+
+      function showLoader() {
+        $('.loader').show(); // Show the loader
+      }
+
+      function hideLoader() {
+        $('.loader').hide(); // Hide the loader
+      }
+    });
+
+
+  </script>
+
+
+
+  <!-- <script>
+    $(document).ready(function () {
+      // When a radio button is clicked, update the input field value
+      $('#btnSearch').click(function () {
+        var searchfromorigin = $('input[name="searchfrom"]').val();
+        var searchtodestination = $('input[name="searchto"]').val();
+        var searchdepartures = $('input[name="searchdeparture"]').val();
+
+        var selectedAdult = parseInt($('input[name="adult"]:checked').val(), 10);
+        var selectedChild = parseInt($('input[name="child"]:checked').val(), 10);
+        var selectedInfant = parseInt($('input[name="infant"]:checked').val(), 10);
+        var classNametype = parseInt($('input[name="classNametype"]:checked').val(), 10);
+        var total_passenger = selectedAdult + selectedChild + selectedInfant;
+
+        if (searchfromorigin === searchtodestination) {
+          $('#error-message2').text('From & To airports cannot be the same');
+          event.preventDefault();
+        } else {
+          $('#error-message2').text('');
+        }
+        if (total_passenger >= 10) {
+          // alert(total_passenger);
+          $('.redpassenger').show();
+          event.preventDefault();
+        } else {
+          $('.redpassenger').hide();
+        }
+
+        if (selectedAdult < selectedInfant) {
+          $('#error-message1').text('Number of adults should be greater than or equal to the number of infants.');
+          event.preventDefault();
+        } else {
+          $('#error-message1').text('');
+        }
+        var searchoriginValue = searchfromorigin.trim();
+        var searchdestinationValue = searchtodestination.trim();
+        // alert(searchoriginValue);
+        if (searchfromorigin === "" || searchfromorigin === null) {
+          $('.redorigin').show();
+          event.preventDefault();
+        } else {
+          $('.redorigin').hide();
+
+          var airportPattern = /^([A-Za-z\s]+)\s+\((\w+)\)$/;
+          var match = airportPattern.exec(searchfromorigin);
+
+          if (match !== null) {
+            $('.redorigin1').hide();
+            // Perform flight search using the airport code
+          } else {
+            $('.redorigin1').show();
+            event.preventDefault();
+          }
+        }
+        if (searchtodestination == "" || searchtodestination == null) {
+          $('.redestination').show();
+          event.preventDefault();
+        } else {
+          $('.redestination').hide();
+
+          var airportPattern = /^([A-Za-z\s]+)\s+\((\w+)\)$/;
+          var match = airportPattern.exec(searchtodestination);
+
+          if (match !== null) {
+            $('.redestination1').hide();
+            // Perform flight search using the airport code
+          } else {
+            $('.redestination1').show();
+            event.preventDefault();
+          }
+        }
+
+        if (searchdepartures == "" || searchdepartures == null) {
+          $('.redsearchdeparture').show();
+          $('.errorDate').hide();
+          event.preventDefault();
+        }
+        else {
+          $('.redsearchdeparture').hide();
+          $('.errorDate').hide();
+        }
+      });
+    });
+  </script> -->
+  <!-- <script>
+    $(document).ready(function () {
+      // When a radio button is clicked, update the input field value
+      $('input[type="radio"]').click(function () {
+        var selectedAdult = $('input[name="adult"]:checked').val();
+        var selectedChild = $('input[name="child"]:checked').val();
+        var selectedInfant = $('input[name="infant"]:checked').val();
+        var classNametype = $('input[name="classNametype"]:checked').val();
+        //   alert(classNametype);
+
+        var selectedValues = "Adult: " + selectedAdult + ", Child: " + selectedChild + ", Infant: " + selectedInfant + ", CabinclassName: " + classNametype + " className";
+
+        $('#openpassengermodal').val(selectedValues);
+      });
+    });
+  </script> -->
+  <!-- <script>
+    document.getElementById('searchdeparture').addEventListener('keyup', function (event) {
+      var input = event.target.value.replace(/\D/g, '');
+      var formattedDate = '';
+
+      if (input.length === 6) {
+        var month = input.substring(0, 2);
+        var day = input.substring(2, 4);
+        var year = input.substring(4);
+
+        if (isValidDate(month, day, year)) {
+          formattedDate = month + '/' + day + '/' + year;
+        }
+      }
+
+      event.target.value = formattedDate;
+      document.getElementById('errorDate').textContent = formattedDate ? '' : 'Please enter a valid date format';
+      event.preventDefault();
+    });
+
+    document.getElementById('searchreturn').addEventListener('keyup', function (event) {
+      var input = event.target.value.replace(/\D/g, '');
+      var formattedDate = '';
+
+      if (input.length === 6) {
+        var month = input.substring(0, 2);
+        var day = input.substring(2, 4);
+        var year = input.substring(4);
+
+        if (isValidDate(month, day, year)) {
+          formattedDate = month + '/' + day + '/' + year;
+        }
+      }
+
+      event.target.value = formattedDate;
+      document.getElementById('errorDate1').textContent = formattedDate ? '' : 'Please enter a valid date format';
+      event.preventDefault();
+    });
+
+    function isValidDate(month, day, year) {
+      return true;
+    }
+    document.getElementById('searchdeparture').addEventListener('focus', function (event) {
+      document.getElementById('errorDate').textContent = '';
+    });
+    document.getElementById('searchreturn').addEventListener('focus', function (event) {
+      document.getElementById('errorDate1').textContent = '';
+    });
+  </script> -->
+
+
+  <script>
+
+    $(document).ready(function () {
+      var returnDateValue = $('#searchreturn').val();
+      if (returnDateValue != "") {
+        //   alert(returnDateValue);
+        $('#returnRadio').prop('checked', true);
+      }
+      function formatDate(date) {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      }
+
+      // Get today's date
+      const today = new Date();
+
+      // Get tomorrow's date by adding one day to today's date
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 2);
+
+      // Format tomorrow's date as "d/m/Y"
+      const formattedTomorrow = formatDate(tomorrow);
+      $('.bookingtypecheck').on('change', function () {
+        if ($(this).val() === 'oneway') {
+          $('#searchreturn').val('Add Return Date');
+        } else {
+          $('#searchreturn').val(formattedTomorrow);
+        }
+      });
+    });
+  </script>
+
+  <!-- <script>
+    $(document).ready(function () {
+      // When a radio button is clicked, update the input field value
+      $('input[type="radio"]').click(function () {
+        var selectedAdult = $('input[name="adult"]:checked').val();
+        var selectedChild = $('input[name="child"]:checked').val();
+        var selectedInfant = $('input[name="infant"]:checked').val();
+        var classtype = $('input[name="classtype"]:checked').val();
+        //   alert(classtype);
+
+        var selectedValues = "Adult: " + selectedAdult + ", Child: " + selectedChild + ", Infant: " + selectedInfant + ", Cabinclass: " + classtype + " class";
+
+        $('#openpassengermodal').val(selectedValues);
+      });
+    });
+  </script> -->
+
+  <!-- <script>
+    $(document).ready(function () {
+      // Hide the additional input fields initially
+      $('.formhide').hide();
+
+      // Handle click event on the first input field
+      $('#openpassengermodal').click(function () {
+        // Toggle the visibility of the additional input fields
+        $('.formhide').toggle();
+      });
+    });
+  </script> -->
+
+
+
+  <!-- <script>
+    $(document).ready(function () {
+      // When a radio button is clicked, update the input field value
+      $('#btnSearch').click(function () {
+        var searchfromorigin = $('input[name="searchfrom"]').val();
+        var searchtodestination = $('input[name="searchto"]').val();
+        var searchdepartures = $('input[name="searchdeparture"]').val();
+        var selectedAdult = parseInt($('input[name="adult"]:checked').val(), 10);
+        var selectedChild = parseInt($('input[name="child"]:checked').val(), 10);
+        var selectedInfant = parseInt($('input[name="infant"]:checked').val(), 10);
+        var classtype = parseInt($('input[name="classtype"]:checked').val(), 10);
+        var total_passenger = selectedAdult + selectedChild + selectedInfant;
+
+        if (searchfromorigin === searchtodestination) {
+          $('#error-message2').text('From & To airports cannot be the same');
+          event.preventDefault();
+        } else {
+          $('#error-message2').text('');
+        }
+
+        if (total_passenger >= 10) {
+          // alert(total_passenger);
+          $('.redpassenger').show();
+          event.preventDefault();
+        } else {
+          $('.redpassenger').hide();
+        }
+
+        if (selectedAdult < selectedInfant) {
+          $('#error-message1').text('Number of adults should be greater than or equal to the number of infants.');
+          event.preventDefault();
+        } else {
+          $('#error-message1').text('');
+        }
+
+        var searchoriginValue = searchfromorigin.trim();
+        var searchdestinationValue = searchtodestination.trim();
+        // alert(searchoriginValue);
+        if (searchfromorigin === "" || searchfromorigin === null) {
+          $('.redorigin').show();
+          event.preventDefault();
+        } else {
+          $('.redorigin').hide();
+
+          var airportPattern = /^([A-Za-z\s]+)\s+\((\w+)\)$/;
+          var match = airportPattern.exec(searchfromorigin);
+
+          if (match !== null) {
+            $('.redorigin1').hide();
+            // Perform flight search using the airport code
+          } else {
+            $('.redorigin1').show();
+            event.preventDefault();
+          }
+        }
+        if (searchtodestination == "" || searchtodestination == null) {
+          $('.redestination').show();
+          event.preventDefault();
+        } else {
+          $('.redestination').hide();
+
+          var airportPattern = /^([A-Za-z\s]+)\s+\((\w+)\)$/;
+          var match = airportPattern.exec(searchtodestination);
+
+          if (match !== null) {
+            $('.redestination1').hide();
+            // Perform flight search using the airport code
+          } else {
+            $('.redestination1').show();
+            event.preventDefault();
+          }
+        }
+        if (searchdepartures == "" || searchdepartures == null) {
+          $('.redsearchdeparture').show();
+          $('.errorDate').hide();
+          event.preventDefault();
+        }
+        else {
+          $('.redsearchdeparture').hide();
+          $('.errorDate').hide();
+        }
+      });
+    });
+  </script> -->
+
+
+  <script>
+    var acc = document.getElementsByClassName("accordion");
+    var panels = document.getElementsByClassName("panel");
+    var firstPanel = panels[0];
+    // var savePassengerBtn = document.getElementById("save-passenger-btn");
+
+    // savePassengerBtn.addEventListener("click", function () {
+    //   var isValid = true;
+    //   $('.error-message').hide(); // Hide all error messages initially
+
+    //   $('input[name="adult_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="adult_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="adult_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age < 10 || age > 100) {
+    //         $('.adult_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+    //   $('input[name="child_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="child_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="child_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age < 2 || age > 10) {
+    //         $('.child_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+    //   $('input[name="infant_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="infant_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="infant_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age > 2 || age < 0) {
+    //         $('.infant_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+
+    //   if (isValid) {
+    //     event.preventDefault();
+    //     var activePanelIndex = -1;
+    //     for (var i = 0; i < acc.length; i++) {
+    //       if (acc[i].classList.contains("active")) {
+    //         activePanelIndex = i;
+    //         break;
+    //       }
+    //     }
+
+    //     if (activePanelIndex !== -1) {
+    //       // Collapse the current active panel
+    //       acc[activePanelIndex].classList.remove("active");
+    //       panels[activePanelIndex].style.maxHeight = null;
+
+    //       // Display and activate the next accordion panel
+    //       var nextPanelIndex = activePanelIndex + 1;
+    //       if (nextPanelIndex < acc.length) {
+    //         acc[nextPanelIndex].classList.add("active");
+    //         panels[nextPanelIndex].style.maxHeight = panels[nextPanelIndex].scrollHeight + "px";
+    //       }
+    //     }
+
+    //   }
+    //   // Prevent form submission
+
+    //   // Submit the form
+
+    // });
+
+
+  </script>
+
+  <script>
+    var acc = document.getElementsByClassName("accordion");
+    var panels = document.getElementsByClassName("panel");
+    var firstPanel = panels[0];
+    var editPassengerBtn = document.getElementById("edit-passenger-btn");
+
+    // editPassengerBtn.addEventListener("click", function () {
+    //   var inputValue = $('input[name="adult_last_name1[]"]').val();
+    //   // alert(inputValue);
+    //   var isValid = true;
+    //   $('.error-message').hide(); // Hide all error messages initially
+
+    //   $('input[name="adult_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //     // else{
+    //     //   alert($(this).val());
+    //     //   if($(this).val() != inputValue){
+    //     //     isValid = false; 
+    //     //   }
+    //     // }
+    //   });
+    //   $('input[name="adult_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="adult_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age < 10 || age > 100) {
+    //         $('.adult_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+    //   $('input[name="child_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="child_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="child_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age < 2 || age > 10) {
+    //         $('.child_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+    //   $('input[name="infant_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="infant_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="infant_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age > 2 || age < 0) {
+    //         $('.infant_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+    //   if (isValid) {
+    //     event.preventDefault();
+    //     var activePanelIndex = -1;
+    //     for (var i = 0; i < acc.length; i++) {
+    //       if (acc[i].classList.contains("active")) {
+    //         activePanelIndex = i;
+    //         break;
+    //       }
+    //     }
+
+    //     if (activePanelIndex !== -1) {
+    //       // Collapse the current active panel
+    //       acc[activePanelIndex].classList.remove("active");
+    //       panels[activePanelIndex].style.maxHeight = null;
+
+    //       // Display and activate the next accordion panel
+    //       var nextPanelIndex = activePanelIndex + 1;
+    //       if (nextPanelIndex < acc.length) {
+    //         acc[nextPanelIndex].classList.add("active");
+    //         panels[nextPanelIndex].style.maxHeight = panels[nextPanelIndex].scrollHeight + "px";
+    //       }
+    //     }
+    //     // document.getElementById("submit-form1").submit();
+    //   }
+    //   // Prevent form submission
+
+    //   // Submit the form
+
+    // });
+
+
+  </script>
+
+  <script>
+    var acc = document.getElementsByClassName("accordion");
+    var panels = document.getElementsByClassName("panel");
+    var firstPanel = panels[0];
+    var editPassengerBtn = document.getElementById("edit-passenger-btn");
+
+    // editPassengerBtn.addEventListener("click", function () {
+    //   var inputValue = $('input[name="adult_last_name1[]"]').val();
+    //   // alert(inputValue);
+    //   var isValid = true;
+    //   $('.error-message').hide(); // Hide all error messages initially
+
+    //   $('input[name="adult_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //     // else{
+    //     //   alert($(this).val());
+    //     //   if($(this).val() != inputValue){
+    //     //     isValid = false; 
+    //     //   }
+    //     // }
+    //   });
+    //   $('input[name="adult_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="adult_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age < 10 || age > 100) {
+    //         $('.adult_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+    //   $('input[name="child_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="child_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="child_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age < 2 || age > 10) {
+    //         $('.child_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+    //   $('input[name="infant_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="infant_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="infant_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age > 2 || age < 0) {
+    //         $('.infant_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+    //   if (isValid) {
+    //     event.preventDefault();
+    //     var activePanelIndex = -1;
+    //     for (var i = 0; i < acc.length; i++) {
+    //       if (acc[i].classList.contains("active")) {
+    //         activePanelIndex = i;
+    //         break;
+    //       }
+    //     }
+
+    //     if (activePanelIndex !== -1) {
+    //       // Collapse the current active panel
+    //       acc[activePanelIndex].classList.remove("active");
+    //       panels[activePanelIndex].style.maxHeight = null;
+
+    //       // Display and activate the next accordion panel
+    //       var nextPanelIndex = activePanelIndex + 1;
+    //       if (nextPanelIndex < acc.length) {
+    //         acc[nextPanelIndex].classList.add("active");
+    //         panels[nextPanelIndex].style.maxHeight = panels[nextPanelIndex].scrollHeight + "px";
+    //       }
+    //     }
+    //     // document.getElementById("submit-form1").submit();
+    //   }
+    //   // Prevent form submission
+
+    //   // Submit the form
+
+    // });
+
+
+  </script>
+
+
+  <script>
+    var acc = document.getElementsByClassName("accordion");
+    var panels = document.getElementsByClassName("panel");
+    var firstPanel = panels[0];
+    var editPassengerBtn = document.getElementById("edit-passenger-btn");
+
+    // editPassengerBtn.addEventListener("click", function () {
+    //   var inputValue = $('input[name="adult_last_name1[]"]').val();
+    //   // alert(inputValue);
+    //   var isValid = true;
+    //   $('.error-message').hide(); // Hide all error messages initially
+
+    //   $('input[name="adult_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //     // else{
+    //     //   alert($(this).val());
+    //     //   if($(this).val() != inputValue){
+    //     //     isValid = false; 
+    //     //   }
+    //     // }
+    //   });
+    //   $('input[name="adult_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="adult_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.adult_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age < 10 || age > 100) {
+    //         $('.adult_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+    //   $('input[name="child_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="child_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="child_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.child_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age < 2 || age > 10) {
+    //         $('.child_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+    //   $('input[name="infant_last_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_last_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="infant_first_name[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_first_name-message').show();
+    //       isValid = false;
+    //     }
+    //   });
+    //   $('input[name="infant_age[]"]').each(function () {
+    //     if (!$(this).val()) {
+    //       $('.infant_age-message').show();
+    //       isValid = false;
+    //     } else {
+    //       var dobString = $(this).val();
+    //       var dob = new Date(dobString);
+    //       var currentDate = new Date();
+
+    //       var age = currentDate.getFullYear() - dob.getFullYear();
+
+    //       // Adjust the age if the birth date hasn't occurred yet this year
+    //       if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+    //         age--;
+    //       }
+    //       if (age > 2 || age < 0) {
+    //         $('.infant_age-message1').show();
+    //         isValid = false;
+    //       }
+    //     }
+    //   });
+    //   if (isValid) {
+    //     event.preventDefault();
+    //     var activePanelIndex = -1;
+    //     for (var i = 0; i < acc.length; i++) {
+    //       if (acc[i].classList.contains("active")) {
+    //         activePanelIndex = i;
+    //         break;
+    //       }
+    //     }
+
+    //     if (activePanelIndex !== -1) {
+    //       // Collapse the current active panel
+    //       acc[activePanelIndex].classList.remove("active");
+    //       panels[activePanelIndex].style.maxHeight = null;
+
+    //       // Display and activate the next accordion panel
+    //       var nextPanelIndex = activePanelIndex + 1;
+    //       if (nextPanelIndex < acc.length) {
+    //         acc[nextPanelIndex].classList.add("active");
+    //         panels[nextPanelIndex].style.maxHeight = panels[nextPanelIndex].scrollHeight + "px";
+    //       }
+    //     }
+    //     // document.getElementById("submit-form1").submit();
+    //   }
+    //   // Prevent form submission
+
+    //   // Submit the form
+
+    // });
+
+
+  </script>
+
+  <script>
+    var acc = document.getElementsByClassName("accordion");
+    var i;
+
+    for (i = 0; i < acc.length; i++) {
+      acc[i].addEventListener("click", function () {
+        this.classList.toggle("active");
+        var panel = this.nextElementSibling;
+        if (panel.style.maxHeight) {
+          panel.style.maxHeight = null;
+        } else {
+          panel.style.maxHeight = panel.scrollHeight + "px";
+        }
+      });
+    }
+
+    // Set the first accordion as active and display its panel
+    if (acc.length > 0) {
+      acc[0].classList.add("active");
+      var panel = acc[0].nextElementSibling;
+      panel.style.maxHeight = panel.scrollHeight + "px";
+    }
+  </script>
+
+  <script>
+    $(".booking_continue").click(function (event) {
+      var allGroupsValid = true;
+      var groups = {};
+      var adult_email = $('input[name="adult_email"]').val();
+      var adult_contact_details = $('input[name="adult_contact_details"]').val();
+      var adult_address = $('input[name="adult_address"]').val();
+      var adult_street = $('input[name="adult_street"]').val();
+      var adult_city = $('input[name="adult_city"]').val();
+      var adult_state = $('input[name="adult_state"]').val();
+      var adult_postal_code = $('input[name="adult_postal_code"]').val();
+      var adult_country = $('input[name="adult_country"]').val();
+      var adult_email1 = $('input[name="adult_email1"]').val();
+      var adult_contact_details1 = $('input[name="adult_contact_details1"]').val();
+      var adult_address1 = $('input[name="adult_address1"]').val();
+      var adult_street1 = $('input[name="adult_street1"]').val();
+      var adult_city1 = $('input[name="adult_city1"]').val();
+      var adult_state1 = $('input[name="adult_state1"]').val();
+      var adult_postal_code1 = $('input[name="adult_postal_code1"]').val();
+      var adult_country1 = $('input[name="adult_country1"]').val();
+      var isValid = true;
+      $('.error-message').hide();
+      var firstadtultgendername = [], secondadtultgendername = [], firstadtultfirstname = [], secondadtultfirstname = [], firstadtultlastname = [], secondadtultlastname = [], firstadtultage = [], secondadtultage = [];
+      var firstchildgendername = [], secondchildgendername = [], firstchildfirstname = [], secondchildfirstname = [], firstchildlastname = [], secondchildlastname = [], firstchildage = [], secondchildage = [];
+      var firstinfantgendername = [], secondinfantgendername = [], firstinfantfirstname = [], secondinfantfirstname = [], firstinfantlastname = [], secondinfantlastname = [], firstinfantage = [], secondinfantage = [];
+      if (!adult_email || !adult_email1) {
+        $('.email-message').show();
+        isValid = false;
+      } else {
+        if (adult_email != adult_email1) {
+          isValid = false;
+        }
+      }
+      if (!adult_contact_details || !adult_contact_details1) {
+        $('.contact_details-message').show();
+        isValid = false;
+      } else {
+        if (adult_contact_details != adult_contact_details1) {
+          isValid = false;
+        }
+      }
+      if (adult_address != adult_address1) {
+        isValid = false;
+      }
+
+      if (adult_street != adult_street1) {
+        isValid = false;
+      }
+
+      if (adult_city != adult_city1) {
+        isValid = false;
+      }
+
+
+      if (adult_state != adult_state1) {
+        isValid = false;
+      }
+
+
+      if (adult_postal_code != adult_postal_code1) {
+        isValid = false;
+      }
+
+
+      if (adult_country != adult_country1) {
+        isValid = false;
+      }
+
+
+      // alert(isValid);
+      $('input[name="adult_last_name[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.adult_last_name-message').show();
+          isValid = false;
+        }
+        else {
+          firstadtultlastname[index] = $(this).val();
+        }
+      });
+      $('input[name="adult_last_name1[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.adult_last_name-message').show();
+          isValid = false;
+        }
+        else {
+          secondadtultlastname[index] = $(this).val();
+        }
+      });
+      for (var i = 0; i < firstadtultlastname.length; i++) {
+        if (firstadtultlastname[i] !== secondadtultlastname[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+      $('input[name="adult_first_name[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.adult_first_name-message').show();
+          isValid = false;
+        } else {
+          firstadtultfirstname[index] = $(this).val();
+        }
+      });
+      $('input[name="adult_first_name1[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.adult_first_name-message').show();
+          isValid = false;
+        } else {
+          secondadtultfirstname[index] = $(this).val();
+        }
+      });
+      for (var i = 0; i < firstadtultfirstname.length; i++) {
+        if (firstadtultfirstname[i] !== secondadtultfirstname[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+      $('input[name="adult_age[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.adult_age-message').show();
+          isValid = false;
+        } else {
+          firstadtultage[index] = $(this).val();
+          var dobString = $(this).val();
+          var dob = new Date(dobString);
+          var currentDate = new Date();
+
+          var age = currentDate.getFullYear() - dob.getFullYear();
+
+          if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+            age--;
+          }
+          if (age < 10 || age > 100) {
+            $('.adult_age-message1').show();
+            isValid = false;
+          }
+        }
+      });
+      $('input[name="adult_age1[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.adult_age-message').show();
+          isValid = false;
+        } else {
+          secondadtultage[index] = $(this).val();
+          var dobString = $(this).val();
+          var dob = new Date(dobString);
+          var currentDate = new Date();
+
+          var age = currentDate.getFullYear() - dob.getFullYear();
+
+          if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+            age--;
+          }
+          if (age < 10 || age > 100) {
+            $('.adult_age-message1').show();
+            isValid = false;
+          }
+        }
+      });
+      for (var i = 0; i < firstadtultage.length; i++) {
+        if (firstadtultage[i] !== secondadtultage[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+
+      $('.adult_gender').each(function (index) {
+        if ($(this).val() === "F") {
+          var selectTimeValue = "Female";
+        } else {
+          var selectTimeValue = "Male";
+        }
+
+        firstadtultgendername[index] = selectTimeValue;
+      });
+      // alert(firstadtultgendername);
+      $('.adult_gender1').each(function (index) {
+        var inputTimeValue = $(this).val();
+        secondadtultgendername[index] = inputTimeValue;
+      });
+      for (var i = 0; i < firstadtultgendername.length; i++) {
+        if (firstadtultgendername[i] !== secondadtultgendername[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+      // alert(secondadtultgendername);
+      // alert(isValid);
+      $('input[name="child_last_name[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.child_last_name-message').show();
+          isValid = false;
+        }
+        else {
+          firstchildlastname[index] = $(this).val();
+        }
+      });
+      $('input[name="child_last_name1[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.child_last_name-message').show();
+          isValid = false;
+        }
+        else {
+          secondchildlastname[index] = $(this).val();
+        }
+      });
+      for (var i = 0; i < firstchildlastname.length; i++) {
+        if (firstchildlastname[i] !== secondchildlastname[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+      $('input[name="child_first_name[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.child_first_name-message').show();
+          isValid = false;
+        }
+        else {
+          firstchildfirstname[index] = $(this).val();
+        }
+      });
+      $('input[name="child_first_name[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.child_first_name-message').show();
+          isValid = false;
+        }
+        else {
+          secondchildfirstname[index] = $(this).val();
+        }
+      });
+      for (var i = 0; i < firstchildfirstname.length; i++) {
+        if (firstchildfirstname[i] !== secondchildfirstname[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+      $('input[name="child_age[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.child_age-message').show();
+          isValid = false;
+        } else {
+          firstchildage[index] = $(this).val();
+          var dobString = $(this).val();
+          var dob = new Date(dobString);
+          var currentDate = new Date();
+
+          var age = currentDate.getFullYear() - dob.getFullYear();
+
+          // Adjust the age if the birth date hasn't occurred yet this year
+          if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+            age--;
+          }
+          if (age < 2 || age > 10) {
+            $('.child_age-message1').show();
+            isValid = false;
+          }
+        }
+      });
+      $('input[name="child_age1[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.child_age-message').show();
+          isValid = false;
+        } else {
+          secondchildage[index] = $(this).val();
+          var dobString = $(this).val();
+          var dob = new Date(dobString);
+          var currentDate = new Date();
+
+          var age = currentDate.getFullYear() - dob.getFullYear();
+
+          // Adjust the age if the birth date hasn't occurred yet this year
+          if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+            age--;
+          }
+          if (age < 2 || age > 10) {
+            $('.child_age-message1').show();
+            isValid = false;
+          }
+        }
+      });
+      for (var i = 0; i < firstchildage.length; i++) {
+        if (firstchildage[i] !== secondchildage[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+
+      $('.child_gender').each(function (index) {
+        if ($(this).val() === "F") {
+          var selectTimeValue = "Female";
+        } else {
+          var selectTimeValue = "Male";
+        }
+        firstchildgendername[index] = selectTimeValue;
+      });
+
+      $('.child_gender1').each(function (index) {
+        var inputTimeValue = $(this).val();
+        secondchildgendername[index] = inputTimeValue;
+      });
+      for (var i = 0; i < firstchildgendername.length; i++) {
+        if (firstchildgendername[i] !== secondchildgendername[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+      $('input[name="infant_last_name[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.infant_last_name-message').show();
+          isValid = false;
+        }
+        else {
+          firstinfantlastname[index] = $(this).val();
+        }
+      });
+      $('input[name="infant_last_name1[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.infant_last_name-message').show();
+          isValid = false;
+        }
+        else {
+          secondinfantlastname[index] = $(this).val();
+        }
+      });
+      for (var i = 0; i < firstinfantlastname.length; i++) {
+        if (firstinfantlastname[i] !== secondinfantlastname[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+      $('input[name="infant_first_name[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.infant_first_name-message').show();
+          isValid = false;
+        }
+        else {
+          firstinfantfirstname[index] = $(this).val();
+        }
+      });
+      $('input[name="infant_first_name1[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.infant_first_name-message').show();
+          isValid = false;
+        }
+        else {
+          secondinfantfirstname[index] = $(this).val();
+        }
+      });
+      for (var i = 0; i < firstinfantfirstname.length; i++) {
+        if (firstinfantfirstname[i] !== secondinfantfirstname[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+      $('input[name="infant_age[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.infant_age-message').show();
+          isValid = false;
+        } else {
+          firstinfantage[index] = $(this).val();
+          var dobString = $(this).val();
+          var dob = new Date(dobString);
+          var currentDate = new Date();
+
+          var age = currentDate.getFullYear() - dob.getFullYear();
+
+          // Adjust the age if the birth date hasn't occurred yet this year
+          if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+            age--;
+          }
+          if (age > 2 || age < 0) {
+            $('.infant_age-message1').show();
+            isValid = false;
+          }
+        }
+      });
+      $('input[name="infant_age1[]"]').each(function (index) {
+        if (!$(this).val()) {
+          $('.infant_age-message').show();
+          isValid = false;
+        } else {
+          secondinfantage[index] = $(this).val();
+          var dobString = $(this).val();
+          var dob = new Date(dobString);
+          var currentDate = new Date();
+
+          var age = currentDate.getFullYear() - dob.getFullYear();
+
+          // Adjust the age if the birth date hasn't occurred yet this year
+          if (currentDate.getMonth() < dob.getMonth() || (currentDate.getMonth() === dob.getMonth() && currentDate.getDate() < dob.getDate())) {
+            age--;
+          }
+          if (age > 2 || age < 0) {
+            $('.infant_age-message1').show();
+            isValid = false;
+          }
+        }
+      });
+      for (var i = 0; i < firstinfantage.length; i++) {
+        if (firstinfantage[i] !== secondinfantage[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+      $('.infant_gender').each(function (index) {
+        if ($(this).val() === "F") {
+          var selectTimeValue = "Female";
+        } else {
+          var selectTimeValue = "Male";
+        }
+        firstinfantgendername[index] = selectTimeValue;
+      });
+
+      $('.infant_gender1').each(function (index) {
+        var inputTimeValue = $(this).val();
+        secondinfantgendername[index] = inputTimeValue;
+      });
+      for (var i = 0; i < firstinfantgendername.length; i++) {
+        if (firstinfantgendername[i] !== secondinfantgendername[i]) {
+          isValid = false;
+          // break;
+        }
+      }
+      $('input[type="radio"]').each(function () {
+        var group = $(this).data('group');
+        // console.log(group);
+
+        // Check if the data-group attribute is defined
+        if (group !== undefined) {
+          if (!groups[group]) {
+            groups[group] = false;
+          }
+          if ($(this).is(':checked')) {
+            groups[group] = true;
+          }
+        }
+      });
+
+      for (var group in groups) {
+        if (!groups[group]) {
+          allGroupsValid = false;
+          break;
+        }
+      }
+
+      if (isValid) {
+
+        if (allGroupsValid) {
+          event.preventDefault();
+          var currentAccordion = $('.accordion.active');
+          currentAccordion.removeClass('active');
+          var currentPanel = currentAccordion.next('.panel');
+          // currentPanel.css('display', none);
+          currentPanel.css('maxHeight', null);
+          // 
+          // Find the next accordion and open it
+          var nextAccordion = currentAccordion.nextAll('.accordion:not(.active)').first();
+          if (nextAccordion.length > 0) {
+            nextAccordion.addClass('active');
+            var nextPanel = nextAccordion.next('.panel');
+            nextPanel.css('maxHeight', nextPanel[0].scrollHeight + 'px');
+          }
+          else {
+
+            $('#submit-form2').submit();
+
+
+          }
+          return false;
+        } else {
+
+          var proceedWithoutSelection1 = confirm("Do you want to proceed without selecting a seat?");
+          if (proceedWithoutSelection1) {
+            $('#submit-form2').submit();
+          } else {
+            return false;
+          }
+
+        }
+      }
+      else {
+        var proceedWithoutSelection = confirm("Do you want to save edit details..?");
+        if (proceedWithoutSelection) {
+          $('#submit-form1').submit();
+        } else {
+          return false;
+        }
+      }
+    });
+
+  </script>
+
+  <script>
+    $(document).ready(function () {
+      // Check if the form was submitted and returned back
+      var isFormSubmitted = null;
+
+      if (isFormSubmitted) {
+        // Retrieve the form identifier from the session data
+        var formId = '';
+
+        // Perform actions based on the form identifier
+        if (formId === 'form1') {
+          // Remove the blurred class from the first accordion header of form1
+          $('#headingOne').removeClass('blurred');
+        } else if (formId === 'form2') {
+          $('#headingTwo').removeClass('blurred');
+          // ...
+        } else if (formId === 'form3') {
+          $('#headingThree').removeClass('blurred');
+        }
+      }
+    });
+  </script>
+
+
+  <script>
+    var accpackage = document.getElementsByClassName("accordionpackage");
+    var ipackage;
+
+    for (ipackage = 0; ipackage < accpackage.length; ipackage++) {
+      accpackage[ipackage].addEventListener("click", function () {
+        // Close all other panels
+        closeOtherPanels(this);
+
+        this.classList.toggle("active");
+        var panelpackage = this.nextElementSibling;
+        if (panelpackage.style.display === "block") {
+          panelpackage.style.display = "none";
+        } else {
+          panelpackage.style.display = "block";
+        }
+      });
+    }
+
+    function closeOtherPanels(clickedAccordion) {
+      for (var i = 0; i < accpackage.length; i++) {
+        // Skip the clicked accordion
+        if (accpackage[i] !== clickedAccordion) {
+          accpackage[i].classList.remove("active");
+          accpackage[i].nextElementSibling.style.display = "none";
+        }
+      }
+    }
+  </script>
+
+
+  <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"></script> -->
+  <script src="js/jquery.min.js"></script>
+  <script src="js/slideInit.js"></script>
+  <script src="js/idangerous.swiper.js"></script>
+  <script src="js/jqeury.appear.js"></script>
+  <script src="js/owl.carousel.min.js"></script>
+  <script src="js/bxSlider.js"></script>
+  <script src="js/custom.select.js"></script>
+  <script src="js/jquery-ui.min.js"></script>
+
+  <script src="js/script.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
 </html>
