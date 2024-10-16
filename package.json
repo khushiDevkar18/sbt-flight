@@ -1,5 +1,5 @@
 {
-  "name": "booking",
+  "name": "local.selfbooking.com",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -17,24 +17,30 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^3.3.1",
     "express": "^4.19.2",
+    "fast-xml-parser": "^4.5.0",
     "js-cookie": "^3.0.5",
+    "node-polyfill-webpack-plugin": "^4.0.0",
     "rc-slider": "^10.5.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.1",
     "react-datepicker": "^6.1.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.23.0",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^5.0.1",
     "react-xml-parser": "^1.1.8",
     "stream": "^0.0.2",
     "sweetalert": "^2.1.2",
-    "sweetalert2": "^11.10.7",
+    "sweetalert2": "^11.6.13",
     "timers-browserify": "^2.0.12",
     "web-vitals": "^2.1.4",
+    "timers": "^0.1.1",
     "xml2js": "^0.6.2"
+    
+    
+    
   },
   "scripts": {
-    "start": "react-scripts start --host local.selfbooking.com",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

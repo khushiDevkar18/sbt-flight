@@ -76,7 +76,7 @@ const Header = () => {
 
 
                     <div className="wrapper-padding">
-                        <div className="header-logo"><a href="index-2.html"><img alt="" src="img/taxivaxi/logo/taxivaxi%20logo%202.svg" /></a></div>
+                        <div className="header-logo"><a href="index-2.html"><img alt="" src="img/taxivaxi/logo/cotrav_logo.svg" /></a></div>
                         <div className="header-right">
                             <div className="hdr-srch">
                                 <a href="#" className="hdr-srch-btn"></a>
@@ -92,13 +92,13 @@ const Header = () => {
                             <a href="#" className="menu-btn"></a>
                             <nav className="header-nav">
                                 <ul>
-                                    <li><Link className="has-child" to="/">HOME</Link>
-
-                                    </li>
+                                    <li><Link className="nav-links" to="/">HOME</Link></li>
+                                    
 
                                     <li><a className="has-child" href="#">Services</a>
                                         <ul>
                                             <li><a href="flightOneWay.html">Hotel Booking</a></li>
+                                            
                                             <li><a href="flightOneWay.html">Cabs</a></li>
                                             <li><a href="flightOneWay.html">Ticketing - Train, Bus & flight</a></li>
                                             <li><a href="flightOneWay.html">logistics</a></li>

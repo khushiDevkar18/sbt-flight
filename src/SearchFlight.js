@@ -870,7 +870,7 @@ const handleReturnDateInitialization = (bookingType) => {
 };
     const getLabelStyle = (labelValue) => {
         if (labelValue === formData.bookingType) {
-            return { color: '#fff', backgroundColor: '#bd8100' };
+            return { color: '#fff', backgroundColor: '#785eff' };
         } else {
             return {};
         }

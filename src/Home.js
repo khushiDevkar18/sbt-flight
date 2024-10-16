@@ -141,6 +141,7 @@ function Home() {
                 'Authorization': authHeader,
             },
             });
+            // console.log('resp', airlineresponse.data);
             setAirlineResponse(airlineresponse);
             
         } catch (error) {
@@ -320,7 +321,7 @@ function Home() {
     
     const getLabelStyle = (labelValue) => {
         if (labelValue === formData.bookingType) {
-            return { color: '#fff', backgroundColor: '#bd8100' };
+            return { color: '#fff', backgroundColor: '#785eff' };
         } else {
             return {};
         }
@@ -570,8 +571,11 @@ function Home() {
             const username = 'Universal API/uAPI8645980109-af7494fa';
             const password = 'N-k29Z}my5';
             const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
+            // console.log('auth',username);
+            // console.log('auth',password);
 
             sessionStorage.setItem('searchdata', soapEnvelope);
+            // console.log('ausdfgth',soapEnvelope);
             
     
             const response = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {

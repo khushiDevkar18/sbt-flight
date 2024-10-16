@@ -5058,8 +5058,8 @@ const Booking = () => {
                                                                                             Array.isArray(packageSelected['air:AirPricingInfo'][0]['air:CancelPenalty']) ? (
                                                                                                 packageSelected['air:AirPricingInfo'][0]['air:CancelPenalty'].map((cancelpolicy, cancelindex) => (
                                                                                                     <>
-                                                                                                        {cancelpolicy?.['air:Amount'] || 'NA'}.includes('INR') ? '₹ ' : ''}
-                                                                                                        {cancelpolicy?.['air:Amount'] || 'NA'}.replace('INR', '')
+                                                                                                        {cancelpolicy?.['air:Amount'] || 'NA'.includes('INR') ? '₹ ' : ''}
+                                                                                                        {cancelpolicy?.['air:Amount'] || 'NA'.replace('INR', '')}
                                                                                                     </>
                                                                                                 ))
                                                                                             ) : (
@@ -5072,8 +5072,8 @@ const Booking = () => {
                                                                                             Array.isArray(packageSelected['air:AirPricingInfo']['air:CancelPenalty']) ? (
                                                                                                 packageSelected['air:AirPricingInfo']['air:CancelPenalty'].map((cancelpolicy, cancelindex) => (
                                                                                                     <>
-                                                                                                        {cancelpolicy?.['air:Amount'] || 'NA'}.includes('INR') ? '₹ ' : ''}
-                                                                                                        {cancelpolicy?.['air:Amount'] || 'NA'}.replace('INR', '')
+                                                                                                        {cancelpolicy?.['air:Amount'] || 'NA'.includes('INR') ? '₹ ' : ''}
+                                                                                                        {cancelpolicy?.['air:Amount'] || 'NA'.replace('INR', '')}
                                                                                                     </>
                                                                                                 ))
                                                                                             ) : (

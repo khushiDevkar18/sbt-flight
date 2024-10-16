@@ -116,21 +116,21 @@ $(document).ready(function () {
 
 
 	var $headerDown = function () {
-		header_a.slideUp(120);
-		header_b.css('height', '59px');
-		header_b.addClass('fixed');
-		header_logo.css('margin-top', '10px')
-		header_right.css('margin-top', '21px');
-		header_logo.find('img').attr('src', 'img/taxivaxi/logo/taxivaxi logo 2.svg');
+		// header_a.slideUp(120);
+		// header_b.css('height', '59px');
+		// header_b.addClass('fixed');
+		// header_logo.css('margin-top', '5px')
+		// header_right.css('margin-top', '20px');
+		header_logo.find('img').attr('src', 'img/taxivaxi/logo/cotrav_logo.svg');
 
 	}
 	var $headerUp = function () {
-		header_a.slideDown(150);
-		header_b.removeClass('fixed');
-		header_b.css('height', '53px');
-		header_logo.css('margin-top', '5px');
-		header_right.css('margin-top', '20px');
-		header_logo.find('img').attr('src', 'img/taxivaxi/logo/taxivaxi logo 1.svg');
+		// header_a.slideDown(150);
+		// header_b.removeClass('fixed');
+		// header_b.css('height', '53px');
+		// header_logo.css('margin-top', '5px');
+		// header_right.css('margin-top', '20px');
+		header_logo.find('img').attr('src', 'img/taxivaxi/logo/cotrav_logo.svg');
 	}
 
 	$(window).scroll(function () {

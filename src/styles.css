@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&display=swap');
+
 html {
   -webkit-text-size-adjust: auto;
   -ms-text-size-adjust: auto;
@@ -674,10 +676,10 @@ textarea {
 }
 
 .header-nav ul li a {
-  font-size: 12px;
-  color: #2c2c2c;
-  font-family: 'Montserrat';
-  font-weight: normal;
+  font-size: 16px;
+  color: black;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
   text-decoration: none;
   text-transform: uppercase;
 }
@@ -1627,7 +1629,7 @@ font-size: 10px;
 .header-viewed:hover .header-viewed-btn,
 .header-curency a:hover,
 .header-nav ul li a:hover {
-  color: #bd8100;
+  color: #644ed4;
 }
 
 .header-nav ul li {
@@ -1657,12 +1659,13 @@ font-size: 10px;
   top: 34px;
   z-index: 999;
   width: 211px;
-  background: #111111;
+  background: #a594ff;
   padding: 17px 0px 18px 0px;
+  border-radius: 0.5rem;
 }
 
 .header-nav ul li:hover>a {
-  color: #bd8100;
+  color: #785eff;
 }
 
 .header-nav ul ul li {
@@ -1682,7 +1685,7 @@ font-size: 10px;
   margin: 0px;
   padding: 0px;
   font-size: 11px;
-  color: #d8d8d8;
+  color: white;
   font-family: 'Raleway';
   font-weight: 600;
 }
@@ -1894,7 +1897,7 @@ font-size: 10px;
   width: 102px;
   height: 24px;
   padding-top: 10px;
-  background: #bd8100;
+  background: #785eff;
   border-radius: 2px;
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
@@ -2252,8 +2255,8 @@ min-height: 34px;
 }
 
 .srch-btn:hover {
-  background: #ffca27;
-  border-color: #ffca27;
+  background: #644ed4;
+  border-color: black;
 }
 
 .input-a1 input[type="radio"] {
@@ -3742,13 +3745,13 @@ nav ul li {
   border-radius: 2px;
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
-  background: #bd8100;
+  background: #785eff;
   font-size: 11px;
   text-transform: uppercase;
 }
 
 .footer-subscribe-btn:hover {
-  background: #f98528;
+  background: #644ed4;
 }
 
 .footer-b {
@@ -4079,15 +4082,16 @@ nav ul li {
   text-transform: uppercase;
   font-family: 'Montserrat';
   font-weight: normal;
-  background: #bd8100;
+  background: #785eff;
   text-decoration: none;
   border-radius: 2px;
   padding: 12px 36px 12px 36px;
-  color: #1d292e;
+  color: white;
 }
 
 .theme-teaser-c:hover {
-  color: #bd8100;
+  background: #644ed4;
+  color: white;
 }
 
 .theme-teaser-padding {
@@ -4789,7 +4793,7 @@ sup {
   line-height: 23px;
   font-weight: bold;
   font-size: 15px;
-  color: #bd8100;
+  color: #644ed4;
   float: right;
   margin-right: 21px;
 }
@@ -17815,7 +17819,7 @@ color: #fff;
   font-family: 'Montserrat';
   padding: 1%;
   font-weight: 600;
-  color: #bd8100;
+  color: black;
   font-size: 14px;
 
 }
@@ -18011,7 +18015,7 @@ background-color: #fff !important;
   padding-left: 6%;
   font-weight: 700;
   text-transform: capitalize;
-  color: #bd8100;
+  color: black;
   font-family: 'Montserrat'
 }
 .seatbutton,.baggagebutton{
@@ -18408,3 +18412,36 @@ width: 100%;
     margin: auto;
     display: block;
   }
+
+  /* .nav-links {
+    display: inline-block;
+    border-radius: 0.5rem;
+    margin-top: 1px;
+    transition: background-color 0.3s ease;
+    line-height: 1; /
+  }
+
+  .nav-links:hover {
+      
+      background-color: #e5e5e5; 
+  } */
+
+
+.header-nav a {
+    text-decoration: none !important;  /* Remove underline from links */
+    padding: 0.5rem 0.7rem !important;  /* Add some padding around the links */
+    transition: background-color 0.3s ease !important;
+    color: #000 !important;  /* Default link color */
+    background-color: transparent !important;  /* Default background */
+    
+}
+
+.header-nav a:hover {
+    background-color: #e5e5e5 !important;  /* Light gray hover effect */
+    color: #000 !important;  /* Text color on hover */
+    border-radius: 10px !important;  /* Optional: Rounded corners on hover */
+}
+
+.clear {
+    clear: both !important;
+}
