@@ -2109,7 +2109,7 @@ button.srch-btn {
   border: 1px solid #e3e3e3;
   border-radius: 3px;
   box-shadow: 0 1px 1px 0 rgba(50, 50, 50, 0.05);
-  color: #8a8a8a;
+  color: red;
 min-height: 34px;
 }
 
@@ -2422,18 +2422,19 @@ min-height: 34px;
 }
 
 .select-wrapper1 input[type="radio"]:checked+label {
-  background-color: #bd8100;
-  border-color: #bd8100;
+  background-color: #785eff;
+  border-color: #785eff;
   color: #fff;
 }
 
 .select-wrapper1 input[type="radio"]:checked+label:hover {
-  background: #ffca27;
-  border-color: #ffca27;
+  background: #644ed4;
+  border-color: #644ed4;
+  color: #fff;
 }
 
 .select-wrapper1 input[type="radio"]+label:hover {
-  color: #8a8a8a;
+  color: #fff;
 }
 
 .select-wrapper2 input[type="radio"]+label:hover {
@@ -4626,7 +4627,7 @@ nav ul li {
   padding-right: 27px;
   font-weight: 500;
   background-size: 14px;
-  background: url(../public/img/depart-icon.png) right top no-repeat;
+  background: url(../public/img/depart-icon1.svg) right top no-repeat;
   background-position: right 1px;
 }
 
@@ -4844,7 +4845,7 @@ sup {
 
 .flight-details {
   display: none;
-  border: 1px solid #bd8100;
+  border: 1px solid #785eff;
   padding: 13px 9px 6px 11px;
   font-family: 'Montserrat';
   font-weight: 600;
@@ -4867,7 +4868,7 @@ sup {
 }
 
 .flight-details .tab .tablinks.active {
-  background: #bd8100;
+  background: #785eff;
   color: #fff;
 }
 
@@ -4890,7 +4891,7 @@ sup {
 
 .flight-details-a {
   font-size: 11px;
-  color: #bd8100;
+  color: #785eff;
   padding-top: 8px;
   padding-bottom: 9px;
   font-family: 'Montserrat';
@@ -4916,9 +4917,9 @@ sup {
 }
 
 .flight-details-e hr {
-  color: #bd8100;
-  background-color: #bd8100;
-  border: 1px solid #bd8100;
+  color: #785ef7;
+  background-color: #785ef7;
+  border: 1px solid #785ef7;
 }
 
 .flight-details-c {
@@ -7575,12 +7576,12 @@ preferences-list-alt li {
   font-family: 'Open Sans';
   border-radius: 4px;
   width: 170px;
-  background-color: #bd8100;
+  background-color: #785eff;
   text-transform: uppercase;
 }
 
 .booking_continue_hover:hover {
-  background-color: #ffca27;
+  background-color: #644ed4;
 }
 
 .booking-left .addon-button {
@@ -7953,9 +7954,9 @@ preferences-list-alt li {
   float: right;
   border-radius: 5px;
   margin-right: 6px;
-  background-color: #bd8100;
+  background-color: #785eff;
   cursor: pointer;
-  border: 1px solid #bd8100;
+  border: 1px solid #785eff;
   color: #fff;
   margin-left: 5px;
   text-transform: uppercase;
@@ -7966,8 +7967,8 @@ preferences-list-alt li {
 
 .booking-left .passenger-submit:hover,
 .booking-left .save_details:hover {
-  background: #ffca27;
-  border-color: #ffca27;
+  background: #644ed4;
+  border-color: #644ed4;
 }
 
 .flight-item.selected-flight {
@@ -9122,7 +9123,7 @@ preferences-list-alt li {
 
 .chk-r {
   float: right;
-  color: #bd8100;
+  color: #785eff;
 }
 
 .chk-detais-row {
@@ -9141,7 +9142,7 @@ preferences-list-alt li {
 .chk-total-r {
   float: right;
   font-size: 16px;
-  color: #bd8100;
+  color: #785eff;
   font-weight: 600;
   font-family: 'Montserrat';
 }
@@ -9162,7 +9163,7 @@ preferences-list-alt li {
   font-family: 'Open Sans';
   margin-top: 5px;
   font-weight: 700;
-  color: #bd8100;
+  color: #785eff;
   float: left;
 }
 
@@ -9185,7 +9186,7 @@ preferences-list-alt li {
   font-size: 12px;
   font-family: 'Open Sans';
   font-weight: 700;
-  color: #bd8100;
+  color: #785eff;
   margin-top: 5px;
   float: left;
 }
@@ -17240,7 +17241,7 @@ input:checked+.slider:before {
 }
 
 .multipleflight .modal-header {
-  background-color: #bd8100;
+  background-color: #785eff;
   color: #fff;
 }
 
@@ -17318,41 +17319,41 @@ input:checked+.slider:before {
 }
 
 .selectcontainer .optionsflights .optionsflight{
-  height: 350px;
+  height: 100px;
 }
 .selectcontainer .optionsflights:hover {
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-  border: 1px solid #ffca27;
+  border: 1px solid #785eff;
 }
 .modal-body .continuebutton {
-  background-color: #bd8100;
+  background-color: #785eff;
   padding: 7px 10px;
-  border: 1px solid #bd8100;
+  border: 1px solid #785eff;
   color: #fff;
   font-family: 'Open Sans';
-  margin-right: 0%;
+  margin-left: 2%;
+  
   border-radius: 5px;
   font-weight: 700;
   font-size: 14px;
-  float: right;
+  float: left;
+  
   text-transform: uppercase;
 }
 .modal-header .modal-title{
   margin-left: 0 !important;
 }
 .modal-body .continuebutton:hover {
-  background: #ffca27;
-  border-color: #ffca27;
+  background: #644ed4;
+  border-color: #644ed4;
 }
 
-/* .selectcontainer input[type="radio"]:checked+.selectcontainer .optionsflights {
-  background-color: #bd8100;
-} */
+
 
 .optionsflights .seelctheader {
   font-size: 15px;
   font-weight: 600;
-  color: #bd8100;
+  color: #785eff;
   margin: 3% 0%;
   text-transform: capitalize;
   font-family: 'Montserrat';
@@ -17379,7 +17380,7 @@ input:checked+.slider:before {
   margin-right: 1%;
   color: #fff;
   font-size: 12px;
-  border: 1px solid #bd8100;
+  border: 1px solid #785eff;
   font-family: 'Open Sans';
   padding: 8px;
   line-height: 13px;
@@ -17387,7 +17388,7 @@ input:checked+.slider:before {
   border-radius: 3px;
   margin-top: -4px;
   font-weight: 700;
-  background: #bd8100;
+  background: #785eff;
   text-transform: uppercase;
 }
 .packagemorespan{
@@ -17396,8 +17397,8 @@ input:checked+.slider:before {
   height: 10px;
 }
 .packagemore:hover {
-  border: 1px solid #ffca27;
-  background-color: #ffca27;
+  border: 1px solid #644ed4;
+  background-color: #644ed4;
 }
 
 .multipleflight .tabcontent {
@@ -17480,7 +17481,7 @@ color: #bd8100;
 }
 
 .electcontainer .checkedflight:checked+.optionsflights {
-  border: 1px solid #bd8100;
+  border: 1px solid #785eff;
 }
 
 /* .selectedDiv {
@@ -17556,7 +17557,7 @@ cursor: pointer;
 background-color: rgba(0,0,0,.03);
 }
 .flight_nav  .nav-item .nav-link.active{
-background: #bd8100;
+background: #785ef7;
 color: #fff;
 }
 .moreairlineimg{
@@ -17567,7 +17568,7 @@ color: #fff;
   
 }
 .modal-header{
-  background-color: #bd8100;
+  background-color: #785eff;
     color: #fff;
 }
 .modal-header .modal-title{
@@ -17615,10 +17616,10 @@ color: #fff;
     font-weight: 600;
 }
 .rc-slider-track{
-  background-color: #bd8100 !important; 
+  background-color: #785eff !important; 
 }
 .rc-slider-handle{
-  border: solid 2px #bd8100 !important;
+  border: solid 2px #785eff !important;
 }
 .rc-slider{
   /* margin-left: 8px !important; */
@@ -17696,8 +17697,8 @@ color: #fff;
 
 }
 .react-datepicker__header {
-  background-color: #bd8100 !important;
-  border-bottom: 1px solid #bd8100 !important;
+  background-color: #785eff !important;
+  border-bottom: 1px solid #785eff !important;
   
 }
 .react-datepicker__current-month, .react-datepicker-time__header, .react-datepicker-year-header,
@@ -17707,7 +17708,7 @@ color: #fff;
 
 .react-datepicker__day--selected, .react-datepicker__day--in-selecting-range, .react-datepicker__day--in-range, .react-datepicker__month-text--selected, .react-datepicker__month-text--in-selecting-range, .react-datepicker__month-text--in-range, .react-datepicker__quarter-text--selected, .react-datepicker__quarter-text--in-selecting-range, .react-datepicker__quarter-text--in-range, .react-datepicker__year-text--selected, .react-datepicker__year-text--in-selecting-range, .react-datepicker__year-text--in-range,
 .react-datepicker__day--keyboard-selected, .react-datepicker__month-text--keyboard-selected, .react-datepicker__quarter-text--keyboard-selected, .react-datepicker__year-text--keyboard-selected{
-  background-color: #bd8100 !important;
+  background-color: #785eff !important;
   
 }
 
@@ -17721,9 +17722,9 @@ color: #fff;
 } */
 
 .react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle{
-  fill: #bd8100;
-    color: #bd8100;
-    stroke: #bd8100;
+  fill: #785eff;
+    color: #785eff;
+    stroke: #785eff;
 }
 .swapbutton{
   background: none;
@@ -17743,22 +17744,22 @@ color: #fff;
 }
 .swal2-confirm{
   padding: 0.425em 1.1em !important;
-  background-color: #bd8100 !important;
+  background-color: #785eff !important;
 }
 .swal2-confirm:hover{
-  background: #ffca27 !important;
-  border-color: #ffca27 !important;
+  background: #644ed4 !important;
+  border-color: #644ed4 !important;
 }
 .swal2-icon{
   width: 3em !important;
   height: 3em !important;
-  border-color: #bd8100 !important;
+  border-color: #785eff !important;
   margin: 0.5em auto 0.6em !important;
 }
 
 .swal2-icon-content{
   font-size: 2.75em !important;
-  color: #bd8100 !important;
+  color: #785eff !important;
 }
 
 .swal2-cancel {
@@ -17797,7 +17798,7 @@ color: #fff;
 }
 .headingpolicies .farerules{
   float: right;
-    color: #bd8100;
+    color: #785eff;
     background-color: #fff;
     border: none;
     font-weight: 600;
@@ -17896,13 +17897,13 @@ padding-left: 10px !important;
 }
 
 .extrabaggage .tab-content {
-  border-color: #fff #bd8100 #bd8100 #bd8100 !important;
+  border-color: #fff #785eff #785eff #785eff !important;
   border-style: solid !important;
   border-width: 0px 1px 1px 1px !important;
 margin-right: 3% !important;
 }
 .extrabaggage .nav-tabs{
-  border-color: #bd8100 !important;
+  border-color: #785eff !important;
   border-bottom-width: 1px !important;
   margin-right: 3% !important;
 }
@@ -17925,11 +17926,11 @@ margin-right: 3% !important;
 }
 .extrabaggage .nav-tabs .nav-link.active{
   border-bottom-color: #fff !important;
-  border-top-color:  #bd8100 !important;
-  border-left-color:  #bd8100 !important;
-  border-right-color:  #bd8100 !important;
+  border-top-color:  #785eff !important;
+  border-left-color:  #785eff !important;
+  border-right-color:  #785eff !important;
   background-color: #fff !important;
-  color: #bd8100 !important;
+  color: #785eff !important;
   
 }
 .extrabaggage .tab-content .extrabaggageinput{
@@ -17940,7 +17941,7 @@ margin-right: 3% !important;
   margin: 1% !important;
   font-size: 13px;
   box-shadow: 5px 3px 5px #e3e3e3;
-  color: #bd8100 !important;
+  color: #785eff !important;
 }
 
 .extrabaggageinput input[type='radio']:checked ~ .extrabaggageinput {
@@ -17958,7 +17959,7 @@ margin-right: 3% !important;
   font-weight: 700;
 }
 .extrabaggageinput .baggageoptionbuttonselected{
-color: #bd8100 !important;
+color: #785eff !important;
 background-color: #fff !important;
 }
 
@@ -17974,23 +17975,23 @@ background-color: #fff !important;
 .extrabaggageinput .buttonoption0{
   float: left;
   padding: 1%;
-    color: #bd8100;
+    color: #785eff;
     font-weight: 600;
     text-align: center;
     width: 30%;
     background-color: #fff;
-    border: 1px solid #bd8100;
+    border: 1px solid #785eff;
     display: inline-block;
     cursor: pointer;
 }
 .extrabaggageinput .buttonoptionspan{
   background-color: #fff;
   padding: 1%;
-  color: #bd8100;
+  color: #785eff;
   text-align: center;
   font-weight: 600;
   width: 40%;
-  border: 1px solid #bd8100;
+  border: 1px solid #785eff;
   display: inline-block;
  
 }
@@ -17999,11 +18000,11 @@ background-color: #fff !important;
       padding: 1%;
       cursor: pointer;
   text-align: center;
-  color: #bd8100;
+  color: #785eff;
   font-weight: 600;
   background-color: #fff;
   width: 30%;
-  border: 1px solid #bd8100;
+  border: 1px solid #785eff;
   display: inline-block;
 }
 .baggaegdetails{
@@ -18025,8 +18026,8 @@ margin-right: 5%;
 
 .seatbutton .seatbuttonskip,
 .baggagebutton .baggagebuttonskip{
-  background-color: #bd8100;
-    border: 1px solid #bd8100;
+  background-color: #785eff;
+    border: 1px solid #785eff;
     margin-top: 9%;
     margin-bottom: 10%;
     padding: 5px 14px;
@@ -18046,8 +18047,8 @@ margin-right: 5%;
 }
 .seatbutton .seatbuttonskip:hover,
 .baggagebutton .baggagebuttonskip:hover{
-  background: #ffca27;
-  border-color: #ffca27;
+  background: #644ed4;
+  border-color: #644ed4;
 }
 .complete-txt .reservehead{
   font-family: 'Montserrat';
@@ -18162,11 +18163,11 @@ width: 19px;
 }
 
 .card-body .seat_selection::-webkit-scrollbar-thumb {
-  background: #bd8100; 
+  background: #785eff; 
 }
 
 .card-body .seat_selection::-webkit-scrollbar-thumb:hover {
-  background: #bd8100; 
+  background: #785eff; 
 }
 body::-webkit-scrollbar {
   width: 10px; 
@@ -18178,11 +18179,11 @@ body::-webkit-scrollbar-track {
 }
 
 body::-webkit-scrollbar-thumb {
-  background: #bd8100; 
+  background: #785eff; 
 }
 
 body::-webkit-scrollbar-thumb:hover {
-  background: #bd8100; 
+  background: #785ef7; 
 }
 .serviceinfo .passengers{
   width: 100%;
@@ -18193,18 +18194,18 @@ body::-webkit-scrollbar-thumb:hover {
 }
 .scrolltotop{
     width: 100%;
-    border: 1px solid #bd8100;
+    border: 1px solid #785eff;
     padding: 5px;
     font-family: 'Montserrat';
     font-size: 15px;
-    color: #bd8100;
+    color: #785eff;
     text-transform: uppercase;
     font-weight: 600;
     background-color: #fff;
 }
 .scrolltotop:hover{
-  color: #ffca27;
-  border: 1px solid #ffca27;
+  color: #644ed4;
+  border: 1px solid #644ed4;
 }
 .datanotfound{
   font-family: 'Montserrat';
@@ -18219,11 +18220,11 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .selectcontainer .optionsflights::-webkit-scrollbar-thumb {
-  background: #bd8100; 
+  background: #785eff; 
 }
 
 .selectcontainer .optionsflights::-webkit-scrollbar-thumb:hover {
-  background: #bd8100; 
+  background: #785eff; 
 }
 .back-home-btn{
   border-color: #bd8100;
@@ -18444,4 +18445,40 @@ width: 100%;
 
 .clear {
     clear: both !important;
+}
+
+/* Dropdown Menu Styling */
+ul.dropdown-menu {
+  background-color: white !important; /* White background */
+  padding: 5px 5px;
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
+  border: 1px solid #ddd; /* Light border */
+  list-style-type: none; /* Remove default list styling */
+  margin: 0;
+  padding: 0;
+}
+
+ul.dropdown-menu li {
+  margin: 0;
+  padding: 2px 0; /* Spacing between items */
+  border-bottom: 1px solid #eee; /* Light separator line between each item */
+}
+
+ul.dropdown-menu li:last-child {
+  border-bottom: none; /* Remove border for the last item */
+}
+
+ul.dropdown-menu li a {
+  color: black; /* Text color */
+  font-weight: 500; /* Make text a little bold */
+  font-family: 'Nunito', sans-serif;
+  text-decoration: none;
+  display: block;
+  padding: 5px 0;
+}
+
+ul.dropdown-menu li a:hover {
+  color: #785eff !important; /* Text color on hover */
+  background-color: transparent !important;
 }
