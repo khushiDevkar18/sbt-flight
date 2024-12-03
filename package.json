@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@emotion/react": "^11.11.3",
-    "@emotion/styled": "^11.11.0",
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@fortawesome/fontawesome-free": "^6.7.1",
     "@mui/icons-material": "^5.15.10",
-    "@mui/material": "^5.15.10",
+    "@mui/material": "^5.16.8",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -31,13 +32,10 @@
     "stream": "^0.0.2",
     "sweetalert": "^2.1.2",
     "sweetalert2": "^11.6.13",
+    "timers": "^0.1.1",
     "timers-browserify": "^2.0.12",
     "web-vitals": "^2.1.4",
-    "timers": "^0.1.1",
     "xml2js": "^0.6.2"
-    
-    
-    
   },
   "scripts": {
     "start": "react-scripts start",

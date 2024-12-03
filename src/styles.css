@@ -255,8 +255,8 @@ textarea {
 
 .body-wrapper {
   padding-bottom: 110px;
-  padding-top: 115px;
-  background-color: rgba(0, 0, 0, .03);
+  padding-top: 80px;
+  background-color: #e8e4ff;
 }
 
 #top {
@@ -1549,7 +1549,7 @@ cursor: pointer;
   text-transform: uppercase;
   width: 100%;
   padding: 10px 15px;
-  color: #bd8100;
+  color: #785eff;
   background-color: #fff;
   box-shadow: 10px 7px 10px 2px rgba(50, 50, 50, 0.05);
   font-weight: 600;
@@ -1559,13 +1559,13 @@ text-transform: capitalize;
 font-size: 10px;
 }
 .panel .seatleft .seatleftul .seatleftli.active {
-  background-color: #bd8100;
+  background-color: #785eff;
   color: #fff;
   box-shadow: none;
 }
 
 .panel .seatleft .seatleftul .seatleftli.hover {
-  background-color: #ffca27;
+  background-color: #644ed4;
   color: #fff;
   box-shadow: none;
 }
@@ -4534,16 +4534,20 @@ nav ul li {
   visibility: visible;
 }
 
+/* .flight-item {
+  
+  
+} */
 .flight-item {
   background: #fff;
   margin-bottom: 19px;
   padding: 18px 18px 13px 18px;
-}
-.flight-item {
   display: flex !important;
   justify-content: center; 
   align-items: center; 
   height: 100%;
+  /* border: 2px solid black; */
+  /* border-color: black !important; */
 }
 .flight-item1 {
   background: #fff;
@@ -7512,7 +7516,7 @@ preferences-list-alt li {
 }
 
 .card-body .seat_selection {
-  border: 2px solid #bd8100;
+  border: 2px solid #785eff;
   height: 450px;
   overflow-y: auto;
 }
@@ -7972,8 +7976,8 @@ preferences-list-alt li {
 }
 
 .flight-item.selected-flight {
-
-  background-color: #e3e3e3 !important;
+  background-color: #FAF7F0 !important;
+  border: 1.5px solid black;
 }
 
 .selected_flights {
@@ -12701,7 +12705,7 @@ html {
   margin: 5px auto 10px auto;
   font-size: 20px;
   font-weight: 800;
-  color: #bd8100;
+  color: #785eff;
   font-family: 'Raleway';
   text-transform: capitalize;
 }
@@ -17017,16 +17021,16 @@ html {
   margin-top: 1%;
   font-family: "Montserrat";
   font-size: 13px;
-  background-color: #bd8100;
-  border-color: #bd8100;
+  background-color: #785eff;
+  border-color: #785eff;
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .buspassenger .passenger_button:hover {
-  color: #bd8100;
+  color: #785eff;
   background-color: #fff;
-  border-color: #bd8100;
+  border-color: #785eff;
 }
 
 .buspassenger form {
@@ -17309,17 +17313,17 @@ input:checked+.slider:before {
 
 .selectcontainer .optionsflights {
   margin:1% 1%;
-  padding: 1%;
-  font-size: 14px;
+  padding: 5px 8px 8px;
+  font-size: 12px;
   cursor: pointer;
-  width: 23%;
+  width: 22%;
   /* overflow-y: auto;
   height: 300px; */
   box-shadow: rgba(0, 0, 0, 0.24) 0px 2px 5px;
 }
 
 .selectcontainer .optionsflights .optionsflight{
-  height: 100px;
+  height: 40px;
 }
 .selectcontainer .optionsflights:hover {
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
@@ -17327,7 +17331,7 @@ input:checked+.slider:before {
 }
 .modal-body .continuebutton {
   background-color: #785eff;
-  padding: 7px 10px;
+  /* padding: 7px 7px; */
   border: 1px solid #785eff;
   color: #fff;
   font-family: 'Open Sans';
@@ -17335,8 +17339,8 @@ input:checked+.slider:before {
   
   border-radius: 5px;
   font-weight: 700;
-  font-size: 14px;
-  float: left;
+  font-size: 13px;
+  float: right;
   
   text-transform: uppercase;
 }
@@ -17351,13 +17355,15 @@ input:checked+.slider:before {
 
 
 .optionsflights .seelctheader {
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 600;
   color: #785eff;
-  margin: 3% 0%;
+
   text-transform: capitalize;
   font-family: 'Montserrat';
 }
+
+
 
 .optionsflights .selectdetail ul {
   list-style: none;
@@ -17366,13 +17372,66 @@ input:checked+.slider:before {
   font-family: 'Montserrat';
   font-size: 9px;
   font-weight: normal;
+  background-color: grey;
+}
+/* .selectdetail {
+  display: block !important; 
+  background-color: #FBFBFB;  
+  color: #000 !important;  
+  padding: 10px; 
+  float: left;
+} */
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent black */
+  z-index: 999; /* Ensure it appears above other content */
 }
 
+/* Popup container */
+.selectdetail {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center the popup */
+  background-color: #fff; /* White background */
+  color: #000; /* Black text color */
+  font-size: 13px;
+  font-weight: 450;
+  padding: 15px;
+  width: 80%; /* Set a max width for smaller screens */
+  max-width: 400px; /* Maximum width */
+  border-radius: 4px; /* Rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+  z-index: 1000; /* Above the overlay */
+  text-align: center; /* Center the text */
+}
+
+/* Close button */
+.selectdetail-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.selectdetail-close:hover {
+  color: #000;
+}
+
+
 .optionsflights .selectprice {
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 600;
   font-family: 'Montserrat';
-  margin: 3% 0%;
 }
 
 .packagemore {
@@ -17449,7 +17508,7 @@ input:checked+.slider:before {
   overflow: hidden;
 }
 .multipleflight .panelfare .fareaccordion{
-color: #bd8100;
+color: #785eff;
 }
 .accordionfarecabinbag1,.accordionfarehandbag1,
 .multipleflight .panelfare {
@@ -17703,7 +17762,7 @@ color: #fff;
 }
 .react-datepicker__current-month, .react-datepicker-time__header, .react-datepicker-year-header,
 .react-datepicker__day-name {
-  color: #000 !important;
+  color: #FFF !important;
 }
 
 .react-datepicker__day--selected, .react-datepicker__day--in-selecting-range, .react-datepicker__day--in-range, .react-datepicker__month-text--selected, .react-datepicker__month-text--in-selecting-range, .react-datepicker__month-text--in-range, .react-datepicker__quarter-text--selected, .react-datepicker__quarter-text--in-selecting-range, .react-datepicker__quarter-text--in-range, .react-datepicker__year-text--selected, .react-datepicker__year-text--in-selecting-range, .react-datepicker__year-text--in-range,
@@ -18104,13 +18163,13 @@ margin-right: 5%;
 .seat_selection .noted_seat{
   float: right;
     width: 113px;
-    color: #bd8100;
+    color: #785eff;
     font-size: 10px;
     font-family: 'Montserrat';
     padding: 1%;
     margin: 1%;
     font-weight: 600;
-    border: 1px solid #bd8100;
+    border: 1px solid #785eff;
 }
 .seat_selection .noted_seat .noted_seat_free{
   border: 1px solid rgb(80, 227, 194);
@@ -18227,8 +18286,8 @@ body::-webkit-scrollbar-thumb:hover {
   background: #785eff; 
 }
 .back-home-btn{
-  border-color: #bd8100;
-  background-color: #bd8100;
+  border-color: #785eff;
+  background-color: #785eff;
   padding: 11px 17px;
   color: rgb(255, 255, 255);
   text-decoration: none;
@@ -18240,8 +18299,8 @@ body::-webkit-scrollbar-thumb:hover {
   font-size: 14px;
 }
 .back-home-btn:hover{
-  background-color: #ffca27;
-  border-color: #ffca27;
+  background-color: #644ed4;
+  border-color: #644ed4;
 
 }
 .extradisabled{
@@ -18482,3 +18541,84 @@ ul.dropdown-menu li a:hover {
   color: #785eff !important; /* Text color on hover */
   background-color: transparent !important;
 }
+.timeSlotsOuter {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.filterTimeSlots {
+  cursor: pointer;
+  width: 65px;
+  height: 64px;
+  border-radius: 4px;
+  border: 0.7px solid #dfdfdf;
+  background-color: #fff;
+  /* border-color: black; */
+  text-align: center;
+  color: #000;
+  font-size: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5px 0;
+  align-items: center;
+  margin-right: 10px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Hover effect */
+.filterTimeSlots:hover {
+  background-color: #f0f0f0; /* Light gray on hover */
+  border-color: #785eff; /* Border color change on hover */
+}
+
+/* Selected state */
+.filterTimeSlots.selected {
+  background-color: #785eff; /* Highlight color for selected */
+  color: #fff; /* White text color for contrast */
+  border-color: #785eff; /* Border matches background color */
+}
+.boldFont {
+  font-weight: 650;
+}
+.appendBottom2 {
+  margin-bottom: 2px;
+}
+.checkBlockIcon {
+  width: 34px;
+  height: 34px;
+  display: inline-block;
+  background-size: contain;
+  background-position: 50%;
+  background-repeat: no-repeat;
+}
+/* .checkbox input[type="checkbox"] {
+  display: none;
+} */
+
+
+/* .checkbox label {
+  position: relative;
+  padding-left: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  display: inline-block;
+}
+
+.checkbox label::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ccc;
+  border-radius: 3px;
+  background-color: white;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.checkbox input[type="checkbox"]:checked + label::before {
+  background-color: #785eff;
+  border-color: #785eff;
+} */

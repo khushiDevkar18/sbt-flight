@@ -599,6 +599,7 @@ function Home() {
                 bookingtype :bookingtype,
                 apiairportsdata:apiairports
             };
+            // console.log('responsedata', responseData);
             navigate('/SearchFlight', { state: { responseData } });
             } catch (error) {
                 // ErrorLogger.logError('search_api',soapEnvelope,error);

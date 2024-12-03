@@ -38,6 +38,7 @@ const Booking = () => {
     const serviceresponse = location.state && location.state.serviceData.servicedata;
     const request = location.state?.serviceData || {};
     const packageSelected = location.state && location.state.serviceData.packageselected;
+    // console.log('xyuz', packageSelected);
     const Airports = location.state && location.state.serviceData.Airports;
     const Airlines = location.state && location.state.serviceData.Airlines;
     const hostTokenParse = location.state && location.state.serviceData.hostToken;
@@ -428,6 +429,7 @@ const Booking = () => {
         return true;
     };
     const handleCompleteBooking = async (event) => {
+        console.log('formhandelcomplete', event);
         event.preventDefault();
         
             let isValidpassenger = true;
@@ -822,6 +824,8 @@ const Booking = () => {
                         }
                     });
                 }
+                // console.log('passengersreservation', passengersreservation);
+                // console.log('packageSelected', packageSelected);
                 const passengerAges = Passengers.ageNames.map(calculateAge);
                 const makeReservationRequest = async () => {
                     const username = 'Universal API/uAPI8645980109-af7494fa';
@@ -920,6 +924,7 @@ const Booking = () => {
                     }
                     var xmlBuilder = new xml2js.Builder();
                     var reservationRequestXML = xmlBuilder.buildObject(reservationRequestEnvelope);
+                    // console.log('reservationRequestXML',reservationRequestXML);
 
                     var parser = new DOMParser();
                     var xmlDoc = parser.parseFromString(reservationRequestXML, 'text/xml');
@@ -945,7 +950,8 @@ const Booking = () => {
                     var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
                     
                     
-                // console.log(modifiedXmlString);
+                // console.log('modify', modifiedXmlString);
+                // alert("modify", modifiedXmlString);
                     try {
                         const reservationresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', modifiedXmlString, {
                             headers: {
@@ -954,7 +960,8 @@ const Booking = () => {
                             },
                         });
                         const reservationResponse = reservationresponse.data;
-                        console.log(reservationResponse);
+                        // console.log('reservationResponse',reservationResponse);
+                        // alert("resp", reservationResponse);
                         parseString(reservationResponse, { explicitArray: false }, (err, reservationresult) => {
                         if (err) {
                             console.error('Error parsing XML:', err);
@@ -967,8 +974,6 @@ const Booking = () => {
                             const universallocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
                             const segmentreservation = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
                                 if(hasNonEmptyProperties(emptaxivaxi)){
-                                    
-                                    
                                     // const sessiondata = async () => {
                                         const formtaxivaxiData = {
                                             ...formtaxivaxi,
@@ -987,25 +992,7 @@ const Booking = () => {
                                             returns:returns,
                                             passengerdetails:mergedData
                                         };
-                                    //     const formtaxivaxiData1= JSON.stringify(formtaxivaxiData);
-                                    //     const formData = new URLSearchParams();
-                                    //     formData.append('formtaxivaxiData1', formtaxivaxiData1);
-                                        
-                                    //         const response = await fetch('http://cotrav.tv/api/flights/employeeByTaxivaxi', {
-                                    //             method: 'POST',
-                                    //             headers: {
-                                    //                 'Content-Type': 'application/x-www-form-urlencoded',
-                                    //             },
-                                    //             body: formData.toString(),
-                                    //         });
                                     
-                                    //         if (!response.ok) {
-                                    //             throw new Error('Network response was not ok');
-                                    //         }
-                                    
-                                    //         window.location.href = 'http://cotrav.tv/taxivaxi/add-flight-booking';
-                                    // }
-                                    // sessiondata();
                                     const formDataString = JSON.stringify(formtaxivaxiData);
                                     const encodedFormDataString = encodeURIComponent(formDataString);
                                     const redirectUrl = 'http://cotrav.tv/taxivaxi/add-flight-booking?formtaxivaxi=' + encodedFormDataString;
@@ -1061,20 +1048,19 @@ const Booking = () => {
                                     }
                                 }
                                 });
-                                try {
-                                    const getUnversalCoderesponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService/UniversalRecordService', GetUnversalCodeXML, {
-                                        headers: {
-                                            'Content-Type': 'text/xml',
-                                            'Authorization': authHeader,
-                                        },
-                                    });
-                                    const GetUnversalCodeResponse = getUnversalCoderesponse.data;
+                                // try {
+                                //     const getUnversalCoderesponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService/UniversalRecordService', GetUnversalCodeXML, {
+                                //         headers: {
+                                //             'Content-Type': 'text/xml',
+                                //             'Authorization': authHeader,
+                                //         },
+                                //     });
+                                //     const GetUnversalCodeResponse = getUnversalCoderesponse.data;
                                     
                                     
-                                } catch (error) {
-                                    console.error(error);
-                                    // ErrorLogger.logError('getuniversalcode_api',GetUnversalCodeXML,error);
-                                }
+                                // } catch (error) {
+                                //     console.error(error);
+                                // }
                             };
                             
                             const makeTicketRequest = async () => {
@@ -1350,12 +1336,9 @@ const Booking = () => {
                     finally {
                         setLoading(false);
                     }
-                };
-                
+                }; 
                 makeReservationRequest();
-            }
-        
-        
+            }     
     }
     
     const navigate = useNavigate();
@@ -1628,7 +1611,6 @@ const Booking = () => {
             setAccordion1Expanded(true);
         }
     }
-   
 
     const validateSavePassenger = (Passengerarray) => {
         let isValid = true;
@@ -1709,7 +1691,6 @@ const Booking = () => {
             setAccordion2Expanded(true);
         }
     };
-    
     
     const [currentIndex, setCurrentIndex] = useState(0);
     
@@ -2170,8 +2151,8 @@ const Booking = () => {
                                                 segment['$'].HostTokenRef = matchedEntry.hostTokenRef;
                                             }
                                         });
-                                        // console.log(SegmentParse);
-                                        // console.log(HostToken);
+                                        // console.log('seg',SegmentParse);
+                                        // console.log('host', HostToken);
 
                                         const makeServicesRequest = async () => {
                                             const username = 'Universal API/uAPI8645980109-af7494fa';
@@ -2506,10 +2487,7 @@ const Booking = () => {
                                         <div className="sp-page-lb">
                                             <div className="sp-page-p">
                                                 <div className="booking-left">
-                                                    
-                                                        
-                                                        
-                                                        
+
                                                                         {packageSelected['air:AirPricingInfo'] && (
                                                                             Array.isArray(packageSelected['air:AirPricingInfo'])
                                                                             ? (
@@ -2535,6 +2513,7 @@ const Booking = () => {
                                                                                                                             >
                                                                                                                                 Package Details
                                                                                                                             </button>
+                       
                                                                                                                         </span>
                                                                                                                     </span>
                                                                                                                     <div

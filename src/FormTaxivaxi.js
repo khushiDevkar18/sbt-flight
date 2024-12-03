@@ -149,7 +149,7 @@ const navigate = useNavigate();
                   const searchdeparture = formtaxivaxiData['departure_date'];
                   const formattedsearchdeparture = formatDate(searchdeparture);
                   
-                  const adult = formtaxivaxiData['no_of_seats'];
+                  const adult = 1;
                   const child = 0;
                   const infant = 0;
                   const classtype = formtaxivaxiData['seat_type'];
@@ -272,12 +272,13 @@ const navigate = useNavigate();
                       selectinfant: infant,
                       selectclass: cabinclass,
                       bookingtype: bookingtype,
-                      apiairportsdata: apiairportData
+                      apiairportsdata: apiairportData,
+                      fromcotrav: '1',
                   };
 
                   
                   navigate('/SearchFlight', { state: { responseData } });
-                  await new Promise(resolve => setTimeout(resolve, 2000));
+                  await new Promise(resolve => setTimeout(resolve, 1000));
               
               } catch (error) {
                   navigate('/tryagainlater');
@@ -320,17 +321,15 @@ const navigate = useNavigate();
    
     
       <div className="yield-content">
-    {/* <> */}
-        {loading &&  <div className="loader" style={{display:"block",opacity:'1'}}>
+        {loading && (<div className="loader" style={{display:"block",opacity:'1'}}>
             <img
               src="/img/flight-loader-material-gif.gif"
               alt="Loader"
             />
             <h2>Hold on, we’re fetching flights for you</h2>
           </div>
-        }
-    {/* </> */}
-    </div >
+       )}
+        </div >
     
   );
 }
