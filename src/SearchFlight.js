@@ -13,7 +13,8 @@ import "rc-slider/assets/index.css";
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import IconLoader from '../../../components/Icon/IconLoader';
+import IconLoader from './IconLoader';
+
 // import ErrorLogger from './ErrorLogger';
 const FlightInfoOrigin  = ({ origin, onFlightOriginChange}) => {
   useEffect(() => {
@@ -118,6 +119,9 @@ const SearchFlight = () => {
   const [airportDestinationCodes, setAirportDestinationCodes] = useState(null);
   const [lastActionWasSwap, setLastActionWasSwap] = useState(false);
   const [pricesegment,setpricesegment] = useState([]);
+  const [loadingIndex, setLoadingIndex] = useState(null);
+ 
+
   const handleScrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -317,6 +321,26 @@ const SearchFlight = () => {
     const finaltime = `${days}D ${hours}H ${minutes}M`;
     return finaltime;
   }
+  const formatISODuration = (duration) => {
+    if (!duration) return "00:00:00";
+  
+    // Match the components in the ISO 8601 duration
+    const daysMatch = duration.match(/P(\d+)D/);
+    const hoursMatch = duration.match(/T(\d+)H/);
+    const minutesMatch = duration.match(/T\d+H(\d+)M/);
+    const secondsMatch = duration.match(/T\d+H\d+M(\d+)S/);
+  
+    const days = daysMatch ? parseInt(daysMatch[1], 10) : 0;
+    const hours = hoursMatch ? parseInt(hoursMatch[1], 10) : 0;
+    const minutes = minutesMatch ? parseInt(minutesMatch[1], 10) : 0;
+    const seconds = secondsMatch ? parseInt(secondsMatch[1], 10) : 0;
+  
+    // Convert days to hours and add to total hours
+    const totalHours = days * 24 + hours;
+  
+    // Format as HH:MM:SS
+    return `${String(totalHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  };
   const calculateDepartureTime = (depareturetimes) => {
     const date = new Date(depareturetimes);
     const hours = String(date.getHours()).padStart(2, '0');
@@ -454,11 +478,20 @@ const SearchFlight = () => {
       // If the dropdown for this priceIndex is already open, close it
       setIsDropdownVisible(false);
       setSelectedPriceIndex(null);
+      setLoadingIndex(null);
       // console.log("Dropdown closed for priceIndex:", priceindex);
     } else {
+
+      setLoadingIndex(priceindex); // Set the loading index
+        // Simulate an async operation
+        setTimeout(() => {
+            setLoadingIndex(null); // Clear the loading state after the operation
+        }, 2000);
     
     if(ismodify){
       setLoading(true);
+      setIsDropdownVisible(true);
+      setSelectedPriceIndex(priceindex);
       const searchData = new FormData(event.target);
       var SearchPriceTotalPrice= event.target.SearchPriceTotalPrice.value;
       sessionStorage.setItem('SearchPriceTotalPrice', SearchPriceTotalPrice);
@@ -626,8 +659,7 @@ const SearchFlight = () => {
                   setsegmentpriceparse(Array.isArray(segmentpricereponse) ? segmentpricereponse : [segmentpricereponse]);
                   // setShow(true);
 
-                  setIsDropdownVisible(true);
-                  setSelectedPriceIndex(priceindex);
+                  
                   
                   
                   
@@ -1040,6 +1072,9 @@ const handleReturnDateInitialization = (bookingType) => {
         let totalpassenger = parseInt(adultCount) + parseInt(childCount) + parseInt(infantCount);
         let isValidPassenger = true;
 
+        localStorage.setItem('lastorigin', searchfrom);
+        localStorage.setItem('lastDestination', searchto);
+
         if(infantCount > adultCount){
            
           isValidPassenger = false;
@@ -1303,7 +1338,7 @@ const handleReturnDateInitialization = (bookingType) => {
     // Mutate the airPricingInfo object to include isReturn
     airPricingInfo.isReturn = isReturn;
   
-    // console.log('Updated airPricingInfo with isReturn:', airPricingInfo);
+    console.log('Updated airPricingInfo with isReturn:', airPricingInfo);
   
     setSelectedFlights((prev) => {
       // Check if this specific data is already selected
@@ -1328,72 +1363,85 @@ const handleReturnDateInitialization = (bookingType) => {
   };
   
 
-  const approverButtonClick = () => {
-    // console.log("selectedFlights", selectedFlights);
+  // const approverButtonClick = () => {
+  //   console.log("selectedFlights", selectedFlights);
 
-    const payload = {
-      booking_id: "81111",
-      no_of_flight_options: selectedFlights.some(flight => flight.isReturn === 1)
-        ? selectedFlights.length * 2
-        : selectedFlights.length,
-      flight_options: selectedFlights.map((flight) => { 
-        // Safely access `air:FlightOptionsList` and normalize `air:FlightOption`
-        const flightOptionsList = flight["air:FlightOptionsList"];
-        const flightOption = flightOptionsList?.["air:FlightOption"];
-        // console.log('asd', flightOption.length);
-        const flightOptionArray = Array.isArray(flightOption) ? flightOption : [flightOption];
+  //   const payload = {
+  //     booking_id: "81111",
+  //     no_of_flight_options: selectedFlights.some(flight => flight.isReturn === 1)
+  //       ? selectedFlights.length * 2
+  //       : selectedFlights.length,
+  //     flight_options: selectedFlights.map((flight) => { 
+  //       // Safely access `air:FlightOptionsList` and normalize `air:FlightOption`
+  //       const flightOptionsList = flight["air:FlightOptionsList"];
+  //       const flightOption = flightOptionsList?.["air:FlightOption"];
+        
+  //       const flightOptionArray = Array.isArray(flightOption) ? flightOption : [flightOption];
     
-        // Map through each `air:FlightOption` (for one-way or return segments)
-        const flightOptions = flightOptionArray.flatMap((option, index) => {
-          const options = option?.["air:Option"];
-          const optionsArray = Array.isArray(options) ? options : [options];
+  //       // Map through each `air:FlightOption` (for one-way or return segments)
+  //       const flightOptions = flightOptionArray.flatMap((option, index) => {
+  //         const options = option?.["air:Option"];
+  //         const optionsArray = Array.isArray(options) ? options : [options];
     
-          return optionsArray.map((singleOption) => {
-            const bookingInfo = singleOption?.["air:BookingInfo"];
-            const segmentRef = bookingInfo?.["$"]?.["SegmentRef"];
+  //         return optionsArray.map((singleOption) => {
+  //           const bookingInfo = singleOption?.["air:BookingInfo"];
+  //           const segmentRef = bookingInfo?.["$"]?.["SegmentRef"];
     
-            if (!segmentRef) {
-              console.warn("Missing SegmentRef or air:BookingInfo:", { flight, singleOption, bookingInfo });
-              return null; // Skip invalid flight options
-            }
+  //           if (!segmentRef) {
+  //             console.warn("Missing SegmentRef or air:BookingInfo:", { flight, singleOption, bookingInfo });
+  //             return null; // Skip invalid flight options
+  //           }
     
-            // Find the matching segment in SegmentList using the SegmentRef
-            const matchingSegment = SegmentList.find(
-              (segment) => segment["$"]["Key"] === segmentRef
-            );
+  //           // Find the matching segment in SegmentList using the SegmentRef
+  //           const matchingSegment = SegmentList.find(
+  //             (segment) => segment["$"]["Key"] === segmentRef
+  //           );
+  //           // flight['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].length -1
     
-            if (!matchingSegment) {
-              console.warn("No matching segment found for SegmentRef:", segmentRef);
-            }
-    
-            return {
-              flight_no: `${matchingSegment?.["$"]["Carrier"] || ""}${matchingSegment?.["$"]["FlightNumber"] || "Unknown"}`,
-              airline_name: handleAirline(matchingSegment?.["$"]["Carrier"] || "Unknown"),
-              from_city: handleAirport(matchingSegment?.["$"]["Origin"] || "Unknown"),
-              to_city: handleAirport(matchingSegment?.["$"]["Destination"] || "Unknown"),
-              departure_datetime: matchingSegment?.["$"]["DepartureTime"] || "Unknown",
-              arrival_datetime: matchingSegment?.["$"]["ArrivalTime"] || "Unknown",
-              price: flight["$"].TotalPrice.replace('INR', '').trim(),
-              is_return: index === 1 ? 1 : 0, // Mark the second `air:FlightOption` as a return flight
-            };
-          });
-        });
+  //           if (!matchingSegment) {
+  //             console.warn("No matching segment found for SegmentRef:", segmentRef);
+  //           }
 
-        // Combine return flights with outbound flights
-        const outboundFlight = flightOptions.find(f => f.is_return === 0);
-        const returnFlight = flightOptions.find(f => f.is_return === 1);
+  //           const bookinfo = flight['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option']?.['air:BookingInfo'];
+
+  //           const no_of_stops = Array.isArray(bookinfo) 
+  //             ? bookinfo.length - 1 
+  //             : bookinfo 
+  //               ? 0  
+  //               : 0; 
+
+  //           console.log('Number of stops:', no_of_stops);
     
-        // Make sure you're only adding the outbound and return flight pair
-        if (outboundFlight && returnFlight) {
-          return [outboundFlight, returnFlight];
-        } else {
-          return [outboundFlight]; // Only outbound if no return flight
-        }
-      }).flat().filter(Boolean), // Remove null entries and flatten the array
-    };
+  //           return {
+  //             flight_no: `${matchingSegment?.["$"]["Carrier"] || ""}${matchingSegment?.["$"]["FlightNumber"] || "Unknown"}`,
+  //             airline_name: handleAirline(matchingSegment?.["$"]["Carrier"] || "Unknown"),
+  //             from_city: handleAirport(matchingSegment?.["$"]["Origin"] || "Unknown"),
+  //             to_city: handleAirport(matchingSegment?.["$"]["Destination"] || "Unknown"),
+  //             departure_datetime: matchingSegment?.["$"]["DepartureTime"] || "Unknown",
+  //             arrival_datetime: matchingSegment?.["$"]["ArrivalTime"] || "Unknown",
+  //             price: flight["$"].TotalPrice.replace('INR', '').trim(),
+  //             is_return: index === 1 ? 1 : 0, 
+  //             no_of_stops: no_of_stops,
+
+  //           };
+  //         });
+  //       });
+
+  //       // Combine return flights with outbound flights
+  //       const outboundFlight = flightOptions.find(f => f.is_return === 0);
+  //       const returnFlight = flightOptions.find(f => f.is_return === 1);
+    
+  //       // Make sure you're only adding the outbound and return flight pair
+  //       if (outboundFlight && returnFlight) {
+  //         return [outboundFlight, returnFlight];
+  //       } else {
+  //         return [outboundFlight]; // Only outbound if no return flight
+  //       }
+  //     }).flat().filter(Boolean), // Remove null entries and flatten the array
+  //   };
     
   
-    console.log("Payload to API:", payload);
+  //   console.log("Payload to API:", payload);
     // const apiUrl = "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking";
 
     // fetch(apiUrl, {
@@ -1408,7 +1456,113 @@ const handleReturnDateInitialization = (bookingType) => {
     // .catch((error) => {
     //   console.error("Error sending request:", error); 
     // });
+  // };
+
+  const approverButtonClick = () => {
+    console.log("selectedFlights", selectedFlights);
+  
+    const payload = {
+      booking_id: "21329",
+      email: "mayank.didwania@cotrav.co",
+  
+      flight_options: selectedFlights.flatMap((flight) => {
+        const flightOptionsList = flight["air:FlightOptionsList"];
+        const flightOption = flightOptionsList?.["air:FlightOption"];
+        const flightOptionArray = Array.isArray(flightOption) ? flightOption : [flightOption];
+  
+        return flightOptionArray.flatMap((option) => {
+          // Filter the "air:Option" to include only the selected option
+          const options = option?.["air:Option"];
+          const optionsArray = Array.isArray(options) ? options : [options];
+          const selectedOptions = optionsArray.slice(0, 1); // Consider only the first selected option
+  
+          return selectedOptions.map((singleOption) => {
+            const bookingInfo = singleOption?.["air:BookingInfo"];
+            const segmentRefArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
+  
+            const flight_details = segmentRefArray.map((info) => {
+              const segmentRef = info?.["$"]?.["SegmentRef"];
+              const matchingSegment = SegmentList.find(
+                (segment) => segment["$"]["Key"] === segmentRef
+              );
+  
+              if (!segmentRef || !matchingSegment) {
+                console.warn("Invalid SegmentRef or missing matching segment:", { segmentRef, info });
+                return null; // Skip invalid entries
+              }
+  
+              return {
+                flight_no: `${matchingSegment["$"]["Carrier"]}${matchingSegment["$"]["FlightNumber"] || "Unknown"}`,
+                airline_name: handleAirline(matchingSegment["$"]["Carrier"] || "Unknown"),
+                from_city: handleApiAirport(matchingSegment["$"]["Origin"] || "Unknown"),
+                to_city: handleApiAirport(matchingSegment["$"]["Destination"] || "Unknown"),
+                departure_datetime: matchingSegment["$"]["DepartureTime"] || "Unknown",
+                arrival_datetime: matchingSegment["$"]["ArrivalTime"] || "Unknown",
+              };
+            }).filter(Boolean); // Remove null entries
+  
+            const bookinfo = singleOption?.["air:BookingInfo"];
+            const no_of_stops = Array.isArray(bookinfo) ? bookinfo.length - 1 : 0;
+  
+            return {
+              flight_no: flight_details.map(detail => detail.flight_no).join(", "),
+              airline_name: flight_details.map(detail => detail.airline_name).join(", "),
+              from_city: flight_details[0]?.from_city || "Unknown",
+              to_city: flight_details[flight_details.length - 1]?.to_city || "Unknown",
+              departure_datetime: flight_details.map(detail => detail.departure_datetime).join(", "),
+              arrival_datetime: flight_details.map(detail => detail.arrival_datetime).join(", "),
+              price: parseInt(flight["$"].TotalPrice.replace('INR', '').trim(), 10),
+              is_return: option["$"]["Key"] === "return" ? 1 : 0,
+              no_of_stops: no_of_stops,
+              carrier: flight_details.map(detail => detail.flight_no.slice(0, 2)).join(", "),
+              // duration: formatISODuration(flight['air:FlightOptionsList']['air:FlightOption']['air:Option']['$']['TravelTime']) || "00:00:00",
+              duration: formatISODuration(
+                Array.isArray(flight['air:FlightOptionsList']?.['air:FlightOption'])
+                  ? Array.isArray(flight['air:FlightOptionsList']['air:FlightOption'][0]?.['air:Option'])
+                    ? flight['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]?.['$']?.['TravelTime']
+                    : flight['air:FlightOptionsList']['air:FlightOption'][0]?.['air:Option']?.['$']?.['TravelTime']
+                  : Array.isArray(flight['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'])
+                    ? flight['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]?.['$']?.['TravelTime']
+                    : flight['air:FlightOptionsList']['air:FlightOption']?.['air:Option']?.['$']?.['TravelTime']
+              ) || "00:00:00",
+
+              is_refundable: flight["$"].Refundable ? 1 : 0,
+              // time_between_flight: calculateTimeBetweenFlights(flight_details), // Custom helper function
+              fare_details: [
+                {
+                  fare_type: "Corporate Fare",
+                  price: 2000,
+                },
+              ],
+              flight_details,
+            };
+          });
+        });
+      })
+        .flat(2) // Flatten nested arrays
+        .filter(Boolean), // Remove null entries
+    };
+  
+    console.log("Payload:", payload);
+    // const apiUrl = "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking";
+
+    // fetch(apiUrl, {
+    //   method: "POST",
+    //   body: JSON.stringify(payload),
+    //   headers: { "Content-Type": "application/json" },
+    // })
+    // .then((response) => response.json()) 
+    // .then((data) => {
+    //   console.log("API response:", data); 
+    // })
+    // .catch((error) => {
+    //   console.error("Error sending request:", error); 
+    // });
+  
+    // Further processing
   };
+  
+  
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [selectedPriceIndex, setSelectedPriceIndex] = useState(null);
 
@@ -1434,16 +1588,16 @@ const toggleDetails = async (name) => {
    
     
       <div className="yield-content">
-        {loading &&  <div className="loader" style={{display:"block"}}>
+        {/* {loading &&  <div className="loader" style={{display:"block"}}>
             <img
               src="/img/flight-loader-material-gif.gif"
               alt="Loader"
             />
             <h2>Hold on, we’re fetching packages for you</h2>
           </div>
-        }
+        } */}
         
-        {/* main-cont */}
+        
         <div className="main-cont" id="main_cont">
           <div className="body-wrapper">
             <div className="wrapper-padding">
@@ -3672,6 +3826,8 @@ const toggleDetails = async (name) => {
                               return (
                                 <React.Fragment key={priceindex}>
                                   <form onSubmit={(e) => handlePriceSubmit(e, priceindex)}>
+                                  
+        
                                     <div key={priceindex}>
                                       {pricepoint && pricepoint['air:AirPricingInfo'] && (
                                           (pricepoint['air:AirPricingInfo'][0]?.['air:FlightOptionsList']?.['air:FlightOption'] && Array.isArray(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'])) ||
@@ -3679,6 +3835,7 @@ const toggleDetails = async (name) => {
                                           
                                       ) ? (
                                         <div>
+                                        
                                             <div
                                               
                                               className={`flight-item fly-in ${selectedFlights.includes(pricepoint['air:AirPricingInfo']) ? "selected-flight" : ""}`}
@@ -3702,6 +3859,7 @@ const toggleDetails = async (name) => {
                                                 onChange={() => handleCheckboxChange(pricepoint['air:AirPricingInfo'], 1)}
                                               />
                                             )}
+                                            
                                               <div className="flt-i-a">
                                                 <div className="flt-i-b">
                                                   <div className="flt-i-bb">
@@ -4491,7 +4649,7 @@ const toggleDetails = async (name) => {
                                                                                                 <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations = pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].length -1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     
 
                                                                                                     return (
@@ -4719,7 +4877,7 @@ const toggleDetails = async (name) => {
                                                                                                 <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations = pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     return (
                                                                                                       <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
                                                                                                         {totalIterations} STOP
@@ -4954,7 +5112,7 @@ const toggleDetails = async (name) => {
                                                                                                 <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations = pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     return (
                                                                                                       <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
                                                                                                         {totalIterations} STOP
@@ -5180,7 +5338,7 @@ const toggleDetails = async (name) => {
                                                                                                 <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations =pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     return (
                                                                                                       <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
                                                                                                         {totalIterations} STOP
@@ -7551,7 +7709,7 @@ const toggleDetails = async (name) => {
                                                                                                 <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations =pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     return (
                                                                                                       <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
                                                                                                         {totalIterations} STOP
@@ -7777,7 +7935,7 @@ const toggleDetails = async (name) => {
                                                                                                 <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations =pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     return (
                                                                                                       <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
                                                                                                         {totalIterations} STOP
@@ -8013,7 +8171,7 @@ const toggleDetails = async (name) => {
                                                                                                 <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations =pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     return (
                                                                                                       <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
                                                                                                         {totalIterations} STOP
@@ -8238,7 +8396,7 @@ const toggleDetails = async (name) => {
                                                                                                 <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations =pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     return (
                                                                                                       <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
                                                                                                         {totalIterations} STOP
@@ -9829,7 +9987,601 @@ const toggleDetails = async (name) => {
                                                   </div>
                                                   <br className="clear" />
                                                 </div>
-                                              </div>
+                                                {isDropdownVisible && selectedPriceIndex === priceindex && (
+                                                      <div className="row selectcontainer">
+                                                          
+                                                          {loadingIndex === priceindex ? (
+                                                            <div className="loader custom-loader item-center justify-center flex items-center">
+                                                                <IconLoader className="w-12 h-12 animate-[spin_2s_linear_infinite] inline-block align-middle ltr:ml-2 rtl:mr-2 shrink-0" />
+                                                                <p className="text-center ml-4 text-gray-600">
+                                                                    Retrieving flight details. Please wait a moment.
+                                                                </p>
+                                                            </div>
+                                                          ) : (
+                                                              /* Actual Content */
+                                                              priceParse && priceParse.map((priceParseData, priceParseindex) => (
+                                                                  <div key={priceParseindex} className='col-md-3 optionsflights' style={{display:"flex"}}>
+                                                              <div className='optionsflight' style={{width:"63%"}}>
+                                                                {priceParseData['air:AirPricingInfo'] && (
+                                                                  Array.isArray(priceParseData['air:AirPricingInfo'])
+                                                                  ? (
+                                                                    priceParseData['air:AirPricingInfo'][0]['air:FareInfo'] && (
+                                                                      Array.isArray(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'])
+                                                                          ? (
+                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['air:Text'] ? (
+                                                                              Array.isArray(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['air:Text'])
+                                                                                  ? (
+                                                                                    <div className="modal-data">
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
+                                                                                      <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button></div>
+                                                                                      <div className="selectprice">
+                                                                                        {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                        {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                      </div>
+                                                                                      {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                      priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['air:Text'].map((textinfor, textindex) => {
+                                                                                        if (
+                                                                                            textinfor['$'] &&
+                                                                                            textinfor['$']['Type'] === "MarketingConsumer"
+                                                                                          ){
+                                                                                            
+                                                                                            const infoArray = textinfor['_'].split('\n').filter(item => item.trim() !== '');
+
+                                                                                            return (
+                                                                                              <>
+                                                                                                      <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                                <div key={textindex} className="selectdetail">
+                                                                                                <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                                    <ul>
+                                                                                                        {infoArray.map((item, index) => (
+                                                                                                            <li key={index}>{item.trim()}</li>
+                                                                                                        ))}
+                                                                                                    </ul>
+                                                                                                </div>
+                                                                                                </>
+                                                                                            );
+                                                                                          }
+                                                                                        
+                                                                                      })
+                                                                                      )}
+                                                                                    </div>
+                                                                                  ):(
+                                                                                    <>
+                                                                                      <div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
+                                                                                      <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button></div>
+                                                                                          <div className="selectprice">
+                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                          </div>
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                            <>
+                                                                                                      <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                          <div className="selectdetail">
+                                                                                          <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                          <ul><li>
+                                                                                            {priceParseData['air:AirPricingInfo'][0]['air:FareInfo'] && priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0] && 
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement'] &&
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement']['$'] &&
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement']['$']['Value']}
+                                                                                            </li></ul>
+                                                                                          </div>
+                                                                                          </>
+                                                                                          )}
+                                                                                      </div>
+                                                                                    </>
+                                                                                  )
+                                                                            ) : (
+                                                                                    <>
+                                                                                      <div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
+                                                                                      <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button></div>
+                                                                                          <div className="selectprice">
+                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                          </div>
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                            <>
+                                                                                                      <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                          <div className="selectdetail">
+                                                                                          <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                          <ul><li>
+                                                                                            {priceParseData['air:AirPricingInfo'][0]['air:FareInfo'] && priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0] && 
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement'] && 
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement']['$'] &&
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement']['$']['Value']}
+                                                                                            </li></ul>
+                                                                                          </div>
+                                                                                          </>
+                                                                                          )}
+                                                                                      </div>
+                                                                                    </>
+                                                                                  )
+                                                                            
+                                                                          ):(
+                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['air:Text'] ? (
+                                                                              Array.isArray(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['air:Text'])
+                                                                                  ? (
+                                                                                    <div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
+                                                                                      <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button></div>
+                                                                                          <div className="selectprice">
+                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                          </div>
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                      priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['air:Text'].map((textinfor, textindex) => {
+                                                                                        if (
+                                                                                            textinfor['$'] &&
+                                                                                            textinfor['$']['Type'] === "MarketingConsumer"
+                                                                                          ){
+                                                                                            
+                                                                                            const infoArray = textinfor['_'].split('\n').filter(item => item.trim() !== '');
+
+                                                                                            return (
+                                                                                              <>
+                                                                                                      <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                                <div key={textindex} className="selectdetail">
+                                                                                                <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                                    <ul>
+                                                                                                        {infoArray.map((item, index) => (
+                                                                                                            <li key={index}>{item.trim()}</li>
+                                                                                                        ))}
+                                                                                                    </ul>
+                                                                                                </div>
+                                                                                                </>
+                                                                                            );
+                                                                                          }
+                                                                                        
+                                                                                      })
+                                                                                          )}
+                                                                                    </div>
+                                                                                  ):(
+                                                                                    <>
+                                                                                      <div>
+                                                                                        <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
+                                                                                        <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button></div>
+                                                                                          <div className="selectprice">
+                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                          </div>
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                            <>
+                                                                                                      <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                          <div className="selectdetail">
+                                                                                          <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                          <ul><li>
+                                                                                            {priceParseData['air:AirPricingInfo'][0]['air:FareInfo'] && 
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement'] &&
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement']['$'] &&
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement']['$']['Value']}
+                                                                                            </li></ul>
+                                                                                          </div>
+                                                                                          </>
+                                                                                          )}
+                                                                                      </div>
+                                                                                    </>
+                                                                                  )
+                                                                            ) : (
+                                                                              <>
+                                                                                <div>
+                                                                                <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
+                                                                                <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button></div>
+                                                                                          <div className="selectprice">
+                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                          </div>
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                            <>
+                                                                                                      <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                          <div className="selectdetail">
+                                                                                          <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                          <ul><li>
+                                                                                            {priceParseData['air:AirPricingInfo'][0]['air:FareInfo'] && 
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement'] && 
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement']['$'] &&
+                                                                                            priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement']['$']['Value']}
+                                                                                            </li></ul>
+                                                                                          </div>
+                                                                                          </>
+                                                                                          )}
+                                                                                </div>
+                                                                              </>
+                                                                            )
+                                                                          )
+                                                                      
+                                                                    )
+                                                                    
+                                                                  ):(
+                                                                    priceParseData['air:AirPricingInfo']['air:FareInfo'] && (
+                                                                      Array.isArray(priceParseData['air:AirPricingInfo']['air:FareInfo'])
+                                                                          ? (
+                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['air:Text'] ? (
+                                                                              Array.isArray(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['air:Text'])
+                                                                                  ? (
+                                                                                    <div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
+                                                                                      <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button></div>
+                                                                                          <div className="selectprice">
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                          </div>
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                      priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['air:Text'].map((textinfor, textindex) => {
+                                                                                        if (
+                                                                                            textinfor['$'] &&
+                                                                                            textinfor['$']['Type'] === "MarketingConsumer"
+                                                                                          ){
+                                                                                            
+                                                                                            const infoArray = textinfor['_'].split('\n').filter(item => item.trim() !== '');
+
+                                                                                            return (
+                                                                                              <>
+                                                                                                      <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                                <div key={textindex} className="selectdetail">
+                                                                                                <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                                    <ul>
+                                                                                                        {infoArray.map((item, index) => (
+                                                                                                            <li key={index}>{item.trim()}</li>
+                                                                                                        ))}
+                                                                                                    </ul>
+                                                                                                </div>
+                                                                                                </>
+                                                                                            );
+                                                                                          }
+                                                                                        
+                                                                                      })
+                                                                                          )}
+                                                                                    </div>
+                                                                                  ):(
+                                                                                    <>
+                                                                                      <div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
+                                                                                      <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button></div>
+                                                                                          <div className="selectprice">
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                          </div>
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                            <>
+                                                                                                      <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                          <div className="selectdetail">
+                                                                                          <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                          <ul><li>
+                                                                                            {priceParseData['air:AirPricingInfo']['air:FareInfo'] && priceParseData['air:AirPricingInfo']['air:FareInfo'][0] && 
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement'] && 
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement']['$'] &&
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement']['$']['Value']}
+                                                                                            </li></ul>
+                                                                                          </div>
+                                                                                          </>
+                                                                                          )}
+                                                                                      </div>
+                                                                                    </>
+                                                                                  )
+                                                                            ):(
+                                                                              <>
+                                                                                <div>
+                                                                                  <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
+                                                                                  <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button></div>
+                                                                                          <div className="selectprice">
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                          </div>
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                            <>
+                                                                                            <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                          <div className="selectdetail">
+                                                                                          <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                          <ul><li>
+                                                                                            {priceParseData && priceParseData['air:AirPricingInfo'] && priceParseData['air:AirPricingInfo']['air:FareInfo'] && priceParseData['air:AirPricingInfo']['air:FareInfo'][0] && 
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement'] && 
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement']['$'] &&
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement']['$']['Value']}
+                                                                                            </li></ul>
+                                                                                          </div>
+                                                                                          </>
+                                                                                          )}
+                                                                                </div>
+                                                                              </>
+                                                                            )
+                                                                            
+                                                                          ):(
+                                                                            
+                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['air:Text'] &&
+                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['air:Text'] ? (
+                                                                              Array.isArray(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['air:Text'])
+                                                                              
+                                                                                  ? (
+                                                                                    <div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']}
+                                                                                      <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button>
+                                                                                      </div>
+                                                                                      
+                                                                                          <div className="selectprice">
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''} 
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                          </div>
+                                                                                          
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                            
+                                                                                          
+                                                                                            
+                                                                                              priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['air:Text'].map(
+                                                                                                (textinfor, textindex) => {
+                                                                                                  if (
+                                                                                                    textinfor['$'] &&
+                                                                                                    textinfor['$']['Type'] === "MarketingConsumer" 
+                                                                                                  ) {
+                                                                                                    const infoArray = textinfor['_']
+                                                                                                      .split('\n')
+                                                                                                      .filter((item) => item.trim() !== '');
+
+                                                                                                    return (
+                                                                                                      <>
+                                                                                                      <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                                      <div key={textindex} className="selectdetail">
+                                                                                                      <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                                        <ul>
+                                                                                                          {infoArray.map((item, index) => (
+                                                                                                            <li key={index}>{item.trim()}</li>
+                                                                                                          ))}
+                                                                                                        </ul>
+                                                                                                      </div>
+                                                                                                      </>
+                                                                                                    ); 
+                                                                                                  }
+                                                                                                  return (
+                                                                                                    <>
+                                                                                                    <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                                    <div className="selectdetail">
+                                                                                                      <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                                      <p>No details are available at present. Please check back later.</p>
+                                                                                                    </div> </>
+                                                                                                  )
+                                                                                                  {/* return <div className="selectdetail" key={textindex}>No details are available at present. Please check back later.</div>; */}
+                                                                                                }
+                                                                                              )
+                                                                                            )
+                                                                                          }
+                                                                                    </div>
+                                                                                  ):(
+                                                                                    <>
+                                                                                      <div>
+                                                                                          <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']}
+                                                                                          <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button></div>
+                                                                                          <div className="selectprice">
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                          </div>
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                            <>
+                                                                                            <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                          <div className="selectdetail">
+                                                                                          <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                          <ul><li>
+                                                                                            {priceParseData['air:AirPricingInfo'] && priceParseData['air:AirPricingInfo']['air:FareInfo'] && 
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement'] && 
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement']['$'] && 
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement']['$']['Value']}
+                                                                                            </li></ul>
+                                                                                          </div>
+                                                                                          </>
+                                                                                          )}
+                                                                                      </div>
+                                                                                    </>
+                                                                                  )
+                                                                            ):(
+                                                                              <>
+                                                                                <div>
+                                                                                    <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        
+                                                                                        style={{ 
+                                                                                          border: "none",
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      </button></div>
+                                                                                          <div className="selectprice">
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                          </div>
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                            <>
+                                                                                            <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                          <div className="selectdetail">
+                                                                                          <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
+                                                                                          <ul><li>
+                                                                                            {priceParseData['air:AirPricingInfo'] && priceParseData['air:AirPricingInfo']['air:FareInfo'] && 
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement'] &&
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement']['$'] &&
+                                                                                            priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement']['$']['Value']}
+                                                                                            </li></ul>
+                                                                                          </div>
+                                                                                          </>
+                                                                                          )}
+                                                                                </div>
+                                                                              </>
+                                                                            )
+                                                                          )
+                                                                      
+                                                                    )
+                                                                  )
+                                                                )}
+                                                              </div>
+                                                              {fromcotrav !== "1" && (
+                                                              <div className='buttonbook' style={{width:"37%"}}><button type='button' className="continuebutton" style={{marginTop:"11px", color:"white", backgroundColor:"#785eff", border:"none", padding:"3%", borderRadius:"3px"}} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
+                                                              )} 
+                                                            </div>
+                                                              ) 
+                                                          ))}
+                                                        </div>  
+                                                    
+                                                    )}
+                                              
+                                              </div>  
                                               <div className="flt-i-c">
                                                 <div className="flt-i-padding">
                                                   <div className="flt-i-price-i">
@@ -9860,12 +10612,12 @@ const toggleDetails = async (name) => {
                                                 </div>
                                               </div>
                                               <div className="clear" />
-                                            </div>
+                                            </div>  
                                         </div>
                                       ) : (
                                         
-                                          <div >
-                                          
+                                        <div >
+                                        
                                           <div
                                             className={`flight-item fly-in ${selectedFlights.includes(pricepoint['air:AirPricingInfo']) ? "selected-flight" : ""}`}
                                             data-price={6521}
@@ -9886,6 +10638,7 @@ const toggleDetails = async (name) => {
                                             )}
                                               
                                               {/* <input type="checkbox" style={{ marginLeft: "-8px", marginRight: "15px" }} /> */}
+                                              
                                                 <div className="flt-i-a">
                                                   <div className="flt-i-b">
                                                     <div className="flt-i-bb">
@@ -10671,7 +11424,7 @@ const toggleDetails = async (name) => {
                                                                                                   <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations =pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     return (
                                                                                                       <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
                                                                                                         {totalIterations} STOP
@@ -10896,7 +11649,7 @@ const toggleDetails = async (name) => {
                                                                                                   <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations =pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     return (
                                                                                                       <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
                                                                                                         {totalIterations} STOP
@@ -11131,7 +11884,7 @@ const toggleDetails = async (name) => {
                                                                                                   <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations =pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     return (
                                                                                                       <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
                                                                                                         {totalIterations} STOP
@@ -11356,7 +12109,7 @@ const toggleDetails = async (name) => {
                                                                                                   <div className="flight-line-a" style={{ marginLeft: 10 }}>
                                                                                                   {(() => {
                                                                                                     let totalIterations =pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#bd8100" : "red";
+                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
                                                                                                     return (
                                                                                                       <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
                                                                                                         {totalIterations} STOP
@@ -12939,11 +13692,21 @@ const toggleDetails = async (name) => {
                                                     <br className="clear" />
                                                   </div>
                                                   
+                                                  
                                                   {isDropdownVisible && selectedPriceIndex === priceindex && (
-                                                    <div className="row selectcontainer">
+                                                      <div className="row selectcontainer">
                                                           
-                                                          {priceParse && priceParse.map((priceParseData, priceParseindex) => (
-                                                            <div key={priceParseindex} className='col-md-3 optionsflights' style={{display:"flex"}}>
+                                                          {loadingIndex === priceindex ? (
+                                                            <div className="loader custom-loader item-center justify-center flex items-center">
+                                                                <IconLoader className="w-12 h-12 animate-[spin_2s_linear_infinite] inline-block align-middle ltr:ml-2 rtl:mr-2 shrink-0" />
+                                                                <p className="text-center ml-4 text-gray-600">
+                                                                    Retrieving flight details. Please wait a moment.
+                                                                </p>
+                                                            </div>
+                                                          ) : (
+                                                              /* Actual Content */
+                                                              priceParse && priceParse.map((priceParseData, priceParseindex) => (
+                                                                  <div key={priceParseindex} className='col-md-3 optionsflights' style={{display:"flex"}}>
                                                               <div className='optionsflight' style={{width:"63%"}}>
                                                                 {priceParseData['air:AirPricingInfo'] && (
                                                                   Array.isArray(priceParseData['air:AirPricingInfo'])
@@ -12955,7 +13718,7 @@ const toggleDetails = async (name) => {
                                                                               Array.isArray(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['air:Text'])
                                                                                   ? (
                                                                                     <div className="modal-data">
-                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}</div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
                                                                                         onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
@@ -12970,7 +13733,7 @@ const toggleDetails = async (name) => {
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
-                                                                                      </button>
+                                                                                      </button></div>
                                                                                       <div className="selectprice">
                                                                                         {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                                                         {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
@@ -13005,7 +13768,7 @@ const toggleDetails = async (name) => {
                                                                                   ):(
                                                                                     <>
                                                                                       <div>
-                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}</div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
                                                                                         onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
@@ -13020,7 +13783,7 @@ const toggleDetails = async (name) => {
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
-                                                                                      </button>
+                                                                                      </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
@@ -13045,7 +13808,7 @@ const toggleDetails = async (name) => {
                                                                             ) : (
                                                                                     <>
                                                                                       <div>
-                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}</div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
                                                                                         onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
@@ -13060,7 +13823,7 @@ const toggleDetails = async (name) => {
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
-                                                                                      </button>
+                                                                                      </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
@@ -13088,7 +13851,7 @@ const toggleDetails = async (name) => {
                                                                               Array.isArray(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['air:Text'])
                                                                                   ? (
                                                                                     <div>
-                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}</div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
                                                                                         onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
@@ -13103,7 +13866,7 @@ const toggleDetails = async (name) => {
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
-                                                                                      </button>
+                                                                                      </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
@@ -13138,7 +13901,7 @@ const toggleDetails = async (name) => {
                                                                                   ):(
                                                                                     <>
                                                                                       <div>
-                                                                                        <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}</div>
+                                                                                        <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                         <button
                                                                                         type="button"
                                                                                         onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
@@ -13153,7 +13916,7 @@ const toggleDetails = async (name) => {
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
-                                                                                      </button>
+                                                                                      </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
@@ -13178,7 +13941,7 @@ const toggleDetails = async (name) => {
                                                                             ) : (
                                                                               <>
                                                                                 <div>
-                                                                                <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}</div>
+                                                                                <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                 <button
                                                                                         type="button"
                                                                                         onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
@@ -13193,7 +13956,7 @@ const toggleDetails = async (name) => {
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
-                                                                                      </button>
+                                                                                      </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
@@ -13227,7 +13990,7 @@ const toggleDetails = async (name) => {
                                                                               Array.isArray(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['air:Text'])
                                                                                   ? (
                                                                                     <div>
-                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}</div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
                                                                                         onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
@@ -13242,7 +14005,7 @@ const toggleDetails = async (name) => {
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
-                                                                                      </button>
+                                                                                      </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
@@ -13277,7 +14040,7 @@ const toggleDetails = async (name) => {
                                                                                   ):(
                                                                                     <>
                                                                                       <div>
-                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}</div>
+                                                                                      <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
                                                                                         onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
@@ -13292,7 +14055,7 @@ const toggleDetails = async (name) => {
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
-                                                                                      </button>
+                                                                                      </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
@@ -13317,7 +14080,7 @@ const toggleDetails = async (name) => {
                                                                             ):(
                                                                               <>
                                                                                 <div>
-                                                                                  <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}</div>
+                                                                                  <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                   <button
                                                                                         type="button"
                                                                                         onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
@@ -13332,7 +14095,7 @@ const toggleDetails = async (name) => {
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
-                                                                                      </button>
+                                                                                      </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
@@ -13431,7 +14194,7 @@ const toggleDetails = async (name) => {
                                                                                   ):(
                                                                                     <>
                                                                                       <div>
-                                                                                          <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']}</div>
+                                                                                          <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                           <button
                                                                                         type="button"
                                                                                         onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
@@ -13446,7 +14209,7 @@ const toggleDetails = async (name) => {
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
-                                                                                      </button>
+                                                                                      </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
@@ -13471,7 +14234,7 @@ const toggleDetails = async (name) => {
                                                                             ):(
                                                                               <>
                                                                                 <div>
-                                                                                    <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']}</div>
+                                                                                    <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
@@ -13486,7 +14249,7 @@ const toggleDetails = async (name) => {
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
-                                                                                      </button>
+                                                                                      </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
@@ -13515,14 +14278,15 @@ const toggleDetails = async (name) => {
                                                                 )}
                                                               </div>
                                                               {fromcotrav !== "1" && (
-                                                              <div className='buttonbook' style={{width:"37%"}}><button type='button' className="continuebutton" style={{marginTop:"11px", color:"white", backgroundColor:"#785eff", border:"none"}} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
+                                                              <div className='buttonbook' style={{width:"37%"}}><button type='button' className="continuebutton" style={{marginTop:"11px", color:"white", backgroundColor:"#785eff", border:"none", padding:"3%", borderRadius:"3px"}} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
                                                               )} 
                                                             </div>
+                                                              ) 
                                                           ))}
-                                                        </div>
-                                                  )}
-                                                </div>
-                                                
+                                                        </div>  
+                                                    
+                                                    )}
+                                                </div>  
                                                 <div className="flt-i-c">
                                                   <div className="flt-i-padding">
                                                     <div className="flt-i-price-i">
@@ -13544,7 +14308,8 @@ const toggleDetails = async (name) => {
                                                         }
                                                       </div>
                                                     </div>
-                                                    <div className="flt-i-price-b">per adult</div>
+                                                    
+                                                    <div className="flt-i-price-b">per adult</div>  
                                                     
                                                     <button type="submit" style={{
                                                             width : "30px",
@@ -13557,12 +14322,13 @@ const toggleDetails = async (name) => {
                                                     
                                                   </div>
                                                 </div>
+
                                                 <div className="clear" />
-                                              </div>
-                                          </div>
+                                          </div>  
+                                        </div> 
                                       )}
 
-                                    </div>
+                                    </div>  
                                     
                                   </form>
                                   
@@ -13929,7 +14695,7 @@ const toggleDetails = async (name) => {
             </div>
           </div>
         </div>
-        {/* /main-cont */}
+        
       </div >
     
   );

@@ -53,13 +53,18 @@ function Home() {
     const [airlineData, setAirlineResponse] = useState(null);
     const [airportData, setAirportResponse] = useState(null);
 
-    const [inputOrigin, setInputOrigin] = useState('Pune (PNQ) Pune Airport / Lohagaon Air Force Station');
+    const [inputOrigin, setInputOrigin] = useState(() => {
+            return localStorage.getItem('lastorigin') || '';
+          });
     const [showOriginDropdown, setShowOriginDropdown] = useState(false);
     const [origin, setOrigin] = useState([]);
     const [allAirportsOrigin, setAllAirportsOrigin] = useState([]);
     const [airportOriginCodes, setAirportOriginCodes] = useState(null);
 
-    const [inputDestination, setInputDestination] = useState('Delhi (DEL) Indira Gandhi International Airport');
+    // const [inputDestination, setInputDestination] = useState('Delhi (DEL) Indira Gandhi International Airport');
+    const [inputDestination, setInputDestination] = useState(() => {
+        return localStorage.getItem('lastDestination') || '';
+      });
     const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
     const [destination, setDestination] = useState([]);
     const [allAirportsDestination, setAllAirportsDestination] = useState([]);
@@ -289,8 +294,8 @@ function Home() {
     const [formData, setFormData] = useState({
         departureDate: new Date(),
         returnDate: null,
-        flightOrigin: 'Pune (PNQ) Pune Airport / Lohagaon Air Force Station',
-        flightDestination: 'Delhi (DEL) Indira Gandhi International Airport',
+        flightOrigin: localStorage.getItem('lastorigin') || '',
+        flightDestination: localStorage.getItem('lastDestination') || '',
         bookingType: 'oneway',
         adult: '1',
         child: '0',
@@ -379,6 +384,8 @@ function Home() {
         
         let totalpassenger = parseInt(adultCount) + parseInt(childCount) + parseInt(infantCount);
         let isValidPassenger = true;
+        localStorage.setItem('lastorigin', searchfrom);
+        localStorage.setItem('lastDestination', searchto);
         
         
         if(infantCount > adultCount){
@@ -522,6 +529,7 @@ function Home() {
                     <air:SearchDepTime PreferredTime="${returnDepTime}"/>
                 </air:SearchAirLeg>`
                 : '';
+                
             
                 return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                     <soap:Body>
@@ -565,9 +573,9 @@ function Home() {
             );
             // console.log(soapEnvelope);
             // TargetBranch="P4451438"
-            // <com:Provider Code="ACH"/>
+            // <com:Provider Code="ACH"/> 
             // const username = 'Universal API/uAPI6514598558-21259b0c';
-            // const password = 'tN=54gT+%Y';
+            // const password = 'tN=54gT+%Y'; 
             const username = 'Universal API/uAPI8645980109-af7494fa';
             const password = 'N-k29Z}my5';
             const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
@@ -576,7 +584,8 @@ function Home() {
 
             sessionStorage.setItem('searchdata', soapEnvelope);
             // console.log('ausdfgth',soapEnvelope);
-            
+            // targetbranch: P7206253
+            // tavelport api : https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService for security
     
             const response = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
                 headers: {
@@ -597,7 +606,8 @@ function Home() {
                 selectinfant:infant,
                 selectclass:cabinclass,
                 bookingtype :bookingtype,
-                apiairportsdata:apiairports
+                apiairportsdata:apiairports,
+                fromcotrav: '1',
             };
             // console.log('responsedata', responseData);
             navigate('/SearchFlight', { state: { responseData } });

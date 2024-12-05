@@ -22,6 +22,8 @@ const navigate = useNavigate();
   const [emptaxivaxi, setEmptaxivaxi] = useState([]);
   const searchParams = new URLSearchParams(window.location.search);
   const taxivaxidata = searchParams.get('taxivaxidata');
+//   alert('okay', taxivaxidata);
+//   console.log('data', taxivaxidata);
   
 
   const [Airports, setAirportOptions] = useState([]);
@@ -141,9 +143,11 @@ const navigate = useNavigate();
                       }
                   };
                   const searchfrom = formtaxivaxiData['from_city'];
+                //   console.log('searchfrom', searchfrom);
                   const searchfromMatch = searchfrom.match(/\((\w+)\)/);
                   const searchfromCode = searchfromMatch[1];
-                  const searchto = formtaxivaxiData['to_city'];
+                //   console.log('sechfromcode', searchfromCode);
+                  const searchto = formtaxivaxiData['to_city']; 
                   const searchtoMatch = searchto.match(/\((\w+)\)/);
                   const searchtoCode = searchtoMatch[1];
                   const searchdeparture = formtaxivaxiData['departure_date'];
@@ -154,7 +158,7 @@ const navigate = useNavigate();
                   const infant = 0;
                   const classtype = formtaxivaxiData['seat_type'];
                   let cabinclass = classtype;
-                  let bookingtype = formtaxivaxiData['trip_type'] === "Round Trip" ? "Return" : "oneway";
+                  let bookingtype = formtaxivaxiData['trip_type'] === "Round Trip" ? "Return" : "One Way";
                   if (classtype === "Economy/Premium Economy") {
                       cabinclass = "Economy";
                   }
@@ -175,7 +179,7 @@ const navigate = useNavigate();
                   const PassengerCodeADT = adult; 
                   const PassengerCodeCNN = child; 
                   const PassengerCodeINF = infant; 
-
+                //   console.log('helo');
                   const createSoapEnvelope = (
                       cityCode,
                       destinationCode,
@@ -250,6 +254,7 @@ const navigate = useNavigate();
                   const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
 
                   sessionStorage.setItem('searchdata', soapEnvelope);
+                //   console.log('soapenv', soapEnvelope); 
 
                   const response = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
                       headers: {
