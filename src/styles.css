@@ -18599,7 +18599,7 @@ ul.dropdown-menu li a:hover {
     height: 14vh !important;
     width: 100% !important;
     color: blue !important;
-    background-color: rgb(255, 255, 255) !important;
+    background-color: rgba(0,0,0,0.0) !important;
     position: relative !important;
     /* z-index: 999999999999 !important; */
     display: grid !important;

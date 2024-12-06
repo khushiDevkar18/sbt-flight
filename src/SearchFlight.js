@@ -1339,7 +1339,7 @@ const handleReturnDateInitialization = (bookingType) => {
     airPricingInfo.isReturn = isReturn;
   
     console.log('Updated airPricingInfo with isReturn:', airPricingInfo);
-  
+   
     setSelectedFlights((prev) => {
       // Check if this specific data is already selected
       const isSelected = prev.some(
@@ -1458,109 +1458,226 @@ const handleReturnDateInitialization = (bookingType) => {
     // });
   // };
 
-  const approverButtonClick = () => {
-    console.log("selectedFlights", selectedFlights);
+  // const approverButtonClick = () => {
+  //   console.log("selectedFlights", selectedFlights);
+  
+  //   const payload = {
+  //     booking_id: "21329",
+  //     email: "mayank.didwania@cotrav.co",
+  
+  //     flight_options: selectedFlights.flatMap((flight) => {
+  //       const flightOptionsList = flight["air:FlightOptionsList"];
+  //       const flightOption = flightOptionsList?.["air:FlightOption"];
+  //       const flightOptionArray = Array.isArray(flightOption) ? flightOption : [flightOption];
+  
+  //       return flightOptionArray.flatMap((option) => {
+  //         // Filter the "air:Option" to include only the selected option
+  //         const options = option?.["air:Option"];
+  //         const optionsArray = Array.isArray(options) ? options : [options];
+  //         const selectedOptions = optionsArray.slice(0, 1); // Consider only the first selected option
+  
+  //         return selectedOptions.map((singleOption) => {
+  //           const bookingInfo = singleOption?.["air:BookingInfo"];
+  //           const segmentRefArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
+  
+  //           const flight_details = segmentRefArray.map((info) => {
+  //             const segmentRef = info?.["$"]?.["SegmentRef"];
+  //             const matchingSegment = SegmentList.find(
+  //               (segment) => segment["$"]["Key"] === segmentRef
+  //             );
+  
+  //             if (!segmentRef || !matchingSegment) {
+  //               console.warn("Invalid SegmentRef or missing matching segment:", { segmentRef, info });
+  //               return null; // Skip invalid entries
+  //             }
+  
+  //             return {
+  //               flight_no: `${matchingSegment["$"]["Carrier"]}${matchingSegment["$"]["FlightNumber"] || "Unknown"}`,
+  //               airline_name: handleAirline(matchingSegment["$"]["Carrier"] || "Unknown"),
+  //               from_city: handleApiAirport(matchingSegment["$"]["Origin"] || "Unknown"),
+  //               to_city: handleApiAirport(matchingSegment["$"]["Destination"] || "Unknown"),
+  //               departure_datetime: matchingSegment["$"]["DepartureTime"] || "Unknown",
+  //               arrival_datetime: matchingSegment["$"]["ArrivalTime"] || "Unknown",
+  //             };
+  //           }).filter(Boolean); // Remove null entries
+  
+  //           const bookinfo = singleOption?.["air:BookingInfo"];
+  //           const no_of_stops = Array.isArray(bookinfo) ? bookinfo.length - 1 : 0;
+  
+  //           return {
+  //             flight_no: flight_details.map(detail => detail.flight_no).join(", "),
+  //             airline_name: flight_details.map(detail => detail.airline_name).join(", "),
+  //             from_city: flight_details[0]?.from_city || "Unknown",
+  //             to_city: flight_details[flight_details.length - 1]?.to_city || "Unknown",
+  //             departure_datetime: flight_details.map(detail => detail.departure_datetime).join(", "),
+  //             arrival_datetime: flight_details.map(detail => detail.arrival_datetime).join(", "),
+  //             price: parseInt(flight["$"].TotalPrice.replace('INR', '').trim(), 10),
+  //             is_return: flight?.isReturn ? 1 : 0,
+  //             no_of_stops: no_of_stops,
+  //             carrier: flight_details.map(detail => detail.flight_no.slice(0, 2)).join(", "),
+  //             // duration: formatISODuration(flight['air:FlightOptionsList']['air:FlightOption']['air:Option']['$']['TravelTime']) || "00:00:00",
+  //             duration: formatISODuration(
+  //               Array.isArray(flight['air:FlightOptionsList']?.['air:FlightOption'])
+  //                 ? Array.isArray(flight['air:FlightOptionsList']['air:FlightOption'][0]?.['air:Option'])
+  //                   ? flight['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]?.['$']?.['TravelTime']
+  //                   : flight['air:FlightOptionsList']['air:FlightOption'][0]?.['air:Option']?.['$']?.['TravelTime']
+  //                 : Array.isArray(flight['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'])
+  //                   ? flight['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]?.['$']?.['TravelTime']
+  //                   : flight['air:FlightOptionsList']['air:FlightOption']?.['air:Option']?.['$']?.['TravelTime']
+  //             ) || "00:00:00",
+
+  //             is_refundable: flight["$"].Refundable ? 1 : 0,
+  //             // time_between_flight: calculateTimeBetweenFlights(flight_details), // Custom helper function
+  //             fare_details: [
+  //               {
+  //                 fare_type: "Corporate Fare",
+  //                 price: 2000,
+  //               },
+  //             ],
+  //             flight_details,
+  //           };
+  //         });
+  //       });
+  //     })
+  //       .flat(2) // Flatten nested arrays
+  //       .filter(Boolean), // Remove null entries
+  //   };
+  
+  //   console.log("Payload:", payload);
+  // };
+  
+  const approverButtonClick = (inputorigin) => {
+    console.log('inp', typeof inputOrigin);
+    
+    const segregateFlights = (flight) => {
+      const flightOptionsList = flight["air:FlightOptionsList"];
+      const flightOption = flightOptionsList?.["air:FlightOption"];
+      const flightOptionArray = Array.isArray(flightOption) ? flightOption : [flightOption];
+  
+      return flightOptionArray.flatMap((option) => {
+        const options = option?.["air:Option"];
+        const optionsArray = Array.isArray(options) ? options : [options];
+        const selectedOptions = optionsArray.slice(0, 1); // Only consider the first selected option
+  
+        return selectedOptions.map((singleOption) => {
+          const bookingInfo = singleOption?.["air:BookingInfo"];
+          const segmentRefArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
+  
+          const flightDetails = segmentRefArray.map((info) => {
+            const segmentRef = info?.["$"]?.["SegmentRef"];
+            const matchingSegment = SegmentList.find(
+              (segment) => segment["$"]["Key"] === segmentRef
+            );
+  
+            if (!segmentRef || !matchingSegment) {
+              console.warn("Invalid SegmentRef or missing matching segment:", { segmentRef, info });
+              return null; // Skip invalid entries
+            }
+  
+            return {
+              flight_no: `${matchingSegment["$"]["Carrier"]}${matchingSegment["$"]["FlightNumber"] || "Unknown"}`,
+              airline_name: handleAirline(matchingSegment["$"]["Carrier"] || "Unknown"),
+              from_city: handleApiAirport(matchingSegment["$"]["Origin"] || "Unknown"),
+              to_city: handleApiAirport(matchingSegment["$"]["Destination"] || "Unknown"),
+              departure_datetime: matchingSegment["$"]["DepartureTime"] || "Unknown",
+              arrival_datetime: matchingSegment["$"]["ArrivalTime"] || "Unknown",
+            };
+          }).filter(Boolean); // Remove null entries
+  
+          const bookinfo = singleOption?.["air:BookingInfo"];
+          const no_of_stops = Array.isArray(bookinfo) ? bookinfo.length - 1 : 0;
+  
+          return {
+            flight_no: flightDetails.map((detail) => detail.flight_no).join(", "),
+            airline_name: flightDetails.map((detail) => detail.airline_name).join(", "),
+            from_city: flightDetails[0]?.from_city || "Unknown",
+            to_city: flightDetails[flightDetails.length - 1]?.to_city || "Unknown",
+            departure_datetime: flightDetails[0]?.departure_datetime || "Unknown",
+            arrival_datetime: flightDetails[flightDetails.length - 1]?.arrival_datetime || "Unknown",
+            price: parseInt(flight["$"].TotalPrice.replace("INR", "").trim(), 10),
+            is_return: flight?.isReturn ? 1 : 0,
+            no_of_stops: no_of_stops,
+            carrier: flightDetails.map((detail) => detail.flight_no.slice(0, 2)).join(", "),
+            duration: formatISODuration(
+              singleOption?.["$"]?.["TravelTime"] || "00:00:00"
+            ),
+            is_refundable: flight["$"].Refundable ? 1 : 0,
+            fare_details: [
+              {
+                fare_type: "Corporate Fare",
+                price: 2000,
+              },
+            ],
+            flight_details: flightDetails,
+          };
+        });
+      });
+    };
+  
+    const allFlights = selectedFlights.flatMap(segregateFlights).filter(Boolean);
+    // console.log('allflight', allFlights);
+  
+    const onwardFlights = [];
+    const returnFlights = [];
+  
+    // Segregate flights based on inputorigin
+    // console.log('check', flight_details[0]?.from_city);
+    allFlights.forEach((flight) => {
+      console.log('flight', flight);
+    
+      // Normalize both strings by ensuring they are strings first
+      const normalize = (str) => {
+        if (typeof str !== 'string') return ''; // Handle non-string values
+        return str.replace(/\(.*?\)\s*/g, "").trim();
+      };
+      console.log('Normalized:', normalize(inputOrigin));
+      const normalizedInputOrigin = normalize(inputOrigin);
+      const normalizedFromCity = normalize(flight.from_city);
+      
+      console.log('normalizecity',normalizedFromCity);
+    
+      // Check if one string is part of the other
+      if (
+        normalizedFromCity.includes(normalizedInputOrigin) ||
+        normalizedInputOrigin.includes(normalizedFromCity)
+      ) {
+        onwardFlights.push(flight);
+      } else {
+        returnFlights.push(flight);
+      }
+    });
+    
   
     const payload = {
       booking_id: "21329",
       email: "mayank.didwania@cotrav.co",
-  
-      flight_options: selectedFlights.flatMap((flight) => {
-        const flightOptionsList = flight["air:FlightOptionsList"];
-        const flightOption = flightOptionsList?.["air:FlightOption"];
-        const flightOptionArray = Array.isArray(flightOption) ? flightOption : [flightOption];
-  
-        return flightOptionArray.flatMap((option) => {
-          // Filter the "air:Option" to include only the selected option
-          const options = option?.["air:Option"];
-          const optionsArray = Array.isArray(options) ? options : [options];
-          const selectedOptions = optionsArray.slice(0, 1); // Consider only the first selected option
-  
-          return selectedOptions.map((singleOption) => {
-            const bookingInfo = singleOption?.["air:BookingInfo"];
-            const segmentRefArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
-  
-            const flight_details = segmentRefArray.map((info) => {
-              const segmentRef = info?.["$"]?.["SegmentRef"];
-              const matchingSegment = SegmentList.find(
-                (segment) => segment["$"]["Key"] === segmentRef
-              );
-  
-              if (!segmentRef || !matchingSegment) {
-                console.warn("Invalid SegmentRef or missing matching segment:", { segmentRef, info });
-                return null; // Skip invalid entries
-              }
-  
-              return {
-                flight_no: `${matchingSegment["$"]["Carrier"]}${matchingSegment["$"]["FlightNumber"] || "Unknown"}`,
-                airline_name: handleAirline(matchingSegment["$"]["Carrier"] || "Unknown"),
-                from_city: handleApiAirport(matchingSegment["$"]["Origin"] || "Unknown"),
-                to_city: handleApiAirport(matchingSegment["$"]["Destination"] || "Unknown"),
-                departure_datetime: matchingSegment["$"]["DepartureTime"] || "Unknown",
-                arrival_datetime: matchingSegment["$"]["ArrivalTime"] || "Unknown",
-              };
-            }).filter(Boolean); // Remove null entries
-  
-            const bookinfo = singleOption?.["air:BookingInfo"];
-            const no_of_stops = Array.isArray(bookinfo) ? bookinfo.length - 1 : 0;
-  
-            return {
-              flight_no: flight_details.map(detail => detail.flight_no).join(", "),
-              airline_name: flight_details.map(detail => detail.airline_name).join(", "),
-              from_city: flight_details[0]?.from_city || "Unknown",
-              to_city: flight_details[flight_details.length - 1]?.to_city || "Unknown",
-              departure_datetime: flight_details.map(detail => detail.departure_datetime).join(", "),
-              arrival_datetime: flight_details.map(detail => detail.arrival_datetime).join(", "),
-              price: parseInt(flight["$"].TotalPrice.replace('INR', '').trim(), 10),
-              is_return: option["$"]["Key"] === "return" ? 1 : 0,
-              no_of_stops: no_of_stops,
-              carrier: flight_details.map(detail => detail.flight_no.slice(0, 2)).join(", "),
-              // duration: formatISODuration(flight['air:FlightOptionsList']['air:FlightOption']['air:Option']['$']['TravelTime']) || "00:00:00",
-              duration: formatISODuration(
-                Array.isArray(flight['air:FlightOptionsList']?.['air:FlightOption'])
-                  ? Array.isArray(flight['air:FlightOptionsList']['air:FlightOption'][0]?.['air:Option'])
-                    ? flight['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]?.['$']?.['TravelTime']
-                    : flight['air:FlightOptionsList']['air:FlightOption'][0]?.['air:Option']?.['$']?.['TravelTime']
-                  : Array.isArray(flight['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'])
-                    ? flight['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]?.['$']?.['TravelTime']
-                    : flight['air:FlightOptionsList']['air:FlightOption']?.['air:Option']?.['$']?.['TravelTime']
-              ) || "00:00:00",
-
-              is_refundable: flight["$"].Refundable ? 1 : 0,
-              // time_between_flight: calculateTimeBetweenFlights(flight_details), // Custom helper function
-              fare_details: [
-                {
-                  fare_type: "Corporate Fare",
-                  price: 2000,
-                },
-              ],
-              flight_details,
-            };
-          });
-        });
-      })
-        .flat(2) // Flatten nested arrays
-        .filter(Boolean), // Remove null entries
+      seat_type: "Economy",
+      departure_date: "2024-12-11 10:00:00",
+      return_date: "",
+      no_of_seats: "2",
+      flights: {
+        ...(onwardFlights.length > 0 && { onward: { flight_options: onwardFlights } }),
+        ...(returnFlights.length > 0 && { return: { flight_options: returnFlights } }),
+      },
     };
   
     console.log("Payload:", payload);
-    // const apiUrl = "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking";
+    const apiUrl = "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking";
 
-    // fetch(apiUrl, {
-    //   method: "POST",
-    //   body: JSON.stringify(payload),
-    //   headers: { "Content-Type": "application/json" },
-    // })
-    // .then((response) => response.json()) 
-    // .then((data) => {
-    //   console.log("API response:", data); 
-    // })
-    // .catch((error) => {
-    //   console.error("Error sending request:", error); 
-    // });
-  
-    // Further processing
+    fetch(apiUrl, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+    })
+    .then((response) => response.json()) 
+    .then((data) => {
+      console.log("API response:", data); 
+    })
+    .catch((error) => {
+      console.error("Error sending request:", error); 
+    });
   };
+  
   
   
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
@@ -10026,7 +10143,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                       <div className="selectprice">
                                                                                         {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -10076,7 +10193,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -10116,7 +10233,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -10159,7 +10276,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -10209,7 +10326,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -10249,7 +10366,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -10298,7 +10415,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -10348,7 +10465,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -10388,7 +10505,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -10434,7 +10551,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button>
                                                                                       </div>
                                                                                       
@@ -10502,7 +10619,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -10542,7 +10659,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -13732,7 +13849,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                       <div className="selectprice">
                                                                                         {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -13782,7 +13899,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -13822,7 +13939,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -13865,7 +13982,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -13915,7 +14032,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -13955,7 +14072,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -14004,7 +14121,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -14054,7 +14171,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -14094,7 +14211,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -14140,7 +14257,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button>
                                                                                       </div>
                                                                                       
@@ -14208,7 +14325,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
@@ -14248,7 +14365,7 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
                                                                                             {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}

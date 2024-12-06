@@ -533,7 +533,7 @@ function Home() {
             
                 return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                     <soap:Body>
-                    <air:LowFareSearchReq TargetBranch="P7206253" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
+                    <air:LowFareSearchReq TargetBranch="P4451438" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
                         <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                         <air:SearchAirLeg>
                             <air:SearchOrigin>
@@ -574,10 +574,10 @@ function Home() {
             // console.log(soapEnvelope);
             // TargetBranch="P4451438"
             // <com:Provider Code="ACH"/> 
-            // const username = 'Universal API/uAPI6514598558-21259b0c';
-            // const password = 'tN=54gT+%Y'; 
-            const username = 'Universal API/uAPI8645980109-af7494fa';
-            const password = 'N-k29Z}my5';
+            const username = 'Universal API/uAPI6514598558-21259b0c';
+            const password = 'tN=54gT+%Y'; 
+            // const username = 'Universal API/uAPI8645980109-af7494fa';
+            // const password = 'N-k29Z}my5';
             const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
             // console.log('auth',username);
             // console.log('auth',password);
@@ -586,8 +586,9 @@ function Home() {
             // console.log('ausdfgth',soapEnvelope);
             // targetbranch: P7206253
             // tavelport api : https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService for security
+            // live api: https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService
     
-            const response = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
+            const response = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
                 headers: {
                 'Content-Type': 'text/xml',
                 'Authorization':authHeader,
