@@ -91,8 +91,16 @@ const SearchFlight = () => {
   const child = location.state && location.state.responseData.selectchild;
   const infant = location.state && location.state.responseData.selectinfant;
   const cabinclass = location.state && location.state.responseData.selectclass;
+  // console.log('asd', cabinclass)
   const fromcotrav = location.state && location.state.responseData?.fromcotrav;
-  // console.log('fromcotrav', fromcotrav);
+  const spocemail = location.state && location.state.responseData?.spocemail;
+  const markupdata = location.state && location.state.responseData?.markupdata;
+  const bookingid = location.state && location.state.responseData?.bookingid;
+  const searchdeparturedate = location.state && location.state.responseData?.searchdeparturedate;
+  const searchreturnd = location.state && location.state.responseData?.searchreturnd;
+  const no_of_seats = location.state && location.state.responseData?.no_of_seats;
+  const request_id = location.state && location.state.responseData?.request_id;
+
   const adultCounts = parseInt(adult, 10) || 0; 
   const childCounts = parseInt(child, 10) || 0;
   const infantCounts = parseInt(infant, 10) || 0;
@@ -105,6 +113,7 @@ const SearchFlight = () => {
   const [childCount, setChildCount] = useState(childCounts); 
   const [infantCount, setInfantCount] = useState(infantCounts); 
   const [cabinClass, setCabinClass] = useState(cabinclass); 
+  // console.log('cabinClass',cabinClass);
   const [inputOrigin, setInputOrigin] = useState(request.searchfromcity);
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
   const [ismodify, setismodify] = useState(true);
@@ -128,6 +137,54 @@ const SearchFlight = () => {
       behavior: 'smooth' 
     });
   };
+  
+  const calculateFinalPrice = (totalPrice, markup, seatType, fareName) => {
+    // Parse markup if it's a JSON string
+    if (typeof markup === "string") {
+      try {
+        markup = JSON.parse(markup);
+      } catch (error) {
+        // console.error("Failed to parse markup JSON:", error);
+        return parseFloat(totalPrice.replace("INR", "").trim()); // Return the original price
+      }
+    }
+  
+    // Ensure totalPrice is numeric for calculations
+    const numericPrice = parseFloat(totalPrice.replace("INR", "").trim());
+  
+    if (!Array.isArray(markup)) {
+      // console.error("Markup is not an array:", markup);
+      return numericPrice; // Return the original price
+    }
+  
+    // Find the applicable markup based on fareName
+    let applicableMarkup = markup.find(
+      (m) => m.seat_type === seatType && m.fare_name === fareName
+    );
+  
+    // If no specific fareName markup found, fallback to Base Fare
+    if (!applicableMarkup) {
+      applicableMarkup = markup.find(
+        (m) => m.seat_type === seatType && m.fare_name === "Base Fare"
+      );
+    }
+  
+    if (!applicableMarkup) {
+      console.warn("No applicable markup found; applying original price.");
+      return numericPrice;
+    }
+  
+    // Calculate the final price based on markup type
+    const markupValue = parseFloat(applicableMarkup.markup_value);
+    if (applicableMarkup.markup_type === "fixed") {
+      return numericPrice + markupValue; // Add fixed value
+    } else if (applicableMarkup.markup_type === "percentage") {
+      return numericPrice + (numericPrice * markupValue) / 100; // Add percentage
+    }
+  
+    return numericPrice; // Default return if no markup type matches
+  };
+
   const swapOriginAndDestination = () => {
       if (lastActionWasSwap) {
         setInputOrigin(inputDestination);
@@ -579,8 +636,12 @@ const SearchFlight = () => {
       // console.log('set',segmentArray);
       sessionStorage.setItem('segmentarray', JSON.stringify(segmentArray));
         const makeSoapRequest = async () => {
-          const username = 'Universal API/uAPI8645980109-af7494fa';
-          const password = 'N-k29Z}my5';
+          // const username = 'Universal API/uAPI8645980109-af7494fa';
+          // const password = 'N-k29Z}my5';
+          const username = 'Universal API/uAPI6514598558-21259b0c';
+          const password = 'tN=54gT+%Y';
+          // live target branch : P4451438
+          // local : P7206253
           const authHeader = `Basic ${btoa(`${username}:${password}`)}`
           const builder = require('xml2js').Builder;
           var pricepointXML = new builder().buildObject({
@@ -592,7 +653,7 @@ const SearchFlight = () => {
                 'air:AirPriceReq': {
                   '$': {
                     'AuthorizedBy': 'TAXIVAXI',
-                    'TargetBranch': 'P7206253',
+                    'TargetBranch': 'P4451438',
                     'FareRuleType': 'short',
                     'TraceId': 'TVSBP001',
                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -635,9 +696,11 @@ const SearchFlight = () => {
             }
           });
           // console.log('prc',pricepointXML);
+          // live api : https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService
+          // local : https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService
           
           try {
-              const priceresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', pricepointXML, {
+              const priceresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService', pricepointXML, {
                   headers: {
                       'Content-Type': 'text/xml',
                       'Authorization': authHeader,
@@ -1363,191 +1426,9 @@ const handleReturnDateInitialization = (bookingType) => {
   };
   
 
-  // const approverButtonClick = () => {
-  //   console.log("selectedFlights", selectedFlights);
-
-  //   const payload = {
-  //     booking_id: "81111",
-  //     no_of_flight_options: selectedFlights.some(flight => flight.isReturn === 1)
-  //       ? selectedFlights.length * 2
-  //       : selectedFlights.length,
-  //     flight_options: selectedFlights.map((flight) => { 
-  //       // Safely access `air:FlightOptionsList` and normalize `air:FlightOption`
-  //       const flightOptionsList = flight["air:FlightOptionsList"];
-  //       const flightOption = flightOptionsList?.["air:FlightOption"];
-        
-  //       const flightOptionArray = Array.isArray(flightOption) ? flightOption : [flightOption];
-    
-  //       // Map through each `air:FlightOption` (for one-way or return segments)
-  //       const flightOptions = flightOptionArray.flatMap((option, index) => {
-  //         const options = option?.["air:Option"];
-  //         const optionsArray = Array.isArray(options) ? options : [options];
-    
-  //         return optionsArray.map((singleOption) => {
-  //           const bookingInfo = singleOption?.["air:BookingInfo"];
-  //           const segmentRef = bookingInfo?.["$"]?.["SegmentRef"];
-    
-  //           if (!segmentRef) {
-  //             console.warn("Missing SegmentRef or air:BookingInfo:", { flight, singleOption, bookingInfo });
-  //             return null; // Skip invalid flight options
-  //           }
-    
-  //           // Find the matching segment in SegmentList using the SegmentRef
-  //           const matchingSegment = SegmentList.find(
-  //             (segment) => segment["$"]["Key"] === segmentRef
-  //           );
-  //           // flight['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].length -1
-    
-  //           if (!matchingSegment) {
-  //             console.warn("No matching segment found for SegmentRef:", segmentRef);
-  //           }
-
-  //           const bookinfo = flight['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option']?.['air:BookingInfo'];
-
-  //           const no_of_stops = Array.isArray(bookinfo) 
-  //             ? bookinfo.length - 1 
-  //             : bookinfo 
-  //               ? 0  
-  //               : 0; 
-
-  //           console.log('Number of stops:', no_of_stops);
-    
-  //           return {
-  //             flight_no: `${matchingSegment?.["$"]["Carrier"] || ""}${matchingSegment?.["$"]["FlightNumber"] || "Unknown"}`,
-  //             airline_name: handleAirline(matchingSegment?.["$"]["Carrier"] || "Unknown"),
-  //             from_city: handleAirport(matchingSegment?.["$"]["Origin"] || "Unknown"),
-  //             to_city: handleAirport(matchingSegment?.["$"]["Destination"] || "Unknown"),
-  //             departure_datetime: matchingSegment?.["$"]["DepartureTime"] || "Unknown",
-  //             arrival_datetime: matchingSegment?.["$"]["ArrivalTime"] || "Unknown",
-  //             price: flight["$"].TotalPrice.replace('INR', '').trim(),
-  //             is_return: index === 1 ? 1 : 0, 
-  //             no_of_stops: no_of_stops,
-
-  //           };
-  //         });
-  //       });
-
-  //       // Combine return flights with outbound flights
-  //       const outboundFlight = flightOptions.find(f => f.is_return === 0);
-  //       const returnFlight = flightOptions.find(f => f.is_return === 1);
-    
-  //       // Make sure you're only adding the outbound and return flight pair
-  //       if (outboundFlight && returnFlight) {
-  //         return [outboundFlight, returnFlight];
-  //       } else {
-  //         return [outboundFlight]; // Only outbound if no return flight
-  //       }
-  //     }).flat().filter(Boolean), // Remove null entries and flatten the array
-  //   };
-    
-  
-  //   console.log("Payload to API:", payload);
-    // const apiUrl = "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking";
-
-    // fetch(apiUrl, {
-    //   method: "POST",
-    //   body: JSON.stringify(payload),
-    //   headers: { "Content-Type": "application/json" },
-    // })
-    // .then((response) => response.json()) 
-    // .then((data) => {
-    //   console.log("API response:", data); 
-    // })
-    // .catch((error) => {
-    //   console.error("Error sending request:", error); 
-    // });
-  // };
-
-  // const approverButtonClick = () => {
-  //   console.log("selectedFlights", selectedFlights);
-  
-  //   const payload = {
-  //     booking_id: "21329",
-  //     email: "mayank.didwania@cotrav.co",
-  
-  //     flight_options: selectedFlights.flatMap((flight) => {
-  //       const flightOptionsList = flight["air:FlightOptionsList"];
-  //       const flightOption = flightOptionsList?.["air:FlightOption"];
-  //       const flightOptionArray = Array.isArray(flightOption) ? flightOption : [flightOption];
-  
-  //       return flightOptionArray.flatMap((option) => {
-  //         // Filter the "air:Option" to include only the selected option
-  //         const options = option?.["air:Option"];
-  //         const optionsArray = Array.isArray(options) ? options : [options];
-  //         const selectedOptions = optionsArray.slice(0, 1); // Consider only the first selected option
-  
-  //         return selectedOptions.map((singleOption) => {
-  //           const bookingInfo = singleOption?.["air:BookingInfo"];
-  //           const segmentRefArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
-  
-  //           const flight_details = segmentRefArray.map((info) => {
-  //             const segmentRef = info?.["$"]?.["SegmentRef"];
-  //             const matchingSegment = SegmentList.find(
-  //               (segment) => segment["$"]["Key"] === segmentRef
-  //             );
-  
-  //             if (!segmentRef || !matchingSegment) {
-  //               console.warn("Invalid SegmentRef or missing matching segment:", { segmentRef, info });
-  //               return null; // Skip invalid entries
-  //             }
-  
-  //             return {
-  //               flight_no: `${matchingSegment["$"]["Carrier"]}${matchingSegment["$"]["FlightNumber"] || "Unknown"}`,
-  //               airline_name: handleAirline(matchingSegment["$"]["Carrier"] || "Unknown"),
-  //               from_city: handleApiAirport(matchingSegment["$"]["Origin"] || "Unknown"),
-  //               to_city: handleApiAirport(matchingSegment["$"]["Destination"] || "Unknown"),
-  //               departure_datetime: matchingSegment["$"]["DepartureTime"] || "Unknown",
-  //               arrival_datetime: matchingSegment["$"]["ArrivalTime"] || "Unknown",
-  //             };
-  //           }).filter(Boolean); // Remove null entries
-  
-  //           const bookinfo = singleOption?.["air:BookingInfo"];
-  //           const no_of_stops = Array.isArray(bookinfo) ? bookinfo.length - 1 : 0;
-  
-  //           return {
-  //             flight_no: flight_details.map(detail => detail.flight_no).join(", "),
-  //             airline_name: flight_details.map(detail => detail.airline_name).join(", "),
-  //             from_city: flight_details[0]?.from_city || "Unknown",
-  //             to_city: flight_details[flight_details.length - 1]?.to_city || "Unknown",
-  //             departure_datetime: flight_details.map(detail => detail.departure_datetime).join(", "),
-  //             arrival_datetime: flight_details.map(detail => detail.arrival_datetime).join(", "),
-  //             price: parseInt(flight["$"].TotalPrice.replace('INR', '').trim(), 10),
-  //             is_return: flight?.isReturn ? 1 : 0,
-  //             no_of_stops: no_of_stops,
-  //             carrier: flight_details.map(detail => detail.flight_no.slice(0, 2)).join(", "),
-  //             // duration: formatISODuration(flight['air:FlightOptionsList']['air:FlightOption']['air:Option']['$']['TravelTime']) || "00:00:00",
-  //             duration: formatISODuration(
-  //               Array.isArray(flight['air:FlightOptionsList']?.['air:FlightOption'])
-  //                 ? Array.isArray(flight['air:FlightOptionsList']['air:FlightOption'][0]?.['air:Option'])
-  //                   ? flight['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]?.['$']?.['TravelTime']
-  //                   : flight['air:FlightOptionsList']['air:FlightOption'][0]?.['air:Option']?.['$']?.['TravelTime']
-  //                 : Array.isArray(flight['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'])
-  //                   ? flight['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]?.['$']?.['TravelTime']
-  //                   : flight['air:FlightOptionsList']['air:FlightOption']?.['air:Option']?.['$']?.['TravelTime']
-  //             ) || "00:00:00",
-
-  //             is_refundable: flight["$"].Refundable ? 1 : 0,
-  //             // time_between_flight: calculateTimeBetweenFlights(flight_details), // Custom helper function
-  //             fare_details: [
-  //               {
-  //                 fare_type: "Corporate Fare",
-  //                 price: 2000,
-  //               },
-  //             ],
-  //             flight_details,
-  //           };
-  //         });
-  //       });
-  //     })
-  //       .flat(2) // Flatten nested arrays
-  //       .filter(Boolean), // Remove null entries
-  //   };
-  
-  //   console.log("Payload:", payload);
-  // };
   
   const approverButtonClick = (inputorigin) => {
-    console.log('inp', typeof inputOrigin);
+    // console.log('inp', typeof inputOrigin);
     
     const segregateFlights = (flight) => {
       const flightOptionsList = flight["air:FlightOptionsList"];
@@ -1630,11 +1511,11 @@ const handleReturnDateInitialization = (bookingType) => {
         if (typeof str !== 'string') return ''; // Handle non-string values
         return str.replace(/\(.*?\)\s*/g, "").trim();
       };
-      console.log('Normalized:', normalize(inputOrigin));
+      // console.log('Normalized:', normalize(inputOrigin));
       const normalizedInputOrigin = normalize(inputOrigin);
       const normalizedFromCity = normalize(flight.from_city);
       
-      console.log('normalizecity',normalizedFromCity);
+      // console.log('normalizecity',normalizedFromCity);
     
       // Check if one string is part of the other
       if (
@@ -1649,12 +1530,13 @@ const handleReturnDateInitialization = (bookingType) => {
     
   
     const payload = {
-      booking_id: "21329",
-      email: "mayank.didwania@cotrav.co",
-      seat_type: "Economy",
-      departure_date: "2024-12-11 10:00:00",
-      return_date: "",
-      no_of_seats: "2",
+      booking_id: bookingid,
+      email: spocemail,
+      seat_type: cabinclass,
+      departure_date: searchdeparturedate,
+      return_date: searchreturnd,
+      no_of_seats: no_of_seats,
+      request_id: request_id,
       flights: {
         ...(onwardFlights.length > 0 && { onward: { flight_options: onwardFlights } }),
         ...(returnFlights.length > 0 && { return: { flight_options: returnFlights } }),
@@ -10132,7 +10014,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -10146,10 +10028,25 @@ const toggleDetails = async (name) => {
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                       <div className="selectprice">
-                                                                                        {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                        {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
-                                                                                      </div>
-                                                                                      {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
+                                                                                          </div>
+                                                                                      {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                       priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['air:Text'].map((textinfor, textindex) => {
                                                                                         if (
                                                                                             textinfor['$'] &&
@@ -10182,7 +10079,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -10195,11 +10092,26 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                                       <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -10222,7 +10134,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -10235,11 +10147,26 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                                       <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -10265,7 +10192,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -10278,11 +10205,26 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] && (
                                                                                       priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['air:Text'].map((textinfor, textindex) => {
                                                                                         if (
                                                                                             textinfor['$'] &&
@@ -10315,7 +10257,7 @@ const toggleDetails = async (name) => {
                                                                                         <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                         <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -10328,11 +10270,26 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                                       <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -10355,7 +10312,7 @@ const toggleDetails = async (name) => {
                                                                                 <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                 <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -10368,11 +10325,26 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                                       <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -10404,7 +10376,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -10417,11 +10389,26 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                       priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['air:Text'].map((textinfor, textindex) => {
                                                                                         if (
                                                                                             textinfor['$'] &&
@@ -10454,7 +10441,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -10467,11 +10454,26 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                                       <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -10494,7 +10496,7 @@ const toggleDetails = async (name) => {
                                                                                   <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                   <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -10507,11 +10509,26 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                             <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -10555,52 +10572,67 @@ const toggleDetails = async (name) => {
                                                                                       </button>
                                                                                       </div>
                                                                                       
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''} 
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
                                                                                           
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
-                                                                                            
-                                                                                          
-                                                                                            
-                                                                                              priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['air:Text'].map(
-                                                                                                (textinfor, textindex) => {
-                                                                                                  if (
-                                                                                                    textinfor['$'] &&
-                                                                                                    textinfor['$']['Type'] === "MarketingConsumer" 
-                                                                                                  ) {
-                                                                                                    const infoArray = textinfor['_']
-                                                                                                      .split('\n')
-                                                                                                      .filter((item) => item.trim() !== '');
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (() => {
+                                                                                            const validDetails = priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['air:Text'].filter(
+                                                                                              (textinfor) => textinfor['$']?.Type === "MarketingConsumer"
+                                                                                            );
 
-                                                                                                    return (
-                                                                                                      <>
-                                                                                                      <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                                      <div key={textindex} className="selectdetail">
-                                                                                                      <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                                        <ul>
-                                                                                                          {infoArray.map((item, index) => (
-                                                                                                            <li key={index}>{item.trim()}</li>
-                                                                                                          ))}
-                                                                                                        </ul>
-                                                                                                      </div>
-                                                                                                      </>
-                                                                                                    ); 
-                                                                                                  }
-                                                                                                  return (
-                                                                                                    <>
+                                                                                            const closeButton = ( 
+                                                                                              <button className="selectdetail-close" style={{ marginTop: "-3%", marginRight: "-3%" }} onClick={() => setVisibleDetails(false)} >
+                                                                                                &times;
+                                                                                              </button>
+                                                                                            );
+
+                                                                                            return validDetails.length > 0 ? (
+                                                                                              validDetails.map((textinfor, textindex) => {
+                                                                                                const infoArray = textinfor['_']
+                                                                                                  .split('\n')
+                                                                                                  .filter((item) => item.trim() !== '');
+
+                                                                                                return (
+                                                                                                  <div key={textindex}>
                                                                                                     <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                                     <div className="selectdetail">
-                                                                                                      <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                                      <p>No details are available at present. Please check back later.</p>
-                                                                                                    </div> </>
-                                                                                                  )
-                                                                                                  {/* return <div className="selectdetail" key={textindex}>No details are available at present. Please check back later.</div>; */}
-                                                                                                }
-                                                                                              )
-                                                                                            )
-                                                                                          }
+                                                                                                      {closeButton}
+                                                                                                      <ul>
+                                                                                                        {infoArray.map((item, index) => (
+                                                                                                          <li key={index}>{item.trim()}</li>
+                                                                                                        ))}
+                                                                                                      </ul>
+                                                                                                    </div>
+                                                                                                  </div>
+                                                                                                );
+                                                                                              })
+                                                                                            ) : (
+                                                                                              <div>
+                                                                                                <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                                <div className="selectdetail">
+                                                                                                  {closeButton}
+                                                                                                  <p>No details are available at present. Please check back later.</p>
+                                                                                                </div>
+                                                                                              </div>
+                                                                                            );
+                                                                                          })()}
                                                                                     </div>
                                                                                   ):(
                                                                                     <>
@@ -10621,9 +10653,24 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
                                                                                           {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
                                                                                             <>
@@ -10661,9 +10708,24 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
                                                                                           {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
                                                                                             <>
@@ -10703,7 +10765,46 @@ const toggleDetails = async (name) => {
                                                 <div className="flt-i-padding">
                                                   <div className="flt-i-price-i">
                                                     <div className="flt-i-price">
-                                                      {pricepoint['air:AirPricingInfo'] && (
+                                                    {pricepoint['air:AirPricingInfo'] && (
+                                                        Array.isArray(pricepoint['air:AirPricingInfo']) ? (
+                                                          <>
+                                                            {(() => {
+                                                              const totalPrice =
+                                                                pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
+                                                              const seatType = cabinClass; // Set the seat type dynamically as needed
+                                                              const fareName = "Base Fare";
+                                                              const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName);
+
+                                                              return (
+                                                                <>
+                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                  {finalPrice.toFixed(2)} {/* Show final price with markup applied */}
+                                                                </>
+                                                              );
+                                                            })()}
+                                                          </>
+                                                        ) : (
+                                                          <>
+                                                            {(() => {
+                                                              const totalPrice =
+                                                                pricepoint['air:AirPricingInfo']['$']['TotalPrice'];
+                                                              const seatType = cabinClass; // Set the seat type dynamically as needed
+                                                              const fareName = "Base Fare";
+                                                              const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName);
+                                                              
+
+                                                              return (
+                                                                <>
+                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                  {finalPrice.toFixed(2)} {/* Show final price with markup applied */}
+                                                                </>
+                                                              );
+                                                            })()}
+                                                          </>
+                                                        )
+                                                      )}
+                                                      
+                                                      {/* {pricepoint['air:AirPricingInfo'] && (
                                                         Array.isArray(pricepoint['air:AirPricingInfo'])
                                                           ? (
                                                             <>
@@ -10717,7 +10818,7 @@ const toggleDetails = async (name) => {
                                                             </>
                                                           ) 
                                                         )
-                                                      }
+                                                      } */}
                                                     </div>
                                                   </div>
                                                   <div className="flt-i-price-b">per adult</div>
@@ -13838,7 +13939,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -13852,10 +13953,25 @@ const toggleDetails = async (name) => {
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                       <div className="selectprice">
-                                                                                        {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                        {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
-                                                                                      </div>
-                                                                                      {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
+                                                                                          </div>
+                                                                                      {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                       priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['air:Text'].map((textinfor, textindex) => {
                                                                                         if (
                                                                                             textinfor['$'] &&
@@ -13888,7 +14004,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -13901,11 +14017,26 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                                       <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -13928,7 +14059,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -13941,11 +14072,27 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
+                                                                                          
                                                                                           <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                                       <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -13971,7 +14118,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -13984,11 +14131,27 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
+                                                                                          
                                                                                           <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] && (
                                                                                       priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['air:Text'].map((textinfor, textindex) => {
                                                                                         if (
                                                                                             textinfor['$'] &&
@@ -14021,7 +14184,7 @@ const toggleDetails = async (name) => {
                                                                                         <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                         <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -14034,11 +14197,27 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
+                                                                                          
                                                                                           <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                                       <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -14061,7 +14240,7 @@ const toggleDetails = async (name) => {
                                                                                 <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                 <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -14074,11 +14253,27 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
+                                                                                          
                                                                                           <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'][0].$.TotalPrice.replace('INR', '')}
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                                       <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -14110,7 +14305,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -14123,11 +14318,26 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                       priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['air:Text'].map((textinfor, textindex) => {
                                                                                         if (
                                                                                             textinfor['$'] &&
@@ -14160,7 +14370,7 @@ const toggleDetails = async (name) => {
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -14173,11 +14383,26 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                                       <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -14200,7 +14425,7 @@ const toggleDetails = async (name) => {
                                                                                   <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                   <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']) }
+                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']) }
                                                                                         
                                                                                         style={{ 
                                                                                           border: "none",
@@ -14214,10 +14439,25 @@ const toggleDetails = async (name) => {
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
                                                                                           <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
                                                                                             <>
                                                                                             <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                           <div className="selectdetail">
@@ -14257,56 +14497,71 @@ const toggleDetails = async (name) => {
                                                                                         }}
                                                                                         aria-label="Toggle Details"
                                                                                       >
-                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
+                                                                                      <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>   
+                                                                                                                                                                        
                                                                                       </button>
                                                                                       </div>
-                                                                                      
                                                                                           <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''} 
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
                                                                                           
-                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
-                                                                                            
-                                                                                          
-                                                                                            
-                                                                                              priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['air:Text'].map(
-                                                                                                (textinfor, textindex) => {
-                                                                                                  if (
-                                                                                                    textinfor['$'] &&
-                                                                                                    textinfor['$']['Type'] === "MarketingConsumer" 
-                                                                                                  ) {
-                                                                                                    const infoArray = textinfor['_']
-                                                                                                      .split('\n')
-                                                                                                      .filter((item) => item.trim() !== '');
+                                                                                          {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (() => {
+                                                                                            const validDetails = priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['air:Text'].filter(
+                                                                                              (textinfor) => textinfor['$']?.Type === "MarketingConsumer"
+                                                                                            );
 
-                                                                                                    return (
-                                                                                                      <>
-                                                                                                      <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                                      <div key={textindex} className="selectdetail">
-                                                                                                      <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                                        <ul>
-                                                                                                          {infoArray.map((item, index) => (
-                                                                                                            <li key={index}>{item.trim()}</li>
-                                                                                                          ))}
-                                                                                                        </ul>
-                                                                                                      </div>
-                                                                                                      </>
-                                                                                                    ); 
-                                                                                                  }
-                                                                                                  return (
-                                                                                                    <>
+                                                                                            const closeButton = ( 
+                                                                                              <button className="selectdetail-close" style={{ marginTop: "-3%", marginRight: "-3%" }} onClick={() => setVisibleDetails(false)} >
+                                                                                                &times;
+                                                                                              </button>
+                                                                                            );
+
+                                                                                            return validDetails.length > 0 ? (
+                                                                                              validDetails.map((textinfor, textindex) => {
+                                                                                                const infoArray = textinfor['_']
+                                                                                                  .split('\n')
+                                                                                                  .filter((item) => item.trim() !== '');
+
+                                                                                                return (
+                                                                                                  <div key={textindex}>
                                                                                                     <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
                                                                                                     <div className="selectdetail">
-                                                                                                      <button className="selectdetail-close" style={{marginTop:"-3.5%", marginRight:"-3.5%"}} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                                      <p>No details are available at present. Please check back later.</p>
-                                                                                                    </div> </>
-                                                                                                  )
-                                                                                                  {/* return <div className="selectdetail" key={textindex}>No details are available at present. Please check back later.</div>; */}
-                                                                                                }
-                                                                                              )
-                                                                                            )
-                                                                                          }
+                                                                                                      {closeButton}
+                                                                                                      <ul>
+                                                                                                        {infoArray.map((item, index) => (
+                                                                                                          <li key={index}>{item.trim()}</li>
+                                                                                                        ))}
+                                                                                                      </ul>
+                                                                                                    </div>
+                                                                                                  </div>
+                                                                                                );
+                                                                                              })
+                                                                                            ) : (
+                                                                                              <div>
+                                                                                                <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                                                                <div className="selectdetail">
+                                                                                                  {closeButton}
+                                                                                                  <p>No details are available at present. Please check back later.</p>
+                                                                                                </div>
+                                                                                              </div>
+                                                                                            );
+                                                                                          })()}
                                                                                     </div>
                                                                                   ):(
                                                                                     <>
@@ -14327,9 +14582,25 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
+                                                                                          
                                                                                           <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
                                                                                           {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
                                                                                             <>
@@ -14367,9 +14638,24 @@ const toggleDetails = async (name) => {
                                                                                       >
                                                                                       <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft:'5px', fontSize: '12px', cursor: 'pointer' }}></i>                                                                                      
                                                                                       </button></div>
-                                                                                          <div className="selectprice">
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                            {priceParseData['air:AirPricingInfo'].$.TotalPrice.replace('INR', '')}
+                                                                                      <div className="selectprice">
+                                                                                            {(() => {
+                                                                                              const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const calculatedPrice = calculateFinalPrice(
+                                                                                                numericTotalPrice,
+                                                                                                markupdata, 
+                                                                                                cabinClass,
+                                                                                                priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              );
+
+                                                                                              return (
+                                                                                                <>
+                                                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                                                  {calculatedPrice}
+                                                                                                </>
+                                                                                              );
+                                                                                            })()}
                                                                                           </div>
                                                                                           {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
                                                                                             <>
@@ -14408,7 +14694,44 @@ const toggleDetails = async (name) => {
                                                   <div className="flt-i-padding">
                                                     <div className="flt-i-price-i">
                                                       <div className="flt-i-price">
-                                                        {pricepoint['air:AirPricingInfo'] && (
+                                                      {pricepoint['air:AirPricingInfo'] && (
+                                                        Array.isArray(pricepoint['air:AirPricingInfo']) ? (
+                                                          <>
+                                                            {(() => {
+                                                              const totalPrice =
+                                                                pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
+                                                              const seatType = cabinClass; // Set the seat type dynamically as needed
+                                                              const fareName = "Base Fare";
+                                                              const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName);
+
+                                                              return (
+                                                                <>
+                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                  {finalPrice.toFixed(2)} {/* Show final price with markup applied */}
+                                                                </>
+                                                              );
+                                                            })()}
+                                                          </>
+                                                        ) : (
+                                                          <>
+                                                            {(() => {
+                                                              const totalPrice =
+                                                                pricepoint['air:AirPricingInfo']['$']['TotalPrice'];
+                                                              const seatType = cabinClass; // Set the seat type dynamically as needed
+                                                              const fareName = "Base Fare";
+                                                              const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName);
+
+                                                              return (
+                                                                <>
+                                                                  {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                  {finalPrice.toFixed(2)} {/* Show final price with markup applied */}
+                                                                </>
+                                                              );
+                                                            })()}
+                                                          </>
+                                                        )
+                                                      )}
+                                                        {/* {pricepoint['air:AirPricingInfo'] && (
                                                           Array.isArray(pricepoint['air:AirPricingInfo'])
                                                             ? (
                                                               <>
@@ -14422,7 +14745,7 @@ const toggleDetails = async (name) => {
                                                               </>
                                                             ) 
                                                           )
-                                                        }
+                                                        } */}
                                                       </div>
                                                     </div>
                                                     

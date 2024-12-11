@@ -548,6 +548,7 @@ function Home() {
                         <air:AirSearchModifiers ETicketability="Yes" FaresIndicator="AllFares">
                             <air:PreferredProviders>
                                 <com:Provider Code="1G"/>
+                                <com:Provider Code="ACH"/>
                             </air:PreferredProviders>
                             <air:PermittedCabins>
                                 <com:CabinClass Type="${cabinType}"/>
@@ -610,7 +611,7 @@ function Home() {
                 apiairportsdata:apiairports,
                 fromcotrav: '1',
             };
-            // console.log('responsedata', responseData);
+            console.log('responsedata', responseData);
             navigate('/SearchFlight', { state: { responseData } });
             } catch (error) {
                 // ErrorLogger.logError('search_api',soapEnvelope,error);

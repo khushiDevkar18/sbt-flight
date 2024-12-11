@@ -152,13 +152,18 @@ const navigate = useNavigate();
                   const searchtoCode = searchtoMatch[1];
                   const searchdeparture = formtaxivaxiData['departure_date'];
                   const formattedsearchdeparture = formatDate(searchdeparture);
+                  const spoc_email = formtaxivaxiData['email'];
+                  const markup = formtaxivaxiData['markup_details'];
+                  const booking_id = formtaxivaxiData['booking_id'];
+                  const no_of_seats = formtaxivaxiData['no_of_seats'];
+                  const request_id = formtaxivaxiData['request_id'];
                   
                   const adult = 1;
                   const child = 0;
                   const infant = 0;
                   const classtype = formtaxivaxiData['seat_type'];
                   let cabinclass = classtype;
-                  let bookingtype = formtaxivaxiData['trip_type'] === "Round Trip" ? "Return" : "One Way";
+                  let bookingtype = formtaxivaxiData['trip_type'] === "Round Trip" ? "Return" : "oneway";
                   if (classtype === "Economy/Premium Economy") {
                       cabinclass = "Economy";
                   }
@@ -211,33 +216,34 @@ const navigate = useNavigate();
                       : '';
                   
                       return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-                          <soap:Body>
-                          <air:LowFareSearchReq TargetBranch="P7206253" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
-                              <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
-                              <air:SearchAirLeg>
-                                  <air:SearchOrigin>
-                                      <com:CityOrAirport Code="${cityCode}"/>
-                                  </air:SearchOrigin>
-                                  <air:SearchDestination>
-                                      <com:CityOrAirport Code="${destinationCode}"/>
-                                  </air:SearchDestination>
-                                  <air:SearchDepTime PreferredTime="${depTime}"/>
-                              </air:SearchAirLeg>
-                              ${returnLegSection}
-                              <air:AirSearchModifiers ETicketability="Yes" FaresIndicator="AllFares">
-                                  <air:PreferredProviders>
-                                      <com:Provider Code="1G"/>
-                                  </air:PreferredProviders>
-                                  <air:PermittedCabins>
-                                      <com:CabinClass Type="${cabinType}"/>
-                                  </air:PermittedCabins>
-                              </air:AirSearchModifiers>
-                              ${searchPassengerADT}
-                              ${searchPassengerCNN}
-                              ${searchPassengerINF}
-                          </air:LowFareSearchReq>
-                      </soap:Body>
-                      </soap:Envelope>`;
+                    <soap:Body>
+                    <air:LowFareSearchReq TargetBranch="P4451438" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
+                        <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
+                        <air:SearchAirLeg>
+                            <air:SearchOrigin>
+                                <com:CityOrAirport Code="${cityCode}"/>
+                            </air:SearchOrigin>
+                            <air:SearchDestination>
+                                <com:CityOrAirport Code="${destinationCode}"/>
+                            </air:SearchDestination>
+                            <air:SearchDepTime PreferredTime="${depTime}"/>
+                        </air:SearchAirLeg>
+                        ${returnLegSection}
+                        <air:AirSearchModifiers ETicketability="Yes" FaresIndicator="AllFares">
+                            <air:PreferredProviders>
+                                <com:Provider Code="1G"/>
+                                <com:Provider Code="ACH"/>
+                            </air:PreferredProviders>
+                            <air:PermittedCabins>
+                                <com:CabinClass Type="${cabinType}"/>
+                            </air:PermittedCabins>
+                        </air:AirSearchModifiers>
+                        ${searchPassengerADT}
+                        ${searchPassengerCNN}
+                        ${searchPassengerINF}
+                    </air:LowFareSearchReq>
+                </soap:Body>
+                </soap:Envelope>`;
                   };
                   const soapEnvelope = createSoapEnvelope(
                       dynamicCityCode,
@@ -249,14 +255,14 @@ const navigate = useNavigate();
                       PassengerCodeCNN,
                       PassengerCodeINF,
                   );
-                  const username = 'Universal API/uAPI8645980109-af7494fa';
-                  const password = 'N-k29Z}my5';
+                  const username = 'Universal API/uAPI6514598558-21259b0c';
+                  const password = 'tN=54gT+%Y'; 
                   const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
 
                   sessionStorage.setItem('searchdata', soapEnvelope);
                 //   console.log('soapenv', soapEnvelope); 
 
-                  const response = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
+                  const response = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
                       headers: {
                           'Content-Type': 'text/xml',
                           'Authorization': authHeader,
@@ -268,8 +274,8 @@ const navigate = useNavigate();
                       responsedata: response.data,
                       searchfromcity: searchfrom,
                       searchtocity: searchto,
-                      searchdeparture: searchdeparture,
-                      searchreturnDate: searchreturnDate,
+                      searchdeparturedate: searchdeparture,
+                      searchreturnd: searchreturnDate,
                       airlinedata: airlineResponseData,
                       airportData: airportResponseData,
                       selectadult: adult,
@@ -279,8 +285,14 @@ const navigate = useNavigate();
                       bookingtype: bookingtype,
                       apiairportsdata: apiairportData,
                       fromcotrav: '1',
+                      spocemail: spoc_email,
+                      markupdata: markup,
+                      bookingid: booking_id,
+                      no_of_seats: no_of_seats,
+                      request_id: request_id,
                   };
-
+                  console.log('resp', responseData);
+ 
                   
                   navigate('/SearchFlight', { state: { responseData } });
                   await new Promise(resolve => setTimeout(resolve, 1000));
@@ -309,6 +321,7 @@ const navigate = useNavigate();
       };  
         
           const formtaxivaxiData = JSON.parse(decodeURIComponent(taxivaxidata));
+          console.log('formtaxivaxiData', formtaxivaxiData); 
           if (formtaxivaxiData) {
             setLoading(true)
             sessionStorage.setItem('formtaxivaxiData', JSON.stringify(formtaxivaxiData));
