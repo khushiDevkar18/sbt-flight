@@ -9,6 +9,7 @@ import { format, parseISO ,parse,isValid  } from 'date-fns';
 import SearchFlight from './SearchFlight';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import IconLoader from './IconLoader';
 // import ErrorLogger from './ErrorLogger';
 function Home() {
     const [activeTab, setActiveTab] = useState('flight');
@@ -127,23 +128,24 @@ function Home() {
     useEffect(() => {
         const makeAirlineRequest = async () => {
         try {
-            const username = 'Universal API/uAPI8645980109-af7494fa';
-            const password = 'N-k29Z}my5';
+            const username = 'Universal API/uAPI6514598558-21259b0c';
+            const password = 'tN=54gT+%Y';
             const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
             const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
-                <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+                <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
                     <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                     <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
                 </util:ReferenceDataRetrieveReq>
             </soapenv:Body>
             </soapenv:Envelope>`;
             
-            const airlineresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/UtilService', airlineRequest, {
+            const airlineresponse = await axios.post('/B2BGateway/connect/uAPI/UtilService', airlineRequest, {
             headers: {
                 'Content-Type': 'text/xml',
                 'Authorization': authHeader,
+                // 'X-Requested-With': 'XMLHttpRequest',
             },
             });
             // console.log('resp', airlineresponse.data);
@@ -160,24 +162,28 @@ function Home() {
 
         const makeAirportRequest = async () => {
         try {
-            const username1 = 'Universal API/uAPI8645980109-af7494fa';
-            const password1 = 'N-k29Z}my5';
+            const username1 = 'Universal API/uAPI6514598558-21259b0c';
+            const password1 = 'tN=54gT+%Y';
             const authHeader1 = `Basic ${btoa(`${username1}:${password1}`)}`;
             const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
-            <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AV145ER" TypeCode="CityAirport">
+            <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AV145ER" TypeCode="CityAirport">
                 <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                 <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
             </util:ReferenceDataRetrieveReq>
             </soapenv:Body>
         </soapenv:Envelope>`;
-            const airportResponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/UtilService', airportRequest, {
+            const airportResponse = await axios.post('/B2BGateway/connect/uAPI/UtilService', airportRequest, {
             headers: {
                 'Content-Type': 'text/xml',
                 'Authorization': authHeader1,
+                // 'X-Requested-With': 'XMLHttpRequest',
             },
             });
+
+            // console.log('airresp', airportResponse);
+            
             setAirportResponse(airportResponse);
             
             parseString(airportResponse.data, { explicitArray: false }, (errs, airportresult) => {
@@ -363,7 +369,73 @@ function Home() {
 
     
     
+    const fetchToken = async () => {
+        const storedToken = localStorage.getItem('authToken');
+        const tokenTimestamp = localStorage.getItem('authTokenTimestamp');
+        const currentDate = new Date();
     
+        console.log('storedToken:', storedToken);
+        console.log('tokenTimestamp:', tokenTimestamp);
+    
+        // Check if both storedToken and tokenTimestamp are available and valid
+        if (storedToken && storedToken !== 'null') {
+            console.log('Token exists.');
+            
+            if (tokenTimestamp) {
+                console.log('Timestamp exists.');
+                
+                // Check if the stored token's timestamp matches today's date
+                if (new Date(tokenTimestamp).toDateString() === currentDate.toDateString()) {
+                    console.log('Token is valid and current.');
+                    return storedToken; // Return the stored token if valid
+                } else {
+                    console.log('Token is expired (date mismatch).');
+                }
+            } else {
+                console.log('Timestamp is missing, fetching new token...');
+            }
+        } else {
+            console.log('Token is missing, fetching new token...');
+        }
+        
+    
+        // If either the token or timestamp is missing or invalid, fetch a new token
+        const validateIPAddress = (ip) => {
+            const regex = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(\d{1,3}\.){2}\d{1,3}$/;
+            return regex.test(ip);
+        };
+
+        const authPayload = {
+            ClientId: "ApiIntegrationNew",
+            UserName: "BAI",
+            Password: "Bai@12345",
+            EndUserIp: '192.168.11.120',
+        };
+    
+        try {
+            const authResponse = await axios.post(
+                'https://cors-anywhere.herokuapp.com/http://api.tektravels.com/SharedServices/SharedData.svc/rest/Authenticate',
+                JSON.stringify(authPayload),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Forwarded-For': '192.168.11.120',
+                    }
+                }
+            );
+            console.log('authResponse',authResponse.data);
+    
+            const newToken = authResponse.data.TokenId;
+            localStorage.setItem('authToken', newToken);
+            localStorage.setItem('authTokenTimestamp', currentDate.toISOString());
+    
+            console.log('New token saved:', newToken);
+            return newToken;
+        } catch (error) {
+            console.error('Error fetching token:', error);
+            throw new Error('Authentication failed');
+        }
+    };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -452,6 +524,7 @@ function Home() {
         }
         if(isValidPassenger){
             setLoading(true);
+            // const token = await fetchToken();
             const formatDate = (inputDate) => {
             const parsedDate = parse(inputDate, 'dd/MM/yyyy', new Date());
             if (!isValid(parsedDate)) {
@@ -572,31 +645,55 @@ function Home() {
                 PassengerCodeCNN,
                 PassengerCodeINF,
             );
-            // console.log(soapEnvelope);
-            // TargetBranch="P4451438"
-            // <com:Provider Code="ACH"/> 
+            function formatToIsoDate(dateString) {
+                if (!dateString) {
+                  return null; 
+                }
+                const [day, month, year] = dateString.split('/');
+                return `${year}-${month}-${day}T00:00:00`;
+            }
+
             const username = 'Universal API/uAPI6514598558-21259b0c';
             const password = 'tN=54gT+%Y'; 
-            // const username = 'Universal API/uAPI8645980109-af7494fa';
-            // const password = 'N-k29Z}my5';
             const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
-            // console.log('auth',username);
-            // console.log('auth',password);
-
             sessionStorage.setItem('searchdata', soapEnvelope);
-            // console.log('ausdfgth',soapEnvelope);
-            // targetbranch: P7206253
-            // tavelport api : https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService for security
-            // live api: https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService
+            // console.log('soapEnvelope', soapEnvelope);
+
     
-            const response = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
+            const response = await axios.post('/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
                 headers: {
                 'Content-Type': 'text/xml',
                 'Authorization':authHeader,
                 },
             });
+            // console.log('apiresponse', response);
+            // const payload = {
+            // "EndUserIp": "192.168.10.10",
+            // "TokenId": token,
+            // "AdultCount": adult,
+            // "ChildCount": child,
+            // "InfantCount": infant,
+            // "JourneyType": bookingtype === "oneway" ? 1 : bookingtype === "Return" ? 2 : null,
+            // "Segments": [
+            //     {
+            //     "Origin": searchfromCode,
+            //     "Destination": searchtoCode,
+            //     "FlightCabinClass": cabinclass === "Economy" ? 2 : null, 
+            //     PreferredDepartureTime: formatToIsoDate(searchdeparture),
+            //     PreferredArrivalTime: formatToIsoDate(searchreturnDate)
+            //     }
+            // ]
+            // };
+            // console.log('payload for tbo', payload);
+
+            // const tboresponse = await axios.post('https://cors-anywhere.herokuapp.com/http://api.tektravels.com/BookingEngineService_Air/AirService.svc/rest/Search', payload, {
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     }
+            // });
             const responseData = {
                 responsedata :response.data,
+                // tboresponse :tboresponse.data, 
                 searchfromcity :searchfrom,
                 searchtocity :searchto,
                 searchdeparture:searchdeparture,
@@ -655,13 +752,15 @@ return (
 
                 <div className="index-page">
                     <div id="api-response-container"></div>
-                    {loading &&  <div className="loader" style={{display:"block"}}>
-                        <img
-                        src="/img/flight-loader-material-gif.gif"
-                        alt="Loader"
-                        />
-                        <h2>Hold on, we’re fetching flights for you</h2>
-                    </div>
+                    {loading &&  
+                        <div className="page-center-loader flex items-center justify-center">
+                            <div className="big-loader flex items-center justify-center">
+                                <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" />
+                                <p className="text-center ml-4 text-gray-600 text-lg">
+                                Retrieving flight details. Please wait a moment.
+                                </p>
+                            </div>
+                        </div>
                     }
                     <div id="loaderone">
                         <img src="img/loader2.gif" alt="Loader" />

@@ -12,6 +12,7 @@ import Slider from 'rc-slider';
 import "rc-slider/assets/index.css";
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import IconLoader from './IconLoader';
 
 
 const FormTaxivaxi = () => {
@@ -20,8 +21,16 @@ const navigate = useNavigate();
   const location = useLocation();
   
   const [emptaxivaxi, setEmptaxivaxi] = useState([]);
+//   const searchParams = new URLSearchParams(window.location.search);
+//   const taxivaxidata = searchParams.get('taxivaxidata');
   const searchParams = new URLSearchParams(window.location.search);
   const taxivaxidata = searchParams.get('taxivaxidata');
+  
+  if (taxivaxidata) {
+    const currentUrl = window.location.href;
+    window.open(currentUrl, '_blank'); // Open in a new tab
+    
+  }
 //   alert('okay', taxivaxidata);
 //   console.log('data', taxivaxidata);
   
@@ -42,23 +51,24 @@ const navigate = useNavigate();
 
       const makeAirlineRequest = async () => {
       try {
-          const username = 'Universal API/uAPI8645980109-af7494fa';
-          const password = 'N-k29Z}my5';
+          const username = 'Universal API/uAPI6514598558-21259b0c';
+          const password = 'tN=54gT+%Y';
           const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
           const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
           <soapenv:Header/>
           <soapenv:Body>
-              <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+              <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
                   <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                   <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
               </util:ReferenceDataRetrieveReq>
           </soapenv:Body>
           </soapenv:Envelope>`;
           
-          const airlineresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/UtilService', airlineRequest, {
+          const airlineresponse = await axios.post('/B2BGateway/connect/uAPI/UtilService', airlineRequest, {
           headers: {
               'Content-Type': 'text/xml',
               'Authorization': authHeader,
+              
           },
           });
           airlineResponseData = airlineresponse.data;
@@ -73,19 +83,19 @@ const navigate = useNavigate();
 
       const makeAirportRequest = async () => {
       try {
-          const username1 = 'Universal API/uAPI8645980109-af7494fa';
-          const password1 = 'N-k29Z}my5';
+          const username1 = 'Universal API/uAPI6514598558-21259b0c';
+          const password1 = 'tN=54gT+%Y';
           const authHeader1 = `Basic ${btoa(`${username1}:${password1}`)}`;
           const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
           <soapenv:Header/>
           <soapenv:Body>
-          <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AV145ER" TypeCode="CityAirport">
+          <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AV145ER" TypeCode="CityAirport">
               <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
               <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
           </util:ReferenceDataRetrieveReq>
           </soapenv:Body>
       </soapenv:Envelope>`;
-          const airportResponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/UtilService', airportRequest, {
+          const airportResponse = await axios.post('/B2BGateway/connect/uAPI/UtilService', airportRequest, {
           headers: {
               'Content-Type': 'text/xml',
               'Authorization': authHeader1,
@@ -150,7 +160,8 @@ const navigate = useNavigate();
                   const searchto = formtaxivaxiData['to_city']; 
                   const searchtoMatch = searchto.match(/\((\w+)\)/);
                   const searchtoCode = searchtoMatch[1];
-                  const searchdeparture = formtaxivaxiData['departure_date'];
+                  const searchdeparture = formtaxivaxiData['departure_date'];       
+                //   const searchdeparture = formtaxivaxiData['departure_date'].split('-').reverse().join('/');
                   const formattedsearchdeparture = formatDate(searchdeparture);
                   const spoc_email = formtaxivaxiData['email'];
                   const markup = formtaxivaxiData['markup_details'];
@@ -262,7 +273,7 @@ const navigate = useNavigate();
                   sessionStorage.setItem('searchdata', soapEnvelope);
                 //   console.log('soapenv', soapEnvelope); 
 
-                  const response = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
+                  const response = await axios.post('/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
                       headers: {
                           'Content-Type': 'text/xml',
                           'Authorization': authHeader,
@@ -274,7 +285,7 @@ const navigate = useNavigate();
                       responsedata: response.data,
                       searchfromcity: searchfrom,
                       searchtocity: searchto,
-                      searchdeparturedate: searchdeparture,
+                      searchdeparture: searchdeparture,
                       searchreturnd: searchreturnDate,
                       airlinedata: airlineResponseData,
                       airportData: airportResponseData,
@@ -339,13 +350,14 @@ const navigate = useNavigate();
    
     
       <div className="yield-content">
-        {loading && (<div className="loader" style={{display:"block",opacity:'1'}}>
-            <img
-              src="/img/flight-loader-material-gif.gif"
-              alt="Loader"
-            />
-            <h2>Hold on, we’re fetching flights for you</h2>
-          </div>
+        {loading && (<div className="page-center-loaderr flex items-center justify-center">
+                            <div className="big-loader flex items-center justify-center">
+                                <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" />
+                                <p className="text-center ml-4 text-gray-600 text-lg">
+                                Retrieving flight details. Please wait a moment.
+                                </p>
+                            </div>
+                        </div>
        )}
         </div >
     

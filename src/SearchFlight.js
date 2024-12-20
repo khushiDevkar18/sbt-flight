@@ -42,6 +42,7 @@ const FlightInfoDepartureDate  = ({ DepartureDate, onFlightDepartureDateChange})
 
 
 const SearchFlight = () => {
+  const [loadingg, setLoadingg] = useState(false);
   const [loading, setLoading] = useState(false);
   const location = useLocation();
   const [formtaxivaxi, setFormtaxivaxi] = useState([]);
@@ -97,6 +98,7 @@ const SearchFlight = () => {
   const markupdata = location.state && location.state.responseData?.markupdata;
   const bookingid = location.state && location.state.responseData?.bookingid;
   const searchdeparturedate = location.state && location.state.responseData?.searchdeparturedate;
+  // alert(searchdeparturedate);
   const searchreturnd = location.state && location.state.responseData?.searchreturnd;
   const no_of_seats = location.state && location.state.responseData?.no_of_seats;
   const request_id = location.state && location.state.responseData?.request_id;
@@ -370,6 +372,11 @@ const SearchFlight = () => {
     const minutes = traveltimes.match(/(\d+)M/) ? parseInt(traveltimes.match(/(\d+)M/)[1]) : 0;
     
     return days * 24 * 60 + hours * 60 + minutes;
+  }
+  function convertMinutesToHours(minutes) {
+    const hours = Math.floor(minutes / 60); // Get the whole hours
+    const remainingMinutes = minutes % 60; // Get the remaining minutes
+    return `${hours} hrs ${remainingMinutes} mins`;
   }
   const calculateTravellingTime = (traveltimes) => {
     const days = traveltimes.match(/(\d+)DT/) ? parseInt(traveltimes.match(/(\d+)DT/)[1]) : 0;
@@ -700,13 +707,14 @@ const SearchFlight = () => {
           // local : https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService
           
           try {
-              const priceresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService', pricepointXML, {
+              const priceresponse = await axios.post('/B2BGateway/connect/uAPI/AirService', pricepointXML, {
                   headers: {
                       'Content-Type': 'text/xml',
                       'Authorization': authHeader,
                   },
               });
               const priceResponse = priceresponse.data;
+              // console.log('resp', priceResponse);
               
               parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
                 if (err) {
@@ -900,7 +908,7 @@ const handleselectedContinue = (selectedprice) => {
                 'Authorization': authHeader,
             },
         });
-        const serviceResponse = serviceresponse.data;
+        // const serviceResponse = serviceresponse.data;
         const serviceData = {
           apiairportsdata:apiairports,
           servicedata :serviceresponse.data,
@@ -963,12 +971,33 @@ function isDateFormat(str) {
   return dateRegex.test(str);
 }
 function ddmmyyyyformatDate(date) {
+  // alert(date);
   const d = new Date(date);
   const day = String(d.getDate()).padStart(2, '0');
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const year = d.getFullYear();
   return `${day}/${month}/${year}`;
 }
+// function ddmmyyyyformatDate(date) {
+//   // Ensure the input is a string
+//   alert(date);
+//   date = String(date);
+
+//   let day, month, year;
+
+//   if (date.includes('-')) {
+//     // Input format: YYYY-MM-DD
+//     [year, month, day] = date.split('-');
+//   } else if (date.includes('/')) {
+//     // Input format: DD/MM/YYYY
+//     [day, month, year] = date.split('/');
+//   } else {
+//     throw new Error('Unsupported date format. Use "YYYY-MM-DD" or "DD/MM/YYYY".');
+//   }
+
+//   return `${day}/${month}/${year}`;
+// }
+
 let depFormattedDate= null;
 let retFormattedDate =null;
   if(isDateFormat(request.searchdeparture)){
@@ -1133,11 +1162,12 @@ const handleReturnDateInitialization = (bookingType) => {
         const infanterror = document.querySelector('.infantmore');
 
         let totalpassenger = parseInt(adultCount) + parseInt(childCount) + parseInt(infantCount);
+        console.log('totalpas', totalpassenger);
         let isValidPassenger = true;
 
         localStorage.setItem('lastorigin', searchfrom);
         localStorage.setItem('lastDestination', searchto);
-
+        console.log('hi');
         if(infantCount > adultCount){
            
           isValidPassenger = false;
@@ -1200,7 +1230,7 @@ const handleReturnDateInitialization = (bookingType) => {
             passengererror.style.display = 'none';
         }
       if(isValidPassenger){
-        setLoading(true);
+        setLoadingg(true);
         const formatDate = (inputDate) => {
         const parsedDate = parse(inputDate, 'dd/MM/yyyy', new Date());
         if (!isValid(parsedDate)) {
@@ -1227,11 +1257,12 @@ const handleReturnDateInitialization = (bookingType) => {
         const infant = event.target.infant.value;
         const classtype= event.target.classtype.value;
         let cabinclass = classtype;
+        console.log('cbncls', cabinclass);
         let bookingtype ="";
         if (searchreturnDate) {
-          bookingtype = "RETURN";
+          bookingtype = "Return";
         } else {
-          bookingtype = "ONEWAY";
+          bookingtype = "oneway";
         }
         if (classtype === "Economy/Premium Economy") {
           cabinclass = "Economy";
@@ -1281,7 +1312,7 @@ const handleReturnDateInitialization = (bookingType) => {
         
             return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                   <soap:Body>
-                <air:LowFareSearchReq TargetBranch="P7206253" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
+                <air:LowFareSearchReq TargetBranch="P4451438" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
                     <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                     <air:SearchAirLeg>
                         <air:SearchOrigin>
@@ -1296,6 +1327,7 @@ const handleReturnDateInitialization = (bookingType) => {
                     <air:AirSearchModifiers ETicketability="Yes" FaresIndicator="AllFares">
                         <air:PreferredProviders>
                             <com:Provider Code="1G"/>
+                            <com:Provider Code="ACH"/>
                         </air:PreferredProviders>
                         <air:PermittedCabins>
                             <com:CabinClass Type="${cabinType}"/>
@@ -1320,11 +1352,12 @@ const handleReturnDateInitialization = (bookingType) => {
             PassengerCodeINF,
           );
           sessionStorage.setItem('searchdata', soapEnvelope);
-          const username = 'Universal API/uAPI8645980109-af7494fa';
-          const password = 'N-k29Z}my5';
+          // console.log('soapenv', soapEnvelope);
+          const username = 'Universal API/uAPI6514598558-21259b0c';
+          const password = 'tN=54gT+%Y'; 
           const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
 
-        const eresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
+        const eresponse = await axios.post('/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
           headers: {
             'Content-Type': 'text/xml',
             'Authorization':authHeader,
@@ -1360,7 +1393,7 @@ const handleReturnDateInitialization = (bookingType) => {
           navigate('/tryagainlater');
         }
         finally {
-          setLoading(false);
+          setLoadingg(false);
         }
       }
       
@@ -1395,16 +1428,94 @@ const handleReturnDateInitialization = (bookingType) => {
   }, [navigate]);
 
   const [selectedFlights, setSelectedFlights] = useState([]);
+  const [flightDetailsArray, setFlightDetailsArray] = useState([]);
+  const handleRemoveFlight = (index) => {
+    const updatedFlights = [...selectedFlights]; // Create a copy of the selectedFlights array
+    updatedFlights.splice(index, 1); // Remove the flight at the specified index
+    setSelectedFlights(updatedFlights); // Update the state with the modified array
+  };
 
-  // Handle checkbox change
-  const handleCheckboxChange = (airPricingInfo, isReturn = 0) => {
-    // Mutate the airPricingInfo object to include isReturn
-    airPricingInfo.isReturn = isReturn;
+  // const handleCheckboxChange = (airPricingInfo, isReturn = 0) => {
+  //   // Mutate the airPricingInfo object to include isReturn
+  //   // console.log('airpricing', airPricingInfo);
+  //   airPricingInfo.isReturn = isReturn;
   
-    console.log('Updated airPricingInfo with isReturn:', airPricingInfo);
-   
+  //   // console.log('Updated airPricingInfo with isReturn:', airPricingInfo);
+    
+    
+  //   setSelectedFlights((prev) => {
+  //     // Check if this specific data is already selected
+  //     const isSelected = prev.some(
+  //       (flight) =>
+  //         flight["$"].Key === airPricingInfo["$"].Key &&
+  //         flight.isReturn === airPricingInfo.isReturn
+  //     );
+  
+  //     if (isSelected) {
+  //       // Remove the selected data
+  //       return prev.filter(
+  //         (flight) =>
+  //           flight["$"].Key !== airPricingInfo["$"].Key ||
+  //           flight.isReturn !== airPricingInfo.isReturn
+  //       );
+  //     } else {
+  //       // Add the new data to the selection
+  //       return [...prev, airPricingInfo];
+  //     }
+  //   });
+  // };
+  console.log('selectedFlights', selectedFlights);
+
+  const handleCheckboxChange = (airPricingInfo, isReturn = 0) => {
+    airPricingInfo.isReturn = isReturn;
+    const flightOptionsList = airPricingInfo["air:FlightOptionsList"];
+    const flightOption = flightOptionsList?.["air:FlightOption"];
+    const flightOptionArray = Array.isArray(flightOption) ? flightOption : [flightOption];
+  
+    const flightDetailss = flightOptionArray.flatMap((option) => {
+      const options = option?.["air:Option"];
+      const optionsArray = Array.isArray(options) ? options : [options];
+
+      const selectedOptions = optionsArray.slice(0, 1);
+  
+      return selectedOptions.map((singleOption) => {
+        const bookingInfo = singleOption?.["air:BookingInfo"];
+        const segmentRefArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
+  
+        return segmentRefArray.map((info) => {
+          const segmentRef = info?.["$"]?.["SegmentRef"];
+  
+          const matchingSegment = SegmentList.find(
+            (segment) => segment["$"]["Key"] === segmentRef
+          );
+  
+          if (!matchingSegment) {
+            console.warn("No matching segment found for SegmentRef:", segmentRef);
+            return null;
+          }
+  
+          const carrier =  matchingSegment["$"]["Carrier"];
+          const flightNumber = matchingSegment["$"]["FlightNumber"];
+          const totalPrice = airPricingInfo["$"]["TotalPrice"];
+          const departureTime = matchingSegment["$"]["DepartureTime"] || "Unknown";
+          const arrivalTime = matchingSegment["$"]["ArrivalTime"] || "Unknown";
+  
+          return {
+            carrier: carrier || "Unknown",
+            flightNumber: flightNumber || "Unknown",
+            total_price: totalPrice || "Unknown",
+            departure_time: departureTime,
+            arrival_time: arrivalTime,
+          };
+        });
+      });
+    });
+  
+    const selectedFlightDetails = flightDetailss.flat().filter(Boolean);
+  
+    console.log("Selected Flight Details:", selectedFlightDetails);
+  
     setSelectedFlights((prev) => {
-      // Check if this specific data is already selected
       const isSelected = prev.some(
         (flight) =>
           flight["$"].Key === airPricingInfo["$"].Key &&
@@ -1412,18 +1523,24 @@ const handleReturnDateInitialization = (bookingType) => {
       );
   
       if (isSelected) {
-        // Remove the selected data
         return prev.filter(
           (flight) =>
             flight["$"].Key !== airPricingInfo["$"].Key ||
             flight.isReturn !== airPricingInfo.isReturn
         );
       } else {
-        // Add the new data to the selection
-        return [...prev, airPricingInfo];
+        // Add the new data with flight details to the selection
+        return [
+          ...prev,
+          {
+            ...airPricingInfo,
+            flightDetails: selectedFlightDetails, // Add extracted flight details
+          },
+        ];
       }
     });
   };
+  
   
 
   
@@ -1546,18 +1663,39 @@ const handleReturnDateInitialization = (bookingType) => {
     console.log("Payload:", payload);
     const apiUrl = "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking";
 
-    fetch(apiUrl, {
-      method: "POST",
-      body: JSON.stringify(payload),
-      headers: { "Content-Type": "application/json" },
-    })
-    .then((response) => response.json()) 
-    .then((data) => {
-      console.log("API response:", data); 
-    })
-    .catch((error) => {
-      console.error("Error sending request:", error); 
+fetch(apiUrl, {
+  method: "POST",
+  body: JSON.stringify(payload),
+  headers: { "Content-Type": "application/json" },
+})
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json(); // Parse the JSON response
+  })
+  .then((data) => {
+    console.log("API response:", data); // Log the API response
+
+    // Show success SweetAlert
+    Swal.fire({
+      title: "Success!",
+      text: "Flight options has been sent successfully.",
+      icon: "success",
+      confirmButtonText: "OK",
     });
+  })
+  .catch((error) => {
+    console.error("Error sending request:", error);
+
+    // Show error SweetAlert
+    Swal.fire({
+      title: "Error!",
+      text: "Something went wrong while creating the booking.",
+      icon: "error",
+      confirmButtonText: "Retry",
+    });
+  });
   };
   
   
@@ -1584,10 +1722,420 @@ const toggleDetails = async (name) => {
 
   return (
     
+    
    
     
-      <div className="yield-content">
-        {/* {loading &&  <div className="loader" style={{display:"block"}}>
+      <div className="yield-content" style={{ background:'#e8e4ff'}}>
+      <header className="search-bar" id="widgetHeader">
+      <form id="submit-form" onSubmit={(e) => handleSubmit(e)} action="" method="POST" autoComplete="off">
+  <div id="search-widget" className="hsw v2">
+    <div className="hsw_inner">
+      
+      <div className="hsw_inputBox tripTypeWrapper">
+        <label htmlFor="tripType" className="lbl_input latoBold font12 blueText appendBottom5">
+          TRIP TYPE
+        </label>
+        <div className="selectDropdown">
+  <select
+    id="tripType"
+    className="tripTypeSelect"
+    name="bookingtype"
+    value={formData.bookingType} // Dynamic value
+    onChange={handleRadioChange} // Event handler
+  >
+    <option value="oneway">One Way</option>
+    <option value="Return">Return</option>
+  </select>
+  <div className="dropdownIcon">
+    {/* SVG Icon */}
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M7 10l5 5 5-5"
+        stroke="#666"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </div>
+</div>
+      </div>
+
+      
+      <div className="hsw_inputBox">
+        <label htmlFor="fromCity" className="lbl_input latoBold font12 blueText appendBottom5">
+          FROM
+        </label>
+        <div className="input-a"> 
+          <input
+              type="text"
+              placeholder="Search..."
+              id="searchfrom"
+              className="text_input"
+              name="searchfrom"
+              value={inputOrigin}
+              onChange={(e) => handleOriginChange(e.target.value)}
+          />
+
+          {showOriginDropdown && (
+              <ul style={{
+                  position: 'absolute',
+                  top: '100%',
+                  marginLeft: '-8px',
+                  borderRadius: '3px',
+                  backgroundColor: '#fff',
+                  paddingLeft: '6px',
+                  width: '100%',
+                  border: '1px solid #e3e3e3',
+                  listStyle: 'none',
+                  width: '100%',
+                  zIndex: '9999',
+                  maxHeight: '150px',
+                  minHeight: 'auto',
+                  overflow: 'auto'
+              }}>
+                  {origin.map((option) => (
+                      <li style={{
+                          cursor: 'pointer',
+                          fontFamily: 'Montserrat',
+                          color: '#4c4c4c',
+                          fontSize: '10px',
+                          paddingTop: '5px',
+                          paddingBottom: '5px',
+                          paddingRight: '5px'
+                      }} key={option.value} onClick={() => handleOrigin(option.value,option.airportName)}>
+                          {option.label} ({option.value}) <br/>
+                          {option.airportName}
+                      </li>
+                  ))}
+              </ul>
+          )}
+
+
+      </div>
+      <div className="redorigin" style={{
+          color: 'red',
+          fontsize: '10px',
+          fontfamily: 'Raleway', display: 'none'
+      }}>Please select Origin</div>
+      <div className="redorigin1" style={{
+          color: 'red',
+          fontsize: '10px',
+          fontfamily: 'Raleway', display: 'none'
+      }}>Please select valid Origin</div>
+        
+      </div> 
+
+      
+      <div>
+        
+        <button type="button" className='swapbutton' onClick={swapOriginAndDestination}><img src='/img/Swap-01.png' width={'17px'}/></button>
+      </div>
+
+      
+      <div className="hsw_inputBox">
+        <label htmlFor="toCity" className="lbl_input latoBold font12 blueText appendBottom5">
+          TO
+        </label>
+        <div className="input-a">
+            <input
+                type="text"
+                placeholder="Search..."
+                id="searchto" className="text_input" name="searchto"
+                value={inputDestination}
+                onChange={(e) => handleDestinationChange(e.target.value)}
+            />
+
+            {showDestinationDropdown && (
+                <ul style={{
+                    position: 'absolute',
+                    top: '100%',
+                    marginLeft: '-8px',
+                    borderRadius: '3px',
+                    backgroundColor: '#fff',
+                    paddingLeft: '6px',
+                    width: '100%',
+                    border: '1px solid #e3e3e3',
+                    listStyle: 'none',
+                    width: '100%',
+                    zIndex: '9999',
+                    maxHeight: '150px',
+                    minHeight: 'auto',
+                    overflow: 'auto'
+                }}>
+                    {destination.map((option) => (
+                        <li style={{
+                            cursor: 'pointer',
+                            fontFamily: 'Montserrat',
+                            color: '#4c4c4c',
+                            fontSize: '10px',
+                            paddingTop: '5px',
+                            paddingBottom: '5px',
+                            paddingRight: '5px'
+                        }} key={option.value} onClick={() => handleDestination(option.value,option.airportName)}>
+                            {option.label} ({option.value})<br/>
+                            {option.airportName}
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+        </div>
+        
+        <div className="redestination" style={{
+            color: 'red',
+            fontsize: '10px',
+            fontfamily: 'Raleway', display: 'none'
+        }}>Please select Destination</div>
+        <div className="redestination1" style={{
+            color: 'red',
+            fontsize: '10px',
+            fontfamily: 'Raleway', display: 'none'
+        }}>Please select valid Destination</div>
+      </div>
+
+      
+      <div className="hsw_inputBox">
+        <label className="lbl_input latoBold font12 blueText appendBottom5">
+          DEPART
+        </label>
+        <div className="input-a"  onClick={() => setdepIsOpen(true)}>
+            <DatePicker
+                name="searchdeparture"
+                selected={formData.departureDate}
+                onChange={handleDepartureDateChange}
+                dateFormat="dd/MM/yyyy"
+                minDate={new Date()}
+                value={ddmmyyyyformatDate(formData.departureDate)}
+                open={isdepOpen}
+                onClickOutside={() => setdepIsOpen(false)}
+            />
+            
+            <span className="date-icon" onClick={(e) => {e.stopPropagation(); setdepIsOpen(true)}}></span></div>
+        <span id="errorDate" style={{
+            color: 'red',
+            fontsize: '12px',
+            fontfamily: 'Raleway'
+        }} className="error-message"></span>
+        <div className="redsearchdeparture" style={{
+            color: 'red',
+            fontsize: '12px',
+            fontfamily: 'Raleway'
+        }}>Please select Depart Date</div>
+        <div className="redsearchdeparture1" style={{
+            display:'none',
+            color: 'red',
+            fontsize: '12px',
+            fontfamily: 'Raleway'
+        }}>Please select valid Depart Date</div>
+      </div>
+
+      
+      <div className="hsw_inputBox" id="departurereturn">
+        <label htmlFor="return" className="lbl_input latoBold font12 blueText appendBottom5">
+          RETURN
+        </label>
+        <div className="input-a" onClick={formData.bookingType === "Return" ? () => setretIsOpen(true) : () => () => setretIsOpen(false)}>
+              <DatePicker
+                  name="searchreturnDate"
+                  selected={formData.returnDate}
+                  onChange={handleReturnDateChange}
+                  dateFormat="dd/MM/yyyy"
+                  minDate={formData.departureDate || new Date()}
+                  placeholderText="Add Return Date"
+                  value={formData.returnDate && ddmmyyyyformatDate(formData.returnDate)}
+                  disabled={!isReturnEnabled}
+                  open={isretOpen}
+                  onClickOutside={() => setretIsOpen(false)}
+              />
+            <span
+              className="date-icon"
+                onClick={(e) => {
+                  if (formData.bookingType === "Return") {
+                    e.stopPropagation();
+                    setretIsOpen(true);
+                  }
+                }}
+              ></span> 
+            </div>
+          <span id="errorDate1" style={{
+              color: 'red',
+              fontsize: '12px',
+              fontfamily: 'Raleway'
+          }} className="error-message"></span>
+          <div className="redsearchreturn" style={{
+              display:'none',
+              color: 'red',
+              fontsize: '12px',
+              fontfamily: 'Raleway'
+          }}>Please select Return Date</div>
+          <div className="redsearchreturn1" style={{
+              display:'none',
+              color: 'red',
+              fontsize: '12px',
+              fontfamily: 'Raleway'
+          }}>Please select valid Return Date</div>
+      </div>
+
+      
+      <div className="hsw_inputBox">
+        <label htmlFor="travellerAndClass" className="lbl_input latoBold font12 blueText appendBottom5">
+          PASSENGERS &amp; CLASS
+        </label>
+        <div className="input-a" style={{ width:'250px'}}>
+                <input
+                    type="text"
+                    id="openpassengermodal"
+                    name="openpassengermodal"
+                    className="openpassengermodal srch-lbl"
+                    placeholder="Select all"
+                    value={`Adult: ${adultCount}, Child: ${childCount}, Infant: ${infantCount}, Cabinclass: ${cabinClass} class`}
+                    onClick={handleToggle}
+                    readOnly
+                />
+                
+            </div>
+            <div className="redpassenger" style={{
+                                        color: 'red',
+                                        fontsize: '12px',
+                                        fontfamily: 'Raleway'
+                                    }}>Please select maximum 9 passenger</div>
+                                    <div className="infantmore" style={{
+                                      color: 'red',
+                                      fontsize: '12px',
+                                      fontfamily: 'Raleway'
+                                    }}>Number of infants cannot be more than adults</div>
+            
+            <div className="search-asvanced" style={{ display: isOpen ? 'block' : 'none' }}>
+                  <div className="search-large-i">
+                      <div className="srch-tab-line no-margin-bottom">
+                          <div className="srch-tab-line no-margin-bottom">
+                              <label>Adults (12y + : on the day of travel)</label>
+                              <div className="select-wrapper1">
+                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
+                                      <React.Fragment key={value}>
+                                          <input
+                                              type="radio"
+                                              name="adult"
+                                              id={`adult${value}`}
+                                              value={value}
+                                              onChange={(e) => handleAdult(e.target.value)}
+                                              checked={Cookies.get('cookiesData') ? value.toString() === adultCount.toString() : value === 1}
+                                          />
+                                          <label htmlFor={`adult${value}`}>{value}</label>
+                                      </React.Fragment>
+                                  ))}
+                                  <input
+                                      type="radio"
+                                      name="adult"
+                                      id="adultgreater9"
+                                      value={10}
+                                      onChange={(e) => handleAdult(e.target.value)}
+                                  />
+                                  <label htmlFor="adultgreater9">&gt;9</label>
+                              </div>
+                          </div>
+                          <div className="clear" />
+                      </div>
+                  </div>
+                  <div className="search-large-i">
+                      <div className="srch-tab-line no-margin-bottom">
+                          <label>Children (2y - 12y : on the day of travel)</label>
+                          <div className="select-wrapper1">
+                              {[0, 1, 2, 3, 4, 5, 6].map((value) => (
+                                  <React.Fragment key={value}>
+                                      <input
+                                          type="radio"
+                                          name="child"
+                                          id={`child${value}`}
+                                          value={value}
+                                          onChange={(e) => handleChild(e.target.value)}
+                                          checked={Cookies.get('cookiesData') ? value.toString() === childCount.toString() : value === 0}
+                                      />
+                                      <label htmlFor={`child${value}`}>{value}</label>
+                                  </React.Fragment>
+                              ))}
+                              <input
+                                  type="radio"
+                                  name="child"
+                                  id="childgreater6"
+                                  value={7}
+                                  onChange={(e) => handleChild(e.target.value)}
+                              />
+                              <label htmlFor="childgreater6">&gt;6</label>
+                          </div>
+                          
+                      </div>
+                  </div>
+                  <div className="search-large-i">
+                      <div className="srch-tab-line no-margin-bottom">
+                          <label>Infants (below 2y : on the day of travel)</label>
+                          <div className="select-wrapper1">
+                              {[0, 1, 2, 3, 4, 5, 6].map((value) => (
+                                  <React.Fragment key={value}>
+                                      <input
+                                          type="radio"
+                                          name="infant"
+                                          id={`infant${value}`}
+                                          value={value}
+                                          onChange={(e) => handleInfant(e.target.value)}
+                                          checked={Cookies.get('cookiesData') ? value.toString() === infantCount.toString() : value === 0}
+                                      />
+                                      <label htmlFor={`infant${value}`}>{value}</label>
+                                  </React.Fragment>
+                              ))}
+                              <input
+                                  type="radio"
+                                  name="infant"
+                                  id="infantgreater6"
+                                  value={7}
+                                  onChange={(e) => handleInfant(e.target.value)}
+                              />
+                              <label htmlFor="infantgreater6">&gt;6</label>
+                          </div>
+                          
+                      </div>
+                  </div>
+                  <div className="clear" />
+              </div>
+              <div className="search-asvanced" style={{ display: isOpen ? 'block' : 'none' }}>
+              <div className="search-large-i1">
+                  <div className="srch-tab-line no-margin-bottom">
+                      <label>Choose Travel Class</label>
+                      <div className="select-wrapper1 select-wrapper2">
+                          {['Economy/Premium Economy', 'Business', 'First'].map((value) => (
+                              <React.Fragment key={value}>
+                                  <input
+                                      type="radio"
+                                      name="classtype"
+                                      id={`classtype${value}`}
+                                      value={value}
+                                      onChange={(e) => handleClasstype(e.target.value)}
+                                      checked={ cabinClass.toString() === "Economy" && value === "Economy/Premium Economy" ? true : cabinClass.toString() === value}
+                                  />
+                                  <label style={{lineHeight:'1.8'}} htmlFor={`classtype${value}`}>{value === "Economy/Premium Economy" ? value : `${value} class`}</label>
+                              </React.Fragment>
+                          ))}
+                      </div>
+                      <div className="clear" />
+                  </div>
+              </div>
+              <div className="clear" />
+          </div>
+      </div>
+      <button type="submit" className="srch-btn" style={{background: 'linear-gradient(to right, #785eff, #b44acb)'}} id="btnSearch">Search</button>
+
+    </div>
+  </div>
+  </form>
+</header>
+        {/* {loadingg &&  <div className="loader" style={{display:"block"}}>
             <img
               src="/img/flight-loader-material-gif.gif"
               alt="Loader"
@@ -1595,8 +2143,16 @@ const toggleDetails = async (name) => {
             <h2>Hold on, we’re fetching packages for you</h2>
           </div>
         } */}
-        
-        
+        {loadingg &&  
+                        <div className="page-center-loader flex items-center justify-center">
+                            <div className="big-loader flex items-center justify-center">
+                                <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" />
+                                <p className="text-center ml-4 text-gray-600 text-lg">
+                                Retrieving flight details. Please wait a moment.
+                                </p>
+                            </div>
+                        </div>
+                    }
         <div className="main-cont" id="main_cont">
           <div className="body-wrapper">
             <div className="wrapper-padding">
@@ -1619,434 +2175,6 @@ const toggleDetails = async (name) => {
                             : inputDestination.trim()
                       )}
                     </div>
-                    {selectedFlights.length > 0 && (
-                      <div className="side-block fly-in">
-                        <div className="side-padding">
-                          <div className="side-lbl">Send Selected Flights to Approver</div>
-                          <div className="timeSlotsOuter">
-                            <button 
-                              onClick={approverButtonClick} 
-                              className="srch-btn" 
-                              variant="primary" 
-                              style={{ marginTop: "5px", fontSize: '12.5px' }} 
-                            >
-                              Send Details
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    <div className="side-block fly-in" style={{ position:'relative'}}>
-                      <div className="side-block-search search-tab-content">
-                      <form id="submit-form" onSubmit={(e) => handleSubmit(e)} action="" method="POST" autoComplete="off">
-
-                        <input type="hidden" name="_token" defaultValue="S1NzGDzenZ2TihPVjEByzt2t1VkgNBfoEIoqg8rK" /><div className="page-search-p2">
-                            <div className="One_Way">
-                                <input
-                                    type="radio"
-                                    className="bookingtypecheck"
-                                    name="bookingtype"
-                                    value="oneway"
-                                    onChange={handleRadioChange}
-                                    checked={formData.bookingType === 'oneway'}
-                                    id="departureRadio"
-                                />
-                                <label className="bookingtype onewaybookingtype" htmlFor="departureRadio" style={getLabelStyle('oneway')}>One-Way</label>
-                            </div>
-
-                            <div className="Return">
-                                <input
-                                    type="radio"
-                                    className="bookingtypecheck"
-                                    name="bookingtype"
-                                    value="Return"
-                                    onChange={handleRadioChange}
-                                    checked={formData.bookingType === 'Return'}
-                                    id="returnRadio"
-                                />
-                                <label className="bookingtype returnbookingtype" htmlFor="returnRadio" style={getLabelStyle('Return')}>Return</label>
-                            </div>
-                            <div className="clear"></div>
-                        </div>
-                        <div className="page-search-p">
-
-                            
-
-                                <div className="srch-tab-line no-margin-bottom">
-                                    <div className="srch-tab-left">
-                                        <label>From</label>
-                                        <div className="input-a">
-                                            <input
-                                                type="text"
-                                                placeholder="Search..."
-                                                id="searchfrom"
-                                                className="text_input"
-                                                name="searchfrom"
-                                                value={inputOrigin}
-                                                onChange={(e) => handleOriginChange(e.target.value)}
-                                            />
-
-                                            {showOriginDropdown && (
-                                                <ul style={{
-                                                    position: 'absolute',
-                                                    top: '100%',
-                                                    marginLeft: '-8px',
-                                                    borderRadius: '3px',
-                                                    backgroundColor: '#fff',
-                                                    paddingLeft: '6px',
-                                                    width: '100%',
-                                                    border: '1px solid #e3e3e3',
-                                                    listStyle: 'none',
-                                                    width: '100%',
-                                                    zIndex: '9999',
-                                                    maxHeight: '150px',
-                                                    minHeight: 'auto',
-                                                    overflow: 'auto'
-                                                }}>
-                                                    {origin.map((option) => (
-                                                        <li style={{
-                                                            cursor: 'pointer',
-                                                            fontFamily: 'Montserrat',
-                                                            color: '#4c4c4c',
-                                                            fontSize: '10px',
-                                                            paddingTop: '5px',
-                                                            paddingBottom: '5px',
-                                                            paddingRight: '5px'
-                                                        }} key={option.value} onClick={() => handleOrigin(option.value,option.airportName)}>
-                                                            {option.label} ({option.value}) <br/>
-                                                            {option.airportName}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
-
-
-                                        </div>
-                                        <div className="redorigin" style={{
-                                            color: 'red',
-                                            fontsize: '10px',
-                                            fontfamily: 'Raleway', display: 'none'
-                                        }}>Please select Origin</div>
-                                        <div className="redorigin1" style={{
-                                            color: 'red',
-                                            fontsize: '10px',
-                                            fontfamily: 'Raleway', display: 'none'
-                                        }}>Please select valid Origin</div>
-                                    </div>
-                                    <button type="button" className='swapbutton' onClick={swapOriginAndDestination}><img src='/img/swap.png' width={'17px'}/></button>
-                                    <div className="srch-tab-right" style={{width:'45.5%'}}>
-                                        <label>To</label>
-                                        <div className="input-a">
-                                            <input
-                                                type="text"
-                                                placeholder="Search..."
-                                                id="searchto" className="text_input" name="searchto"
-                                                value={inputDestination}
-                                                onChange={(e) => handleDestinationChange(e.target.value)}
-                                            />
-
-                                            {showDestinationDropdown && (
-                                                <ul style={{
-                                                    position: 'absolute',
-                                                    top: '100%',
-                                                    marginLeft: '-8px',
-                                                    borderRadius: '3px',
-                                                    backgroundColor: '#fff',
-                                                    paddingLeft: '6px',
-                                                    width: '100%',
-                                                    border: '1px solid #e3e3e3',
-                                                    listStyle: 'none',
-                                                    width: '100%',
-                                                    zIndex: '9999',
-                                                    maxHeight: '150px',
-                                                    minHeight: 'auto',
-                                                    overflow: 'auto'
-                                                }}>
-                                                    {destination.map((option) => (
-                                                        <li style={{
-                                                            cursor: 'pointer',
-                                                            fontFamily: 'Montserrat',
-                                                            color: '#4c4c4c',
-                                                            fontSize: '10px',
-                                                            paddingTop: '5px',
-                                                            paddingBottom: '5px',
-                                                            paddingRight: '5px'
-                                                        }} key={option.value} onClick={() => handleDestination(option.value,option.airportName)}>
-                                                            {option.label} ({option.value})<br/>
-                                                            {option.airportName}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
-
-                                        </div>
-                                        
-                                        <div className="redestination" style={{
-                                            color: 'red',
-                                            fontsize: '10px',
-                                            fontfamily: 'Raleway', display: 'none'
-                                        }}>Please select Destination</div>
-                                        <div className="redestination1" style={{
-                                            color: 'red',
-                                            fontsize: '10px',
-                                            fontfamily: 'Raleway', display: 'none'
-                                        }}>Please select valid Destination</div>
-                                        
-                                    </div>
-                                    
-                                    <div className="clear"></div>
-                                </div>
-
-                            
-
-                            
-
-                                <div className="srch-tab-line no-margin-bottom">
-                                    <div className="srch-tab-left">
-                                        <label>Departure</label>
-                                        <div className="input-a"  onClick={() => setdepIsOpen(true)}>
-                                            <DatePicker
-                                                name="searchdeparture"
-                                                selected={formData.departureDate}
-                                                onChange={handleDepartureDateChange}
-                                                dateFormat="dd/MM/yyyy"
-                                                minDate={new Date()}
-                                                value={ddmmyyyyformatDate(formData.departureDate)}
-                                                open={isdepOpen}
-                                                onClickOutside={() => setdepIsOpen(false)}
-                                            />
-                                            
-                                            <span className="date-icon" onClick={(e) => {e.stopPropagation(); setdepIsOpen(true)}}></span></div>
-                                        <span id="errorDate" style={{
-                                            color: 'red',
-                                            fontsize: '12px',
-                                            fontfamily: 'Raleway'
-                                        }} className="error-message"></span>
-                                        <div className="redsearchdeparture" style={{
-                                            color: 'red',
-                                            fontsize: '12px',
-                                            fontfamily: 'Raleway'
-                                        }}>Please select Departure Date</div>
-                                        <div className="redsearchdeparture1" style={{
-                                            display:'none',
-                                            color: 'red',
-                                            fontsize: '12px',
-                                            fontfamily: 'Raleway'
-                                        }}>Please select valid Departure Date</div>
-                                    </div>
-                                    <div className="srch-tab-right" id="departurereturn">
-                                        <label>Return</label>
-                                        <div className="input-a" onClick={formData.bookingType === "Return" ? () => setretIsOpen(true) : () => () => setretIsOpen(false)}>
-                                            <DatePicker
-                                                name="searchreturnDate"
-                                                selected={formData.returnDate}
-                                                onChange={handleReturnDateChange}
-                                                dateFormat="dd/MM/yyyy"
-                                                minDate={formData.departureDate || new Date()}
-                                                placeholderText="Add Return Date"
-                                                value={formData.returnDate && ddmmyyyyformatDate(formData.returnDate)}
-                                                disabled={!isReturnEnabled}
-                                                open={isretOpen}
-                                                onClickOutside={() => setretIsOpen(false)}
-                                            />
-                                          <span
-                                            className="date-icon"
-                                              onClick={(e) => {
-                                                if (formData.bookingType === "Return") {
-                                                  e.stopPropagation();
-                                                  setretIsOpen(true);
-                                                }
-                                              }}
-                                            ></span> 
-                                          </div>
-                                        <span id="errorDate1" style={{
-                                            color: 'red',
-                                            fontsize: '12px',
-                                            fontfamily: 'Raleway'
-                                        }} className="error-message"></span>
-                                        <div className="redsearchreturn" style={{
-                                            display:'none',
-                                            color: 'red',
-                                            fontsize: '12px',
-                                            fontfamily: 'Raleway'
-                                        }}>Please select Return Date</div>
-                                        <div className="redsearchreturn1" style={{
-                                            display:'none',
-                                            color: 'red',
-                                            fontsize: '12px',
-                                            fontfamily: 'Raleway'
-                                        }}>Please select valid Return Date</div>
-                                    </div>
-                                    <div className="clear"></div>
-                                </div>
-
-                            
-
-                            
-                                <div className="srch-tab-line no-margin-bottom">
-                                    <label>Passengers & Cabinclass</label>
-                                    <div className="input-a">
-                                        <input
-                                            type="text"
-                                            id="openpassengermodal"
-                                            name="openpassengermodal"
-                                            className="openpassengermodal srch-lbl"
-                                            placeholder="Select all"
-                                            value={`Adult: ${adultCount}, Child: ${childCount}, Infant: ${infantCount}, Cabinclass: ${cabinClass} class`}
-                                            onClick={handleToggle}
-                                            readOnly
-                                        />
-                                        
-                                    </div>
-                                    <div className="redpassenger" style={{
-                                        color: 'red',
-                                        fontsize: '12px',
-                                        fontfamily: 'Raleway'
-                                    }}>Please select maximum 9 passenger</div>
-                                    <div className="infantmore" style={{
-                                      color: 'red',
-                                      fontsize: '12px',
-                                      fontfamily: 'Raleway'
-                                    }}>Number of infants cannot be more than adults</div>
-                                </div>
-                                <div className="clear"></div>
-                            
-                              <div className="search-asvanced" style={{ display: isOpen ? 'block' : 'none' }}>
-                                  
-                                      <div className="srch-tab-line no-margin-bottom">
-                                          <div className="srch-tab-line no-margin-bottom">
-                                              <label>Adults (12y + : on the day of travel)</label>
-                                              <div className="select-wrapper1">
-                                                  {/* Radio buttons for adults */}
-                                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
-                                                      <React.Fragment key={value}>
-                                                          <input
-                                                              type="radio"
-                                                              name="adult"
-                                                              id={`adult${value}`}
-                                                              value={value}
-                                                              onChange={(e) => handleAdult(e.target.value)}
-                                                              checked={Cookies.get('cookiesData') ? value.toString() === adultCount.toString() : value === 1}
-                                                          />
-                                                          <label htmlFor={`adult${value}`}>{value}</label>
-                                                      </React.Fragment>
-                                                  ))}
-                                                  <input
-                                                      type="radio"
-                                                      name="adult"
-                                                      id="adultgreater9"
-                                                      value={10}
-                                                      onChange={(e) => handleAdult(e.target.value)}
-                                                  />
-                                                  <label htmlFor="adultgreater9">&gt;9</label>
-                                              </div>
-                                              
-                                          </div>
-                                          <div className="clear" />
-                                      </div>
-                                      
-                                  
-                                      <div className="srch-tab-line no-margin-bottom">
-                                          <label>Children (2y - 12y : on the day of travel)</label>
-                                          <div className="select-wrapper1">
-                                              {[0, 1, 2, 3, 4, 5, 6].map((value) => (
-                                                  <React.Fragment key={value}>
-                                                      <input
-                                                          type="radio"
-                                                          name="child"
-                                                          id={`child${value}`}
-                                                          value={value}
-                                                          onChange={(e) => handleChild(e.target.value)}
-                                                          checked={Cookies.get('cookiesData') ? value.toString() === childCount.toString() : value === 0}
-                                                      />
-                                                      <label htmlFor={`child${value}`}>{value}</label>
-                                                  </React.Fragment>
-                                              ))}
-                                              <input
-                                                  type="radio"
-                                                  name="child"
-                                                  id="childgreater6"
-                                                  value={7}
-                                                  onChange={(e) => handleChild(e.target.value)}
-                                              />
-                                              <label htmlFor="childgreater6">&gt;6</label>
-                                          </div>
-                                          
-                                      </div>
-                                  
-                                  
-                                  
-                                      <div className="srch-tab-line no-margin-bottom">
-                                          <label>Infants (below 2y : on the day of travel)</label>
-                                          <div className="select-wrapper1">
-                                              {[0, 1, 2, 3, 4, 5, 6].map((value) => (
-                                                  <React.Fragment key={value}>
-                                                      <input
-                                                          type="radio"
-                                                          name="infant"
-                                                          id={`infant${value}`}
-                                                          value={value}
-                                                          onChange={(e) => handleInfant(e.target.value)}
-                                                          checked={Cookies.get('cookiesData') ? value.toString() === infantCount.toString() : value === 0}
-                                                      />
-                                                      <label htmlFor={`infant${value}`}>{value}</label>
-                                                  </React.Fragment>
-                                              ))}
-                                              <input
-                                                  type="radio"
-                                                  name="infant"
-                                                  id="infantgreater6"
-                                                  value={7}
-                                                  onChange={(e) => handleInfant(e.target.value)}
-                                              />
-                                              <label htmlFor="infantgreater6">&gt;6</label>
-                                          </div>
-                                          
-                                      </div>
-                                  
-                                  
-                                  <div className="clear" />
-                              </div>
-
-                              <div className="search-asvanced" style={{ display: isOpen ? 'block' : 'none' }}>
-                                  
-                                      <div className="srch-tab-line no-margin-bottom">
-                                          <label>Choose Travel Class</label>
-                                          <div className="select-wrapper1 select-wrapper2">
-                                              {['Economy/Premium Economy', 'Business', 'First'].map((value) => (
-                                                  <React.Fragment key={value}>
-                                                      <input
-                                                          type="radio"
-                                                          name="classtype"
-                                                          id={`classtype${value}`}
-                                                          value={value}
-                                                          onChange={(e) => handleClasstype(e.target.value)}
-                                                          checked={Cookies.get('cookiesData') ? value.toString() === cabinClass.toString() : value === "Economy/Premium Economy"}
-                                                      />
-                                                      <label style={{lineHeight:'2'}} htmlFor={`classtype${value}`}>{value === "Economy/Premium Economy" ? value : `${value} class`}</label>
-                                                  </React.Fragment>
-                                              ))}
-                                          </div>
-                                          
-                                          <div className="clear" />
-                                      </div>
-                                      
-                                  <div className="clear" />
-                              </div>
-                            
-                            
-                        </div>
-                        <div id="error-message1" style={{ color: 'red', marginleft: '2%', fontfamily: 'Raleway', fontsize: '13px' }}></div>
-                        <div id="error-message2" style={{ color: 'red', marginleft: '2%', fontfamily: 'Raleway', fontsize: '13px' }}></div>
-                        <footer className="search-footer">
-                            <button type="submit" className="srch-btn" id="btnSearch">Search</button>
-                            
-                            <div className="clear"></div>
-                        </footer>
-                      </form>
-                      </div>
-                    </div>
-                  
                   
                 {flightOptions && flightOptions.length > 0 &&
                   <>
@@ -2599,10 +2727,16 @@ const toggleDetails = async (name) => {
                               </div>
                         
                             </div>
-                          {flightOptions && flightOptions
-                            .slice()
-                            .map(pricepoint => {
-                              pricepoint.price = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
+                            
+                            {flightOptions.slice()
+                              .sort((a, b) => {
+                                // Always sort by price as the default sorting
+                                const priceA = parseFloat(a.$.TotalPrice.replace(/[^\d.]/g, ''));
+                                const priceB = parseFloat(b.$.TotalPrice.replace(/[^\d.]/g, ''));
+                                return priceA - priceB;
+                              })
+                              .map(pricepoint => {
+                                pricepoint.price = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
                                   let result ={};
                                   pricepoint['air:AirPricingInfo'] && (
                                     Array.isArray(pricepoint['air:AirPricingInfo'])
@@ -3084,7 +3218,11 @@ const toggleDetails = async (name) => {
                                   pricepoint.return = calculateDepartureTime(result.return);
                                   pricepoint.stops = calculateDepartureTime(result.stops);
                                   return pricepoint;
+                                  console.log('pricepoint', pricepoint);
                             })
+                            
+                           
+                            
                             .sort((a, b) => {
                               switch (sortingCriterion) {
                                 case '1':
@@ -3837,7 +3975,16 @@ const toggleDetails = async (name) => {
                                         
                                             <div
                                               
-                                              className={`flight-item fly-in ${selectedFlights.includes(pricepoint['air:AirPricingInfo']) ? "selected-flight" : ""}`}
+                                              // className={`flight-item fly-in ${selectedFlights.includes(pricepoint['air:AirPricingInfo']) ? "selected-flight" : ""}`}
+                                              className={`flight-item fly-in ${
+                                                selectedFlights.some(
+                                                  (selectedFlight) =>
+                                                    selectedFlight["$"].Key === pricepoint["air:AirPricingInfo"]["$"].Key &&
+                                                    selectedFlight.isReturn === pricepoint["air:AirPricingInfo"].isReturn
+                                                )
+                                                  ? "selected-flight"
+                                                  : ""
+                                              }`}
                                               data-price={6521}
                                               data-departure={1}
                                               data-duration={1}
@@ -7649,13 +7796,41 @@ const toggleDetails = async (name) => {
                                                                                                     <span className="lineflights">
                                                                                                       <div className="flight-line-d1"></div>
                                                                                                       <div
-                                                                                                        className="flight-line-a"
-                                                                                                        width="45px"
-                                                                                                      >
-                                                                                                        <span>
-                                                                                                        {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['$']['TravelTime'])}
-                                                                                                        </span>
-                                                                                                      </div>
+                                                                                                          className="flight-line-a"
+                                                                                                          width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        >
+                                                                                                          <span >
+                                                                                                          {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['$']['TravelTime'])}
+                                                                                                          </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <div className="flight-line-a">
+                                                                                                              {(() => {
+                                                                                                                let totalIterations = pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['air:BookingInfo'].length - 1;
+                                                                                                                let stopoverCity = "";
+                                                                                                                if (totalIterations > 0) {
+                                                                                                                  pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                                    SegmentList.map((segmentinfo) => {
+                                                                                                                      if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                                        
+                                                                                                                        stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                                      }
+                                                                                                                    });
+                                                                                                                  });
+                                                                                                                }
+                                                                                                                return (
+                                                                                                                <p className="stop-badge" >
+                                                                                                                {totalIterations} stop via {stopoverCity}
+                                                                                                                    <div className="tooltip-content">
+                                                                                                                      {totalIterations} stop from {stopoverCity} 
+                                                                                                                    </div>
+                                                                                                                  </p>
+                                                                                                                );
+                                                                                                              })()}
+                                                                                                            </div>
+                                                                                                          </span>
+                                                                                                        </div>
+                                                                                                      
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
                                                                                                     <div className="flight-line-a" style={{ width: 62 }}>
@@ -7705,17 +7880,7 @@ const toggleDetails = async (name) => {
 
                                                                                                   </div>
                                                                                                 </span>
-                                                                                                <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                  {(() => {
-                                                                                                    let totalIterations =pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-                                                                                                    return (
-                                                                                                      <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                        {totalIterations} STOP
-                                                                                                      </p>
-                                                                                                    );
-                                                                                                  })()}
-                                                                                                </div>              
+                                                                                                            
                                                                                   </>
                                                                                 ) : (
                                                                                   <>
@@ -7758,14 +7923,23 @@ const toggleDetails = async (name) => {
                                                                                                     <span className="lineflights">
                                                                                                       <div className="flight-line-d1"></div>
                                                                                                       <div
-                                                                                                        className="flight-line-a"
-                                                                                                        width="45px"
-                                                                                                      >
-                                                                                                        <span>
-                                                                                                        
-                                                                                                        {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['$']['TravelTime'])}
-                                                                                                        </span>
-                                                                                                      </div>
+                                                                                                          className="flight-line-a" 
+                                                                                                          width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        > 
+                                                                                                          <span style={{marginLeft:'5px', marginRight:'5px'}} >
+                                                                                                          {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['$']['TravelTime'])}
+                                                                                                          </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <p className="stop-badge">
+                                                                                                              Non-Stop
+                                                                                                              <div className="tooltip-content">
+                                                                                                                This is a direct flight with no stops.
+                                                                                                              </div>
+                                                                                                            </p>
+                                                                                                          </span>
+                                                                                                        </div>
+                                                                                                      
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
                                                                                                     <div
@@ -7793,17 +7967,7 @@ const toggleDetails = async (name) => {
                                                                                                                       <span className="apiairportresult">{handleApiAirport(segmentinfo['$']['Destination'])}</span>                                                                                               </span>
                                                                                                     </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                    {(() => {
-                                                                                                      let totalIterations = 0;
-
-                                                                                                      return (
-                                                                                                        <p className="iteration0" style={{textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: "#cbfac8",color: "black",padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                          NON STOP
-                                                                                                        </p>
-                                                                                                      );
-                                                                                                    })()}
-                                                                                                  </div>
+                                                                                                  
                                                                                                   
                                                                                                 </span> 
                                                                                               );
@@ -7875,13 +8039,41 @@ const toggleDetails = async (name) => {
                                                                                                     <span className="lineflights">
                                                                                                       <div className="flight-line-d1"></div>
                                                                                                       <div
-                                                                                                        className="flight-line-a"
-                                                                                                        width="45px"
-                                                                                                      >
-                                                                                                        <span>
-                                                                                                        {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['$']['TravelTime'])}
-                                                                                                        </span>
-                                                                                                      </div>
+                                                                                                          className="flight-line-a"
+                                                                                                          width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        >
+                                                                                                          <span >
+                                                                                                          {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['$']['TravelTime'])}
+                                                                                                          </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <div className="flight-line-a">
+                                                                                                              {(() => {
+                                                                                                                let totalIterations = pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['air:BookingInfo'].length - 1;
+                                                                                                                let stopoverCity = "";
+                                                                                                                if (totalIterations > 0) {
+                                                                                                                  pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                                    SegmentList.map((segmentinfo) => {
+                                                                                                                      if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                                        
+                                                                                                                        stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                                      }
+                                                                                                                    });
+                                                                                                                  });
+                                                                                                                }
+                                                                                                                return (
+                                                                                                                <p className="stop-badge" >
+                                                                                                                {totalIterations} stop via {stopoverCity}
+                                                                                                                    <div className="tooltip-content">
+                                                                                                                      {totalIterations} stop from {stopoverCity} 
+                                                                                                                    </div>
+                                                                                                                  </p>
+                                                                                                                );
+                                                                                                              })()}
+                                                                                                            </div>
+                                                                                                          </span>
+                                                                                                        </div>
+                                                                                                      
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
                                                                                                     <div className="flight-line-a" style={{ width: 62 }}>
@@ -7931,17 +8123,7 @@ const toggleDetails = async (name) => {
 
                                                                                                     </div>
                                                                                                 </span>
-                                                                                                <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                  {(() => {
-                                                                                                    let totalIterations =pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-                                                                                                    return (
-                                                                                                      <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                        {totalIterations} STOP
-                                                                                                      </p>
-                                                                                                    );
-                                                                                                  })()}
-                                                                                                </div>                                                         
+                                                                                                                                                        
                                                                                     </>
                                                                               ) : (
                                                                                     <>
@@ -7984,13 +8166,23 @@ const toggleDetails = async (name) => {
                                                                                                     <span className="lineflights">
                                                                                                       <div className="flight-line-d1"></div>
                                                                                                       <div
-                                                                                                        className="flight-line-a"
-                                                                                                        width="45px"
-                                                                                                      >
-                                                                                                        <span>
-                                                                                                        {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['$']['TravelTime'])}
-                                                                                                        </span>
-                                                                                                      </div>
+                                                                                                          className="flight-line-a" 
+                                                                                                          width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        > 
+                                                                                                          <span style={{marginLeft:'5px', marginRight:'5px'}} >
+                                                                                                          {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['$']['TravelTime'])}
+                                                                                                          </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <p className="stop-badge">
+                                                                                                              Non-Stop
+                                                                                                              <div className="tooltip-content">
+                                                                                                                This is a direct flight with no stops.
+                                                                                                              </div>
+                                                                                                            </p>
+                                                                                                          </span>
+                                                                                                        </div>
+                                                                                                      
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
                                                                                                     <div
@@ -8018,17 +8210,7 @@ const toggleDetails = async (name) => {
                                                                                                                       <span className="apiairportresult">{handleApiAirport(segmentinfo['$']['Destination'])}</span>                                                                                              </span>
                                                                                                     </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                    {(() => {
-                                                                                                      let totalIterations = 0;
-
-                                                                                                      return (
-                                                                                                        <p className="iteration0" style={{textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: "#cbfac8",color: "black",padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                          NON STOP
-                                                                                                        </p>
-                                                                                                      );
-                                                                                                    })()}
-                                                                                                  </div>
+                                                                                                  
                                                                                                   
                                                                                                 </span> 
                                                                                                 );
@@ -8111,13 +8293,41 @@ const toggleDetails = async (name) => {
                                                                                                     <span className="lineflights">
                                                                                                       <div className="flight-line-d1"></div>
                                                                                                       <div
-                                                                                                        className="flight-line-a"
-                                                                                                        width="45px"
-                                                                                                      >
-                                                                                                        <span>
-                                                                                                        {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['$']['TravelTime'])}
-                                                                                                        </span>
-                                                                                                      </div>
+                                                                                                          className="flight-line-a"
+                                                                                                          width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        >
+                                                                                                          <span >
+                                                                                                          {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['$']['TravelTime'])}
+                                                                                                          </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <div className="flight-line-a">
+                                                                                                              {(() => {
+                                                                                                                let totalIterations = pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['air:BookingInfo'].length - 1;
+                                                                                                                let stopoverCity = "";
+                                                                                                                if (totalIterations > 0) {
+                                                                                                                  pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                                    SegmentList.map((segmentinfo) => {
+                                                                                                                      if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                                        
+                                                                                                                        stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                                      }
+                                                                                                                    });
+                                                                                                                  });
+                                                                                                                }
+                                                                                                                return (
+                                                                                                                <p className="stop-badge" >
+                                                                                                                {totalIterations} stop via {stopoverCity}
+                                                                                                                    <div className="tooltip-content">
+                                                                                                                      {totalIterations} stop from {stopoverCity} 
+                                                                                                                    </div>
+                                                                                                                  </p>
+                                                                                                                );
+                                                                                                              })()}
+                                                                                                            </div>
+                                                                                                          </span>
+                                                                                                        </div>
+                                                                                                      
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
                                                                                                     <div className="flight-line-a" style={{ width: 62 }}>
@@ -8167,17 +8377,7 @@ const toggleDetails = async (name) => {
 
                                                                                                     </div>
                                                                                                 </span>
-                                                                                                <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                  {(() => {
-                                                                                                    let totalIterations =pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-                                                                                                    return (
-                                                                                                      <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                        {totalIterations} STOP
-                                                                                                      </p>
-                                                                                                    );
-                                                                                                  })()}
-                                                                                                </div>            
+                                                                                                            
                                                                                   </>
                                                                                 ) : (
                                                                                   <>
@@ -8220,14 +8420,23 @@ const toggleDetails = async (name) => {
                                                                                                     <span className="lineflights">
                                                                                                       <div className="flight-line-d1"></div>
                                                                                                       <div
-                                                                                                        className="flight-line-a"
-                                                                                                        width="45px"
-                                                                                                      >
-                                                                                                        <span>
-                                                                                                        
-                                                                                                        {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['$']['TravelTime'])}
-                                                                                                        </span>
-                                                                                                      </div>
+                                                                                                          className="flight-line-a" 
+                                                                                                          width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        > 
+                                                                                                          <span style={{marginLeft:'5px', marginRight:'5px'}} >
+                                                                                                          {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['$']['TravelTime'])}
+                                                                                                          </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <p className="stop-badge">
+                                                                                                              Non-Stop
+                                                                                                              <div className="tooltip-content">
+                                                                                                                This is a direct flight with no stops.
+                                                                                                              </div>
+                                                                                                            </p>
+                                                                                                          </span>
+                                                                                                        </div>
+                                                                                                      
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
                                                                                                     <div
@@ -8255,17 +8464,7 @@ const toggleDetails = async (name) => {
                                                                                                                       <span className="apiairportresult">{handleApiAirport(segmentinfo['$']['Destination'])}</span>                                                                                              </span>
                                                                                                     </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                    {(() => {
-                                                                                                      let totalIterations = 0;
-
-                                                                                                      return (
-                                                                                                        <p className="iteration0" style={{textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: "#cbfac8",color: "black",padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                          NON STOP
-                                                                                                        </p>
-                                                                                                      );
-                                                                                                    })()}
-                                                                                                  </div>
+                                                                                                  
                                                                                                   
                                                                                                 </span> 
                                                                                               );
@@ -8336,13 +8535,41 @@ const toggleDetails = async (name) => {
                                                                                                     <span className="lineflights">
                                                                                                       <div className="flight-line-d1"></div>
                                                                                                       <div
-                                                                                                        className="flight-line-a"
-                                                                                                        width="45px"
-                                                                                                      >
-                                                                                                        <span>
-                                                                                                        {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['$']['TravelTime'])}
-                                                                                                        </span>
-                                                                                                      </div>
+                                                                                                          className="flight-line-a"
+                                                                                                          width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        >
+                                                                                                          <span >
+                                                                                                          {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['$']['TravelTime'])}
+                                                                                                          </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <div className="flight-line-a">
+                                                                                                              {(() => {
+                                                                                                                let totalIterations = pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['air:BookingInfo'].length - 1;
+                                                                                                                let stopoverCity = "";
+                                                                                                                if (totalIterations > 0) {
+                                                                                                                  pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                                    SegmentList.map((segmentinfo) => {
+                                                                                                                      if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                                        
+                                                                                                                        stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                                      }
+                                                                                                                    });
+                                                                                                                  });
+                                                                                                                }
+                                                                                                                return (
+                                                                                                                <p className="stop-badge" >
+                                                                                                                {totalIterations} stop via {stopoverCity}
+                                                                                                                    <div className="tooltip-content">
+                                                                                                                      {totalIterations} stop from {stopoverCity} 
+                                                                                                                    </div>
+                                                                                                                  </p>
+                                                                                                                );
+                                                                                                              })()}
+                                                                                                            </div>
+                                                                                                          </span>
+                                                                                                        </div>
+                                                                                                      
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
                                                                                                     <div className="flight-line-a" style={{ width: 62 }}>
@@ -8392,17 +8619,7 @@ const toggleDetails = async (name) => {
 
                                                                                                   </div>
                                                                                                 </span>
-                                                                                                <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                  {(() => {
-                                                                                                    let totalIterations =pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-                                                                                                    return (
-                                                                                                      <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                        {totalIterations} STOP
-                                                                                                      </p>
-                                                                                                    );
-                                                                                                  })()}
-                                                                                                </div>                                                          
+                                                                                                                                                        
                                                                                     </>
                                                                               ) : (
                                                                                     <>
@@ -8445,13 +8662,23 @@ const toggleDetails = async (name) => {
                                                                                                     <span className="lineflights">
                                                                                                       <div className="flight-line-d1"></div>
                                                                                                       <div
-                                                                                                        className="flight-line-a"
-                                                                                                        width="45px"
-                                                                                                      >
-                                                                                                        <span>
-                                                                                                        {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['$']['TravelTime'])}
-                                                                                                        </span>
-                                                                                                      </div>
+                                                                                                          className="flight-line-a" 
+                                                                                                          width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        > 
+                                                                                                          <span style={{marginLeft:'5px', marginRight:'5px'}} >
+                                                                                                          {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['$']['TravelTime'])}
+                                                                                                          </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <p className="stop-badge">
+                                                                                                              Non-Stop
+                                                                                                              <div className="tooltip-content">
+                                                                                                                This is a direct flight with no stops.
+                                                                                                              </div>
+                                                                                                            </p>
+                                                                                                          </span>
+                                                                                                        </div>
+                                                                                                      
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
                                                                                                     <div
@@ -8479,17 +8706,7 @@ const toggleDetails = async (name) => {
                                                                                                                       <span className="apiairportresult">{handleApiAirport(segmentinfo['$']['Destination'])}</span>                                                                                               </span>
                                                                                                     </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                    {(() => {
-                                                                                                      let totalIterations = 0;
-
-                                                                                                      return (
-                                                                                                        <p className="iteration0" style={{textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: "#cbfac8",color: "black",padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                          NON STOP
-                                                                                                        </p>
-                                                                                                      );
-                                                                                                    })()}
-                                                                                                  </div>
+                                                                                                  
                                                                                                   
                                                                                                 </span> 
                                                                                                 );
@@ -10837,7 +11054,16 @@ const toggleDetails = async (name) => {
                                         <div >
                                         
                                           <div
-                                            className={`flight-item fly-in ${selectedFlights.includes(pricepoint['air:AirPricingInfo']) ? "selected-flight" : ""}`}
+                                            // className={`flight-item fly-in ${selectedFlights.includes(pricepoint['air:AirPricingInfo']) ? "selected-flight" : ""}`}
+                                            className={`flight-item fly-in ${
+                                              selectedFlights.some(
+                                                (selectedFlight) =>
+                                                  selectedFlight["$"].Key === pricepoint["air:AirPricingInfo"]["$"].Key &&
+                                                  selectedFlight.isReturn === pricepoint["air:AirPricingInfo"].isReturn
+                                              )
+                                                ? "selected-flight"
+                                                : ""
+                                            }`}
                                             data-price={6521}
                                             data-departure={1}
                                             data-duration={1}
@@ -11585,11 +11811,39 @@ const toggleDetails = async (name) => {
                                                                                                         <div
                                                                                                           className="flight-line-a"
                                                                                                           width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
                                                                                                         >
-                                                                                                          <span>
+                                                                                                          <span >
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['$']['TravelTime'])}
                                                                                                           </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <div className="flight-line-a">
+                                                                                                              {(() => {
+                                                                                                                let totalIterations = pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].length - 1;
+                                                                                                                let stopoverCity = "";
+                                                                                                                if (totalIterations > 0) {
+                                                                                                                  pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                                    SegmentList.map((segmentinfo) => {
+                                                                                                                      if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                                        
+                                                                                                                        stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                                      }
+                                                                                                                    });
+                                                                                                                  });
+                                                                                                                }
+                                                                                                                return (
+                                                                                                                <p className="stop-badge" >
+                                                                                                                {totalIterations} stop via {stopoverCity}
+                                                                                                                    <div className="tooltip-content">
+                                                                                                                      {totalIterations} stop from {stopoverCity} 
+                                                                                                                    </div>
+                                                                                                                  </p>
+                                                                                                                );
+                                                                                                              })()}
+                                                                                                            </div>
+                                                                                                          </span>
                                                                                                         </div>
+                                                                                                        
                                                                                                         <div className="flight-line-d2"></div>
                                                                                                       </span>
                                                                                                       <div className="flight-line-a" style={{ width: 62 }}>
@@ -11639,17 +11893,7 @@ const toggleDetails = async (name) => {
 
                                                                                                       </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                  {(() => {
-                                                                                                    let totalIterations =pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-                                                                                                    return (
-                                                                                                      <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                        {totalIterations} STOP
-                                                                                                      </p>
-                                                                                                    );
-                                                                                                  })()}
-                                                                                                </div>             
+                                                                                                              
                                                                                     </>
                                                                                   ) : (
                                                                                     <>
@@ -11692,13 +11936,23 @@ const toggleDetails = async (name) => {
                                                                                                       <span className="lineflights">
                                                                                                         <div className="flight-line-d1"></div>
                                                                                                         <div
-                                                                                                          className="flight-line-a"
+                                                                                                          className="flight-line-a" 
                                                                                                           width="45px"
-                                                                                                        >
-                                                                                                          <span>
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        > 
+                                                                                                          <span style={{marginLeft:'5px', marginRight:'5px'}} >
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['$']['TravelTime'])}
                                                                                                           </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <p className="stop-badge">
+                                                                                                              Non-Stop
+                                                                                                              <div className="tooltip-content">
+                                                                                                                This is a direct flight with no stops.
+                                                                                                              </div>
+                                                                                                            </p>
+                                                                                                          </span>
                                                                                                         </div>
+                                                                                                        
                                                                                                         <div className="flight-line-d2"></div>
                                                                                                       </span>
                                                                                                       <div
@@ -11726,17 +11980,7 @@ const toggleDetails = async (name) => {
                                                                                                                       <span className="apiairportresult">{handleApiAirport(segmentinfo['$']['Destination'])}</span>                                                                                          </span>
                                                                                                       </div>
                                                                                                     </span>
-                                                                                                    <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                    {(() => {
-                                                                                                      let totalIterations = 0;
-
-                                                                                                      return (
-                                                                                                        <p className="iteration0" style={{textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: "#cbfac8",color: "black",padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                          NON STOP
-                                                                                                        </p>
-                                                                                                      );
-                                                                                                    })()}
-                                                                                                  </div>
+                                                                                                    
                                                                                                     
                                                                                                   </span> 
                                                                                                 );
@@ -11810,11 +12054,39 @@ const toggleDetails = async (name) => {
                                                                                                         <div
                                                                                                           className="flight-line-a"
                                                                                                           width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
                                                                                                         >
-                                                                                                          <span>
+                                                                                                          <span >
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option']['$']['TravelTime'])}
                                                                                                           </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <div className="flight-line-a">
+                                                                                                              {(() => {
+                                                                                                                let totalIterations = pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].length - 1;
+                                                                                                                let stopoverCity = "";
+                                                                                                                if (totalIterations > 0) {
+                                                                                                                  pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                                    SegmentList.map((segmentinfo) => {
+                                                                                                                      if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                                        
+                                                                                                                        stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                                      }
+                                                                                                                    });
+                                                                                                                  });
+                                                                                                                }
+                                                                                                                return (
+                                                                                                                <p className="stop-badge" >
+                                                                                                                {totalIterations} stop via {stopoverCity}
+                                                                                                                    <div className="tooltip-content">
+                                                                                                                      {totalIterations} stop from {stopoverCity} 
+                                                                                                                    </div>
+                                                                                                                  </p>
+                                                                                                                );
+                                                                                                              })()}
+                                                                                                            </div>
+                                                                                                          </span>
                                                                                                         </div>
+                                                                                                        
                                                                                                         <div className="flight-line-d2"></div>
                                                                                                       </span>
                                                                                                       <div className="flight-line-a" style={{ width: 62 }}>
@@ -11864,17 +12136,7 @@ const toggleDetails = async (name) => {
 
                                                                                                       </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                  {(() => {
-                                                                                                    let totalIterations =pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-                                                                                                    return (
-                                                                                                      <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                        {totalIterations} STOP
-                                                                                                      </p>
-                                                                                                    );
-                                                                                                  })()}
-                                                                                                </div>                                                         
+                                                                                                                                                           
                                                                                       </>
                                                                                 ) : (
                                                                                       <>
@@ -11917,13 +12179,23 @@ const toggleDetails = async (name) => {
                                                                                                       <span className="lineflights">
                                                                                                         <div className="flight-line-d1"></div>
                                                                                                         <div
-                                                                                                          className="flight-line-a"
+                                                                                                          className="flight-line-a" 
                                                                                                           width="45px"
-                                                                                                        >
-                                                                                                          <span>
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        > 
+                                                                                                          <span style={{marginLeft:'5px', marginRight:'5px'}} >
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option']['$']['TravelTime'])}
                                                                                                           </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <p className="stop-badge">
+                                                                                                              Non-Stop
+                                                                                                              <div className="tooltip-content">
+                                                                                                                This is a direct flight with no stops.
+                                                                                                              </div>
+                                                                                                            </p>
+                                                                                                          </span>
                                                                                                         </div>
+                                                                                                        
                                                                                                         <div className="flight-line-d2"></div>
                                                                                                       </span>
                                                                                                       <div
@@ -11951,17 +12223,7 @@ const toggleDetails = async (name) => {
                                                                                                                       <span className="apiairportresult">{handleApiAirport(segmentinfo['$']['Destination'])}</span>                                                                                               </span>
                                                                                                       </div>
                                                                                                     </span>
-                                                                                                    <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                      {(() => {
-                                                                                                        let totalIterations = 0;
-
-                                                                                                        return (
-                                                                                                          <p className="iteration0" style={{textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: "#cbfac8",color: "black",padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                            NON STOP
-                                                                                                          </p>
-                                                                                                        );
-                                                                                                      })()}
-                                                                                                    </div>
+                                                                                                    
                                                                                                     
                                                                                                   </span> 
                                                                                                   );
@@ -12045,11 +12307,39 @@ const toggleDetails = async (name) => {
                                                                                                         <div
                                                                                                           className="flight-line-a"
                                                                                                           width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
                                                                                                         >
-                                                                                                          <span>
+                                                                                                          <span >
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['$']['TravelTime'])}
                                                                                                           </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <div className="flight-line-a">
+                                                                                                              {(() => {
+                                                                                                                let totalIterations = pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['air:BookingInfo'].length - 1;
+                                                                                                                let stopoverCity = "";
+                                                                                                                if (totalIterations > 0) {
+                                                                                                                  pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                                    SegmentList.map((segmentinfo) => {
+                                                                                                                      if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                                        
+                                                                                                                        stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                                      }
+                                                                                                                    });
+                                                                                                                  });
+                                                                                                                }
+                                                                                                                return (
+                                                                                                                <p className="stop-badge" >
+                                                                                                                {totalIterations} stop via {stopoverCity}
+                                                                                                                    <div className="tooltip-content">
+                                                                                                                      {totalIterations} stop from {stopoverCity} 
+                                                                                                                    </div>
+                                                                                                                  </p>
+                                                                                                                );
+                                                                                                              })()}
+                                                                                                            </div>
+                                                                                                          </span>
                                                                                                         </div>
+                                                                                                        
                                                                                                         <div className="flight-line-d2"></div>
                                                                                                       </span>
                                                                                                       <div className="flight-line-a" style={{ width: 62 }}>
@@ -12099,17 +12389,7 @@ const toggleDetails = async (name) => {
 
                                                                                                       </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                  {(() => {
-                                                                                                    let totalIterations =pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-                                                                                                    return (
-                                                                                                      <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                        {totalIterations} STOP
-                                                                                                      </p>
-                                                                                                    );
-                                                                                                  })()}
-                                                                                                </div>           
+                                                                                                           
                                                                                     </>
                                                                                   ) : (
                                                                                     <>
@@ -12152,13 +12432,23 @@ const toggleDetails = async (name) => {
                                                                                                       <span className="lineflights">
                                                                                                         <div className="flight-line-d1"></div>
                                                                                                         <div
-                                                                                                          className="flight-line-a"
+                                                                                                          className="flight-line-a" 
                                                                                                           width="45px"
-                                                                                                        >
-                                                                                                          <span>
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        > 
+                                                                                                          <span style={{marginLeft:'5px', marginRight:'5px'}} >
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['$']['TravelTime'])}
                                                                                                           </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <p className="stop-badge">
+                                                                                                              Non-Stop
+                                                                                                              <div className="tooltip-content">
+                                                                                                                This is a direct flight with no stops.
+                                                                                                              </div>
+                                                                                                            </p>
+                                                                                                          </span>
                                                                                                         </div>
+                                                                                                        
                                                                                                         <div className="flight-line-d2"></div>
                                                                                                       </span>
                                                                                                       <div
@@ -12186,17 +12476,7 @@ const toggleDetails = async (name) => {
                                                                                                                       <span className="apiairportresult">{handleApiAirport(segmentinfo['$']['Destination'])}</span>                                                                                             </span>
                                                                                                       </div>
                                                                                                     </span>
-                                                                                                    <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                    {(() => {
-                                                                                                      let totalIterations = 0;
-
-                                                                                                      return (
-                                                                                                        <p className="iteration0" style={{textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: "#cbfac8",color: "black",padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                          NON STOP
-                                                                                                        </p>
-                                                                                                      );
-                                                                                                    })()}
-                                                                                                  </div>
+                                                                                                    
                                                                                                     
                                                                                                   </span> 
                                                                                                 );
@@ -12251,6 +12531,7 @@ const toggleDetails = async (name) => {
                                                                                                                       >
                                                                                                                         <FlightInfoOrigin origin={handleAirport(segmentinfo['$']['Origin'])} onFlightOriginChange={handleFlightOriginChange} /><br/>
                                                                                                                         <span className="apiairportresult">{handleApiAirport(segmentinfo['$']['Origin'])}</span>
+                                                                                                                        
                                                                                                                       </span>
                                                                                                                       </span>
                                                                                                                     );
@@ -12270,9 +12551,42 @@ const toggleDetails = async (name) => {
                                                                                                         <div
                                                                                                           className="flight-line-a"
                                                                                                           width="45px"
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
                                                                                                         >
-                                                                                                          <span>
+                                                                                                          <span >
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['$']['TravelTime'])}
+                                                                                                          </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <div className="flight-line-a">
+                                                                                                              {(() => {
+                                                                                                                let totalIterations = pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].length - 1;
+                                                                                                                let stopoverCity = "";
+                                                                                                                let flightTimeInMinutes = 0;
+                                                                                                                {/* let layover = pricepoint['travelTime'] - flightTimeInMinutes; */}
+                                                                                                                if (totalIterations > 0) {
+                                                                                                                  pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                                    SegmentList.map((segmentinfo) => {
+                                                                                                                      
+                                                                                                                      if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                                        flightTimeInMinutes = flightTimeInMinutes + parseInt(segmentinfo['$']['FlightTime']);
+                                                                                                                        
+                                                                                                                        stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                                      }
+                                                                                                                    });
+                                                                                                                  });
+                                                                                                                }
+                                                                                                                
+                                                                                                                return (
+                                                                                                                <p className="stop-badge" >
+                                                                                                                {totalIterations} stop via {stopoverCity}
+                                                                                                                    <div className="tooltip-content">
+                                                                                                                    <p style={{ marginBottom:'0px' }}>Plane Change</p>
+                                                                                                                      {stopoverCity} | {convertMinutesToHours(pricepoint['travelTime'] - flightTimeInMinutes)} Layover
+                                                                                                                    </div>
+                                                                                                                  </p>
+                                                                                                                );
+                                                                                                              })()}
+                                                                                                            </div>
                                                                                                           </span>
                                                                                                         </div>
                                                                                                         <div className="flight-line-d2"></div>
@@ -12324,17 +12638,7 @@ const toggleDetails = async (name) => {
 
                                                                                                       </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                  {(() => {
-                                                                                                    let totalIterations =pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].length-1;
-                                                                                                    let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-                                                                                                    return (
-                                                                                                      <p className="iteration0" style={{color: "#fff",fontWeight: '600',textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: backgroundColor,padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                        {totalIterations} STOP
-                                                                                                      </p>
-                                                                                                    );
-                                                                                                  })()}
-                                                                                                </div>                                                            
+                                                                                                                                                             
                                                                                       </>
                                                                                 ) : (
                                                                                       <>
@@ -12377,11 +12681,20 @@ const toggleDetails = async (name) => {
                                                                                                       <span className="lineflights">
                                                                                                         <div className="flight-line-d1"></div>
                                                                                                         <div
-                                                                                                          className="flight-line-a"
+                                                                                                          className="flight-line-a" 
                                                                                                           width="45px"
-                                                                                                        >
-                                                                                                          <span>
+                                                                                                          style={{ textAlign:'center', marginTop: '7%'}}
+                                                                                                        > 
+                                                                                                          <span style={{marginLeft:'5px', marginRight:'5px'}} >
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['$']['TravelTime'])}
+                                                                                                          </span>
+                                                                                                          <span className="stop-badge-container">
+                                                                                                            <p className="stop-badge">
+                                                                                                              Non-Stop
+                                                                                                              <div className="tooltip-content">
+                                                                                                                This is a direct flight with no stops.
+                                                                                                              </div>
+                                                                                                            </p>
                                                                                                           </span>
                                                                                                         </div>
                                                                                                         <div className="flight-line-d2"></div>
@@ -12411,17 +12724,7 @@ const toggleDetails = async (name) => {
                                                                                                                       <span className="apiairportresult">{handleApiAirport(segmentinfo['$']['Destination'])}</span>                                                                                          </span>
                                                                                                       </div>
                                                                                                     </span>
-                                                                                                    <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                    {(() => {
-                                                                                                      let totalIterations = 0;
-
-                                                                                                      return (
-                                                                                                        <p className="iteration0" style={{textAlign: "center",border: "1px solid #cbfac8",width: 70, backgroundColor: "#cbfac8",color: "black",padding: 4,borderRadius: 15,fontSize: 8}}>
-                                                                                                          NON STOP
-                                                                                                        </p>
-                                                                                                      );
-                                                                                                    })()}
-                                                                                                  </div>
+                                                                                                    
                                                                                                     
                                                                                                   </span> 
                                                                                                   );
@@ -15135,6 +15438,57 @@ const toggleDetails = async (name) => {
             </div>
           </div>
         </div>
+        {/* {selectedFlights.length > 0 && (
+        <div className="bottom-block">
+        <div className="side-lbl">Send Selected Flights to Approver</div>
+        <button 
+          onClick={approverButtonClick} 
+          className="srch-btn" 
+          variant="primary" 
+          style={{ marginTop: "5px", fontSize: '12.5px' }} 
+        >
+          Send Details
+        </button>
+      
+    </div>
+        )}; */}
+        {selectedFlights.length > 0 && (
+  <div className="selected-flight-container">
+    <div className="selected-flight-header">
+      <span>Selected Flights</span>
+      {/* <button className="close-btn" onClick={handleClose}>
+        &minus;
+      </button> */}
+    </div>
+    <div className="selected-flight-list">
+      {selectedFlights.map((flight, index) => (
+        <div className="flight-item" key={index}>
+          <img src={`https://devapi.taxivaxi.com/airline_logo_images/${flight.flightDetails[0]?.carrier}.png`} alt={flight.flightDetails[0]?.carrier} className="flight-logo" />
+          <div className="flight-detailss">
+    <span className="flight-airline">{handleAirline(flight.flightDetails[0]?.carrier)}{' '}{flight.flightDetails[0]?.flightNumber}</span>
+    <span className="flight-time">
+      {new Date(flight.flightDetails[0]?.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
+      {new Date(flight.flightDetails[flight.flightDetails.length - 1]?.arrival_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+    </span>
+  </div>
+  <div className="flight-price">
+    <span className="price">₹ {flight.flightDetails[0]?.total_price.replace('INR', '').trim()}</span>
+  </div>
+          <button className="remove-btn" onClick={() => handleRemoveFlight(index)}>×</button>
+        </div>
+      ))}
+    </div>
+    <div className="share-button-container">
+      <button 
+        onClick={approverButtonClick} 
+        className="share-btn" 
+      >
+        Share Flight Options
+      </button>
+    </div>
+  </div>
+)}
+
         
       </div >
     
