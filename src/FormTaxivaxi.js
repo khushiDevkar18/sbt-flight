@@ -21,16 +21,13 @@ const navigate = useNavigate();
   const location = useLocation();
   
   const [emptaxivaxi, setEmptaxivaxi] = useState([]);
-//   const searchParams = new URLSearchParams(window.location.search);
-//   const taxivaxidata = searchParams.get('taxivaxidata');
+  // const searchParams = new URLSearchParams(window.location.search);
+  // const taxivaxidata = searchParams.get('taxivaxidata');
   const searchParams = new URLSearchParams(window.location.search);
   const taxivaxidata = searchParams.get('taxivaxidata');
+
+
   
-  if (taxivaxidata) {
-    const currentUrl = window.location.href;
-    window.open(currentUrl, '_blank'); // Open in a new tab
-    
-  }
 //   alert('okay', taxivaxidata);
 //   console.log('data', taxivaxidata);
   
@@ -64,13 +61,10 @@ const navigate = useNavigate();
           </soapenv:Body>
           </soapenv:Envelope>`;
           
-          const airlineresponse = await axios.post('/B2BGateway/connect/uAPI/UtilService', airlineRequest, {
-          headers: {
-              'Content-Type': 'text/xml',
-              'Authorization': authHeader,
-              
-          },
-          });
+          const airlineresponse = await axios.post(
+            'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
+            airlineRequest, { headers: { 'Content-Type': 'text/xml'  }}
+          );
           airlineResponseData = airlineresponse.data;
           // setAirlineResponse(airlineresponse);
           
@@ -95,12 +89,10 @@ const navigate = useNavigate();
           </util:ReferenceDataRetrieveReq>
           </soapenv:Body>
       </soapenv:Envelope>`;
-          const airportResponse = await axios.post('/B2BGateway/connect/uAPI/UtilService', airportRequest, {
-          headers: {
-              'Content-Type': 'text/xml',
-              'Authorization': authHeader1,
-          },
-          });
+      const airportResponse = await axios.post(
+        'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
+        airportRequest, { headers: { 'Content-Type': 'text/xml'  }}
+      );
           airportResponseData = airportResponse.data;
           // setAirportResponse(airportResponse);
           
@@ -164,12 +156,14 @@ const navigate = useNavigate();
                 //   const searchdeparture = formtaxivaxiData['departure_date'].split('-').reverse().join('/');
                   const formattedsearchdeparture = formatDate(searchdeparture);
                   const spoc_email = formtaxivaxiData['email'];
+                  const client_name = formtaxivaxiData['client_name'];
+                  const spoc_name = formtaxivaxiData['spoc_name'];
                   const markup = formtaxivaxiData['markup_details'];
                   const booking_id = formtaxivaxiData['booking_id'];
                   const no_of_seats = formtaxivaxiData['no_of_seats'];
                   const request_id = formtaxivaxiData['request_id'];
                   
-                  const adult = 1;
+                  const adult = no_of_seats;
                   const child = 0;
                   const infant = 0;
                   const classtype = formtaxivaxiData['seat_type'];
@@ -273,12 +267,10 @@ const navigate = useNavigate();
                   sessionStorage.setItem('searchdata', soapEnvelope);
                 //   console.log('soapenv', soapEnvelope); 
 
-                  const response = await axios.post('/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
-                      headers: {
-                          'Content-Type': 'text/xml',
-                          'Authorization': authHeader,
-                      },
-                  });
+                const response = await axios.post(
+                    'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
+                    soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
+                  );
                   // console.log(airlineResponseData);
                   // console.log(airportResponseData);
                   const responseData = {
@@ -297,6 +289,8 @@ const navigate = useNavigate();
                       apiairportsdata: apiairportData,
                       fromcotrav: '1',
                       spocemail: spoc_email,
+                      clientname:client_name,
+                      spocname:spoc_name,
                       markupdata: markup,
                       bookingid: booking_id,
                       no_of_seats: no_of_seats,
