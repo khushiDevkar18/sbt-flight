@@ -9,6 +9,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Swal from 'sweetalert2';
+
 // import ErrorLogger from './ErrorLogger';
 const Header = () => {
     return (
@@ -93,18 +94,7 @@ const Header = () => {
                             <nav className="header-nav">
                                 <ul>
                                     <li><Link className="nav-links" to="/">HOME</Link></li>
-                                    
 
-                                    {/* <li><a className="has-child" href="#">Services</a>
-                                        <ul>
-                                            <li><a href="flightOneWay.html">Hotel Booking</a></li>
-                                            
-                                            <li><a href="flightOneWay.html">Cabs</a></li>
-                                            <li><a href="flightOneWay.html">Ticketing - Train, Bus & flight</a></li>
-                                            <li><a href="flightOneWay.html">logistics</a></li>
-                                            <li><a href="flightOneWay.html">FRRO/FRO consultancy</a></li>
-                                        </ul>
-                                    </li> */}
                                     <li><a className="has-child" href="#">Services</a>
     <ul className="dropdown-menu">
         <li><a href="flightOneWay.html">Hotel Booking</a></li>

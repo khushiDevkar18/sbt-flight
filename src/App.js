@@ -24,23 +24,13 @@ const App = () => {
           <Route path="/bookingCompleted" element={<BookingComplete />}/>
           <Route path="/pagenotfound" element={<PageNotFound />}/>
           <Route path="/tryagainlater" element={<TryAgainLater />}/>
+          <Route path="*" element={<PageNotFound />} />
         </Routes>
         </div>
         <Footer />
       </div>
     </Router>
-    // <Router>
-      // <Routes>
-      //   <Route exact path="/" element={<Home />}/>
-      //   <Route path="/SearchFlight" element={<SearchFlight />}/>
-      //   <Route path="/bookingProcess" element={<Booking />}/>
-      //   <Route path="/bookingCompleted" element={<BookingComplete />}/>
-      //   <Route path="/pagenotfound" element={<PageNotFound />}/>
-      //   <Route path="/tryagainlater" element={<TryAgainLater />}/>
-      // </Routes>
-      
-      
-    // </Router>
+
   );
 };
 

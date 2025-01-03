@@ -9,6 +9,7 @@ import { format, parseISO ,parse,isValid  } from 'date-fns';
 import SearchFlight from './SearchFlight';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import IconLoader from './IconLoader';
 // import ErrorLogger from './ErrorLogger';
 function Home() {
     const [activeTab, setActiveTab] = useState('flight');
@@ -49,7 +50,7 @@ function Home() {
         fetchData();
     }, []);
     const [loading, setLoading] = useState(false);
-    
+    const searchRef = useRef(null);
     const [airlineData, setAirlineResponse] = useState(null);
     const [airportData, setAirportResponse] = useState(null);
 
@@ -127,26 +128,25 @@ function Home() {
     useEffect(() => {
         const makeAirlineRequest = async () => {
         try {
-            const username = 'Universal API/uAPI8645980109-af7494fa';
-            const password = 'N-k29Z}my5';
+            const username = 'Universal API/uAPI6514598558-21259b0c';
+            const password = 'tN=54gT+%Y';
             const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
             const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
-                <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+                <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
                     <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                     <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
                 </util:ReferenceDataRetrieveReq>
             </soapenv:Body>
             </soapenv:Envelope>`;
             
-            const airlineresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/UtilService', airlineRequest, {
-            headers: {
-                'Content-Type': 'text/xml',
-                'Authorization': authHeader,
-            },
-            });
-            // console.log('resp', airlineresponse.data);
+            const airlineresponse = await axios.post(
+                'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest',
+                airlineRequest, { headers: { 'Content-Type': 'text/xml'}
+                }
+            );
+            // console.log('airlineresponse', airlineresponse.data);
             setAirlineResponse(airlineresponse);
             
         } catch (error) {
@@ -160,24 +160,25 @@ function Home() {
 
         const makeAirportRequest = async () => {
         try {
-            const username1 = 'Universal API/uAPI8645980109-af7494fa';
-            const password1 = 'N-k29Z}my5';
+            const username1 = 'Universal API/uAPI6514598558-21259b0c';
+            const password1 = 'tN=54gT+%Y';
             const authHeader1 = `Basic ${btoa(`${username1}:${password1}`)}`;
             const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
-            <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AV145ER" TypeCode="CityAirport">
+            <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AV145ER" TypeCode="CityAirport">
                 <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                 <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
             </util:ReferenceDataRetrieveReq>
             </soapenv:Body>
         </soapenv:Envelope>`;
-            const airportResponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/UtilService', airportRequest, {
-            headers: {
-                'Content-Type': 'text/xml',
-                'Authorization': authHeader1,
-            },
-            });
+            const airportResponse = await axios.post(
+                'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
+                airportRequest, { headers: { 'Content-Type': 'text/xml'  }}
+            );
+
+            // console.log('airresp', airportResponse);
+            
             setAirportResponse(airportResponse);
             
             parseString(airportResponse.data, { explicitArray: false }, (errs, airportresult) => {
@@ -363,14 +364,85 @@ function Home() {
 
     
     
+    const fetchToken = async () => {
+        const storedToken = localStorage.getItem('authToken');
+        const tokenTimestamp = localStorage.getItem('authTokenTimestamp');
+        const currentDate = new Date();
     
+        console.log('storedToken:', storedToken);
+        console.log('tokenTimestamp:', tokenTimestamp);
+    
+        // Check if both storedToken and tokenTimestamp are available and valid
+        if (storedToken && storedToken !== 'null') {
+            console.log('Token exists.');
+            
+            if (tokenTimestamp) {
+                console.log('Timestamp exists.');
+                
+                // Check if the stored token's timestamp matches today's date
+                if (new Date(tokenTimestamp).toDateString() === currentDate.toDateString()) {
+                    console.log('Token is valid and current.');
+                    return storedToken; // Return the stored token if valid
+                } else {
+                    console.log('Token is expired (date mismatch).');
+                }
+            } else {
+                console.log('Timestamp is missing, fetching new token...');
+            }
+        } else {
+            console.log('Token is missing, fetching new token...');
+        }
+        
+    
+        // If either the token or timestamp is missing or invalid, fetch a new token
+        const validateIPAddress = (ip) => {
+            const regex = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(\d{1,3}\.){2}\d{1,3}$/;
+            return regex.test(ip);
+        };
+
+        const authPayload = {
+            ClientId: "ApiIntegrationNew",
+            UserName: "BAI",
+            Password: "Bai@12345",
+            EndUserIp: '192.168.11.120',
+        };
+    
+        try {
+            const authResponse = await axios.post(
+                'https://cors-anywhere.herokuapp.com/http://api.tektravels.com/SharedServices/SharedData.svc/rest/Authenticate',
+                JSON.stringify(authPayload),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Forwarded-For': '192.168.11.120',
+                    }
+                }
+            );
+            console.log('authResponse',authResponse.data);
+    
+            const newToken = authResponse.data.TokenId;
+            localStorage.setItem('authToken', newToken);
+            localStorage.setItem('authTokenTimestamp', currentDate.toISOString());
+    
+            console.log('New token saved:', newToken);
+            return newToken;
+        } catch (error) {
+            console.error('Error fetching token:', error);
+            throw new Error('Authentication failed');
+        }
+    };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         let searchfrom = event.target.searchfrom.value.trim();
+
+        // let searchfrom = formActual;
         let searchto = event.target.searchto.value.trim();
         let searchdeparture = event.target.searchdeparture.value.trim();
         let searchreturnDate = event.target.searchreturnDate.value.trim();
+        // console.log(searchfrom);
+        // console.log(searchto);
+        // console.log(searchdeparture);
         const originerror = document.querySelector('.redorigin');
         const originerror1 = document.querySelector('.redorigin1');
         const destinationerror = document.querySelector('.redestination');
@@ -452,6 +524,7 @@ function Home() {
         }
         if(isValidPassenger){
             setLoading(true);
+            // const token = await fetchToken();
             const formatDate = (inputDate) => {
             const parsedDate = parse(inputDate, 'dd/MM/yyyy', new Date());
             if (!isValid(parsedDate)) {
@@ -473,7 +546,9 @@ function Home() {
             const searchreturnDate= event.target.searchreturnDate.value;
             const formattedsearchdeparture = formatDate(searchdeparture);
             const formattedsearchreturnDate = formatDate(searchreturnDate);
+            
             const adult = event.target.adult.value;
+            console.log('ad', adult);
             const child = event.target.child.value;
             const infant = event.target.infant.value;
             const classtype= event.target.classtype.value;
@@ -572,31 +647,54 @@ function Home() {
                 PassengerCodeCNN,
                 PassengerCodeINF,
             );
-            // console.log(soapEnvelope);
-            // TargetBranch="P4451438"
-            // <com:Provider Code="ACH"/> 
+            function formatToIsoDate(dateString) {
+                if (!dateString) {
+                  return null; 
+                }
+                const [day, month, year] = dateString.split('/');
+                return `${year}-${month}-${day}T00:00:00`;
+            }
+
             const username = 'Universal API/uAPI6514598558-21259b0c';
             const password = 'tN=54gT+%Y'; 
-            // const username = 'Universal API/uAPI8645980109-af7494fa';
-            // const password = 'N-k29Z}my5';
             const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
-            // console.log('auth',username);
-            // console.log('auth',password);
-
             sessionStorage.setItem('searchdata', soapEnvelope);
-            // console.log('ausdfgth',soapEnvelope);
-            // targetbranch: P7206253
-            // tavelport api : https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService for security
-            // live api: https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService
+            // console.log('soapEnvelope', soapEnvelope);
+
     
-            const response = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
-                headers: {
-                'Content-Type': 'text/xml',
-                'Authorization':authHeader,
-                },
-            });
+            const response = await axios.post(
+                'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
+                soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
+            );
+            console.log('searchresponse', response);
+            // console.log('apiresponse', response);
+            // const payload = {
+            // "EndUserIp": "192.168.10.10",
+            // "TokenId": token,
+            // "AdultCount": adult,
+            // "ChildCount": child,
+            // "InfantCount": infant,
+            // "JourneyType": bookingtype === "oneway" ? 1 : bookingtype === "Return" ? 2 : null,
+            // "Segments": [
+            //     {
+            //     "Origin": searchfromCode,
+            //     "Destination": searchtoCode,
+            //     "FlightCabinClass": cabinclass === "Economy" ? 2 : null, 
+            //     PreferredDepartureTime: formatToIsoDate(searchdeparture),
+            //     PreferredArrivalTime: formatToIsoDate(searchreturnDate)
+            //     }
+            // ]
+            // };
+            // console.log('payload for tbo', payload);
+
+            // const tboresponse = await axios.post('https://cors-anywhere.herokuapp.com/http://api.tektravels.com/BookingEngineService_Air/AirService.svc/rest/Search', payload, {
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     }
+            // });
             const responseData = {
                 responsedata :response.data,
+                // tboresponse :tboresponse.data, 
                 searchfromcity :searchfrom,
                 searchtocity :searchto,
                 searchdeparture:searchdeparture,
@@ -646,6 +744,24 @@ function Home() {
           window.removeEventListener('keydown', resetTimer);
         };
     }, [navigate]);
+    const handleClickOutside = (event) => {
+        // Check if the click is outside the div
+        if (searchRef.current && !searchRef.current.contains(event.target)) {
+            setIsOpen(false); // Close the div
+        }
+    };
+
+    useEffect(() => {
+        // Add the event listener
+        document.addEventListener('mousedown', handleClickOutside);
+
+        // Cleanup event listener
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+    // const [formActual, setformActual] = useState(null);
+    // console.log('form', formActual);
     
 return (
         
@@ -655,84 +771,42 @@ return (
 
                 <div className="index-page">
                     <div id="api-response-container"></div>
-                    {loading &&  <div className="loader" style={{display:"block"}}>
-                        <img
-                        src="/img/flight-loader-material-gif.gif"
-                        alt="Loader"
-                        />
-                        <h2>Hold on, we’re fetching flights for you</h2>
-                    </div>
+                    {loading &&  
+                        <div className="page-center-loader flex items-center justify-center">
+                            <div className="big-loader flex items-center justify-center">
+                                <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" />
+                                <p className="text-center ml-4 text-gray-600 text-lg">
+                                Retrieving flight details. Please wait a moment.
+                                </p>
+                            </div>
+                        </div>
                     }
-                    <div id="loaderone">
+                    {/* <div id="loaderone">
                         <img src="img/loader2.gif" alt="Loader" />
-                    </div>
+                    </div> */}
 
                     <div className="main-cont">
                         <div className="body-padding">
-                            <div className="mp-slider">
+                            {/* <div className="mp-slider"> */}
 
                                 <div className="mp-slider-row">
                                     <div className="swiper-container">
-                                        <div className="swiper-preloader-bg"></div>
-                                        <div id="preloader">
-                                            <div id="spinner"></div>
-                                        </div>
-
-                                        <a href="#" className="arrow-left"></a>
-                                        <a href="#" className="arrow-right"></a>
-                                        <div className="swiper-pagination"></div>
-                                        <div className="swiper-wrapper">
-                                            <div className="swiper-slide">
-                                                <div className="slide-section" style={{ background: 'url(../img/sider-01.png) center top no-repeat' }}>
-
-                                                </div>
-                                            </div>
-                                            <div className="swiper-slide">
-                                                <div className="slide-section slide-b" style={{ background: 'url(../img/sider-02.jpg) center top no-repeat' }}>
-
-                                                </div>
-                                            </div>
-                                            <div className="swiper-slide">
-                                                <div className="slide-section slide-b" style={{ background: 'url(../img/sider-03.jpg) center top no-repeat' }}>
-
-                                                </div>
-                                            </div>
-                                        </div>
+                                        
                                     </div>
                                 </div>
 
-                            </div>
+                            {/* </div> */}
 
                             <div className="wrapper-a-holder">
                                 <div className="wrapper-a">
                                     <div className="page-search full-width-search search-type-b">
-                                        <div className="search-type-padding" style={{ marginTop: '-200px' }}>
+                                        <div className="search-type-padding" style={{ marginTop: '-160px' }}>
                                             <nav className="page-search-tabs">
 
                                                 <div className="clear"></div>
                                             </nav>
                                             <div className="pages_filter">
-                                               
-                                                        
-                                                        {/* <button className={`search-tab ${activeTab === 'flight' ? 'active' : ''}`} onClick={() => openCity('flight')}>
-                                                            <img src="/img/flight.jpg" className="filter_img" width="50px" height="50px" />
-                                                            Flights
-                                                        </button> */}
-                                                    
-                                                        
-                                                        {/* <button className={`search-tab ${activeTab === 'cab' ? 'active' : ''}`} onClick={() => openCity('cab')}>
-                                                        <img src="/img/cab.jpg" className="filter_img" width="50px" height="50px" />Cabs</button>
-                                                   
-                                                        
-                                                        <button className={`search-tab ${activeTab === 'hotel' ? 'active' : ''}`} onClick={() => openCity('hotel')}>
-                                                        <img src="/img/hotel.jpg" className="filter_img" width="50px" height="50px" />
-                                                        Hotels</button>
-                                                    
-                                                        
-                                                        <button className={`search-tab ${activeTab === 'bus' ? 'active' : ''}`} onClick={() => openCity('bus')}>
-                                                        <img src="/img/bus.jpg" className="filter_img" width="50px" height="50px" />
-                                                        Buses</button> */}
-                                                    
+     
                                             </div>
                                                 <div className="page-search-content" style={{ display: activeTab === 'flight' ? 'block' : 'none' }}>
 
@@ -740,441 +814,522 @@ return (
                                                     <div className="search-tab-content " >
                                                     
 
-                                                        <form id="submit-form" onSubmit={(e) => handleSubmit(e)} action="" method="POST" autoComplete="off">
+                                                    <form id="submit-form" onSubmit={(e) => handleSubmit(e)} action="" method="POST" autoComplete="off">
+                                                    <input type="hidden" name="_token" defaultValue="S1NzGDzenZ2TihPVjEByzt2t1VkgNBfoEIoqg8rK" />
+                            <div className="booking-container">
+                            <h2 style={{ marginLeft:'19px'}}>Flight Booking</h2>
 
-                                                            <input type="hidden" name="_token" defaultValue="S1NzGDzenZ2TihPVjEByzt2t1VkgNBfoEIoqg8rK" /><div className="page-search-p1">
-                                                                <div className="One_Way">
-                                                                    <input
-                                                                        type="radio"
-                                                                        className="bookingtypecheck"
-                                                                        name="bookingtype"
-                                                                        value="oneway"
-                                                                        onChange={handleRadioChange}
-                                                                        checked={formData.bookingType === 'oneway'}
-                                                                        id="departureRadio"
-                                                                    />
-                                                                    <label className="bookingtype onewaybookingtype" htmlFor="departureRadio" style={getLabelStyle('oneway')}>One-Way</label>
-                                                                </div>
+                            <div className="page-search-p1">
+                                    <div className="One_Way">
+                                        <input
+                                            type="radio"
+                                            className="bookingtypecheck"
+                                            name="bookingtype"
+                                            value="oneway"
+                                            onChange={handleRadioChange}
+                                            checked={formData.bookingType === 'oneway'}
+                                            id="departureRadio"
+                                        />
+                                        <label className="bookingtype onewaybookingtype" htmlFor="departureRadio" style={getLabelStyle('oneway')}>One-Way</label>
+                                    </div>
 
-                                                                <div className="Return">
-                                                                    <input
-                                                                        type="radio"
-                                                                        className="bookingtypecheck"
-                                                                        name="bookingtype"
-                                                                        value="Return"
-                                                                        onChange={handleRadioChange}
-                                                                        checked={formData.bookingType === 'Return'}
-                                                                        id="returnRadio"
-                                                                    />
-                                                                    <label className="bookingtype returnbookingtype" htmlFor="returnRadio" style={getLabelStyle('Return')}>Return</label>
-                                                                </div>
-                                                                <div className="clear"></div>
-                                                                
-                                                            </div>
+                                    <div className="Return">
+                                        <input
+                                            type="radio"
+                                            className="bookingtypecheck"
+                                            name="bookingtype"
+                                            value="Return"
+                                            onChange={handleRadioChange}
+                                            checked={formData.bookingType === 'Return'}
+                                            id="returnRadio"
+                                        />
+                                        <label className="bookingtype returnbookingtype" htmlFor="returnRadio" style={getLabelStyle('Return')}>Return</label>
+                                    </div>
+                                    <div className="clear"></div>
+                                    
+                                </div>
 
-                                                            <div className="page-search-p">
+                            <div className="form-roww page-search-p" >
 
-                                                                <div className="search-large-i">
-
-                                                                    <div className="srch-tab-line no-margin-bottom">
-                                                                        <div className="srch-tab-left">
-                                                                            <label>From</label>
-                                                                            <div className="input-a">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    placeholder="Search..."
-                                                                                    id="searchfrom"
-                                                                                    className="text_input"
-                                                                                    name="searchfrom"
-                                                                                    value={inputOrigin}
-                                                                                    onChange={(e) => handleOriginChange(e.target.value)}
-                                                                                />
-
-                                                                                {showOriginDropdown && (
-                                                                                    <ul style={{
-                                                                                        position: 'absolute',
-                                                                                        top: '100%',
-                                                                                        marginLeft: '-8px',
-                                                                                        borderRadius: '3px',
-                                                                                        backgroundColor: '#fff',
-                                                                                        paddingLeft: '6px',
-                                                                                        width: '100%',
-                                                                                        border: '1px solid #e3e3e3',
-                                                                                        listStyle: 'none',
-                                                                                        width: '100%',
-                                                                                        zIndex: '9999',
-                                                                                        maxHeight: '150px',
-                                                                                        minHeight: 'auto',
-                                                                                        overflow: 'auto'
-                                                                                    }}>
-                                                                                        {origin.map((option) => (
-                                                                                            <li style={{
-                                                                                                cursor: 'pointer',
-                                                                                                fontFamily: 'Montserrat',
-                                                                                                color: '#4c4c4c',
-                                                                                                fontSize: '10px',
-                                                                                                paddingTop: '5px',
-                                                                                                paddingBottom: '5px',
-                                                                                                paddingRight: '5px'
-                                                                                            }} key={option.value} onClick={() => handleOrigin(option.value,option.airportName)}>
-                                                                                                {option.label} ({option.value}) <br/>
-                                                                                                {option.airportName}
-                                                                                            </li>
-                                                                                        ))}
-                                                                                    </ul>
-                                                                                )}
-
-
-                                                                            </div>
-                                                                            <div className="redorigin" style={{
-                                                                                color: 'red',
-                                                                                fontsize: '10px',
-                                                                                fontfamily: 'Raleway', display: 'none'
-                                                                            }}>Please select Origin</div>
-                                                                            <div className="redorigin1" style={{
-                                                                                color: 'red',
-                                                                                fontsize: '10px',
-                                                                                fontfamily: 'Raleway', display: 'none'
-                                                                            }}>Please select valid Origin</div>
-                                                                        </div>
-                                                                        <button type="button" className='swapbutton' onClick={swapOriginAndDestination}><img src='/img/swap.png' width={'16px'}/></button>
-                                                                        <div className="srch-tab-right">
-                                                                            <label>To</label>
-                                                                            <div className="input-a">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    placeholder="Search..."
-                                                                                    id="searchto" className="text_input" name="searchto"
-                                                                                    value={inputDestination}
-                                                                                    onChange={(e) => handleDestinationChange(e.target.value)}
-                                                                                />
-
-                                                                                {showDestinationDropdown && (
-                                                                                    <ul style={{
-                                                                                        position: 'absolute',
-                                                                                        top: '100%',
-                                                                                        marginLeft: '-8px',
-                                                                                        borderRadius: '3px',
-                                                                                        backgroundColor: '#fff',
-                                                                                        paddingLeft: '6px',
-                                                                                        width: '100%',
-                                                                                        border: '1px solid #e3e3e3',
-                                                                                        listStyle: 'none',
-                                                                                        width: '100%',
-                                                                                        zIndex: '9999',
-                                                                                        maxHeight: '150px',
-                                                                                        minHeight: 'auto',
-                                                                                        overflow: 'auto'
-                                                                                    }}>
-                                                                                        {destination.map((option) => (
-                                                                                            <li style={{
-                                                                                                cursor: 'pointer',
-                                                                                                fontFamily: 'Montserrat',
-                                                                                                color: '#4c4c4c',
-                                                                                                fontSize: '10px',
-                                                                                                paddingTop: '5px',
-                                                                                                paddingBottom: '5px',
-                                                                                                paddingRight: '5px'
-                                                                                            }} key={option.value} onClick={() => handleDestination(option.value,option.airportName)}>
-                                                                                                {option.label} ({option.value}) <br/>
-                                                                                                {option.airportName}
-                                                                                            </li>
-                                                                                        ))}
-                                                                                    </ul>
-                                                                                )}
-
-                                                                            </div>
-                                                                            <div className="redestination" style={{
-                                                                                color: 'red',
-                                                                                fontsize: '10px',
-                                                                                fontfamily: 'Raleway', display: 'none'
-                                                                            }}>Please select Destination</div>
-                                                                            <div className="redestination1" style={{
-                                                                                color: 'red',
-                                                                                fontsize: '10px',
-                                                                                fontfamily: 'Raleway', display: 'none'
-                                                                            }}>Please select valid Destination</div>
-                                                                        </div>
-                                                                        <div className="clear"></div>
-                                                                    </div>
-
-                                                                </div>
-
-                                                                <div className="search-large-i">
-
-                                                                    <div className="srch-tab-line no-margin-bottom">
-                                                                        <div className="srch-tab-left">
-                                                                            <label>Departure</label>
-                                                                            <div className="input-a" onClick={() => setdepIsOpen(true)}>
-                                                                            <DatePicker
-                                                                                name="searchdeparture"
-                                                                                selected={formData.departureDate}
-                                                                                onChange={handleDepartureDateChange}
-                                                                                dateFormat="dd/MM/yyyy"
-                                                                                minDate={new Date()}
-                                                                                value={formData.departureDate}
-                                                                                open={isdepOpen}
-                                                                                onClickOutside={() => setdepIsOpen(false)}
-                                                                            />
-                                                                            <span className="date-icon" onClick={(e) => {e.stopPropagation(); setdepIsOpen(true)}}></span>
-                                                                            </div>
-                                                                            <span id="errorDate" style={{
-                                                                                color: 'red',
-                                                                                fontsize: '12px',
-                                                                                fontfamily: 'Raleway'
-                                                                            }} className="error-message"></span>
-                                                                            <div className="redsearchdeparture" style={{
-                                                                                color: 'red',
-                                                                                fontsize: '12px',
-                                                                                fontfamily: 'Raleway'
-                                                                            }}>Please select Departure Date</div>
-                                                                            <div className="redsearchdeparture1" style={{
-                                                                                display:'none',
-                                                                                color: 'red',
-                                                                                fontsize: '12px',
-                                                                                fontfamily: 'Raleway'
-                                                                            }}>Please select valid Departure Date</div>
-                                                                        </div>
-                                                                        
-                                                                        <div className="srch-tab-right" id="departurereturn">
-                                                                            <label>Return</label>
-                                                                            <div className="input-a" onClick={formData.bookingType === "Return" ? () => setretIsOpen(true) : () => () => setretIsOpen(false)}>
-                                                                                <DatePicker
-                                                                                    name="searchreturnDate"
-                                                                                    selected={formData.returnDate}
-                                                                                    onChange={handleReturnDateChange}
-                                                                                    dateFormat="dd/MM/yyyy"
-                                                                                    minDate={formData.departureDate || new Date()}
-                                                                                    placeholderText="Add Return Date"
-                                                                                    disabled={!isReturnEnabled}
-                                                                                    open={isretOpen}
-                                                                                    onClickOutside={() => setretIsOpen(false)}
-                                                                                />
-                                                                                <span
-                                                                                    className="date-icon"
-                                                                                    onClick={(e) => {
-                                                                                        if (formData.bookingType === "Return") {
-                                                                                        e.stopPropagation();
-                                                                                        setretIsOpen(true);
-                                                                                        }
-                                                                                    }}
-                                                                                ></span>
-                                                                                </div>
-                                                                            <span id="errorDate1" style={{
-                                                                                color: 'red',
-                                                                                fontsize: '12px',
-                                                                                fontfamily: 'Raleway'
-                                                                            }} className="error-message"></span>
-                                                                            <div className="redsearchreturn" style={{
-                                                                                display:'none',
-                                                                                color: 'red',
-                                                                                fontsize: '12px',
-                                                                                fontfamily: 'Raleway'
-                                                                            }}>Please select Return Date</div>
-                                                                            <div className="redsearchreturn1" style={{
-                                                                                display:'none',
-                                                                                color: 'red',
-                                                                                fontsize: '12px',
-                                                                                fontfamily: 'Raleway'
-                                                                            }}>Please select valid Return Date</div>
-                                                                        </div>
-                                                                        <div className="clear"></div>
-                                                                    </div>
-                                                                    
-                                                                </div>
-
-                                                                <div className="search-large-i">
-                                                                    <div className="srch-tab-line no-margin-bottom">
-                                                                        <label>Passengers & Cabinclass</label>
-                                                                        <div className="input-a">
-                                                                            <input
-                                                                                type="text"
-                                                                                id="openpassengermodal"
-                                                                                name="openpassengermodal"
-                                                                                className="openpassengermodal srch-lbl"
-                                                                                placeholder="Select all"
-                                                                                value={`Adult: ${adultCount}, Child: ${childCount}, Infant: ${infantCount}, Cabinclass: ${cabinClass} class`}
-                                                                                onClick={handleToggle}
-                                                                                readOnly
-                                                                            />
-                                                                            
-                                                                        </div>
-                                                                        <div className="redpassenger" style={{
-                                                                            color: 'red',
-                                                                            fontsize: '12px',
-                                                                            fontfamily: 'Raleway'
-                                                                        }}>Please select maximum 9 passenger</div>
-                                                                        <div className="infantmore" style={{
-                                                                            color: 'red',
-                                                                            fontsize: '12px',
-                                                                            fontfamily: 'Raleway'
-                                                                        }}>Number of infants cannot be more than adults</div>
-                                                                    </div>
-                                                                    <div className="clear"></div>
-                                                                </div>
-
-                                                                <div className="clear"></div>
-                                                            
-                                                                <div className="search-asvanced" style={{ display: isOpen ? 'block' : 'none' }}>
-                                                                    {/* // */}
-                                                                    <div className="search-large-i">
-                                                                        {/* // */}
-                                                                        <div className="srch-tab-line no-margin-bottom">
-                                                                            <div className="srch-tab-line no-margin-bottom">
-                                                                                <label>Adults (12y + : on the day of travel)</label>
-                                                                                <div className="select-wrapper1">
-                                                                                    {/* Radio buttons for adults */}
-                                                                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
-                                                                                        <React.Fragment key={value}>
-                                                                                            <input
-                                                                                                type="radio"
-                                                                                                name="adult"
-                                                                                                id={`adult${value}`}
-                                                                                                value={value}
-                                                                                                onChange={(e) => handleAdult(e.target.value)}
-                                                                                                checked={Cookies.get('cookiesData') ? value.toString() === adultCount.toString() : value === 1}
-                                                                                            />
-                                                                                            <label htmlFor={`adult${value}`}>{value}</label>
-                                                                                        </React.Fragment>
-                                                                                    ))}
-                                                                                    <input
-                                                                                        type="radio"
-                                                                                        name="adult"
-                                                                                        id="adultgreater9"
-                                                                                        value={10}
-                                                                                        onChange={(e) => handleAdult(e.target.value)}
-                                                                                    />
-                                                                                    <label htmlFor="adultgreater9">&gt;9</label>
-                                                                                </div>
-                                                                                
-                                                                            </div>
-                                                                            <div className="clear" />
-                                                                        </div>
-                                                                        {/* \\ */}
-                                                                    </div>
-                                                                    {/* \\ */}
-                                                                    {/* // */}
-                                                                    <div className="search-large-i">
-                                                                        <div className="srch-tab-line no-margin-bottom">
-                                                                            <label>Children (2y - 12y : on the day of travel)</label>
-                                                                            <div className="select-wrapper1">
-                                                                                {[0, 1, 2, 3, 4, 5, 6].map((value) => (
-                                                                                    <React.Fragment key={value}>
-                                                                                        <input
-                                                                                            type="radio"
-                                                                                            name="child"
-                                                                                            id={`child${value}`}
-                                                                                            value={value}
-                                                                                            onChange={(e) => handleChild(e.target.value)}
-                                                                                            checked={Cookies.get('cookiesData') ? value.toString() === childCount.toString() : value === 0}
-                                                                                        />
-                                                                                        <label htmlFor={`child${value}`}>{value}</label>
-                                                                                    </React.Fragment>
-                                                                                ))}
-                                                                                <input
-                                                                                    type="radio"
-                                                                                    name="child"
-                                                                                    id="childgreater6"
-                                                                                    value={7}
-                                                                                    onChange={(e) => handleChild(e.target.value)}
-                                                                                />
-                                                                                <label htmlFor="childgreater6">&gt;6</label>
-                                                                            </div>
-                                                                            
-                                                                        </div>
-                                                                    </div>
-                                                                    {/* \\ */}
-                                                                    {/* // */}
-                                                                    <div className="search-large-i">
-                                                                        <div className="srch-tab-line no-margin-bottom">
-                                                                            <label>Infants (below 2y : on the day of travel)</label>
-                                                                            <div className="select-wrapper1">
-                                                                                {[0, 1, 2, 3, 4, 5, 6].map((value) => (
-                                                                                    <React.Fragment key={value}>
-                                                                                        <input
-                                                                                            type="radio"
-                                                                                            name="infant"
-                                                                                            id={`infant${value}`}
-                                                                                            value={value}
-                                                                                            onChange={(e) => handleInfant(e.target.value)}
-                                                                                            checked={Cookies.get('cookiesData') ? value.toString() === infantCount.toString() : value === 0}
-                                                                                        />
-                                                                                        <label htmlFor={`infant${value}`}>{value}</label>
-                                                                                    </React.Fragment>
-                                                                                ))}
-                                                                                <input
-                                                                                    type="radio"
-                                                                                    name="infant"
-                                                                                    id="infantgreater6"
-                                                                                    value={7}
-                                                                                    onChange={(e) => handleInfant(e.target.value)}
-                                                                                />
-                                                                                <label htmlFor="infantgreater6">&gt;6</label>
-                                                                            </div>
-                                                                            
-                                                                        </div>
-                                                                    </div>
-                                                                    {/* \\ */}
-                                                                    <div className="clear" />
-                                                                </div>
-
-                                                                <div className="search-asvanced" style={{ display: isOpen ? 'block' : 'none' }}>
-                                                                    {/* // */}
-                                                                    <div className="search-large-i1">
-                                                                        {/* // */}
-                                                                        <div className="srch-tab-line no-margin-bottom">
-                                                                            <label>Choose Travel Class</label>
-                                                                            <div className="select-wrapper1 select-wrapper2">
-                                                                                {['Economy/Premium Economy', 'Business', 'First'].map((value) => (
-                                                                                    <React.Fragment key={value}>
-                                                                                        <input
-                                                                                            type="radio"
-                                                                                            name="classtype"
-                                                                                            id={`classtype${value}`}
-                                                                                            value={value}
-                                                                                            onChange={(e) => handleClasstype(e.target.value)}
-                                                                                            checked={Cookies.get('cookiesData') ? value.toString() === cabinClass.toString() : value === "Economy/Premium Economy"}
-                                                                                            
-                                                                                        />
-                                                                                        <label style={{lineHeight:'1.8'}} htmlFor={`classtype${value}`}>{value === "Economy/Premium Economy" ? value : `${value} class`}</label>
-                                                                                    </React.Fragment>
-                                                                                ))}
-                                                                            </div>
-                                                                            
-                                                                            <div className="clear" />
-                                                                        </div>
-                                                                        {/* \\ */}
-                                                                    </div>
-                                                                    {/* \\ */}
-                                                                    <div className="clear" />
-                                                                </div>
-                                                                
-                                                            
-                                                            </div>
-                                                            <div id="error-message1" style={{ color: 'red', marginleft: '2%', fontfamily: 'Raleway', fontsize: '13px' }}></div>
-                                                            <div id="error-message2" style={{ color: 'red', marginleft: '2%', fontfamily: 'Raleway', fontsize: '13px' }}></div>
-                                                            <footer className="search-footer">
-                                                                {/* <Link to="/FonewayFrm"> */}
-                                                                <button type="submit" className="srch-btn" id="btnSearch">Search</button>
-                                                                {/* </Link> */}
-                                                                {/* <span className="srch-lbl">Advanced Search options</span> */}
-                                                                <div className="clear"></div>
-                                                            </footer>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                                {/* <div className="page-search-content" style={{ display: activeTab === 'cab' ? 'block' : 'none' }}>
-                                                    <div className="search-tab-content">cabs</div>
-                                                </div>
-                                                <div className="page-search-content" style={{ display: activeTab === 'hotel' ? 'block' : 'none' }}>
-                                                    <div className="search-tab-content">hotels </div>
-                                                </div>
-                                                <div className="page-search-content" style={{ display: activeTab === 'bus' ? 'block' : 'none' }}>
-                                                    <div className="search-tab-content">buses </div>
-                                                </div> */}
-                                                
-                                                
+                                <div className="form-groupp">
+                                {/* <label htmlFor="from">From</label> */}
+                                <div className="location-info">
+                                    <div className="input-a" style={{ border: 'none', boxShadow: 'none' }}>
+                                        <div className="location-header">FROM</div>
+                                        <div className="location-details" style={{ position: 'relative' }}>
+                                            {/* Editable city name */}
+                                            <input
+                                                type="text"
+                                                id="searchfrom"
+                                                className="city-name-input"
+                                                name="searchfrom"
+                                                // original={inputOrigin}
+                                                value={inputOrigin} // Display only the city name
+                                                onChange={(e) => {
+                                                    handleOriginChange(e.target.value);
+                                                    setShowOriginDropdown(true); // Show dropdown when typing or emptying the field
+                                                }}
+                                                placeholder="Enter city"
+                                                onFocus={() => setShowOriginDropdown(true)} // Show dropdown when focused
+                                                onBlur={() => {
+                                                    // Delay hiding to allow click events to register on dropdown items
+                                                    setTimeout(() => setShowOriginDropdown(false), 200);
+                                                }}
+                                            />
+                                            {/* Dropdown */}
                                             
+                                            {/* Static airport name */}
+                                            <div className="airport-name">
+                                                {inputOrigin.split(')').slice(1).join(')').trim()} {/* Display everything after the city */}
+                                            </div>
+                                            {showOriginDropdown && (
+                                                <ul className="dropdown">
+                                                    {origin.map((option) => (
+                                                        <li
+                                                            // onClick={setformActual(option.value)}
+                                                            className="dropdown-item"
+                                                            key={option.value}
+                                                            onMouseDown={() => {
+                                                                handleOrigin(option.value, option.airportName);
+                                                                setShowOriginDropdown(false); // Hide dropdown after selecting an option
+                                                            }}
+                                                            
+                                                        >
+                                                            {option.label} ({option.value}) <br />
+                                                            <span className="airport-name">{option.airportName}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* <div className="location-info">
+                                    <div className="input-a" style={{ border:'none', boxShadow:'none'}}>
+                                
+                                    <input
+                                        type="text"
+                                        placeholder="Search..."
+                                        id="searchfrom"
+                                        className="text_input"
+                                        name="searchfrom"
+                                        value={inputOrigin}
+                                        onChange={(e) => handleOriginChange(e.target.value)}
+                                    />
+
+                                    {showOriginDropdown && (
+                                        <ul style={{
+                                            position: 'absolute',
+                                            top: '100%',
+                                            marginLeft: '-8px',
+                                            borderRadius: '3px',
+                                            backgroundColor: '#fff',
+                                            paddingLeft: '6px',
+                                            width: '100%',
+                                            border: '1px solid #e3e3e3',
+                                            listStyle: 'none',
+                                            width: '100%',
+                                            zIndex: '9999',
+                                            maxHeight: '150px',
+                                            minHeight: 'auto',
+                                            overflow: 'auto'
+                                        }}>
+                                            {origin.map((option) => (
+                                                <li style={{
+                                                    cursor: 'pointer',
+                                                    fontFamily: 'Montserrat',
+                                                    color: '#4c4c4c',
+                                                    fontSize: '10px',
+                                                    paddingTop: '5px',
+                                                    paddingBottom: '5px',
+                                                    paddingRight: '5px'
+                                                }} key={option.value} onClick={() => handleOrigin(option.value,option.airportName)}>
+                                                    {option.label} ({option.value}) <br/>
+                                                    {option.airportName}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+
+
+                                </div>
+                                </div> */}
+                                <div className="redorigin" style={{
+                                    color: 'red',
+                                    fontsize: '10px',
+                                    fontfamily: 'Raleway', display: 'none'
+                                }}>Please select Origin</div>
+                                <div className="redorigin1" style={{
+                                    color: 'red',
+                                    fontsize: '10px',
+                                    fontfamily: 'Raleway', display: 'none'
+                                }}>Please select valid Origin</div>
+                                </div>
+                                <button type="button" className='swapbuttonn' onClick={swapOriginAndDestination}>
+                                <img src='/img/swap.png' width={'16px'} />
+                                </button>
+
+
+
+                                <div className="form-groupp" >
+                                
+                                
+                               
+                                {/* <label htmlFor="to">To</label> 
+                                <div className="location-info"> 
+                                 <div className="input-a" style={{ border:'none', boxShadow:'none', background:'transparent'}}>
+                                        <input
+                                            type="text"
+                                            placeholder="Search..."
+                                            id="searchto" className="text_input" name="searchto"
+                                            value={inputDestination}
+                                            style={{ width: '100%', textAlign:'center', height: '100%', border: 'none', outline: 'none' }}
+                                            onChange={(e) => handleDestinationChange(e.target.value)}
+                                        />
+
+                                        {showDestinationDropdown && (
+                                            <ul style={{
+                                                position: 'absolute',
+                                                top: '100%',
+                                                marginLeft: '-8px',
+                                                borderRadius: '3px',
+                                                backgroundColor: '#fff',
+                                                paddingLeft: '6px',
+                                                width: '100%',
+                                                border: '1px solid #e3e3e3',
+                                                listStyle: 'none',
+                                                width: '100%',
+                                                zIndex: '9999',
+                                                maxHeight: '150px',
+                                                minHeight: 'auto',
+                                                overflow: 'auto'
+                                            }}>
+                                                {destination.map((option) => (
+                                                    <li style={{
+                                                        cursor: 'pointer',
+                                                        fontFamily: 'Montserrat',
+                                                        color: '#4c4c4c',
+                                                        fontSize: '10px',
+                                                        paddingTop: '5px',
+                                                        paddingBottom: '5px',
+                                                        paddingRight: '5px'
+                                                    }} key={option.value} onClick={() => handleDestination(option.value,option.airportName)}>
+                                                        {option.label} ({option.value}) <br/>
+                                                        {option.airportName}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+
+                                    </div> */}
+                                    <div className="location-info">
+    <div className="input-a" style={{ border: 'none', boxShadow: 'none' }}>
+        <div className="location-header">TO</div>
+        <div className="location-details" style={{ position: 'relative' }}>
+            {/* Editable city name */}
+            <input
+                type="text"
+                placeholder="Enter city"
+                id="searchto"
+                className="city-name-input"
+                name="searchto"
+                value={inputDestination} // Display only the city name  .split('(')[0].trim()
+                onChange={(e) => {
+                    handleDestinationChange(e.target.value);
+                    setShowDestinationDropdown(true); // Show dropdown when typing or emptying the field
+                }}
+                onFocus={() => setShowDestinationDropdown(true)} // Show dropdown when focused
+                onBlur={() => {
+                    // Delay hiding to allow click events to register on dropdown items
+                    setTimeout(() => setShowDestinationDropdown(false), 200);
+                }}
+                // style={{ width: '100%', textAlign: 'center', height: '100%', border: 'none', outline: 'none' }}
+            />
+            {/* Dropdown */}
+            
+            {/* Static airport name */}
+            <div className="airport-name">
+                {inputDestination.split(')').slice(1).join(')').trim()} {/* Display everything after the city */}
+            </div>
+            {showDestinationDropdown && (
+                <ul className="dropdown">
+                    {destination.map((option) => (
+                        <li
+                            className="dropdown-item"
+                            key={option.value}
+                            onMouseDown={() => {
+                                handleDestination(option.value, option.airportName);
+                                setShowDestinationDropdown(false); // Hide dropdown after selecting an option
+                            }}
+                        >
+                            {option.label} ({option.value}) <br />
+                            <span className="airport-name">{option.airportName}</span>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    </div>
+    </div>
+                                    
+                                    
+
+                                    <div className="redestination" style={{
+                                        color: 'red',
+                                        fontsize: '10px',
+                                        fontfamily: 'Raleway', display: 'none'
+                                    }}>Please select Destination</div>
+                                    <div className="redestination1" style={{
+                                        color: 'red',
+                                        fontsize: '10px',
+                                        fontfamily: 'Raleway', display: 'none'
+                                    }}>Please select valid Destination</div>
+
+                               
+                                </div>
+
+                                <div className="form-groupp srch-tab-left">
+                                <label htmlFor="departureDate">Departure</label>
+                                {/* <div className="react-datepicker__month-container">
+                                    <input
+                                    type="date"
+                                    id="departureDate"
+                                    //   value={departureDate}
+                                    //   onChange={(e) => setDepartureDate(e.target.value)}
+                                    />
+
+                                </div> */}
+                                <div className="input-a" style={{ border:'none', boxShadow:'none'}} onClick={() => setdepIsOpen(true)}>
+                                    <DatePicker
+                                        name="searchdeparture"
+                                        selected={formData.departureDate}
+                                        onChange={handleDepartureDateChange}
+                                        dateFormat="dd/MM/yyyy"
+                                        minDate={new Date()}
+                                        value={formData.departureDate}
+                                        open={isdepOpen}
+                                        
+                                        onClickOutside={() => setdepIsOpen(false)}
+                                    />
+                                    <span className="date-icon" onClick={(e) => {e.stopPropagation(); setdepIsOpen(true)}}></span>
+                                    </div>
+                                    <span id="errorDate" style={{
+                                        color: 'red',
+                                        fontsize: '12px',
+                                        fontfamily: 'Raleway'
+                                    }} className="error-message"></span>
+                                    <div className="redsearchdeparture" style={{
+                                        color: 'red',
+                                        fontsize: '12px',
+                                        fontfamily: 'Raleway'
+                                    }}>Please select Departure Date</div>
+                                    <div className="redsearchdeparture1" style={{
+                                        display:'none',
+                                        color: 'red',
+                                        fontsize: '12px',
+                                        fontfamily: 'Raleway'
+                                    }}>Please select valid Departure Date</div>                                                                           
+                                </div>
+
+                                <div className="form-groupp srch-tab-right" id="departurereturn">
+                                <label htmlFor="returnDate">Return</label>
+                                <div className="input-a" style={{ border:'none', boxShadow:'none'}} onClick={formData.bookingType === "Return" ? () => setretIsOpen(true) : () => () => setretIsOpen(false)}>
+                                    <DatePicker
+                                    name="searchreturnDate"
+                                    selected={formData.returnDate}
+                                    onChange={handleReturnDateChange}
+                                    dateFormat="dd/MM/yyyy"
+                                    minDate={formData.departureDate || new Date()}
+                                    placeholderText="Add Return Date"
+                                    disabled={!isReturnEnabled}
+                                    open={isretOpen}
+                                    onClickOutside={() => setretIsOpen(false)}
+                                    />
+                                    <span
+                                    className="date-icon"
+                                    onClick={(e) => {
+                                        if (formData.bookingType === "Return") {
+                                        e.stopPropagation();
+                                        setretIsOpen(true);
+                                        }
+                                    }}
+                                    ></span>
+                                    </div>
+                                    <span id="errorDate1" style={{
+                                    color: 'red',
+                                    fontsize: '12px',
+                                    fontfamily: 'Raleway'
+                                    }} className="error-message"></span>
+                                    <div className="redsearchreturn" style={{
+                                    display:'none',
+                                    color: 'red',
+                                    fontsize: '12px',
+                                    fontfamily: 'Raleway'
+                                    }}>Please select Return Date</div>
+                                    <div className="redsearchreturn1" style={{
+                                    display:'none',
+                                    color: 'red',
+                                    fontsize: '12px',
+                                    fontfamily: 'Raleway'
+                                    }}>Please select valid Return Date</div>
+                                </div>
+
+                                <div className="form-groupp srch-tab-line no-margin-bottom">
+                                    <label htmlFor="travellers">Travellers & Class</label>
+                                    <div className="input-a" style={{ border:'none', boxShadow:'none'}}>
+                                        <input
+                                            type="text"
+                                            id="openpassengermodal"
+                                            name="openpassengermodal"
+                                            className="openpassengermodal srch-lbl"
+                                            placeholder="Select all"
+                                            value={`Adult: ${adultCount}, Child: ${childCount}, Infant: ${infantCount}, Cabinclass: ${cabinClass} class`}
+                                            onClick={handleToggle}
+                                            readOnly
+                                        />
+                                        
+                                    </div>
+                                    <div className="redpassenger" style={{
+                                        color: 'red',
+                                        fontsize: '12px',
+                                        fontfamily: 'Raleway'
+                                    }}>Please select maximum 9 passenger</div>
+                                    <div className="infantmore" style={{
+                                        color: 'red',
+                                        fontsize: '12px',
+                                        fontfamily: 'Raleway'
+                                    }}>Number of infants cannot be more than adults</div>
+
+                                </div>
+                            </div>
+                                
+
+                                
+                            
+                            <div id="error-message1" style={{ color: 'red', marginleft: '2%', fontfamily: 'Raleway', fontsize: '13px' }}></div>
+                            <div id="error-message2" style={{ color: 'red', marginleft: '2%', fontfamily: 'Raleway', fontsize: '13px' }}></div>
+                            
+
+                            {/* <button className="search-buttonn">SEARCH</button> */}
+                            <button type="submit" className="search-buttonn" style={{ position:'absolute', bottom:'-121px', left:'41.5%'}} id="btnSearch">SEARCH</button>
+                            </div>
+                            <div ref={searchRef} className="search-asvanced" style={{ display: isOpen ? 'block' : 'none' }}>
+                                <div className="search-large-i">
+                                    <div className="srch-tab-line no-margin-bottom">
+                                        <label style={{ textAlign:'left', marginBottom:'0px' }}>Adults (12y +)</label>
+                                        <p style={{color:'#7b7777', fontSize:'small', marginBottom:'1px'}}>on the day of travel</p>
+                                        <div className="select-wrapper1">
+                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
+                                                <React.Fragment key={value}>
+                                                    <input
+                                                        type="radio"
+                                                        name="adult"
+                                                        id={`adult${value}`}
+                                                        value={value}
+                                                        onChange={(e) => handleAdult(e.target.value)}
+                                                        checked={Cookies.get('cookiesData') ? value.toString() === adultCount.toString() : value === 1}
+                                                    />
+                                                    <label htmlFor={`adult${value}`}>{value}</label>
+                                                </React.Fragment>
+                                            ))}
+                                            <input
+                                                type="radio"
+                                                name="adult"
+                                                id="adultgreater9"
+                                                value={10}
+                                                onChange={(e) => handleAdult(e.target.value)}
+                                            />
+                                            <label htmlFor="adultgreater9">&gt;9</label>
+                                        </div>
+                                    </div>
+                                    <div className="row-container">
+                                        <div className="srch-tab-line no-margin-bottom">
+                                            <label style={{ textAlign: 'left', marginBottom: '0px' }}>Children (2y - 12y)</label>
+                                            <p style={{ color: '#7b7777', fontSize: 'small', marginBottom: '1px' }}>on the day of travel</p>
+                                            <div className="select-wrapper1">
+                                                {[0, 1, 2, 3, 4, 5, 6].map((value) => (
+                                                    <React.Fragment key={value}>
+                                                        <input
+                                                            type="radio"
+                                                            name="child"
+                                                            id={`child${value}`}
+                                                            value={value}
+                                                            onChange={(e) => handleChild(e.target.value)}
+                                                            checked={Cookies.get('cookiesData') ? value.toString() === childCount.toString() : value === 0}
+                                                        />
+                                                        <label htmlFor={`child${value}`}>{value}</label>
+                                                    </React.Fragment>
+                                                ))}
+                                                <input
+                                                    type="radio"
+                                                    name="child"
+                                                    id="childgreater6"
+                                                    value={7}
+                                                    onChange={(e) => handleChild(e.target.value)}
+                                                />
+                                                <label htmlFor="childgreater6">&gt;6</label>
+                                            </div>
+                                        </div>
+                                        <div className="srch-tab-line no-margin-bottom">
+                                            <label style={{ textAlign: 'left', marginBottom: '0px' }}>Infants (below 2y)</label>
+                                            <p style={{ color: '#7b7777', fontSize: 'small', marginBottom: '1px' }}>on the day of travel</p>
+                                            <div className="select-wrapper1">
+                                                {[0, 1, 2, 3, 4, 5, 6].map((value) => (
+                                                    <React.Fragment key={value}>
+                                                        <input
+                                                            type="radio"
+                                                            name="infant"
+                                                            id={`infant${value}`}
+                                                            value={value}
+                                                            onChange={(e) => handleInfant(e.target.value)}
+                                                            checked={Cookies.get('cookiesData') ? value.toString() === infantCount.toString() : value === 0}
+                                                        />
+                                                        <label htmlFor={`infant${value}`}>{value}</label>
+                                                    </React.Fragment>
+                                                ))}
+                                                <input
+                                                    type="radio"
+                                                    name="infant"
+                                                    id="infantgreater6"
+                                                    value={7}
+                                                    onChange={(e) => handleInfant(e.target.value)}
+                                                />
+                                                <label htmlFor="infantgreater6">&gt;6</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                {/* Travel Class Selection */}
+                                <div className="search-large-i1">
+                                    <div className="srch-tab-line no-margin-bottom">
+                                        <label style={{ marginBottom:'1%', textAlign:'left'}}>Choose Travel Class</label>
+                                        <div className="select-wrapper1 select-wrapper2">
+                                            {['Economy/Premium Economy', 'Business', 'First'].map((value) => (
+                                                <React.Fragment key={value}>
+                                                    <input
+                                                        type="radio"
+                                                        name="classtype"
+                                                        id={`classtype${value}`}
+                                                        value={value}
+                                                        onChange={(e) => handleClasstype(e.target.value)}
+                                                        checked={Cookies.get('cookiesData') ? value.toString() === cabinClass.toString() : value === "Economy/Premium Economy"}
+                                                    />
+                                                    <label style={{lineHeight:'2'}} htmlFor={`classtype${value}`}>{value === "Economy/Premium Economy" ? value : `${value} class`}</label>
+                                                </React.Fragment>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type='button' className="search-buttonn" style={{marginLeft:'67%'}} onClick={() => { setIsOpen(false);}}>Apply</button>
+                                </div>
+                            </form>
+                            
+                                                    </div>
+                                                    
+                                                </div>
+                                                
                                         </div>
                                     </div>
                                     <div className="clear"></div>

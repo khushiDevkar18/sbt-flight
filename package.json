@@ -37,6 +37,7 @@
     "web-vitals": "^2.1.4",
     "xml2js": "^0.6.2"
   },
+  "proxy":"https://apac.universal-api.travelport.com",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

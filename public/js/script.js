@@ -110,7 +110,33 @@ $(document).ready(function () {
 
 
 	var header_a = $('.header-a');
+	// var header_b = $('.header-b');
 	var header_b = $('.header-b');
+var lastScrollY = 0;
+
+// Function to handle the scroll behavior
+function handleScroll() {
+  var currentScrollY = window.scrollY;
+
+  if (currentScrollY > lastScrollY) {
+    // Scrolling down: hide the header
+    header_b.addClass('header-b-hidden');
+  } else if (currentScrollY <= 0) {
+    // At the top of the page: show the header
+    header_b.removeClass('header-b-hidden');
+  }
+
+  // Update the last scroll position
+  lastScrollY = currentScrollY;
+}
+
+// Add scroll listener for specific pages only
+if (window.location.pathname === '/SearchFlight') {
+  $(window).on('scroll', handleScroll);
+} else {
+  $(window).off('scroll', handleScroll); // Ensure the scroll listener is removed on other pages
+}
+
 	var header_logo = $('.header-logo');
 	var header_right = $('.header-right');
 
