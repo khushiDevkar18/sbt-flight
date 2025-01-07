@@ -162,6 +162,7 @@ const navigate = useNavigate();
                   const booking_id = formtaxivaxiData['booking_id'];
                   const no_of_seats = formtaxivaxiData['no_of_seats'];
                   const request_id = formtaxivaxiData['request_id'];
+                  const request_type = formtaxivaxiData['request_type'];
                   
                   const adult = no_of_seats;
                   const child = 0;
@@ -287,7 +288,7 @@ const navigate = useNavigate();
                       selectclass: cabinclass,
                       bookingtype: bookingtype,
                       apiairportsdata: apiairportData,
-                      fromcotrav: '1',
+                      requesttype: request_type,
                       spocemail: spoc_email,
                       clientname:client_name,
                       spocname:spoc_name,

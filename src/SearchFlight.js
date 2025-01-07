@@ -93,7 +93,7 @@ const SearchFlight = () => {
   const infant = location.state && location.state.responseData.selectinfant;
   const cabinclass = location.state && location.state.responseData.selectclass;
   // console.log('asd', cabinclass)
-  const fromcotrav = location.state && location.state.responseData?.fromcotrav;
+  const requesttype = location.state && location.state.responseData?.requesttype;
   const spocemail = location.state && location.state.responseData?.spocemail;
   const clientname = location.state && location.state.responseData?.clientname;
   const spocname = location.state && location.state.responseData?.spocname;
@@ -718,7 +718,7 @@ const handleSortingCriterionClick = (criteria) => {
               }
             }
           });
-          console.log('prc',pricepointXML);
+          // console.log('prc',pricepointXML);
           // live api : https://apac.universal-api.travelport.com/B2BGateway/connect/uAPI/AirService
           // local : https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService
           
@@ -1450,7 +1450,7 @@ const handleReturnDateInitialization = (bookingType) => {
   }, [navigate]);
 
   const [selectedFlights, setSelectedFlights] = useState([]);
-  console.log('selectedflight', selectedFlights);
+  // console.log('selectedflight', selectedFlights);
   const [isMinimized, setIsMinimized] = useState(false);
 
   const handleClose = () => {
@@ -1460,43 +1460,25 @@ const handleReturnDateInitialization = (bookingType) => {
   const handleExpand = () => {
     setIsMinimized(false); // Expand the popup
   };
-  const handleRemoveFlight = (index) => {
-    const updatedFlights = [...selectedFlights]; // Create a copy of the selectedFlights array
-    updatedFlights.splice(index, 1); // Remove the flight at the specified index
-    setSelectedFlights(updatedFlights); // Update the state with the modified array
+
+  const handleRemoveFare = (flightIndex, fareIndex) => {
+    const updatedFlights = [...selectedFlights]; // Copy the current state
+  
+    // Remove the specific fare
+    updatedFlights[flightIndex].fare_details.splice(fareIndex, 1);
+  
+    // If no fares remain, remove the entire flight
+    if (updatedFlights[flightIndex].fare_details.length === 0) {
+      updatedFlights.splice(flightIndex, 1);
+    }
+  
+    // Update the state with the modified flights
+    setSelectedFlights(updatedFlights);
+  
+    // Optionally reset price parse indices if necessary
     setSelectedPriceParseIndices([]);
   };
-
-  // const handleCheckboxChange = (airPricingInfo, isReturn = 0) => {
-  //   // Mutate the airPricingInfo object to include isReturn
-  //   // console.log('airpricing', airPricingInfo);
-  //   airPricingInfo.isReturn = isReturn;
   
-  //   // console.log('Updated airPricingInfo with isReturn:', airPricingInfo);
-    
-    
-  //   setSelectedFlights((prev) => {
-  //     // Check if this specific data is already selected
-  //     const isSelected = prev.some(
-  //       (flight) =>
-  //         flight["$"].Key === airPricingInfo["$"].Key &&
-  //         flight.isReturn === airPricingInfo.isReturn
-  //     );
-  
-  //     if (isSelected) {
-  //       // Remove the selected data
-  //       return prev.filter(
-  //         (flight) =>
-  //           flight["$"].Key !== airPricingInfo["$"].Key ||
-  //           flight.isReturn !== airPricingInfo.isReturn
-  //       );
-  //     } else {
-  //       // Add the new data to the selection
-  //       return [...prev, airPricingInfo];
-  //     }
-  //   });
-  // };
-  // console.log('selectedFlights', selectedFlights);
 
   const handleCheckboxChange = (airPricingInfo, isReturn = 0) => {
     setIsDropdownVisible(false);
@@ -4579,7 +4561,7 @@ const toggleDetails = async (name) => {
                                                                   )
                                                               )
                                                             }
-                                                            {fromcotrav === "1" && (
+                                                            
                                                                 <button
                                                                   type="button"
                                                                   style={{
@@ -4593,7 +4575,7 @@ const toggleDetails = async (name) => {
                                                                 >
                                                                   {isFlightSelected ? "Added - " : "Add to Share + "}
                                                                 </button>
-                                                                )}
+                                                               
                                                           </div>
                                                       </div>
                                                       <div className="flt-l-c">
@@ -11232,7 +11214,7 @@ const toggleDetails = async (name) => {
                                                                   )
                                                                 )}
                                                               </div>
-                                                              {fromcotrav !== "1" && (
+                                                              {requesttype === "book" && (
                                                               <div className='buttonbook' style={{width:"37%"}}><button type='button' className="continuebutton" style={{marginTop:"11px", color:"white", backgroundColor:"#785eff", border:"none", padding:"3%", borderRadius:"3px"}} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
                                                               )} 
                                                             </div>
@@ -11344,14 +11326,6 @@ const toggleDetails = async (name) => {
                                             data-category1="stop0"
                                             style={{ display: "block" }}
                                           >
-                                            {/* {fromcotrav === "1" && (
-                                              <input
-                                                type="checkbox"
-                                                style={{ marginLeft: "-8px", marginRight: "15px", marginBottom: "105px" }}
-                                                checked={selectedFlights.includes(pricepoint['air:AirPricingInfo'])} 
-                                                onChange={() => handleCheckboxChange(pricepoint['air:AirPricingInfo'])}
-                                              />
-                                            )} */}
                                             
                                                 <div className="flt-i-a">
                                                   <div className="flt-i-b">
@@ -11738,7 +11712,7 @@ const toggleDetails = async (name) => {
                                                                     )
                                                                 )
                                                               }
-                                                              {fromcotrav === "1" && (
+                                                              
                                                                 <button
                                                                   type="button"
                                                                   style={{
@@ -11752,7 +11726,7 @@ const toggleDetails = async (name) => {
                                                                 >
                                                                   {isFlightSelected ? "Added - " : "Add to Share + "}
                                                                 </button>
-                                                                )}
+                                                                
                                                             </div>
                                                         </div>
                                                         
@@ -15331,7 +15305,7 @@ const toggleDetails = async (name) => {
                                                                 )}
                                                               </div>
                                                               
-                                                              {fromcotrav !== "1" && (
+                                                              {requesttype === "book" && (
                                                               <div className='buttonbook' style={{width:"37%"}}><button type='button' className="continuebutton" style={{marginTop:"11px", color:"white", backgroundColor:"#785eff", border:"none", padding:"3%", borderRadius:"3px"}} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
                                                               )} 
                                                               <button className="add-btn" type='button' onClick={() => togglePriceIndex(priceParseindex)}>{selectedPriceParseIndices.includes(priceParseindex) ? "-" : "+"}</button>
@@ -15427,8 +15401,8 @@ const toggleDetails = async (name) => {
           </button>
         </div>
         <div className="selected-flight-list">
-          {selectedFlights.map((flight, index) => (
-            <div className="flight-item" key={index}>
+          {selectedFlights.map((flight, flightIndex) => (
+            <div className="flight-item" key={flightIndex}>
               <img
                 src={`https://devapi.taxivaxi.com/airline_logo_images/${flight.flightDetails[0]?.carrier}.png`}
                 alt={flight.flightDetails[0]?.carrier}
@@ -15451,42 +15425,65 @@ const toggleDetails = async (name) => {
                 </span>
               </div>
               <div className="flight-price">
-  {flight.fare_details.map((fare, index) => (
+  {flight.fare_details.map((fare, fareIndex) => (
     <div
-      key={index}
+      key={fareIndex}
       style={{
         display: 'flex',
-        flexDirection: 'column',
+        justifyContent: 'space-between', // Ensures spacing between fare details and the button
+        alignItems: 'center', // Aligns content vertically
+        marginBottom: '6px',
       }}
     >
-      <span
+      {/* Left: Price and Fare Type */}
+      <div
         style={{
-          fontSize: '16px',
-          fontWeight: index === 0 ? 'bold' : 'bold', // Highlight the first price
-          color: index === 0 ? '#000' : '#785eff', // Black for the first price, blue for others
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        ₹ {fare.price.toLocaleString()}
-      </span>
-      <span
+        <span
+          style={{
+            fontSize: '16px',
+            fontWeight: fareIndex === 0 ? 'bold' : 'bold',
+            color: fareIndex === 0 ? '#000' : '#785eff',
+          }}
+        >
+          ₹ {fare.price.toLocaleString()}
+        </span>
+        <span
+          style={{
+            fontSize: '10px',
+            color: fareIndex === 0 ? '#888' : '#785eff',
+          }}
+        >
+          {fare.fare_type}
+        </span>
+      </div>
+
+      {/* Right: Remove Button */}
+      <button
+        className="remove-btn"
         style={{
-          fontSize: '8px',
-          color: index === 0 ? '#888' : '#785eff', // Lighter color for labels
-          
+          background: 'none',
+          border: 'none',
+          color: 'red',
+          fontSize: '18px',
+          cursor: 'pointer',
+          marginLeft:'8px',
         }}
+        onClick={() => handleRemoveFare(flightIndex, fareIndex)}
       >
-        {fare.fare_type}
-      </span>
+        ×
+      </button>
     </div>
   ))}
 </div>
 
-              <button className="remove-btn" onClick={() => handleRemoveFlight(index)}>
-                ×
-              </button>
             </div>
           ))}
         </div>
+
         <div className="share-button-container">
           <button onClick={modalopen} className="share-btn">
             Share Flight Options

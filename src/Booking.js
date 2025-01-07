@@ -29,6 +29,7 @@ const Booking = () => {
     const location = useLocation();
     const [loading, setLoading] = useState(false);
     const formtaxivaxi = location.state && location.state.serviceData.formtaxivaxi;
+    // console.log('form', formtaxivaxi);
     let returns=0;
     if(formtaxivaxi){
         returns = formtaxivaxi['trip_type'] === "Round Trip" ? 1 : 0; 
@@ -43,6 +44,7 @@ const Booking = () => {
     const Airlines = location.state && location.state.serviceData.Airlines;
     const hostTokenParse = location.state && location.state.serviceData.hostToken;
     const Passengerarray = location.state && location.state.serviceData.Passengerarray;
+    // console.log('Passengerarray', Passengerarray);
     const [passengereventKeys, setPassengerkey] = useState(Passengerarray[0]['Key']);
     const classType = location.state && location.state.serviceData.classtype;
     const [accordion1Expanded, setAccordion1Expanded] = useState(true);
@@ -80,13 +82,18 @@ const Booking = () => {
         });
     }
     // console.log(mergedData);
-    const employees=[];
-    for (let i = 1; i <= 9; i++) {
-        const id = formtaxivaxi[`employee_${i}_id`] || formtaxivaxi[`employee_${i}_id_new`] || formtaxivaxi[`employee_${i}_id_old`];
-        if (id) {
-            employees.push(id);
-        }
-    }
+    // const employees=[];
+    // for (let i = 1; i <= 9; i++) {
+    //     const id = formtaxivaxi[`passengerDetailsArray_${i}_id`] || formtaxivaxi[`employee_${i}_id_new`] || formtaxivaxi[`employee_${i}_id_old`];
+    //     if (id) {
+    //         employees.push(id);
+    //     }
+    // }
+    const employees = Object.keys(formtaxivaxi)
+        .filter(key => key.startsWith("passengerDetailsArray") && key.endsWith("[id]")) // Find all "[id]" keys
+        .map(key => formtaxivaxi[key]); // Extract their values
+
+    // console.log('emp',employees);
     const hasNonEmptyProperties = (obj) => {
         for (let key in obj) {
             if (obj.hasOwnProperty(key) && obj[key] !== null && obj[key] !== undefined && obj[key] !== '') {
@@ -102,11 +109,14 @@ const Booking = () => {
     
       const clearedData = async () => {
         const empIdsArray = Array.isArray(employees) ? employees : [employees]; // Ensure empIdsArray is always an array
-        const empIdsJSON = JSON.stringify(empIdsArray);
         const formData = new URLSearchParams();
-        formData.append('emp_ids', empIdsJSON);
+    
+        empIdsArray.forEach((id, index) => {
+            formData.append(`employee_id[${index}]`, id);
+        });
+    
         try {
-            const response = await fetch('http://cotrav.tv/api/flights/employeeByTaxivaxi', {
+            const response = await fetch('https://demo.taxivaxi.com/api/flights/employeeByTaxivaxi', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -115,23 +125,32 @@ const Booking = () => {
             });
     
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error(`Network response was not ok: ${response.status}`);
             }
     
+            // Parse JSON data
             const responseData = await response.json();
-            const data = responseData.response;
+            console.log('Parsed response data:', responseData); // Debugging step
+    
+            const data = responseData.result;
             const organizedData = {};
     
-            for (const empId in data) {
-                organizedData[empId] = data[empId][0];
-            }
+            // Organize the response data
+            data.forEach((emp, index) => {
+                organizedData[index] = emp;
+            });
+            
+            console.log('Organized data:', organizedData); // Debugging step
             setEmptaxivaxi(organizedData);
         } catch (error) {
             console.error('Error fetching employee data:', error);
         }
     };
     
-    // console.log(emptaxivaxi);
+    
+    
+    
+    console.log('emptaxivaxi',emptaxivaxi);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const openModal = () => {
@@ -2221,7 +2240,7 @@ const Booking = () => {
                                                 // console.log(segmentParse);
                                                 // console.log(HostToken);
                                                 const passengerDetailss = JSON.parse(sessionStorage.getItem('passengerDetailss'));
-                                                // console.log(passengerDetailss);
+                                                console.log(passengerDetailss);
 
                                                 const makeSeatRequest = async () => {
                                                     const username = 'Universal API/uAPI8645980109-af7494fa';
@@ -4027,6 +4046,7 @@ const Booking = () => {
                                                                 
                                                                 <div className="" id="">
                                                                     {Passengerarray && Passengerarray.map((passengerinfo, passengerindex) => (
+                                                                        
                                                                         <div key={passengerindex}>
                                                                             <div id="totalPassenger" data-totalpassenger={1} />
                                                                             <input type="hidden" name="passengerkey[]" value={passengerinfo.Key} />
@@ -4043,9 +4063,19 @@ const Booking = () => {
                                                                                             name="adult_first_name[]"
                                                                                             onKeyPress={handleKeyPress}
                                                                                             data-index={passengerindex}
-                                                                                            defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
-                                                                                                emptaxivaxi[passengerindex]['people_name'].split(' ')[0].trim()
-                                                                                            }
+                                                                                            Value={
+                                                                                                emptaxivaxi[passengerindex]?.people_name
+                                                                                                    ? (() => {
+                                                                                                        const nameParts = emptaxivaxi[passengerindex].people_name.trim().split(' ');
+                                                                                                        return nameParts.length > 1
+                                                                                                        ? nameParts.slice(0, nameParts.length - 1).join(' ').trim()
+                                                                                                        : nameParts[0] || 'NA';
+                                                                                                    })()
+                                                                                                    : 'NA'
+                                                                                                }
+                                                                                            // defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
+                                                                                            //     emptaxivaxi[passengerindex]['people_name'].split(' ')[1].trim()
+                                                                                            // }
                                                                                         />
                                                                                     </div>
                                                                                     <span className="error-message adult_first_name-message" data-index={passengerindex} style={{display: "none", color: "red", fontWeight: "normal"}}>
@@ -4060,11 +4090,22 @@ const Booking = () => {
                                                                                             name="adult_last_name[]"
                                                                                             onKeyPress={handleKeyPress}
                                                                                             data-index={passengerindex}
-                                                                                            defaultValue={
-                                                                                                emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
-                                                                                                    emptaxivaxi[passengerindex]['people_name'].split(' ')[1] ?
-                                                                                                    emptaxivaxi[passengerindex]['people_name'].split(' ').slice(1).join(' ').trim() : 'NA'
-                                                                                            }
+                                                                                            Value={
+                                                                                                emptaxivaxi[passengerindex]?.people_name
+                                                                                                    ? (() => {
+                                                                                                        const nameParts = emptaxivaxi[passengerindex].people_name.trim().split(' ');
+                                                                                                        // If there is more than one name part, return the last name, else empty string
+                                                                                                        return nameParts.length > 1
+                                                                                                        ? nameParts[nameParts.length - 1].trim()
+                                                                                                        : 'NA'; // If only one part, leave it empty (or customize)
+                                                                                                    })()
+                                                                                                    : 'NA' // If no name exists, return 'NA'
+                                                                                                }
+                                                                                            // defaultValue={
+                                                                                            //     emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
+                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ')[1] ?
+                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ').slice(1).join(' ').trim() : 'NA'
+                                                                                            // }
                                                                                         />
                                                                                     </div>
                                                                                     <span className="error-message adult_last_name-message" data-index={passengerindex} style={{display: "none", color: "red", fontWeight: "normal"}}>

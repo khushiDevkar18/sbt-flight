@@ -79,6 +79,11 @@ function Home() {
     const [infantCount, setInfantCount] = useState(0); 
     const [cabinClass, setCabinClass] = useState('Economy'); 
     const [lastActionWasSwap, setLastActionWasSwap] = useState(false);
+    const XAUTH_TRAVELPORT_ACCESSGROUP = "E41F154B-04FC-46AD-9089-011C0C9C4089";
+    const Accept_Version = "11";
+    const Content_Version = "11";
+    const baseURL = "api.pp.travelport.com";
+    const version = "11";
     useEffect(() => {
         const cookieData = Cookies.get('cookiesData');
         // console.log(cookieData);
@@ -392,13 +397,6 @@ function Home() {
         } else {
             console.log('Token is missing, fetching new token...');
         }
-        
-    
-        // If either the token or timestamp is missing or invalid, fetch a new token
-        const validateIPAddress = (ip) => {
-            const regex = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(\d{1,3}\.){2}\d{1,3}$/;
-            return regex.test(ip);
-        };
 
         const authPayload = {
             ClientId: "ApiIntegrationNew",
@@ -432,6 +430,52 @@ function Home() {
         }
     };
 
+    function getAccessToken() {
+        const tokenKey = 'ndc_access_token';
+        const expirationKey = 'ndc_token_expiration';
+      
+        const now = Date.now();
+        const storedToken = localStorage.getItem(tokenKey);
+        const storedExpiration = localStorage.getItem(expirationKey);
+
+        if (storedToken && storedExpiration && now < Number(storedExpiration)) {
+          return storedToken; // Return valid token
+        }
+
+        const url = 'https://cors-anywhere.herokuapp.com/http://oauth.pp.travelport.com/oauth/oauth20/token';
+        const credentials = {
+          grant_type: 'password',
+          client_id: 'travelportAPI-3aE4IEx0DDM51dltT45Ab15f',
+          client_secret: 'e80c89f8cd9fba2fbd9629091f5f403e1e6162e8',
+          username: 'TP80632436',
+          password: 'aek7gNOb',
+          scope: 'openid',
+        };
+
+        const body = new URLSearchParams(credentials).toString();
+      
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url, false); 
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.send(body);
+      
+        if (xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText);
+          const token = data.access_token;
+          const expirationTime = now + 24 * 60 * 60 * 1000; // 24 hours validity
+      
+          // Store the token and expiration time in localStorage
+          localStorage.setItem(tokenKey, token);
+          localStorage.setItem(expirationKey, expirationTime.toString());
+      
+          return token;
+        } else {
+          console.error(`Failed to fetch token: ${xhr.statusText}`);
+          throw new Error('Unable to fetch access token');
+        }
+      }
+    //   getAccessToken();
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         let searchfrom = event.target.searchfrom.value.trim();
@@ -440,9 +484,6 @@ function Home() {
         let searchto = event.target.searchto.value.trim();
         let searchdeparture = event.target.searchdeparture.value.trim();
         let searchreturnDate = event.target.searchreturnDate.value.trim();
-        // console.log(searchfrom);
-        // console.log(searchto);
-        // console.log(searchdeparture);
         const originerror = document.querySelector('.redorigin');
         const originerror1 = document.querySelector('.redorigin1');
         const destinationerror = document.querySelector('.redestination');
@@ -524,7 +565,8 @@ function Home() {
         }
         if(isValidPassenger){
             setLoading(true);
-            // const token = await fetchToken();
+            // const token = await ndcToken();
+
             const formatDate = (inputDate) => {
             const parsedDate = parse(inputDate, 'dd/MM/yyyy', new Date());
             if (!isValid(parsedDate)) {
@@ -548,7 +590,6 @@ function Home() {
             const formattedsearchreturnDate = formatDate(searchreturnDate);
             
             const adult = event.target.adult.value;
-            console.log('ad', adult);
             const child = event.target.child.value;
             const infant = event.target.infant.value;
             const classtype= event.target.classtype.value;
@@ -647,51 +688,73 @@ function Home() {
                 PassengerCodeCNN,
                 PassengerCodeINF,
             );
-            function formatToIsoDate(dateString) {
-                if (!dateString) {
-                  return null; 
-                }
-                const [day, month, year] = dateString.split('/');
-                return `${year}-${month}-${day}T00:00:00`;
-            }
+            
 
             const username = 'Universal API/uAPI6514598558-21259b0c';
             const password = 'tN=54gT+%Y'; 
             const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
             sessionStorage.setItem('searchdata', soapEnvelope);
-            // console.log('soapEnvelope', soapEnvelope);
-
     
             const response = await axios.post(
                 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
                 soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
             );
-            console.log('searchresponse', response);
-            // console.log('apiresponse', response);
-            // const payload = {
-            // "EndUserIp": "192.168.10.10",
-            // "TokenId": token,
-            // "AdultCount": adult,
-            // "ChildCount": child,
-            // "InfantCount": infant,
-            // "JourneyType": bookingtype === "oneway" ? 1 : bookingtype === "Return" ? 2 : null,
-            // "Segments": [
-            //     {
-            //     "Origin": searchfromCode,
-            //     "Destination": searchtoCode,
-            //     "FlightCabinClass": cabinclass === "Economy" ? 2 : null, 
-            //     PreferredDepartureTime: formatToIsoDate(searchdeparture),
-            //     PreferredArrivalTime: formatToIsoDate(searchreturnDate)
-            //     }
-            // ]
-            // };
-            // console.log('payload for tbo', payload);
 
-            // const tboresponse = await axios.post('https://cors-anywhere.herokuapp.com/http://api.tektravels.com/BookingEngineService_Air/AirService.svc/rest/Search', payload, {
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     }
-            // });
+            const requestBody = {
+                "CatalogProductOfferingsQueryRequest": {
+                  "CatalogProductOfferingsRequest": {
+                    "@type": "CatalogProductOfferingsRequestAir",
+                    "maxNumberOfUpsellsToReturn": 4,
+                    "offersPerPage": 10,
+                    "contentSourceList": ["NDC"],
+                    "PassengerCriteria": [
+                      { "number": 1, "passengerTypeCode": "ADT" },
+                      { "number": 1, "passengerTypeCode": "CHD" },
+                      { "number": 1, "passengerTypeCode": "INF" },
+                    ],
+                    "SearchCriteriaFlight": [
+                      {
+                        "departureDate": dynamicDepTime,
+                        "From": { "value": dynamicCityCode }, 
+                        "To": { "value": dynamicDestinationCode },
+                      },
+                    ],
+                    "SearchModifiersAir": {
+                      "@type": "SearchModifiersAir",
+                      "CarrierPreference": [
+                        {
+                          "preferenceType": "Preferred",
+                          "carriers": ["AI"],
+                        },
+                      ],
+                    },
+                  },
+                },
+              };
+            //   console.log('requestbody', requestBody);
+            let token;
+            try {
+                token = getAccessToken(); // Call your token function
+                // console.log('token', token);
+            } catch (error) {
+                console.error("Error fetching token:", error.message);
+                return;
+            }
+            const ndcheaders = {
+            "Content-Type": "application/json",
+            "Authorization": `${token}`,
+            "XAUTH_TRAVELPORT_ACCESSGROUP": XAUTH_TRAVELPORT_ACCESSGROUP, // Replace with actual header names and values
+            "Accept-Version": Accept_Version,
+            "Content-Version": Content_Version,
+            };
+            const endpoint = `https://cors-anywhere.herokuapp.com/${baseURL}/${version}/air/catalog/search/catalogproductofferings`;
+            const ndcresponse = await fetch(endpoint, {
+                method: "POST",
+                headers: ndcheaders,
+                body: JSON.stringify(requestBody),
+              });
+            console.log('ndcresponse', ndcresponse);
+            
             const responseData = {
                 responsedata :response.data,
                 // tboresponse :tboresponse.data, 
@@ -967,7 +1030,7 @@ return (
                                 }}>Please select valid Origin</div>
                                 </div>
                                 <button type="button" className='swapbuttonn' onClick={swapOriginAndDestination}>
-                                <img src='/img/swap.png' width={'16px'} />
+                                <img src='/img/swapcircle.svg' width={'25px'} />
                                 </button>
 
 
