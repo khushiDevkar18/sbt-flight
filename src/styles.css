@@ -2130,6 +2130,13 @@ button.srch-btn {
 min-height: 34px;
 }
 
+.custom-datepicker {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+
+}
+ 
+
 .input-a input[type='text'] {
   width: 100%;
   border: 0px;
@@ -4739,7 +4746,7 @@ nav ul li {
 
 .flight-line-a b {
   font-size: 15px;
-  color: #848484;
+  color: black;
   text-transform: uppercase;
   font-family: 'Montserrat';
   font-weight: 600;
@@ -17389,17 +17396,17 @@ input:checked+.slider:before {
 
 .selectcontainer .optionsflights {
   margin: 1% 1%;
-  padding: 10px 15px;
+  padding: 7px 15px;
   font-size: 12px;
   cursor: pointer;
-  width: 22%;
+  width: 23%;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 5px;
   background: white;
   border: 1px solid #e0e0e0;
   /* border-radius: 10px; */
   position: relative; /* Needed for positioning the button */
   display: flex;
-  flex-direction: column;
+  /* flex-direction: column; */
   justify-content: space-between;
   transition: box-shadow 0.2s ease;
 }
@@ -17452,7 +17459,7 @@ input:checked+.slider:before {
   margin: 0px;
   padding: 2px;
   font-family: 'Montserrat';
-  font-size: 9px;
+  font-size: 10px;
   font-weight: normal;
   /* border: 1px solid #785eff; */
   /* background-color: grey; */
@@ -17487,7 +17494,7 @@ input:checked+.slider:before {
   font-weight: 450;
   padding: 15px;
   width: 80%; 
-  max-width: 400px; 
+  max-width: 450px; 
   border-radius: 4px; 
   border: 2px solid black;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
@@ -18861,7 +18868,7 @@ ul.dropdown-menu li a:hover {
 }
 
 .share-btn {
-  background: linear-gradient(to right, rgb(120, 94, 255), rgb(180, 74, 203));
+  background: #785eff;
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -18920,6 +18927,7 @@ header.search-bar {
   /* justify-content: space-between; */
   flex-wrap: wrap; /* Wrap on smaller screens */
   gap: 5px;
+  /* margin-left: '9%'; */
 }
 
 .hsw_inputBox {
@@ -18943,8 +18951,9 @@ header.search-bar {
 .lbl_input {
   color: white; /* Light Blue for Labels */
   font-size: 12px;
-  font-weight: bold;
+  /* font-weight: bold; */
   margin-bottom: 5px;
+  font-weight: 600;
 }
 
 .hsw_inputField {
@@ -19479,4 +19488,5 @@ button#search-button:hover {
   font-size: 10px;
   color: #7a7a7a;
 }
+
 

@@ -343,25 +343,37 @@ function Home() {
         handleReturnDateInitialization(value);
     };
 
-    const handleDepartureDateChange = (date) => {
-        setdepIsOpen(false);
-        if(formData.returnDate){
-            setFormData({ ...formData, departureDate: date, returnDate: date });
-        }else{
-            setFormData({ ...formData, departureDate: date });
-        }
-        // setReturnEnabled(true);
+    // const handleDepartureDateChange = (date) => {
+    //     setdepIsOpen(false);
+    //     if(formData.returnDate){
+    //         setFormData({ ...formData, departureDate: date, returnDate: date });
+    //     }else{
+    //         setFormData({ ...formData, departureDate: date });
+    //     }
+    //     // setReturnEnabled(true);
+    // };
+    const handleDepartureDateChange = (date) => { 
+        setFormData((prev) => ({
+            ...prev,
+            departureDate: date,
+            ...(prev.returnDate && { returnDate: date }), // Update return date only if it exists
+        }));
+        setTimeout(() => {
+            setdepIsOpen(false); // Delay to ensure DatePicker processes the update
+        }, 0); // Add timeout to force re-render after updating state
     };
-    
 
     const handleReturnDateChange = (date) => {
-        setretIsOpen(false);
-        setFormData({ 
-            ...formData, 
+        // Close the date picker after selection with a delay
+        setTimeout(() => {
+            setretIsOpen(false);
+        }, 0); // Delay of 200ms to allow for the selection to register
+    
+        setFormData({
+            ...formData,
             returnDate: date,
-            bookingType: 'Return' 
+            bookingType: 'Return',
         });
-
     };
 
     const navigate = useNavigate();
@@ -430,37 +442,35 @@ function Home() {
         }
     };
 
-    function getAccessToken() {
+    async function getAccessToken() {
         const tokenKey = 'ndc_access_token';
         const expirationKey = 'ndc_token_expiration';
-      
         const now = Date.now();
+      
         const storedToken = localStorage.getItem(tokenKey);
         const storedExpiration = localStorage.getItem(expirationKey);
-
+      
+        // Use cached token if it's valid
         if (storedToken && storedExpiration && now < Number(storedExpiration)) {
-          return storedToken; // Return valid token
+        //   console.log('Using cached token');
+          return storedToken;
         }
-
-        const url = 'https://cors-anywhere.herokuapp.com/http://oauth.pp.travelport.com/oauth/oauth20/token';
-        const credentials = {
-          grant_type: 'password',
-          client_id: 'travelportAPI-3aE4IEx0DDM51dltT45Ab15f',
-          client_secret: 'e80c89f8cd9fba2fbd9629091f5f403e1e6162e8',
-          username: 'TP80632436',
-          password: 'aek7gNOb',
-          scope: 'openid',
-        };
-
-        const body = new URLSearchParams(credentials).toString();
       
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', url, false); 
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.send(body);
+        const url = 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeNDCAuthenticationApiRequest';
       
-        if (xhr.status === 200) {
-          const data = JSON.parse(xhr.responseText);
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          });
+      
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+      
+          const data = await response.json();
           const token = data.access_token;
           const expirationTime = now + 24 * 60 * 60 * 1000; // 24 hours validity
       
@@ -468,12 +478,14 @@ function Home() {
           localStorage.setItem(tokenKey, token);
           localStorage.setItem(expirationKey, expirationTime.toString());
       
+        //   console.log('Access token fetched successfully:', token);
           return token;
-        } else {
-          console.error(`Failed to fetch token: ${xhr.statusText}`);
-          throw new Error('Unable to fetch access token');
+        } catch (error) {
+          console.error('Failed to fetch access token:', error.message);
+          throw error;
         }
       }
+      
     //   getAccessToken();
 
     const handleSubmit = async (event) => {
@@ -734,30 +746,30 @@ function Home() {
             //   console.log('requestbody', requestBody);
             let token;
             try {
-                token = getAccessToken(); // Call your token function
+                token = await getAccessToken(); // Call your token function
                 // console.log('token', token);
             } catch (error) {
                 console.error("Error fetching token:", error.message);
                 return;
             }
-            const ndcheaders = {
-            "Content-Type": "application/json",
-            "Authorization": `${token}`,
-            "XAUTH_TRAVELPORT_ACCESSGROUP": XAUTH_TRAVELPORT_ACCESSGROUP, // Replace with actual header names and values
-            "Accept-Version": Accept_Version,
-            "Content-Version": Content_Version,
-            };
-            const endpoint = `https://cors-anywhere.herokuapp.com/${baseURL}/${version}/air/catalog/search/catalogproductofferings`;
-            const ndcresponse = await fetch(endpoint, {
-                method: "POST",
-                headers: ndcheaders,
-                body: JSON.stringify(requestBody),
-              });
-            console.log('ndcresponse', ndcresponse);
+            const apiUrl = `https://${baseURL}/${version}/air/catalog/search/catalogproductofferings`;
+            const requestData = JSON.stringify(requestBody);
+                const formBody = {
+                    url: apiUrl,
+                    requestData: requestData,
+                    token: token
+                  };
+        
+            // Send the POST request
+            // const ndcresponse = await axios.post(
+            //     "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeNDCApiRequest",
+            //     formBody
+            // );
+            // console.log('ndcresponse', ndcresponse);
             
             const responseData = {
                 responsedata :response.data,
-                // tboresponse :tboresponse.data, 
+                // ndcresponse :ndcresponse.data, 
                 searchfromcity :searchfrom,
                 searchtocity :searchto,
                 searchdeparture:searchdeparture,
@@ -770,6 +782,7 @@ function Home() {
                 selectclass:cabinclass,
                 bookingtype :bookingtype,
                 apiairportsdata:apiairports,
+                requesttype: 'book',
                 fromcotrav: '1',
             };
             console.log('responsedata', responseData);
@@ -929,19 +942,33 @@ return (
                                                 // original={inputOrigin}
                                                 value={inputOrigin} // Display only the city name
                                                 onChange={(e) => {
-                                                    handleOriginChange(e.target.value);
+                                                    const value = e.target.value;
+                                                    handleOriginChange(value);
                                                     setShowOriginDropdown(true); // Show dropdown when typing or emptying the field
+
+                                                    // Hide error if value is not empty
+                                                    const errorElement = document.querySelector('.redorigin');
+                                                    if (value.trim() !== '') {
+                                                        errorElement.style.display = 'none';
+                                                    } else {
+                                                        errorElement.style.display = 'block';
+                                                    }
                                                 }}
                                                 placeholder="Enter city"
                                                 onFocus={() => setShowOriginDropdown(true)} // Show dropdown when focused
-                                                onBlur={() => {
-                                                    // Delay hiding to allow click events to register on dropdown items
+                                                onBlur={(e) => {
+                                                    // Validate input on blur
+                                                    const value = e.target.value;
+                                                    const errorElement = document.querySelector('.redorigin');
+                                                    if (value.trim() !== '') {
+                                                        errorElement.style.display = 'none';
+                                                    } else {
+                                                        errorElement.style.display = 'block';
+                                                    }
+                                                    // Delay hiding dropdown to allow click on options
                                                     setTimeout(() => setShowOriginDropdown(false), 200);
                                                 }}
                                             />
-                                            {/* Dropdown */}
-                                            
-                                            {/* Static airport name */}
                                             <div className="airport-name">
                                                 {inputOrigin.split(')').slice(1).join(')').trim()} {/* Display everything after the city */}
                                             </div>
@@ -968,56 +995,6 @@ return (
                                     </div>
                                 </div>
 
-                                {/* <div className="location-info">
-                                    <div className="input-a" style={{ border:'none', boxShadow:'none'}}>
-                                
-                                    <input
-                                        type="text"
-                                        placeholder="Search..."
-                                        id="searchfrom"
-                                        className="text_input"
-                                        name="searchfrom"
-                                        value={inputOrigin}
-                                        onChange={(e) => handleOriginChange(e.target.value)}
-                                    />
-
-                                    {showOriginDropdown && (
-                                        <ul style={{
-                                            position: 'absolute',
-                                            top: '100%',
-                                            marginLeft: '-8px',
-                                            borderRadius: '3px',
-                                            backgroundColor: '#fff',
-                                            paddingLeft: '6px',
-                                            width: '100%',
-                                            border: '1px solid #e3e3e3',
-                                            listStyle: 'none',
-                                            width: '100%',
-                                            zIndex: '9999',
-                                            maxHeight: '150px',
-                                            minHeight: 'auto',
-                                            overflow: 'auto'
-                                        }}>
-                                            {origin.map((option) => (
-                                                <li style={{
-                                                    cursor: 'pointer',
-                                                    fontFamily: 'Montserrat',
-                                                    color: '#4c4c4c',
-                                                    fontSize: '10px',
-                                                    paddingTop: '5px',
-                                                    paddingBottom: '5px',
-                                                    paddingRight: '5px'
-                                                }} key={option.value} onClick={() => handleOrigin(option.value,option.airportName)}>
-                                                    {option.label} ({option.value}) <br/>
-                                                    {option.airportName}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
-
-
-                                </div>
-                                </div> */}
                                 <div className="redorigin" style={{
                                     color: 'red',
                                     fontsize: '10px',
@@ -1036,108 +1013,73 @@ return (
 
 
                                 <div className="form-groupp" >
-                                
-                                
-                               
-                                {/* <label htmlFor="to">To</label> 
-                                <div className="location-info"> 
-                                 <div className="input-a" style={{ border:'none', boxShadow:'none', background:'transparent'}}>
-                                        <input
-                                            type="text"
-                                            placeholder="Search..."
-                                            id="searchto" className="text_input" name="searchto"
-                                            value={inputDestination}
-                                            style={{ width: '100%', textAlign:'center', height: '100%', border: 'none', outline: 'none' }}
-                                            onChange={(e) => handleDestinationChange(e.target.value)}
-                                        />
 
-                                        {showDestinationDropdown && (
-                                            <ul style={{
-                                                position: 'absolute',
-                                                top: '100%',
-                                                marginLeft: '-8px',
-                                                borderRadius: '3px',
-                                                backgroundColor: '#fff',
-                                                paddingLeft: '6px',
-                                                width: '100%',
-                                                border: '1px solid #e3e3e3',
-                                                listStyle: 'none',
-                                                width: '100%',
-                                                zIndex: '9999',
-                                                maxHeight: '150px',
-                                                minHeight: 'auto',
-                                                overflow: 'auto'
-                                            }}>
-                                                {destination.map((option) => (
-                                                    <li style={{
-                                                        cursor: 'pointer',
-                                                        fontFamily: 'Montserrat',
-                                                        color: '#4c4c4c',
-                                                        fontSize: '10px',
-                                                        paddingTop: '5px',
-                                                        paddingBottom: '5px',
-                                                        paddingRight: '5px'
-                                                    }} key={option.value} onClick={() => handleDestination(option.value,option.airportName)}>
-                                                        {option.label} ({option.value}) <br/>
-                                                        {option.airportName}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-
-                                    </div> */}
                                     <div className="location-info">
-    <div className="input-a" style={{ border: 'none', boxShadow: 'none' }}>
-        <div className="location-header">TO</div>
-        <div className="location-details" style={{ position: 'relative' }}>
-            {/* Editable city name */}
-            <input
-                type="text"
-                placeholder="Enter city"
-                id="searchto"
-                className="city-name-input"
-                name="searchto"
-                value={inputDestination} // Display only the city name  .split('(')[0].trim()
-                onChange={(e) => {
-                    handleDestinationChange(e.target.value);
-                    setShowDestinationDropdown(true); // Show dropdown when typing or emptying the field
-                }}
-                onFocus={() => setShowDestinationDropdown(true)} // Show dropdown when focused
-                onBlur={() => {
-                    // Delay hiding to allow click events to register on dropdown items
-                    setTimeout(() => setShowDestinationDropdown(false), 200);
-                }}
-                // style={{ width: '100%', textAlign: 'center', height: '100%', border: 'none', outline: 'none' }}
-            />
-            {/* Dropdown */}
-            
-            {/* Static airport name */}
-            <div className="airport-name">
-                {inputDestination.split(')').slice(1).join(')').trim()} {/* Display everything after the city */}
-            </div>
-            {showDestinationDropdown && (
-                <ul className="dropdown">
-                    {destination.map((option) => (
-                        <li
-                            className="dropdown-item"
-                            key={option.value}
-                            onMouseDown={() => {
-                                handleDestination(option.value, option.airportName);
-                                setShowDestinationDropdown(false); // Hide dropdown after selecting an option
-                            }}
-                        >
-                            {option.label} ({option.value}) <br />
-                            <span className="airport-name">{option.airportName}</span>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
-    </div>
-    </div>
-                                    
-                                    
+                                        <div className="input-a" style={{ border: 'none', boxShadow: 'none' }}>
+                                            <div className="location-header">TO</div>
+                                            <div className="location-details" style={{ position: 'relative' }}>
+                                                {/* Editable city name */}
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter city"
+                                                    id="searchto"
+                                                    className="city-name-input"
+                                                    name="searchto"
+                                                    value={inputDestination} // Display only the city name  .split('(')[0].trim()
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        handleDestinationChange(value);
+                                                        setShowDestinationDropdown(true); // Show dropdown when typing or emptying the field
 
+                                                        // Hide error if value is not empty
+                                                        const errorElement = document.querySelector('.redestination');
+                                                        if (value.trim() !== '') {
+                                                            errorElement.style.display = 'none';
+                                                        } else {
+                                                            errorElement.style.display = 'block';
+                                                        }
+                                                    }}
+                                                    onFocus={() => setShowDestinationDropdown(true)}
+                                                    onBlur={(e) => {
+                                                        // Validate input on blur
+                                                        const value = e.target.value;
+                                                        const errorElement = document.querySelector('.redestination');
+                                                        if (value.trim() !== '') {
+                                                            errorElement.style.display = 'none';
+                                                        } else {
+                                                            errorElement.style.display = 'block';
+                                                        }
+                                                        // Delay hiding dropdown to allow click on options
+                                                        setTimeout(() => setShowDestinationDropdown(false), 200);
+                                                    }}
+                                                    // style={{ width: '100%', textAlign: 'center', height: '100%', border: 'none', outline: 'none' }}
+                                                />
+                                                {/* Dropdown */}
+                                                
+                                                {/* Static airport name */}
+                                                <div className="airport-name">
+                                                    {inputDestination.split(')').slice(1).join(')').trim()} {/* Display everything after the city */}
+                                                </div>
+                                                {showDestinationDropdown && (
+                                                    <ul className="dropdown">
+                                                        {destination.map((option) => (
+                                                            <li
+                                                                className="dropdown-item"
+                                                                key={option.value}
+                                                                onMouseDown={() => {
+                                                                    handleDestination(option.value, option.airportName);
+                                                                    setShowDestinationDropdown(false); // Hide dropdown after selecting an option
+                                                                }}
+                                                            >
+                                                                {option.label} ({option.value}) <br />
+                                                                <span className="airport-name">{option.airportName}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+                                        </div>
                                     <div className="redestination" style={{
                                         color: 'red',
                                         fontsize: '10px',
@@ -1153,7 +1095,8 @@ return (
                                 </div>
 
                                 <div className="form-groupp srch-tab-left">
-                                <label htmlFor="departureDate">Departure</label>
+                                {/* <label htmlFor="departureDate">Departure</label> */}
+                                <div className="location-header" style={{ paddingLeft:'12px', paddingTop:'6px'}}>Departure</div>
                                 {/* <div className="react-datepicker__month-container">
                                     <input
                                     type="date"
@@ -1163,16 +1106,18 @@ return (
                                     />
 
                                 </div> */}
-                                <div className="input-a" style={{ border:'none', boxShadow:'none'}} onClick={() => setdepIsOpen(true)}>
+                                <div className="input-a" style={{ border:'none', boxShadow:'none', paddingLeft:'12px'}} onClick={() => setdepIsOpen(true)}>
                                     <DatePicker
                                         name="searchdeparture"
                                         selected={formData.departureDate}
-                                        onChange={handleDepartureDateChange}
+                                        // onChange={handleDepartureDateChange}
                                         dateFormat="dd/MM/yyyy"
                                         minDate={new Date()}
                                         value={formData.departureDate}
                                         open={isdepOpen}
-                                        
+                                        onChange={(date) => {
+            handleDepartureDateChange(date); // Update date and close calendar
+        }}
                                         onClickOutside={() => setdepIsOpen(false)}
                                     />
                                     <span className="date-icon" onClick={(e) => {e.stopPropagation(); setdepIsOpen(true)}}></span>
@@ -1196,8 +1141,9 @@ return (
                                 </div>
 
                                 <div className="form-groupp srch-tab-right" id="departurereturn">
-                                <label htmlFor="returnDate">Return</label>
-                                <div className="input-a" style={{ border:'none', boxShadow:'none'}} onClick={formData.bookingType === "Return" ? () => setretIsOpen(true) : () => () => setretIsOpen(false)}>
+                                {/* <label htmlFor="returnDate">Return</label> */}
+                                <div className="location-header" style={{ paddingLeft:'12px', paddingTop:'6px'}}>Return</div>
+                                <div className="input-a" style={{ border:'none', boxShadow:'none', paddingLeft:'12px'}} onClick={formData.bookingType === "Return" ? () => setretIsOpen(true) : () => () => setretIsOpen(false)}>
                                     <DatePicker
                                     name="searchreturnDate"
                                     selected={formData.returnDate}
@@ -1239,8 +1185,9 @@ return (
                                 </div>
 
                                 <div className="form-groupp srch-tab-line no-margin-bottom">
-                                    <label htmlFor="travellers">Travellers & Class</label>
-                                    <div className="input-a" style={{ border:'none', boxShadow:'none'}}>
+                                    {/* <label htmlFor="travellers">Travellers & Class</label> */}
+                                    <div className="location-header" style={{ paddingLeft:'12px', paddingTop:'6px'}}>Travellers & Class</div>
+                                    <div className="input-a" style={{ border:'none', boxShadow:'none', paddingLeft:'12px'}}>
                                         <input
                                             type="text"
                                             id="openpassengermodal"

@@ -29,7 +29,7 @@ const Booking = () => {
     const location = useLocation();
     const [loading, setLoading] = useState(false);
     const formtaxivaxi = location.state && location.state.serviceData.formtaxivaxi;
-    // console.log('form', formtaxivaxi);
+    const bookingid = location.state && location.state.serviceData.booking_id;
     let returns=0;
     if(formtaxivaxi){
         returns = formtaxivaxi['trip_type'] === "Round Trip" ? 1 : 0; 
@@ -44,10 +44,10 @@ const Booking = () => {
     const Airlines = location.state && location.state.serviceData.Airlines;
     const hostTokenParse = location.state && location.state.serviceData.hostToken;
     const Passengerarray = location.state && location.state.serviceData.Passengerarray;
-    // console.log('Passengerarray', Passengerarray);
     const [passengereventKeys, setPassengerkey] = useState(Passengerarray[0]['Key']);
     const classType = location.state && location.state.serviceData.classtype;
     const [accordion1Expanded, setAccordion1Expanded] = useState(true);
+    const [accordion5Expanded, setAccordion5Expanded] = useState(false);
     const [flightErrors, setFlighterrors] = useState([]);
     const [accordion2Expanded, setAccordion2Expanded] = useState(false);
     const [accordion3Expanded, setAccordion3Expanded] = useState(false);
@@ -82,18 +82,10 @@ const Booking = () => {
         });
     }
     // console.log(mergedData);
-    // const employees=[];
-    // for (let i = 1; i <= 9; i++) {
-    //     const id = formtaxivaxi[`passengerDetailsArray_${i}_id`] || formtaxivaxi[`employee_${i}_id_new`] || formtaxivaxi[`employee_${i}_id_old`];
-    //     if (id) {
-    //         employees.push(id);
-    //     }
-    // }
     const employees = Object.keys(formtaxivaxi)
-        .filter(key => key.startsWith("passengerDetailsArray") && key.endsWith("[id]")) // Find all "[id]" keys
-        .map(key => formtaxivaxi[key]); // Extract their values
+    .filter(key => key.startsWith("passengerDetailsArray") && key.endsWith("[id]")) // Find all "[id]" keys
+    .map(key => formtaxivaxi[key]); 
 
-    // console.log('emp',employees);
     const hasNonEmptyProperties = (obj) => {
         for (let key in obj) {
             if (obj.hasOwnProperty(key) && obj[key] !== null && obj[key] !== undefined && obj[key] !== '') {
@@ -125,32 +117,24 @@ const Booking = () => {
             });
     
             if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.status}`);
+                throw new Error('Network response was not ok');
             }
     
-            // Parse JSON data
             const responseData = await response.json();
-            console.log('Parsed response data:', responseData); // Debugging step
-    
-            const data = responseData.result;
+             const data = responseData.result;
             const organizedData = {};
     
             // Organize the response data
             data.forEach((emp, index) => {
                 organizedData[index] = emp;
             });
-            
-            console.log('Organized data:', organizedData); // Debugging step
             setEmptaxivaxi(organizedData);
         } catch (error) {
             console.error('Error fetching employee data:', error);
         }
     };
     
-    
-    
-    
-    console.log('emptaxivaxi',emptaxivaxi);
+    // console.log(emptaxivaxi);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const openModal = () => {
@@ -448,7 +432,7 @@ const Booking = () => {
         return true;
     };
     const handleCompleteBooking = async (event) => {
-        console.log('formhandelcomplete', event);
+        // console.log('formhandelcomplete', event);
         event.preventDefault();
         
             let isValidpassenger = true;
@@ -972,7 +956,7 @@ const Booking = () => {
                 // console.log('modify', modifiedXmlString);
                 // alert("modify", modifiedXmlString);
                     try {
-                        const reservationresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', modifiedXmlString, {
+                        const reservationresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', modifiedXmlString, {
                             headers: {
                                 'Content-Type': 'text/xml',
                                 'Authorization': authHeader,
@@ -1119,7 +1103,7 @@ const Booking = () => {
                                 });
                                 // console.log(TicketXML);
                                 try {
-                                    const ticketresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', TicketXML, {
+                                    const ticketresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', TicketXML, {
                                         headers: {
                                             'Content-Type': 'text/xml',
                                             'Authorization': authHeader,
@@ -1247,7 +1231,7 @@ const Booking = () => {
                                     });
                                     // console.log(MerchandisingrequestXML1);
                                     try {
-                                        const Merchandisingresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', MerchandisingrequestXML1, {
+                                        const Merchandisingresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', MerchandisingrequestXML1, {
                                             headers: {
                                                 'Content-Type': 'text/xml',
                                                 'Authorization': authHeader,
@@ -1322,7 +1306,7 @@ const Booking = () => {
                                     
                                     
                                     try {
-                                        const Merchandisingresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', MerchandisingrequestXML2, {
+                                        const Merchandisingresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', MerchandisingrequestXML2, {
                                             headers: {
                                                 'Content-Type': 'text/xml',
                                                 'Authorization': authHeader,
@@ -1477,12 +1461,12 @@ const Booking = () => {
             const passengerDetailssString = JSON.stringify(passengerDetailss);
             sessionStorage.setItem('passengerDetailss', passengerDetailssString);
             const passengerAges = passengerAgeNames.map(calculateAge);
-            const capitalizeFirstLetter = (str) => {
-                return str.replace(/\b\w/g, (char) => char.toUpperCase());
-              };
+            // const capitalizeFirstLetter = (str) => {
+            //     return str.replace(/\b\w/g, (char) => char.toUpperCase());
+            //   };
               const formattedDetails = passengerDetails.keys.map((key, index) => {
-                const firstName = capitalizeFirstLetter(passengerFirstNames[index]);
-                const lastName = capitalizeFirstLetter(passengerLastNames[index]);
+                const firstName = passengerFirstNames[index];
+                const lastName = passengerLastNames[index];
                 return `
                     Passenger ${index + 1}:
                     ${firstName} ${lastName}
@@ -1557,13 +1541,14 @@ const Booking = () => {
                             });
                             
                             try {
-                                const seatresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', seatMapRequestXML, {
+                                const seatresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', seatMapRequestXML, {
                                     headers: {
                                         'Content-Type': 'text/xml',
                                         'Authorization': authHeader,
                                     },
                                 });
                                 const seatResponse = seatresponse.data;
+                                // console.log('seatResponse',seatResponse);
                                 
                                 parseString(seatResponse, { explicitArray: false }, (err, seatresult) => {
                                 if (err) {
@@ -1621,6 +1606,7 @@ const Booking = () => {
                         'Please confirm details',
                         setAccordion1Expanded(true),
                         setAccordion2Expanded(true),
+                        setAccordion5Expanded(true),
                     );
                     }
             });
@@ -1707,8 +1693,15 @@ const Booking = () => {
         const {isValid, updatepassengerarray } = validateSavePassenger(Passengerarray);
         if (isValid) {
             setAccordion1Expanded(false);
-            setAccordion2Expanded(true);
+            setAccordion5Expanded(true);
         }
+    };
+    const handleSavePassenger2 = () => {
+        // const {isValid, updatepassengerarray } = validateSavePassenger(Passengerarray);
+        // if (isValid) {
+            setAccordion5Expanded(false);
+            setAccordion2Expanded(true);
+        // }
     };
     
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -1828,7 +1821,7 @@ const Booking = () => {
                 const password = 'N-k29Z}my5';
                 const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
         
-                const eresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
+                const eresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', soapEnvelope, {
                     headers: {
                         'Content-Type': 'text/xml',
                         'Authorization': authHeader,
@@ -2070,7 +2063,7 @@ const Booking = () => {
                                 });
                                 
                                 try {
-                                    const priceresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', pricepointXML, {
+                                    const priceresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', pricepointXML, {
                                         headers: {
                                             'Content-Type': 'text/xml',
                                             'Authorization': authHeader,
@@ -2214,7 +2207,7 @@ const Booking = () => {
                                             });
                                             
                                             try {
-                                                const serviceresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', servicerequestXML, {
+                                                const serviceresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', servicerequestXML, {
                                                     headers: {
                                                         'Content-Type': 'text/xml',
                                                         'Authorization': authHeader,
@@ -2240,7 +2233,7 @@ const Booking = () => {
                                                 // console.log(segmentParse);
                                                 // console.log(HostToken);
                                                 const passengerDetailss = JSON.parse(sessionStorage.getItem('passengerDetailss'));
-                                                console.log(passengerDetailss);
+                                                // console.log(passengerDetailss);
 
                                                 const makeSeatRequest = async () => {
                                                     const username = 'Universal API/uAPI8645980109-af7494fa';
@@ -2293,7 +2286,7 @@ const Booking = () => {
                                                     });
                                                     
                                                     try {
-                                                        const seatresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', seatMapRequestXML, {
+                                                        const seatresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', seatMapRequestXML, {
                                                             headers: {
                                                                 'Content-Type': 'text/xml',
                                                                 'Authorization': authHeader,
@@ -4046,7 +4039,6 @@ const Booking = () => {
                                                                 
                                                                 <div className="" id="">
                                                                     {Passengerarray && Passengerarray.map((passengerinfo, passengerindex) => (
-                                                                        
                                                                         <div key={passengerindex}>
                                                                             <div id="totalPassenger" data-totalpassenger={1} />
                                                                             <input type="hidden" name="passengerkey[]" value={passengerinfo.Key} />
@@ -4062,7 +4054,11 @@ const Booking = () => {
                                                                                             type="text"
                                                                                             name="adult_first_name[]"
                                                                                             onKeyPress={handleKeyPress}
-                                                                                            data-index={passengerindex}
+                                                                                            data-index={passengerindex} 
+                                                                                            readOnly={bookingid}
+                                                                                            // defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
+                                                                                            //     emptaxivaxi[passengerindex]['people_name'].split(' ')[0].trim()
+                                                                                            // }
                                                                                             Value={
                                                                                                 emptaxivaxi[passengerindex]?.people_name
                                                                                                     ? (() => {
@@ -4073,9 +4069,6 @@ const Booking = () => {
                                                                                                     })()
                                                                                                     : 'NA'
                                                                                                 }
-                                                                                            // defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
-                                                                                            //     emptaxivaxi[passengerindex]['people_name'].split(' ')[1].trim()
-                                                                                            // }
                                                                                         />
                                                                                     </div>
                                                                                     <span className="error-message adult_first_name-message" data-index={passengerindex} style={{display: "none", color: "red", fontWeight: "normal"}}>
@@ -4090,6 +4083,12 @@ const Booking = () => {
                                                                                             name="adult_last_name[]"
                                                                                             onKeyPress={handleKeyPress}
                                                                                             data-index={passengerindex}
+                                                                                            readOnly={bookingid}
+                                                                                            // defaultValue={
+                                                                                            //     emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
+                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ')[1] ?
+                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ').slice(1).join(' ').trim() : 'NA'
+                                                                                            // }
                                                                                             Value={
                                                                                                 emptaxivaxi[passengerindex]?.people_name
                                                                                                     ? (() => {
@@ -4101,11 +4100,6 @@ const Booking = () => {
                                                                                                     })()
                                                                                                     : 'NA' // If no name exists, return 'NA'
                                                                                                 }
-                                                                                            // defaultValue={
-                                                                                            //     emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
-                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ')[1] ?
-                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ').slice(1).join(' ').trim() : 'NA'
-                                                                                            // }
                                                                                         />
                                                                                     </div>
                                                                                     <span className="error-message adult_last_name-message" data-index={passengerindex} style={{display: "none", color: "red", fontWeight: "normal"}}>
@@ -4123,6 +4117,7 @@ const Booking = () => {
                                                                                             name="adult_age[]"
                                                                                             max={maxDate}
                                                                                             data-index={passengerindex}
+                                                                                            readOnly={bookingid}
                                                                                             defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['date_of_birth'] &&
                                                                                                 emptaxivaxi[passengerindex]['date_of_birth']
                                                                                             }
@@ -4147,6 +4142,7 @@ const Booking = () => {
                                                                                         <select
                                                                                             className="custom-select1"
                                                                                             name="adult_gender[]"
+                                                                                            // disabled={bookingid}
                                                                                             style={{
                                                                                                 padding: "6px 10px 6px 10px",
                                                                                                 width: "100%",
@@ -4158,6 +4154,7 @@ const Booking = () => {
                                                                                                 fontSize: 11
                                                                                             }}
                                                                                             data-index={passengerindex}
+                                                                                            readOnly={bookingid}
                                                                                             defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male" ? 'M' : 'F'}
                                                                                         >
                                                                                             <option value="M" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male"}>Male</option>
@@ -4188,6 +4185,96 @@ const Booking = () => {
                                                                 </AccordionActions>
                                                             </Accordion>
                                                             <div className="booking-devider" />
+                                                            <Accordion defaultExpanded expanded={accordion5Expanded} onChange={(event, isExpanded) => setAccordion5Expanded(isExpanded)}>
+                                                                <AccordionSummary
+                                                                expandIcon={<ExpandMoreIcon />}
+                                                                aria-controls="panel1-content"
+                                                                id="panel1-header"
+                                                                className="accordion"
+                                                                >
+                                                                    <img
+                                                                        src="/img/taxivaxi/meal_seats/user_icon.svg"
+                                                                        width="15px"
+                                                                    />&nbsp;
+                                                                GST Details &nbsp;&nbsp;
+                                                                {/* <span className='govid'> Important: Enter name as mentioned on your passport or Government approved IDs.</span> */}
+                                                                </AccordionSummary>
+                                                                <AccordionDetails>
+                                                                
+                                                                <div className="" id="">
+                                                                <div
+                                                                                className="booking-form gstblock"
+                                                                                style={{
+                                                                                    marginLeft: 5,
+                                                                                    marginRight: 5,
+                                                                                    marginBottom: 0
+                                                                                }}
+                                                                            >
+                                                                                <div className="booking-form-i booking-form-i3">
+                                                                                    <label>Comapany Name</label>
+                                                                                    <div className="input">
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            name="company_gst_name"
+                                                                                            // defaultValue=""
+                                                                                            defaultValue={formtaxivaxi.client_name || ""} 
+                                                                                            placeholder=""
+                                                                                        />
+                                                                                    </div>
+                                                                                    <span
+                                                                                        className="error-message company_gst_name-message"
+                                                                                        style={{
+                                                                                            display: "none",
+                                                                                            color: "red",
+                                                                                            fontWeight: "normal"
+                                                                                        }}
+                                                                                    >
+                                                                                        Please enter Company Name.
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div className="booking-form-i booking-form-i3">
+                                                                                    <label>Registration Number</label>
+                                                                                    <div className="input">
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            name="gst_registration_no"
+                                                                                            placeholder=""
+                                                                                            value={gstRegistrationNo}
+                                                                                            onChange={(e) => setGstRegistrationNo(e.target.value)}
+                                                                                            onKeyPress={handleGstKeyPress}
+                                                                                        />
+                                                                                    </div>
+                                                                                    <span
+                                                                                        className="error-message gst_registration_no-message"
+                                                                                        style={{
+                                                                                            display: "none",
+                                                                                            color: "red",
+                                                                                            fontWeight: "normal"
+                                                                                        }}
+                                                                                    >
+                                                                                        Please enter Registration Number.
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="add-passenger">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    id="save-passenger-btn"
+                                                                                    className="passenger-submit"
+                                                                                    onClick={handleSavePassenger2} // Invoke the validation function on button click
+                                                                                >
+                                                                                    Save Details
+                                                                                </button>
+                                                                            </div>
+                                                                </div>
+                                                                
+                                                                </AccordionDetails>
+                                                                <AccordionActions>
+                                                                {/* <Button>Cancel</Button>
+                                                                <Button>Agree</Button> */}
+                                                                </AccordionActions>
+                                                            </Accordion>
+                                                            <div className="booking-devider" />
                                                             <Accordion expanded={accordion2Expanded} onChange={(event, isExpanded) => setAccordion2Expanded(isExpanded)}>
                                                                 <AccordionSummary
                                                                 expandIcon={<ExpandMoreIcon />}
@@ -4199,7 +4286,7 @@ const Booking = () => {
                                                                         src="img/taxivaxi/meal_seats/user_icon.svg"
                                                                         width="15px"
                                                                     />&nbsp;
-                                                                User details
+                                                                Address details
                                                                 </AccordionSummary>
                                                                 <AccordionDetails>
                                                                 
@@ -4218,8 +4305,9 @@ const Booking = () => {
                                                                                     <input
                                                                                         type="email"
                                                                                         name="email"
-                                                                                        defaultValue=""
+                                                                                        // defaultValue=""
                                                                                         placeholder=""
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['people_email'] &&
                                                                                             emptaxivaxi[0]['people_email']
                                                                                         }
@@ -4247,6 +4335,7 @@ const Booking = () => {
                                                                                         maxLength={10}
                                                                                         minLength={10}
                                                                                         placeholder=""
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['people_contact'] &&
                                                                                             emptaxivaxi[0]['people_contact']
                                                                                         }
@@ -4278,8 +4367,9 @@ const Booking = () => {
                                                                                     <input
                                                                                         type="text"
                                                                                         name="address"
-                                                                                        defaultValue=""
+                                                                                        // defaultValue=""
                                                                                         placeholder=""
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_address'] ?
                                                                                             emptaxivaxi[0]['home_address'] : 'BAI Infosolutons Pvt. LTD.'
                                                                                         }
@@ -4302,8 +4392,9 @@ const Booking = () => {
                                                                                     <input
                                                                                         type="text"
                                                                                         name="street"
-                                                                                        defaultValue=""
+                                                                                        // defaultValue=""
                                                                                         placeholder=""
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_address'] ?
                                                                                             emptaxivaxi[0]['home_address'] : 'Supreme HQ  Baner'
                                                                                         }
@@ -4335,9 +4426,10 @@ const Booking = () => {
                                                                                     <input
                                                                                         type="text"
                                                                                         name="city"
-                                                                                        defaultValue=""
+                                                                                        // defaultValue=""
                                                                                         placeholder=""
                                                                                         onKeyPress={handleKeyPress}
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_city'] ?
                                                                                             emptaxivaxi[0]['home_city'] : 'Pune'
                                                                                         }
@@ -4363,6 +4455,7 @@ const Booking = () => {
                                                                                         defaultValue=""
                                                                                         placeholder=""
                                                                                         onKeyPress={handleKeyPress}
+                                                                                        readOnly={bookingid}
                                                                                         
                                                                                     />
                                                                                 </div>
@@ -4392,11 +4485,12 @@ const Booking = () => {
                                                                                     <input
                                                                                         type="text"
                                                                                         name="postal_code"
-                                                                                        defaultValue=""
+                                                                                        // defaultValue=""
                                                                                         onKeyPress={handleNumberPress}
                                                                                         maxLength={6}
                                                                                         minLength={6}
                                                                                         placeholder=""
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_city'] ?
                                                                                             emptaxivaxi[0]['home_city'] : '411021'
                                                                                         }
@@ -4436,7 +4530,7 @@ const Booking = () => {
                                                                                 </span>
                                                                             </div>
                                                                         </div>
-                                                                        <div className="booking-form">
+                                                                        {/* <div className="booking-form">
                                                                             <div className="booking-form-i  booking-form-i3" style={{width:'100%',height:'30px',marginLeft:'1%'}}>
                                                                                 
                                                                                 <input type='checkbox' onChange={handleCheckboxChange} checked={isChecked} />
@@ -4445,8 +4539,8 @@ const Booking = () => {
                                                                                 </label>
                                                                             </div>
                                                                             
-                                                                        </div>
-                                                                        {isChecked && (
+                                                                        </div> */}
+                                                                        {/* {isChecked && (
                                                                             <div
                                                                                 className="booking-form gstblock"
                                                                                 style={{
@@ -4500,7 +4594,7 @@ const Booking = () => {
                                                                                     </span>
                                                                                 </div>
                                                                             </div>
-                                                                        )}
+                                                                        )} */}
                                                                         <div className="booking-form-append" />
                                                                             <div className="add-passenger">
                                                                                                                     <div
@@ -4541,6 +4635,7 @@ const Booking = () => {
                                                                             <button type="submit" className="save_details" >
                                                                                 Save Details
                                                                             </button>
+                                                                            
                                                                             {/* </Link> */}
                                                                         </div>
                                                                     </div>
@@ -4551,6 +4646,7 @@ const Booking = () => {
                                                                 <Button>Agree</Button> */}
                                                                 </AccordionActions>
                                                             </Accordion>
+                                                            
                                                             <div className="booking-devider" />
                                                             
                                                         </div>
