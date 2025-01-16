@@ -723,12 +723,13 @@ const handleSortingCriterionClick = (criteria) => {
           // local : https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService
           
           try {
+
             const priceresponse = await axios.post(
               'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
               pricepointXML, { headers: { 'Content-Type': 'text/xml'  }}
             );
               const priceResponse = priceresponse.data;
-              // console.log('resp', priceResponse);
+              console.log('priceresponse', pricepointXML);
               
               parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
                 if (err) {

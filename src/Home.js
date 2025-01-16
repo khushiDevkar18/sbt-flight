@@ -430,51 +430,84 @@ function Home() {
         }
     };
 
-    function getAccessToken() {
+    
+    async function getAccessToken() {
         const tokenKey = 'ndc_access_token';
         const expirationKey = 'ndc_token_expiration';
-      
+    
         const now = Date.now();
         const storedToken = localStorage.getItem(tokenKey);
         const storedExpiration = localStorage.getItem(expirationKey);
-
+    
         if (storedToken && storedExpiration && now < Number(storedExpiration)) {
-          return storedToken; // Return valid token
+            return storedToken; // Return valid token
         }
+    
+        try {
+            
+            // const response = await axios.post(
+            //     'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeNDCAuthenticationApiRequest',
+            //    '');
+            // console.log("makeNDCAuthenticationApiRequest", response.data); // Log actual response
 
-        const url = 'https://cors-anywhere.herokuapp.com/http://oauth.pp.travelport.com/oauth/oauth20/token';
-        const credentials = {
-          grant_type: 'password',
-          client_id: 'travelportAPI-3aE4IEx0DDM51dltT45Ab15f',
-          client_secret: 'e80c89f8cd9fba2fbd9629091f5f403e1e6162e8',
-          username: 'TP80632436',
-          password: 'aek7gNOb',
-          scope: 'openid',
-        };
 
-        const body = new URLSearchParams(credentials).toString();
-      
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', url, false); 
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.send(body);
-      
-        if (xhr.status === 200) {
-          const data = JSON.parse(xhr.responseText);
-          const token = data.access_token;
-          const expirationTime = now + 24 * 60 * 60 * 1000; // 24 hours validity
-      
-          // Store the token and expiration time in localStorage
-          localStorage.setItem(tokenKey, token);
-          localStorage.setItem(expirationKey, expirationTime.toString());
-      
-          return token;
-        } else {
-          console.error(`Failed to fetch token: ${xhr.statusText}`);
-          throw new Error('Unable to fetch access token');
+            const requestBody = {
+                "CatalogProductOfferingsQueryRequest": {
+                    "CatalogProductOfferingsRequest": {
+                        "@type": "CatalogProductOfferingsRequestAir",
+                        "maxNumberOfUpsellsToReturn": 4,
+                        "offersPerPage": 10,
+                        "contentSourceList": [
+                            "NDC"
+                        ],
+                        "PassengerCriteria": [
+                            {
+                                "number": 1,
+                                "passengerTypeCode": "ADT"
+                            }
+                        ],
+                        "SearchCriteriaFlight": [
+                            {
+                                "departureDate": "2025-01-20",
+                                "From": {
+                                    "value": "PNQ"
+                                },
+                                "To": {
+                                    "value": "DEL"
+                                }
+                            }
+                        ],
+                        "SearchModifiersAir": {
+                            "@type": "SearchModifiersAir",
+                            "CarrierPreference": [
+                                {
+                                    "preferenceType": "Preferred",
+                                    "carriers": ["AI"]
+                                }
+                            ]
+                        }
+                    }
+                }
+            };
+        
+            const endpoint = 'https://api.pp.travelport.com/11/air/catalog/search/catalogproductofferings';
+            const requestBdy = {
+                requestData: requestBody,
+                url: endpoint
+            };
+    
+            const searchResponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeNDCApiRequest', requestBdy);
+            
+            console.log("makeNDCApiResp", searchResponse);
+
+
+        } catch (error) {
+            console.error("Error fetching token:", error);
         }
-      }
-    //   getAccessToken();
+    }
+    
+    getAccessToken();
+    
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -732,29 +765,42 @@ function Home() {
                 },
               };
             //   console.log('requestbody', requestBody);
+            const endpoint = `${baseURL}/${version}/air/catalog/search/catalogproductofferings`; 
+            const requestBdy = {
+                request: requestBody,
+                endpoint: endpoint
+              };
+      
+                //   console.log('requestbody', requestBody);
             let token;
             try {
-                token = getAccessToken(); // Call your token function
+                token = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2IiwianRpIjoiZzNkdWZuM2R2Z2trIn0..yz7txHudCMQofMoY3vybzQ.Le_uUI7kQ2S9BMy5uoXKj1P-Oj77Qj8Bpo_vtF13Tbea9pmYnPIcA-kvsjIpfCTDuO7ixTUhkrey0gonh9wRL36v01JFCE-VPQfAkvYx0O9q8MJ10PEcpJGdJC7z96McMpapfP6J15D4YGUfC-8sTTo7-yAizv3541a6pLX1Wya-bFLhYaqNAVBDTiEtGxTxSawWD7Jw7z2mPeFKCPMEWJl646caUYmF4Phbn0MZ_qWUYKJ8sVijEP6zFl_uFoGa0eQpIQpXdMzeof8acJdw5MTS4RaL8Xidm8nfB-_kHOf3-GiqHrZtH8ZnqKLJtGDiVeacSKuKD_kUdb8Sdi2Nb-Wq7cxGiN0YaOTF2bd3Q8rjQG2gMF0BID2p_qeWoJ17pVDT4wGpKbJCZtrT4bA0FS5ymfLwJ0ko0KjxxDWeI5HkODblfw6GNDXLvx1ZPB9--Q2DwiHT2kea5FUc__aF8jSqzbWEyraB7HXrOk4qPZ679O81zJoE-qaaUe2REdD1BLaYOoyubV00vYxaqbdx9g2_JL3pInoQQ5vm8kmILUxE9EB0aPPuB8UrFGupV-FBrEqv_6e40IBE5dXAaEgV9zT9IbrQI-efYss90DNmOvfzSqZ2GxfqBLgcAXg6bkyL2zMLCplonruglATVYq9s7JMK9ATnKvsGvpa3DTp1Qx6Iny6VcOQEF8a7dkSlNy3At4_v4F3f54O4ehhudYTMwCOvi3OBCUI3fiRA4EUajwFYRXwv4Xlt8txfBEn4qJt6WhGMvWUTUstiUcZV3ijX2yFdTGOgQ-uc37dnoHaYmROETv8UUDSkVZeirt5DJP1a2Zs3bZ9dPz6uDcE8-81ZZBM6-V5kSgpjwGxhyxtI30P6wXBxKLS-uX1fFfFPe96HODZ3YGAV5TtI1LooiXAxuvcQ_kDN8UnyLUXo9HsdRDb6dYrhi6fVi4xFK_yODW5dMca9_zHcpWJ_K2C2FDCH0YGf09csgEqNu3Bh-L9nh_vyVX44ozgXKrEvAW1EzDShwsWQqyjHoqt0q5MoVfNJScHY8IYyRZKQUkK4jyzD04Hh4CnwJyzh8bmbnJkr8YqvmjFVQs6HeHaVvnM5wLHXFdhmk4hRvWcSHAMrFj4iy0KDgofsIWTFWgVF3ZFJ8j3W77plqHDSLpot9iYi-rZxVyvMYZTX_yHhGndq4t_xCFW8PKc6cB1hOSnHez3bZrNyadNu8RG2hQMo_oi06WnGJlqsbWIJVzQ-5ECPjccqAHzeqR1fh4btJc_Tjap0BkjRYReqSK6LndIuhCqzFroSv_JwNJh6vmH7Ctf1TijKY2MSCz1bL5Y6K9LzAWs__KnAhFuSJE9LvbKi7nHdylzx2ZSiGwacskbafXrjquiV6qML9lCaZIkFC2WDgSMMYWwKMH97hgUzmXoVBU2grSQw_Q4LpWOmnu2g0sjG2OJIqAjjsm4TycdqrPyB2H0j9UQveVSXdFUYs7HSNeU7OmH7yiGqXI45RrxyoW-cOz0mBJPtiYZ0cubNXH8led7YlKGHWmw3uJS_sX6t9TAOMo-IN3pUlVdlqHfjyrdeY0T6_tMrFueHLRMW2HkWmfYvt69yZNonglu8JzlDZeOzy9BIoopWvl2aGnQ3XYpSAGgjrB9junkPrOPi1szrnMQ9Rg3UypSwtVeWI9W9AU_qEeI-Mdv10rl6I7e9hEQubpAhFuePD7djTJfgJUHs6QtIOYlZYbTGTIUDVOnibRcNFI2Gy71oACyRlzL3N_bU1B5XwUX2vb6TTqrXT0Qu--H3deSR_CDfMiyIveM4HlKXdmQly97_DNAQOJo7TPo4Cr7sODmBtCxZoKR9ZImsAxvuqhGWDAQfzcXHlNEuJQDH0cwGmtrNWbCztUEMM8bM196CCbaKc-PYmziUk-Rxq1YzZQx6XDq0qTdCd85_FdkGtnT6Tl0V0_u8cNhmmvhX6fW3-KXNV75mbb3hVeUXbkXpmOMZcBJx8iyPj5RhyY6roN4j2JrvfdsXWkJXbZgq9Y7c7QuAsmaMKJpnfZ-HCTCJiKvfo5bx_K5o6x40vWVdg23KF2NJDlydOLaggJr2na5h9pxZRuWa-9i7jG2D2pNniVQ4ic10SJvDqvml2zJfEGYLcHTN-KgyWKFaMmSWG7tAoNkB--VIp4bfPaq22MufMgr-Vj9EJiE909ekESzq6xZr3L1wZrkMnX9iJFXavyx9CU3WBkaiP6C9_SNWaJxAnYHG937MbmgAi1zHZ57nMDcNQ7NtlgZh6l3ROZTSmnienSJVwCL3rIL_2HvqIvJ7UegeShoEpuvD1lLqY1QsG-IglU5sRxt-AjOYGabmZWrXn-TP2icJAKSc9E51gql-NwZ-rXkiqIL24OuaDvHKsI8ByYff6_4A2HHFcLjAWyoZGOjrCoLGFp-Hmam23VWaXql9x2jl8m6yBMhn_6ekCEHODhu1zIKBe35u7XF7UycW33tFFlwBMCGT6Hkcl5q33IIuvrHNsL2My430d2lDFEPftRdoiueJwbwxIDPn0axdMe7aI4BDwev2MU6q5yNpQJUcZkWv-psD9G9aGvT_SY8bKv6MwMpAJzLW-DVl6I_uyQ4TEm6gZlBg-t_N8C0670XYYQqKZc9mYcJBa9_7DLyo2sx1MPyl1VU4T5iARR6Sx7i_Az7d_HRLZMT2yTheD_nYJZP-d_urwdy8WBFBCTzvK9DwqnDKhiK_aXB7gNl990CrOPSSRtcWaEIwmxulGYprBdh18jHjiRgm2NyfGiZFgnlBLnWHwzNhqLjIK31aHd0.EY1-W8Ez0zeOXBoptAPjOg"; // Call your token function
                 // console.log('token', token);
             } catch (error) {
                 console.error("Error fetching token:", error.message);
                 return;
             }
             const ndcheaders = {
-            "Content-Type": "application/json",
-            "Authorization": `${token}`,
-            "XAUTH_TRAVELPORT_ACCESSGROUP": XAUTH_TRAVELPORT_ACCESSGROUP, // Replace with actual header names and values
-            "Accept-Version": Accept_Version,
-            "Content-Version": Content_Version,
-            };
-            const endpoint = `https://cors-anywhere.herokuapp.com/${baseURL}/${version}/air/catalog/search/catalogproductofferings`;
-            const ndcresponse = await fetch(endpoint, {
-                method: "POST",
-                headers: ndcheaders,
-                body: JSON.stringify(requestBody),
-              });
-            console.log('ndcresponse', ndcresponse);
-            
+                "Content-Type": "application/json",
+                "Authorization": `${token}`,
+                "XAUTH_TRAVELPORT_ACCESSGROUP": XAUTH_TRAVELPORT_ACCESSGROUP, // Replace with actual header names and values
+                "Accept-Version": Accept_Version,
+                "Content-Version": Content_Version,
+                };
+
+                const makeNDCApiRequest = async () => {
+                    try {
+                        const searchResponse = await axios.post( 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeNDCApiRequest',requestBdy,  { headers: ndcheaders });
+                
+                        // console.log("makeNDCApiRequest", searchResponse); 
+                        return searchResponse.data; 
+                    } catch (error) {
+                        console.error("Error in makeNDCApiRequest", error.response || error.message);
+                        throw error;
+                    }
+                };
+                makeNDCApiRequest();
+
             const responseData = {
                 responsedata :response.data,
                 // tboresponse :tboresponse.data, 
@@ -772,7 +818,7 @@ function Home() {
                 apiairportsdata:apiairports,
                 fromcotrav: '1',
             };
-            console.log('responsedata', responseData);
+            // console.log('responsedata', responseData);
             navigate('/SearchFlight', { state: { responseData } });
             } catch (error) {
                 // ErrorLogger.logError('search_api',soapEnvelope,error);
