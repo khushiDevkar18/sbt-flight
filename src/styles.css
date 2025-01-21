@@ -4639,16 +4639,16 @@ nav ul li {
 }
 .add-btn {
   position: absolute;
-  top: 54%;
+  top: 53%;
   right: -10px; /* Place the button slightly outside the container */
   transform: translateY(-69%);
   display: flex;
-  align-items: center;
+  /* align-items: center; */
   justify-content: center;
   width: 22px;
-  height: 22px;
-  background-color: #785eff;
-  color: white;
+  height: 23px;
+  background-color: white;
+  color: #785eff;
   font-size: 15px;
   font-weight: bold;
   border: none;
@@ -7795,7 +7795,7 @@ preferences-list-alt li {
 
 .booking-form-i {
   width: 48.55%;
-  margin-bottom: 7px;
+  margin-bottom: 12px;
   float: left;
   height: 75px;
   font-size: 13px;
@@ -7895,7 +7895,7 @@ preferences-list-alt li {
   text-transform: capitalize;
   font-weight: bold;
   color: #000;
-
+  display: flex;
   margin-bottom: 5px;
 }
 
@@ -9063,6 +9063,7 @@ preferences-list-alt li {
   background: #fff;
   margin-bottom: 28px;
   font-family: 'Open Sans';
+  margin-top: 14%;
 }
 
 .checkout-head {
@@ -14620,7 +14621,7 @@ html {
   }
 
   .blog-sidebar-r {
-    width: 25%;
+    width: auto;
     margin-left: -25.2%;
     margin-top: 12px;
   }
@@ -17396,10 +17397,10 @@ input:checked+.slider:before {
 
 .selectcontainer .optionsflights {
   margin: 1% 1%;
-  padding: 7px 15px;
+  padding: 7px 10px;
   font-size: 12px;
   cursor: pointer;
-  width: 23%;
+  /* width: 23%; */
   box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 5px;
   background: white;
   border: 1px solid #e0e0e0;
@@ -17446,7 +17447,7 @@ input:checked+.slider:before {
 .optionsflights .seelctheader {
   font-size: 12px;
   font-weight: 600;
-  color: #785eff;
+  color: black;
 
   text-transform: capitalize;
   font-family: 'Montserrat';
@@ -17946,6 +17947,7 @@ color: #fff;
   font-size: 13px;
   transition: 0.4s;
   margin: 0px 0px;
+  /* display: flex; */
 }
 .headingpolicies .farerules{
   float: right;
@@ -17956,6 +17958,7 @@ color: #fff;
     text-transform: capitalize;
     display: flex !important;
     align-items: center !important;
+    margin-left: 66%;
 }
 .policydetails2{
   margin: 0% !important;
@@ -19269,8 +19272,8 @@ button#search-button:hover {
 
 .send-button {
   padding: 10px 20px;
-  /* background-color: #1976d2; */
-  background: linear-gradient(to right, rgb(120, 94, 255), rgb(180, 74, 203));
+  background-color: #785ef7;
+  /* background: linear-gradient(to right, rgb(120, 94, 255), rgb(180, 74, 203)); */
   color: white;
   border: none;
   border-radius: 5px;

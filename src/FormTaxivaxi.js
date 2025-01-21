@@ -54,7 +54,7 @@ const navigate = useNavigate();
           const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
           <soapenv:Header/>
           <soapenv:Body>
-              <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+              <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
                   <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                   <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
               </util:ReferenceDataRetrieveReq>
@@ -83,7 +83,7 @@ const navigate = useNavigate();
           const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
           <soapenv:Header/>
           <soapenv:Body>
-          <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AV145ER" TypeCode="CityAirport">
+          <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AV145ER" TypeCode="CityAirport">
               <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
               <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
           </util:ReferenceDataRetrieveReq>
@@ -225,7 +225,7 @@ const navigate = useNavigate();
                   
                       return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                     <soap:Body>
-                    <air:LowFareSearchReq TargetBranch="P7206253" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
+                    <air:LowFareSearchReq TargetBranch="P4451438" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
                         <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                         <air:SearchAirLeg>
                             <air:SearchOrigin>
