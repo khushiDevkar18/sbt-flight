@@ -744,6 +744,13 @@ function Home() {
                 },
               };
             //   console.log('requestbody', requestBody);
+            const endpoint = `${baseURL}/${version}/air/catalog/search/catalogproductofferings`; 
+            const requestBdy = {
+                request: requestBody,
+                endpoint: endpoint
+              };
+      
+                //   console.log('requestbody', requestBody);
             let token;
             try {
                 token = await getAccessToken(); // Call your token function
@@ -785,7 +792,7 @@ function Home() {
                 requesttype: 'book',
                 fromcotrav: '1',
             };
-            console.log('responsedata', responseData);
+            // console.log('responsedata', responseData);
             navigate('/SearchFlight', { state: { responseData } });
             } catch (error) {
                 // ErrorLogger.logError('search_api',soapEnvelope,error);
