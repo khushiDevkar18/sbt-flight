@@ -24,7 +24,7 @@ var $slideInit = function() {
 
 var mySwiper;
 
-window.onload = function() {
+document.addEventListener('DOMContentLoaded', function () {
 	mySwiper = new Swiper('.swiper-container', {
 		mode: 'horizontal',
 		loop: true,
@@ -42,7 +42,7 @@ window.onload = function() {
 			$slideInit();
 		}
 	});
-
+	
 	$('.arrow-left').on('click', function(e) {
 		e.preventDefault();
 		mySwiper.swipePrev();
@@ -52,7 +52,10 @@ window.onload = function() {
 		e.preventDefault();
 		mySwiper.swipeNext();
 	});
-};
+	
+  });
+
+  
 
 $(window).resize(function() {
 	$slideInit();

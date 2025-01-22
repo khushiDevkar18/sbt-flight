@@ -18794,7 +18794,7 @@ ul.dropdown-menu li a:hover {
 }
 
 .selected-flight-list {
-  max-height: 200px;
+  max-height: 500px;
   overflow-y: auto;
   margin: 10px 0;
 }
