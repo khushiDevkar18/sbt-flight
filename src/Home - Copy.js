@@ -38,6 +38,7 @@ function Home() {
     
     
     useEffect(() => {
+        
         const fetchData = async () => {
             try {
             const response = await axios.get('https://selfbooking.taxivaxi.com/api/airports');
@@ -49,7 +50,7 @@ function Home() {
         };
         fetchData();
     }, []);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const searchRef = useRef(null);
     const [airlineData, setAirlineResponse] = useState(null);
     const [airportData, setAirportResponse] = useState(null);
@@ -84,6 +85,9 @@ function Home() {
     const Content_Version = "11";
     const baseURL = "api.pp.travelport.com";
     const version = "11";
+
+  
+    
     useEffect(() => {
         const cookieData = Cookies.get('cookiesData');
         // console.log(cookieData);
@@ -131,6 +135,7 @@ function Home() {
       };
 
     useEffect(() => {
+       
         const makeAirlineRequest = async () => {
         try {
             const username = 'Universal API/uAPI6514598558-21259b0c';
@@ -164,7 +169,9 @@ function Home() {
         };
 
         const makeAirportRequest = async () => {
+            setLoading(true);
         try {
+            
             const username1 = 'Universal API/uAPI6514598558-21259b0c';
             const password1 = 'tN=54gT+%Y';
             const authHeader1 = `Basic ${btoa(`${username1}:${password1}`)}`;
@@ -177,15 +184,15 @@ function Home() {
             </util:ReferenceDataRetrieveReq>
             </soapenv:Body>
         </soapenv:Envelope>`;
+     
             const airportResponse = await axios.post(
                 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
                 airportRequest, { headers: { 'Content-Type': 'text/xml'  }}
             );
-
-            // console.log('airresp', airportResponse);
-            
+            setLoading(false);
+            // console.log('airportresp', airportResponse);
+           
             setAirportResponse(airportResponse);
-            
             parseString(airportResponse.data, { explicitArray: false }, (errs, airportresult) => {
                 if (errs) {
                 console.error('Error parsing XML:', errs);
@@ -859,7 +866,7 @@ return (
                             <div className="big-loader flex items-center justify-center">
                                 <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" />
                                 <p className="text-center ml-4 text-gray-600 text-lg">
-                                Retrieving flight details. Please wait a moment.
+                                
                                 </p>
                             </div>
                         </div>

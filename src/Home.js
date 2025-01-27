@@ -13,43 +13,6 @@ import IconLoader from './IconLoader';
 // import ErrorLogger from './ErrorLogger';
 function Home() {
     const [activeTab, setActiveTab] = useState('flight');
-
-  const openCity = (cityName) => {
-    setActiveTab(cityName);
-    // console.log(cityName);
-  };
-
-
-  
-
-
-    const [apiairports, setAirports] = useState([]);
-    // Swal.fire({
-    //     title: 'Approval Required ',
-    //     text: 'I wanted to inform you that we have found another flight with a lower price available. Before proceeding, I would require your approval to confirm this booking.',
-    //     showCancelButton: true,
-    //     confirmButtonText: 'Yes, continue!',
-    //     cancelButtonText: 'No!',
-    //     reverseButtons: true
-    // });
-
-    const location = useLocation();
-    
-    
-    
-    useEffect(() => {
-        
-        const fetchData = async () => {
-            try {
-            const response = await axios.get('https://selfbooking.taxivaxi.com/api/airports');
-            
-            setAirports(response.data);
-            } catch (error) {
-            console.error('Error fetching data:', error);
-            }
-        };
-        fetchData();
-    }, []);
     const [loading, setLoading] = useState(true);
     const searchRef = useRef(null);
     const [airlineData, setAirlineResponse] = useState(null);
@@ -80,14 +43,25 @@ function Home() {
     const [infantCount, setInfantCount] = useState(0); 
     const [cabinClass, setCabinClass] = useState('Economy'); 
     const [lastActionWasSwap, setLastActionWasSwap] = useState(false);
-    const XAUTH_TRAVELPORT_ACCESSGROUP = "E41F154B-04FC-46AD-9089-011C0C9C4089";
-    const Accept_Version = "11";
-    const Content_Version = "11";
-    const baseURL = "api.pp.travelport.com";
-    const version = "11";
+    const [apiResponse, setApiResponse] = useState(null);
+    const [apiairports, setAirports] = useState([]);
+    const navigate = useNavigate();
+    const location = useLocation();
 
-  
-    
+    useEffect(() => {
+        
+        const fetchData = async () => {
+            try {
+            const response = await axios.get('https://selfbooking.taxivaxi.com/api/airports');
+            
+            setAirports(response.data);
+            } catch (error) {
+            console.error('Error fetching data:', error);
+            }
+        };
+        fetchData();
+    }, []);
+
     useEffect(() => {
         const cookieData = Cookies.get('cookiesData');
         // console.log(cookieData);
@@ -120,20 +94,8 @@ function Home() {
             }
         }
        
-      }, []);
-    const swapOriginAndDestination = () => {
-        if (lastActionWasSwap) {
-          setInputOrigin(inputDestination);
-          setInputDestination(inputOrigin);
-        } else {
-          const temp = inputOrigin;
-          setInputOrigin(inputDestination);
-          setInputDestination(temp);
-        }
+    }, []);
     
-        setLastActionWasSwap(!lastActionWasSwap);
-      };
-
     useEffect(() => {
        
         const makeAirlineRequest = async () => {
@@ -169,7 +131,7 @@ function Home() {
         };
 
         const makeAirportRequest = async () => {
-            setLoading(true);
+            // setLoading(true);
         try {
             
             const username1 = 'Universal API/uAPI6514598558-21259b0c';
@@ -184,11 +146,12 @@ function Home() {
             </util:ReferenceDataRetrieveReq>
             </soapenv:Body>
         </soapenv:Envelope>`;
-     
+            console.log("start opo")
             const airportResponse = await axios.post(
                 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
                 airportRequest, { headers: { 'Content-Type': 'text/xml'  }}
             );
+            console.log("end opo")
             setLoading(false);
             // console.log('airportresp', airportResponse);
            
@@ -228,11 +191,81 @@ function Home() {
 
         executeRequestsSequentially();
     }, []);
+
+    useEffect(() => {
+        Cookies.set('cookiesData', JSON.stringify(formData), { expires: 7 });
+    }, []);
+    const [isReturnEnabled, setReturnEnabled] = useState(false);
+
+    useEffect(() => {
+        let timeoutId;
+        const timeoutDuration = 5 * 60 * 1000;
+        const handleInactive = () => {
+          navigate('/');
+        };
+        const resetTimer = () => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(handleInactive, timeoutDuration);
+        };
+        const resetOnActivity = () => {
+          resetTimer();
+          window.addEventListener('mousemove', resetTimer);
+          window.addEventListener('keydown', resetTimer);
+        };
+        resetOnActivity();
+        return () => {
+          clearTimeout(timeoutId);
+          window.removeEventListener('mousemove', resetTimer);
+          window.removeEventListener('keydown', resetTimer);
+        };
+    }, [navigate]);
+
+    useEffect(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+  const openCity = (cityName) => {
+    setActiveTab(cityName);
+  };
+
+    // Swal.fire({
+    //     title: 'Approval Required ',
+    //     text: 'I wanted to inform you that we have found another flight with a lower price available. Before proceeding, I would require your approval to confirm this booking.',
+    //     showCancelButton: true,
+    //     confirmButtonText: 'Yes, continue!',
+    //     cancelButtonText: 'No!',
+    //     reverseButtons: true
+    // });
+
+
+    
+    const XAUTH_TRAVELPORT_ACCESSGROUP = "E41F154B-04FC-46AD-9089-011C0C9C4089";
+    const Accept_Version = "11";
+    const Content_Version = "11";
+    const baseURL = "api.pp.travelport.com";
+    const version = "11";    
+
+    const swapOriginAndDestination = () => {
+        if (lastActionWasSwap) {
+          setInputOrigin(inputDestination);
+          setInputDestination(inputOrigin);
+        } else {
+          const temp = inputOrigin;
+          setInputOrigin(inputDestination);
+          setInputDestination(temp);
+        }
+    
+        setLastActionWasSwap(!lastActionWasSwap);
+      };
+
     const handleToggle = () => {
         setIsOpen(prevIsOpen => !prevIsOpen);
     };
     
-
     const handleOriginChange = (inputValue) => {
         setInputOrigin(inputValue);
         const filteredOptions = allAirportsOrigin
@@ -254,7 +287,6 @@ function Home() {
         setShowOriginDropdown(true);
     };
     
-
     const handleOrigin = (value,airportName) => {
         setInputOrigin(`${airportOriginCodes[value]} (${value}) ${airportName}`);
         setShowOriginDropdown(false);
@@ -315,10 +347,6 @@ function Home() {
         infant: '0',
         classType: 'Economy/Premium Economy',
     });
-    useEffect(() => {
-        Cookies.set('cookiesData', JSON.stringify(formData), { expires: 7 });
-    }, []);
-    const [isReturnEnabled, setReturnEnabled] = useState(false);
 
     const handleReturnDateInitialization = (bookingType) => {
         if (bookingType === 'oneway') {
@@ -335,7 +363,6 @@ function Home() {
             }
         }
     };
-    
     
     const getLabelStyle = (labelValue) => {
         if (labelValue === formData.bookingType) {
@@ -382,11 +409,6 @@ function Home() {
             bookingType: 'Return',
         });
     };
-
-    const navigate = useNavigate();
-    const [apiResponse, setApiResponse] = useState(null);
-
-    
     
     const fetchToken = async () => {
         const storedToken = localStorage.getItem('authToken');
@@ -497,6 +519,7 @@ function Home() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        console.time("make api request");
         let searchfrom = event.target.searchfrom.value.trim();
 
         // let searchfrom = formActual;
@@ -706,18 +729,17 @@ function Home() {
                 PassengerCodeADT,
                 PassengerCodeCNN,
                 PassengerCodeINF,
-            );
-            
+                );
+                console.timeEnd("make api request");
 
-            const username = 'Universal API/uAPI6514598558-21259b0c';
-            const password = 'tN=54gT+%Y'; 
-            const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
             sessionStorage.setItem('searchdata', soapEnvelope);
-    
+            console.time("API Call");
             const response = await axios.post(
                 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
                 soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
             );
+                console.log("response", response);
+                console.timeEnd("API Call");
 
             const requestBody = {
                 "CatalogProductOfferingsQueryRequest": {
@@ -752,7 +774,8 @@ function Home() {
               };
             //   console.log('requestbody', requestBody);
             const endpoint = `${baseURL}/${version}/air/catalog/search/catalogproductofferings`; 
-            const requestBdy = {
+            
+                const requestBdy = {
                 request: requestBody,
                 endpoint: endpoint
               };
@@ -780,7 +803,7 @@ function Home() {
             //     formBody
             // );
             // console.log('ndcresponse', ndcresponse);
-            
+            console.time("redirect");
             const responseData = {
                 responsedata :response.data,
                 // ndcresponse :ndcresponse.data, 
@@ -798,7 +821,8 @@ function Home() {
                 apiairportsdata:apiairports,
                 requesttype: 'book',
                 fromcotrav: '1',
-            };
+                };
+                console.timeEnd("redirect");
             // console.log('responsedata', responseData);
             navigate('/SearchFlight', { state: { responseData } });
             } catch (error) {
@@ -812,28 +836,6 @@ function Home() {
         
     };
    
-    useEffect(() => {
-        let timeoutId;
-        const timeoutDuration = 5 * 60 * 1000;
-        const handleInactive = () => {
-          navigate('/');
-        };
-        const resetTimer = () => {
-          clearTimeout(timeoutId);
-          timeoutId = setTimeout(handleInactive, timeoutDuration);
-        };
-        const resetOnActivity = () => {
-          resetTimer();
-          window.addEventListener('mousemove', resetTimer);
-          window.addEventListener('keydown', resetTimer);
-        };
-        resetOnActivity();
-        return () => {
-          clearTimeout(timeoutId);
-          window.removeEventListener('mousemove', resetTimer);
-          window.removeEventListener('keydown', resetTimer);
-        };
-    }, [navigate]);
     const handleClickOutside = (event) => {
         // Check if the click is outside the div
         if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -841,24 +843,11 @@ function Home() {
         }
     };
 
-    useEffect(() => {
-        // Add the event listener
-        document.addEventListener('mousedown', handleClickOutside);
-
-        // Cleanup event listener
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
     // const [formActual, setformActual] = useState(null);
     // console.log('form', formActual);
     
 return (
-        
             <div className="yield-content">
-
-
-
                 <div className="index-page">
                     <div id="api-response-container"></div>
                     {loading &&  
@@ -1021,7 +1010,7 @@ return (
                                 }}>Please select valid Origin</div>
                                 </div>
                                 <button type="button" className='swapbuttonn' onClick={swapOriginAndDestination}>
-                                <img src='/img/swapcircle.svg' width={'25px'} />
+                                <img src='/img/swapcircle.svg' width={'25px'} loading="lazy"/>
                                 </button>
 
 
@@ -1370,7 +1359,7 @@ return (
                                             <div id="offers-a" className="owl-slider">
                                                 <div className="offer-slider-i">
                                                     <a className="offer-slider-img" href="#">
-                                                        <img alt="" src="img/taxivaxi/home_page/services_offer/Cab%202.png" />
+                                                        <img alt="" src="img/taxivaxi/home_page/services_offer/Cab%202.png" loading="lazy"/>
                                                         <span className="offer-slider-overlay">
                                                             <span className="offer-slider-btn">view details</span>
                                                         </span>
@@ -1381,11 +1370,11 @@ return (
 
                                                             <nav className="stars">
                                                                 <ul>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-a.png" /></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy" /></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-a.png" loading="lazy"/></a></li>
                                                                 </ul>
                                                                 <div className="clear"></div>
                                                             </nav>
@@ -1399,7 +1388,7 @@ return (
                                                 </div>
                                                 <div className="offer-slider-i">
                                                     <a className="offer-slider-img" href="#">
-                                                        <img alt="" src="img/taxivaxi/home_page/services_offer/Hotel%202.png" />
+                                                        <img alt="" src="img/taxivaxi/home_page/services_offer/Hotel%202.png" loading="lazy"/>
                                                         <span className="offer-slider-overlay">
                                                             <span className="offer-slider-btn">view details</span>
                                                         </span>
@@ -1409,11 +1398,11 @@ return (
                                                         <div className="offer-slider-l">
                                                             <nav className="stars">
                                                                 <ul>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-a.png" /></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-a.png" loading="lazy"/></a></li>
                                                                 </ul>
                                                                 <div className="clear"></div>
                                                             </nav>
@@ -1427,7 +1416,7 @@ return (
                                                 </div>
                                                 <div className="offer-slider-i">
                                                     <a className="offer-slider-img" href="#">
-                                                        <img alt="" src="img/taxivaxi/home_page/services_offer/Ticket%201.png" />
+                                                        <img alt="" src="img/taxivaxi/home_page/services_offer/Ticket%201.png" loading="lazy" />
                                                         <span className="offer-slider-overlay">
                                                             <span className="offer-slider-btn">view details</span>
                                                         </span>
@@ -1437,11 +1426,11 @@ return (
                                                         <div className="offer-slider-l">
                                                             <nav className="stars">
                                                                 <ul>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
                                                                 </ul>
                                                                 <div className="clear"></div>
                                                             </nav>
@@ -1455,7 +1444,7 @@ return (
                                                 </div>
                                                 <div className="offer-slider-i">
                                                     <a className="offer-slider-img" href="#">
-                                                        <img alt="" src="img/taxivaxi/home_page/services_offer/Logistics%201.png" />
+                                                        <img alt="" src="img/taxivaxi/home_page/services_offer/Logistics%201.png" loading="lazy"/>
                                                         <span className="offer-slider-overlay">
                                                             <span className="offer-slider-btn">view details</span>
                                                         </span>
@@ -1465,11 +1454,11 @@ return (
                                                         <div className="offer-slider-l">
                                                             <nav className="stars">
                                                                 <ul>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-a.png" /></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-a.png" loading="lazy"/></a></li>
                                                                 </ul>
                                                                 <div className="clear"></div>
                                                             </nav>
@@ -1482,7 +1471,7 @@ return (
                                                 </div>
                                                 <div className="offer-slider-i">
                                                     <a className="offer-slider-img" href="#">
-                                                        <img alt="" src="img/taxivaxi/home_page/services_offer/FRRO%20VISA%201.png" />
+                                                        <img alt="" src="img/taxivaxi/home_page/services_offer/FRRO%20VISA%201.png" loading="lazy"/>
                                                         <span className="offer-slider-overlay">
                                                             <span className="offer-slider-btn">view details</span>
                                                         </span>
@@ -1492,11 +1481,11 @@ return (
                                                         <div className="offer-slider-l">
                                                             <nav className="stars">
                                                                 <ul>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-b.png" /></a></li>
-                                                                    <li><a href="#"><img alt="" src="img/star-a.png" /></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-b.png" loading="lazy"/></a></li>
+                                                                    <li><a href="#"><img alt="" src="img/star-a.png" loading="lazy"/></a></li>
                                                                 </ul>
                                                                 <div className="clear"></div>
                                                             </nav>
@@ -1523,7 +1512,7 @@ return (
                                             <div className="theme-teaser-b">Navigating your corporate travel needs, from Takeoff to Touchdown.</div>
                                             <a href="#" className="theme-teaser-c">book a Demo</a>
                                         </div>
-                                        <div className="theme-teaser-r"><img alt="" src="img/taxivaxi/home_page/simplifying/Artboard%201-8.png" /></div>
+                                        <div className="theme-teaser-r"><img alt="" src="img/taxivaxi/home_page/simplifying/Artboard%201-8.png" loading="lazy"/></div>
                                         <div className="clear"></div>
                                     </div>
                                 </div>
@@ -1538,17 +1527,17 @@ return (
                                     </header>
                                     <div className="fly-in advantages-row">
                                         <div className="advantages-i">
-                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Experience.svg" /></div>
+                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Experience.svg" loading="lazy"/></div>
                                             <div className="advantages-b">Experience</div>
                                             <div className="advantages-c">With 10 years of &nbsp;team &nbsp;experience, we &nbsp;have &nbsp;built &nbsp;and &nbsp;upgraded &nbsp;a &nbsp;reliable technology.</div>
                                         </div>
                                         <div className="advantages-i">
-                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Solution_provider.svg" /></div>
+                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Solution_provider.svg" loading="lazy"/></div>
                                             <div className="advantages-b">Solution Provider</div>
                                             <div className="advantages-c">With our problem-solving approach, we provide support to you at every step.</div>
                                         </div>
                                         <div className="advantages-i">
-                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Pan_india-tie_ups.svg" /></div>
+                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Pan_india-tie_ups.svg" loading="lazy"/></div>
                                             <div className="advantages-b">PAN India tie-ups</div>
                                             <div className="advantages-c">Providing services to corporates all over India, with partnerships, and tie-ups with many stakeholders.</div>
                                         </div>
@@ -1556,17 +1545,17 @@ return (
                                     </div>
                                     <div className="fly-in advantages-row">
                                         <div className="advantages-i">
-                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Extra_mile.svg" /></div>
+                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Extra_mile.svg" loading="lazy"/></div>
                                             <div className="advantages-b">Extra Mile</div>
                                             <div className="advantages-c">To fulfil our promise of providing good quality, we will never hesitate to take extra effort when it really matters.</div>
                                         </div>
                                         <div className="advantages-i">
-                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Right_people_right_place.svg" /></div>
+                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Right_people_right_place.svg" loading="lazy"/></div>
                                             <div className="advantages-b">Right People Right Place</div>
                                             <div className="advantages-c">From FRRO consultancy to Relationship Management. We have a knowledgeable and qualified team with varied skills to help you.</div>
                                         </div>
                                         <div className="advantages-i">
-                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Team_work.svg" /></div>
+                                            <div className="advantages-a"><img alt="" src="img/taxivaxi/home_page/why_choose_taxivaxi/Team_work.svg" loading="lazy"/></div>
                                             <div className="advantages-b">Team Work & Flexibility</div>
                                             <div className="advantages-c">With&nbsp; quick&nbsp; response&nbsp; time, &nbsp;we &nbsp;would &nbsp;be&nbsp; Helping &nbsp;you&nbsp; to&nbsp; reduce&nbsp; your &nbsp;workload &nbsp;and share responsibilities.</div>
                                         </div>

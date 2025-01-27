@@ -9,6 +9,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Swal from 'sweetalert2';
+import IconLoader from './IconLoader';
 // import ErrorLogger from './ErrorLogger';
 const FlightCheckIn  = ({ CheckIn, onFlightCheckInChange}) => {
     useEffect(() => {
@@ -29,14 +30,13 @@ const Booking = () => {
     const location = useLocation();
     const [loading, setLoading] = useState(false);
     const formtaxivaxi = location.state && location.state.serviceData.formtaxivaxi;
-    // console.log('form', formtaxivaxi);
     const bookingid = location.state && location.state.serviceData.booking_id;
-    // console.log('bookingid', bookingid);
     let returns=0;
     if(formtaxivaxi){
         returns = formtaxivaxi['trip_type'] === "Round Trip" ? 1 : 0; 
     }
     const segmentParse = location.state && location.state.serviceData.SegmentPricelist;
+    // console.log('segmentParse',segmentParse);
     const apiairports = location.state && location.state.serviceData.apiairportsdata;
     const serviceresponse = location.state && location.state.serviceData.servicedata;
     const request = location.state?.serviceData || {};
@@ -46,10 +46,10 @@ const Booking = () => {
     const Airlines = location.state && location.state.serviceData.Airlines;
     const hostTokenParse = location.state && location.state.serviceData.hostToken;
     const Passengerarray = location.state && location.state.serviceData.Passengerarray;
-    // console.log('Passengerarray', Passengerarray);
     const [passengereventKeys, setPassengerkey] = useState(Passengerarray[0]['Key']);
     const classType = location.state && location.state.serviceData.classtype;
     const [accordion1Expanded, setAccordion1Expanded] = useState(true);
+    const [accordion5Expanded, setAccordion5Expanded] = useState(false);
     const [flightErrors, setFlighterrors] = useState([]);
     const [accordion2Expanded, setAccordion2Expanded] = useState(false);
     const [accordion3Expanded, setAccordion3Expanded] = useState(false);
@@ -84,18 +84,10 @@ const Booking = () => {
         });
     }
     // console.log(mergedData);
-    // const employees=[];
-    // for (let i = 1; i <= 9; i++) {
-    //     const id = formtaxivaxi[`passengerDetailsArray_${i}_id`] || formtaxivaxi[`employee_${i}_id_new`] || formtaxivaxi[`employee_${i}_id_old`];
-    //     if (id) {
-    //         employees.push(id);
-    //     }
-    // }
     const employees = Object.keys(formtaxivaxi)
-        .filter(key => key.startsWith("passengerDetailsArray") && key.endsWith("[id]")) // Find all "[id]" keys
-        .map(key => formtaxivaxi[key]); // Extract their values
+    .filter(key => key.startsWith("passengerDetailsArray") && key.endsWith("[id]")) // Find all "[id]" keys
+    .map(key => formtaxivaxi[key]); 
 
-    // console.log('emp',employees);
     const hasNonEmptyProperties = (obj) => {
         for (let key in obj) {
             if (obj.hasOwnProperty(key) && obj[key] !== null && obj[key] !== undefined && obj[key] !== '') {
@@ -127,32 +119,24 @@ const Booking = () => {
             });
     
             if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.status}`);
+                throw new Error('Network response was not ok');
             }
     
-            // Parse JSON data
             const responseData = await response.json();
-            // console.log('Parsed response data:', responseData); // Debugging step
-    
-            const data = responseData.result;
+             const data = responseData.result;
             const organizedData = {};
     
             // Organize the response data
             data.forEach((emp, index) => {
                 organizedData[index] = emp;
             });
-            
-            // console.log('Organized data:', organizedData); // Debugging step
             setEmptaxivaxi(organizedData);
         } catch (error) {
             console.error('Error fetching employee data:', error);
         }
     };
     
-    
-    
-    
-    console.log('emptaxivaxi',emptaxivaxi);
+    // console.log(emptaxivaxi);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const openModal = () => {
@@ -450,7 +434,7 @@ const Booking = () => {
         return true;
     };
     const handleCompleteBooking = async (event) => {
-        console.log('formhandelcomplete', event);
+        // console.log('formhandelcomplete', event);
         event.preventDefault();
         
             let isValidpassenger = true;
@@ -595,15 +579,17 @@ const Booking = () => {
                     return `${day}${month}${year}`;
                 };
                 
-                for (const segment of segmentParse) {
+                const segments = Array.isArray(segmentParse) ? segmentParse : [segmentParse];
+
+                for (const segment of segments) {
                     if (segment['$'] && segment['$']['Key']) {
                         if (segment['$']['HostTokenRef']) {
                             delete segment['$']['HostTokenRef'];
                         }
                         if (Array.isArray(packageSelected['air:AirSegmentRef'])) {
-                            packageSelected['air:AirSegmentRef'] = segmentParse;
+                            packageSelected['air:AirSegmentRef'] = segments;
                         } else {
-                            if (packageSelected['air:AirSegmentRef']['$']['Key'] ===  segment['$']['Key']) {
+                            if (packageSelected['air:AirSegmentRef']['$']['Key'] === segment['$']['Key']) {
                                 packageSelected['air:AirSegmentRef'] = segment;
                             }
                         }
@@ -863,7 +849,7 @@ const Booking = () => {
                                 '$': {
                                     'AuthorizedBy': 'TAXIVAXI',
                                     'RetainReservation': 'Both',
-                                    'TargetBranch': 'P7206253',
+                                    'TargetBranch': 'P4451438',
                                     'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                     'RestrictWaitlist': 'true',
                                     'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
@@ -974,7 +960,7 @@ const Booking = () => {
                 // console.log('modify', modifiedXmlString);
                 // alert("modify", modifiedXmlString);
                     try {
-                        const reservationresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', modifiedXmlString, {
+                        const reservationresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', modifiedXmlString, {
                             headers: {
                                 'Content-Type': 'text/xml',
                                 'Authorization': authHeader,
@@ -1049,7 +1035,7 @@ const Booking = () => {
                                     'soap:Body': {
                                         'univ:UniversalRecordRetrieveReq': {
                                             '$': {
-                                                'TargetBranch': 'P7206253',
+                                                'TargetBranch': 'P4451438',
                                                 'RetrieveProviderReservationDetails': 'true',
                                                 'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
                                                 'xmlns:com': 'http://www.travelport.com/schema/common_v52_0',
@@ -1102,7 +1088,7 @@ const Booking = () => {
                                                 'AuthorizedBy': 'TAXIVAXI',
                                                 'RetrieveProviderReservationDetails': 'true',
                                                 'ReturnInfoOnFail': 'true',
-                                                'TargetBranch': 'P7206253',
+                                                'TargetBranch': 'P4451438',
                                                 'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                                 'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
                                                 'xmlns:common': 'http://www.travelport.com/schema/common_v52_0',
@@ -1121,7 +1107,7 @@ const Booking = () => {
                                 });
                                 // console.log(TicketXML);
                                 try {
-                                    const ticketresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', TicketXML, {
+                                    const ticketresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', TicketXML, {
                                         headers: {
                                             'Content-Type': 'text/xml',
                                             'Authorization': authHeader,
@@ -1216,7 +1202,7 @@ const Booking = () => {
                                         },
                                         'univ:AirMerchandisingFulfillmentReq': {
                                             '$': {
-                                            'TargetBranch': 'P7206253'
+                                            'TargetBranch': 'P4451438'
                                             },
                                             'com:BillingPointOfSaleInfo': {
                                             '$': {
@@ -1249,7 +1235,7 @@ const Booking = () => {
                                     });
                                     // console.log(MerchandisingrequestXML1);
                                     try {
-                                        const Merchandisingresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', MerchandisingrequestXML1, {
+                                        const Merchandisingresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', MerchandisingrequestXML1, {
                                             headers: {
                                                 'Content-Type': 'text/xml',
                                                 'Authorization': authHeader,
@@ -1288,7 +1274,7 @@ const Booking = () => {
                                         },
                                         'univ:AirMerchandisingFulfillmentReq': {
                                             '$': {
-                                            'TargetBranch': 'P7206253'
+                                            'TargetBranch': 'P4451438'
                                             },
                                             'com:BillingPointOfSaleInfo': {
                                             '$': {
@@ -1324,7 +1310,7 @@ const Booking = () => {
                                     
                                     
                                     try {
-                                        const Merchandisingresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', MerchandisingrequestXML2, {
+                                        const Merchandisingresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', MerchandisingrequestXML2, {
                                             headers: {
                                                 'Content-Type': 'text/xml',
                                                 'Authorization': authHeader,
@@ -1363,275 +1349,6 @@ const Booking = () => {
     }
     
     const navigate = useNavigate();
-    // const handlePassengerSubmit = async (event) => {
-    //     event.preventDefault();
-    //     const email = event.target.email.value.trim();
-    //     const contactDetails = event.target.contact_details.value.trim();
-    //     let address = event.target.address.value.trim();
-    //     let street = event.target.street.value.trim();
-    //     let city = event.target.city.value.trim();
-    //     let state = event.target.state.value.trim();
-    //     let postal_code = event.target.postal_code.value.trim();
-    //     let country = event.target.country.value.trim();
-
-    //     let isValidPassenger = true;
-
-    //     if (!email) {
-    //         isValidPassenger = false;
-    //         const emailError = document.querySelector('.email-message');
-    //         emailError.style.display = 'block';
-    //     }else{
-    //         const emailError = document.querySelector('.email-message');
-    //         emailError.style.display = 'none'; 
-    //     }
-
-    //     if (!contactDetails) {
-    //         isValidPassenger = false;
-    //         const contactDetailsError = document.querySelector('.contact_details-message');
-    //         contactDetailsError.style.display = 'block';
-    //     }else{
-    //         const contactDetailsError = document.querySelector('.contact_details-message');
-    //         contactDetailsError.style.display = 'none';
-    //     }
-    //     if (!address) {
-    //         address = 'NA';
-    //     }
-    //     if (!street) {
-    //         street = 'NA';
-    //     }
-    //     if (!city) {
-    //         city = 'NA';
-    //     }
-    //     if (!state) {
-    //         state = 'NA';
-    //     }
-    //     if (!postal_code) {
-    //         postal_code = 'NA';
-    //     }
-    //     if (!country) {
-    //         country = 'IN';
-    //     }
-    //     const {isValid, updatepassengerarray } = validateSavePassenger(Passengerarray);
-    //     setupdatepassengerarray(updatepassengerarray);
-    //     if (isValid && isValidPassenger) {
-    //         setAccordion2Expanded(false);
-            
-    //         const formData = new FormData(event.target);
-    //         const passengerKeys = Array.from(formData.getAll('passengerkey[]'));
-    //         const passengerCode = Array.from(formData.getAll('passengercode[]'));
-    //         const passengerFirstNames = Array.from(formData.getAll('adult_first_name[]'));
-    //         const passengerLastNames = Array.from(formData.getAll('adult_last_name[]'));
-    //         const passengerAgeNames = Array.from(formData.getAll('adult_age[]'));
-    //         const passengerGenderNames = Array.from(formData.getAll('adult_gender[]'));
-        
-    //         const passengerNamesWithPrefix = passengerGenderNames.map(gender => {
-    //             if (gender === 'F') {
-    //                 return 'Miss';
-    //             } else{
-    //                 return 'Mr';
-    //             } 
-    //         });
-    //         const passengerEmail = event.target.email.value;
-    //         const passengerContactNo = event.target.contact_details.value;
-    //         const passengerAddress = address;
-    //         const passengerStreet = street;
-    //         const passengerCity = city;
-    //         const passengerState = state;
-    //         const passengerPostalCode = postal_code;
-    //         const passengerCountry = country;
-    //         const passengerDetails = {
-    //             keys: passengerKeys,
-    //             codes: passengerCode,
-    //             firstNames: passengerFirstNames,
-    //             lastNames: passengerLastNames,
-    //             ageNames: passengerAgeNames,
-    //             genderNames: passengerGenderNames,
-    //             namesWithPrefix: passengerNamesWithPrefix,
-    //             email: passengerEmail,
-    //             contactNo: passengerContactNo,
-    //             address: passengerAddress,
-    //             street: passengerStreet,
-    //             city: passengerCity,
-    //             state: passengerState,
-    //             postalCode: passengerPostalCode,
-    //             country: passengerCountry
-    //         };
-    //         setPassengers(passengerDetails);
-    //         const passengerDetailss = {
-    //             keys: [],
-    //             codes: [],
-    //             firstNames: [],
-    //             lastNames: [],
-    //             gender: [],
-    //             age: []
-    //         };
-            
-    //         for (let i = 0; i < passengerKeys.length; i++) {
-    //             if (passengerCode[i] !== "INF") {
-    //                 passengerDetailss.keys.push(passengerKeys[i]);
-    //                 passengerDetailss.codes.push(passengerCode[i]);
-    //                 passengerDetailss.firstNames.push(passengerFirstNames[i]);
-    //                 passengerDetailss.lastNames.push(passengerLastNames[i]);
-    //                 passengerDetailss.gender.push(passengerGenderNames[i]);
-    //                 passengerDetailss.age.push(passengerAgeNames[i]);
-    //             }
-    //         }
-    //         const passengerDetailssString = JSON.stringify(passengerDetailss);
-    //         sessionStorage.setItem('passengerDetailss', passengerDetailssString);
-    //         const passengerAges = passengerAgeNames.map(calculateAge);
-    //         const capitalizeFirstLetter = (str) => {
-    //             return str.replace(/\b\w/g, (char) => char.toUpperCase());
-    //           };
-    //           const formattedDetails = passengerDetails.keys.map((key, index) => {
-    //             const firstName = capitalizeFirstLetter(passengerFirstNames[index]);
-    //             const lastName = capitalizeFirstLetter(passengerLastNames[index]);
-    //             return `
-    //                 Passenger ${index + 1}:
-    //                 ${firstName} ${lastName}
-    //                 ${passengerGenderNames[index] === 'F' ? '(Female)' : '(Male)'}
-    //             `;
-    //         }).join('<br><br>');
-            
-    //         setLoading(false);
-    //         Swal.fire({
-    //             title: 'Review Details',
-    //             html: `
-    //                 <div class="review-details" style={{fontSize:'11px',fontFamily:'Montserrat',textAlign:'left'}}>Please ensure that the spelling of your name and other details match with your travel document/govt. ID, as these cannot be changed later. Errors might lead to cancellation penalties.</div>
-    //                 <br>
-    //                 <div class="review-passenger-details" style={{fontSize:'13px',fontFamily:'Montserrat',textAlign:'left'}}>${formattedDetails}</div>
-    //                 <br>
-    //             `,
-    //             showCancelButton: true,
-    //             confirmButtonText: 'Confirm',
-    //             cancelButtonText: 'Edit',
-    //             reverseButtons: true
-    //         }).then((result) => {
-    //                 if (result.isConfirmed) {
-    //                     setLoading(true);
-    //                     const makeSeatRequest = async () => {
-    //                         const username = 'Universal API/uAPI8645980109-af7494fa';
-    //                         const password = 'N-k29Z}my5';
-    //                         const authHeader = `Basic ${btoa(`${username}:${password}`)}`
-                            
-    //                         const builder = require('xml2js').Builder;
-    //                         var seatMapRequestXML = new builder().buildObject({
-    //                         'soap:Envelope': {
-    //                             '$': {
-    //                             'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
-    //                             },
-    //                             'soap:Body': {
-    //                                 '$': {
-    //                                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
-    //                                     'xmlns:com': 'http://www.travelport.com/schema/common_v52_0'
-    //                                 },
-    //                                 'air:SeatMapReq': {
-    //                                     '$': {
-    //                                         'TraceId': 'ac191f0b9c0546659065f29389eae552',
-    //                                         'AuthorizedBy': 'TAXIVAXI',
-    //                                         'TargetBranch': 'P7206253',
-    //                                         'ReturnSeatPricing': 'true',
-    //                                         'ReturnBrandingInfo': 'true'
-    //                                     },
-    //                                     'com:BillingPointOfSaleInfo': {
-    //                                         '$': {
-    //                                             'OriginApplication': 'UAPI',
-    //                                         },
-    //                                     },
-    //                                     'air:AirSegment': segmentParse,
-    //                                     'com:HostToken' :hostTokenParse,
-    //                                     'air:SearchTraveler': passengerDetailss.keys.map((key, index) => ({
-    //                                         '$': {
-    //                                             'Code': passengerCode[index],
-    //                                             'Age': passengerAges[index],
-    //                                             'Key': key
-    //                                         },
-    //                                         'com:Name': {
-    //                                             '$': {
-    //                                                 'Prefix': passengerGenderNames[index] === 'F' ? 'Miss' : 'Mr',
-    //                                                 'First': passengerFirstNames[index],
-    //                                                 'Last': passengerLastNames[index]
-    //                                             }
-    //                                         }
-    //                                     }))
-    //                                 }
-    //                             }
-    //                         }
-    //                         });
-                            
-    //                         try {
-    //                             const seatresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', seatMapRequestXML, {
-    //                                 headers: {
-    //                                     'Content-Type': 'text/xml',
-    //                                     'Authorization': authHeader,
-    //                                 },
-    //                             });
-    //                             const seatResponse = seatresponse.data;
-                                
-    //                             parseString(seatResponse, { explicitArray: false }, (err, seatresult) => {
-    //                             if (err) {
-    //                                 console.error('Error parsing XML:', err);
-    //                                 return;
-    //                             }
-    //                             const AirSeatRsp = seatresult['SOAP:Envelope']['SOAP:Body']['air:SeatMapRsp'];
-                                
-    //                             if (AirSeatRsp !== null && AirSeatRsp !== undefined) {
-    //                                 const seatResponse = seatresult['SOAP:Envelope']['SOAP:Body']['air:SeatMapRsp']['air:AirSegment'];
-    //                                 const seatRows = seatresult['SOAP:Envelope']['SOAP:Body']['air:SeatMapRsp']['air:Rows'];
-    //                                 const seatTraveler = seatresult['SOAP:Envelope']['SOAP:Body']['air:SeatMapRsp']['air:SearchTraveler'];
-    //                                 let seatOptional = [];
-    //                                 if(seatresult?.['SOAP:Envelope']?.['SOAP:Body']?.['air:SeatMapRsp']?.['air:OptionalServices']?.['air:OptionalService']){
-    //                                     seatOptional = seatresult['SOAP:Envelope']['SOAP:Body']['air:SeatMapRsp']['air:OptionalServices']['air:OptionalService'];
-    //                                 }
-                                    
-    //                                 setseatrowsparse(Array.isArray(seatRows) ? seatRows : [seatRows]);
-    //                                 setseatresponseparse(Array.isArray(seatResponse) ? seatResponse : [seatResponse]);
-    //                                 setseattravelerparse(Array.isArray(seatTraveler) ? seatTraveler : [seatTraveler]);
-    //                                 setseatOptionalparse(Array.isArray(seatOptional) ? seatOptional : [seatOptional]);
-    //                             }else{
-    //                                 const error = seatresult['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
-    //                                 // ErrorLogger.logError('seatmap_api',seatMapRequestXML,error);
-    //                                 if(seatresult['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['detail']['common_v52_0:ErrorInfo']['common_v52_0:Code'] === '101'){
-    //                                     Swal.fire({
-    //                                         title: 'Seat Selection Not Available',
-    //                                         // text: 'Seat Selection Not Available',
-    //                                         // icon: 'info',
-    //                                         confirmButtonText: 'OK'
-    //                                     });
-    //                                     setemptyseatmap(true);
-    //                                 }else{
-    //                                     setFlighterrors(error);
-    //                                 }
-    //                                 // setFlighterrors(error);
-    //                             }
-                                
-                                    
-    //                             });
-    //                         } catch (error) {
-    //                             // ErrorLogger.logError('seatmap_api','error',error);
-    //                             navigate('/tryagainlater');
-    //                         }
-    //                         finally {
-    //                             setLoading(false);
-    //                             setAccordion3Expanded(true);
-    //                             setAccordion4Expanded(true);
-    //                         }
-    //                     };
-                        
-    //                     makeSeatRequest();
-    //                 } else {
-    //                 Swal.fire(
-    //                     'Please confirm details',
-    //                     setAccordion1Expanded(true),
-    //                     setAccordion2Expanded(true),
-    //                 );
-    //                 }
-    //         });
-            
-            
-    //     }else{
-    //         setAccordion1Expanded(true);
-    //     }
-    // }
     const handlePassengerSubmit = async (event) => {
         event.preventDefault();
         const email = event.target.email.value.trim();
@@ -1748,12 +1465,12 @@ const Booking = () => {
             const passengerDetailssString = JSON.stringify(passengerDetailss);
             sessionStorage.setItem('passengerDetailss', passengerDetailssString);
             const passengerAges = passengerAgeNames.map(calculateAge);
-            const capitalizeFirstLetter = (str) => {
-                return str.replace(/\b\w/g, (char) => char.toUpperCase());
-              };
+            // const capitalizeFirstLetter = (str) => {
+            //     return str.replace(/\b\w/g, (char) => char.toUpperCase());
+            //   };
               const formattedDetails = passengerDetails.keys.map((key, index) => {
-                const firstName = capitalizeFirstLetter(passengerFirstNames[index]);
-                const lastName = capitalizeFirstLetter(passengerLastNames[index]);
+                const firstName = passengerFirstNames[index];
+                const lastName = passengerLastNames[index];
                 return `
                     Passenger ${index + 1}:
                     ${firstName} ${lastName}
@@ -1797,7 +1514,7 @@ const Booking = () => {
                                         '$': {
                                             'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                             'AuthorizedBy': 'TAXIVAXI',
-                                            'TargetBranch': 'P7206253',
+                                            'TargetBranch': 'P4451438',
                                             'ReturnSeatPricing': 'true',
                                             'ReturnBrandingInfo': 'true'
                                         },
@@ -1828,13 +1545,14 @@ const Booking = () => {
                             });
                             
                             try {
-                                const seatresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', seatMapRequestXML, {
+                                const seatresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', seatMapRequestXML, {
                                     headers: {
                                         'Content-Type': 'text/xml',
                                         'Authorization': authHeader,
                                     },
                                 });
                                 const seatResponse = seatresponse.data;
+                                console.log('seatResponse',seatResponse);
                                 
                                 parseString(seatResponse, { explicitArray: false }, (err, seatresult) => {
                                 if (err) {
@@ -1892,6 +1610,7 @@ const Booking = () => {
                         'Please confirm details',
                         setAccordion1Expanded(true),
                         setAccordion2Expanded(true),
+                        setAccordion5Expanded(true),
                     );
                     }
             });
@@ -1930,32 +1649,32 @@ const Booking = () => {
                 lastNameError.style.display = 'none';
             }
     
-            if (passengerinfo.Code === 'ADT' && !(age >= 12)) {
-                isValid = false;
-                const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
-                ageError1.style.display = 'block';
-            } else if (passengerinfo.Code === 'CNN' && !(age >= 2 && age <= 12)) {
-                isValid = false;
-                const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
-                ageError2.style.display = 'block';
-            } else if (passengerinfo.Code === 'INF' && !(age >= 0 && age <= 2)) {
-                isValid = false;
-                const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
-                ageError3.style.display = 'block';
-            } else if (birthdate.trim() === '') {
-                isValid = false;
-                const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
-                ageError.style.display = 'block';
-            } else {
-                const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
-                const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
-                const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
-                const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
-                ageError.style.display = 'none';
-                ageError1.style.display = 'none';
-                ageError2.style.display = 'none';
-                ageError3.style.display = 'none';
-            }
+            // if (passengerinfo.Code === 'ADT' && !(age >= 12)) {
+            //     isValid = false;
+            //     const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
+            //     ageError1.style.display = 'block';
+            // } else if (passengerinfo.Code === 'CNN' && !(age >= 2 && age <= 12)) {
+            //     isValid = false;
+            //     const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
+            //     ageError2.style.display = 'block';
+            // } else if (passengerinfo.Code === 'INF' && !(age >= 0 && age <= 2)) {
+            //     isValid = false;
+            //     const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
+            //     ageError3.style.display = 'block';
+            // } else if (birthdate.trim() === '') {
+            //     isValid = false;
+            //     const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
+            //     ageError.style.display = 'block';
+            // } else {
+            //     const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
+            //     const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
+            //     const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
+            //     const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
+            //     ageError.style.display = 'none';
+            //     ageError1.style.display = 'none';
+            //     ageError2.style.display = 'none';
+            //     ageError3.style.display = 'none';
+            // }
 
             if(isValid){
                 return {
@@ -1978,8 +1697,15 @@ const Booking = () => {
         const {isValid, updatepassengerarray } = validateSavePassenger(Passengerarray);
         if (isValid) {
             setAccordion1Expanded(false);
-            setAccordion2Expanded(true);
+            setAccordion5Expanded(true);
         }
+    };
+    const handleSavePassenger2 = () => {
+        // const {isValid, updatepassengerarray } = validateSavePassenger(Passengerarray);
+        // if (isValid) {
+            setAccordion5Expanded(false);
+            setAccordion2Expanded(true);
+        // }
     };
     
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -2099,7 +1825,7 @@ const Booking = () => {
                 const password = 'N-k29Z}my5';
                 const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
         
-                const eresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', soapEnvelope, {
+                const eresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', soapEnvelope, {
                     headers: {
                         'Content-Type': 'text/xml',
                         'Authorization': authHeader,
@@ -2297,7 +2023,7 @@ const Booking = () => {
                                       'air:AirPriceReq': {
                                         '$': {
                                           'AuthorizedBy': 'TAXIVAXI',
-                                          'TargetBranch': 'P7206253',
+                                          'TargetBranch': 'P4451438',
                                           'FareRuleType': 'short',
                                           'TraceId': 'TVSBP001',
                                           'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -2341,7 +2067,7 @@ const Booking = () => {
                                 });
                                 
                                 try {
-                                    const priceresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', pricepointXML, {
+                                    const priceresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', pricepointXML, {
                                         headers: {
                                             'Content-Type': 'text/xml',
                                             'Authorization': authHeader,
@@ -2466,7 +2192,7 @@ const Booking = () => {
                                                   },
                                                   'air:AirMerchandisingOfferAvailabilityReq': {
                                                     '$': {
-                                                      'TargetBranch': 'P7206253',
+                                                      'TargetBranch': 'P4451438',
                                                       'TraceId': 'ac191f0b9c0546659065f29389eae552'
                                                     },
                                                     'com:BillingPointOfSaleInfo': {
@@ -2485,7 +2211,7 @@ const Booking = () => {
                                             });
                                             
                                             try {
-                                                const serviceresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', servicerequestXML, {
+                                                const serviceresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', servicerequestXML, {
                                                     headers: {
                                                         'Content-Type': 'text/xml',
                                                         'Authorization': authHeader,
@@ -2511,7 +2237,7 @@ const Booking = () => {
                                                 // console.log(segmentParse);
                                                 // console.log(HostToken);
                                                 const passengerDetailss = JSON.parse(sessionStorage.getItem('passengerDetailss'));
-                                                console.log(passengerDetailss);
+                                                // console.log(passengerDetailss);
 
                                                 const makeSeatRequest = async () => {
                                                     const username = 'Universal API/uAPI8645980109-af7494fa';
@@ -2533,7 +2259,7 @@ const Booking = () => {
                                                                 '$': {
                                                                     'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                                                     'AuthorizedBy': 'TAXIVAXI',
-                                                                    'TargetBranch': 'P7206253',
+                                                                    'TargetBranch': 'P4451438',
                                                                     'ReturnSeatPricing': 'true',
                                                                     'ReturnBrandingInfo': 'true'
                                                                 },
@@ -2564,7 +2290,7 @@ const Booking = () => {
                                                     });
                                                     
                                                     try {
-                                                        const seatresponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService', seatMapRequestXML, {
+                                                        const seatresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', seatMapRequestXML, {
                                                             headers: {
                                                                 'Content-Type': 'text/xml',
                                                                 'Authorization': authHeader,
@@ -2753,14 +2479,14 @@ const Booking = () => {
        
             <div className="yield-content">
                 {loading &&  
-                <div className="loader" style={{display:"block"}}>
-                    <img
-                        src="/img/flight-loader-material-gif.gif"
-                        alt="Loader"
-                    />
-                    <h2>Loading...</h2>
-            
-                </div>
+                    <div className="page-center-loader flex items-center justify-center">
+                            <div className="big-loader flex items-center justify-center">
+                                <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" />
+                                <p className="text-center ml-4 text-gray-600 text-lg">
+                                Retrieving flight details. Please wait a moment.
+                                </p>
+                            </div>
+                        </div>
                 }
                 
                 <div className="main-cont" id="main_cont">
@@ -2827,6 +2553,7 @@ const Booking = () => {
                                                                                                                                         className="close"
                                                                                                                                         data-dismiss="modal"
                                                                                                                                         aria-label="Close"
+                                                                                                                                        style={{ marginLeft:'60%', marginRight:'0', padding:'0'}}
                                                                                                                                         
                                                                                                                                     >
                                                                                                                                         <span style={{width:'9px',height:'10px',display:'block'}}
@@ -3135,12 +2862,12 @@ const Booking = () => {
                                                                                                                                         <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
                                                                                                                                         <div className='col-md-2 accordionfarecabinbag1'>
                                                                                                                                             <ul>
-                                                                                                                                                <li><FlightCheckIn CheckIn={matches && matches[0]} onFlightCheckInChange={handleCheckIn} />/audlt</li>
+                                                                                                                                                <li><FlightCheckIn CheckIn={matches && matches[0]} onFlightCheckInChange={handleCheckIn} />/adult</li>
                                                                                                                                             </ul>
                                                                                                                                         </div>
                                                                                                                                         <div className='col-md-2 accordionfarehandbag1 '>
                                                                                                                                             <ul>
-                                                                                                                                                <li><FlightCabin Cabin={matches && matches[1]} onFlightCabinChange={handleCabin} />/audlt</li>
+                                                                                                                                                <li><FlightCabin Cabin={matches && matches[1]} onFlightCabinChange={handleCabin} />/adult</li>
                                                                                                                                             </ul>
                                                                                                                                         </div>
                                                                                                                                     </div>
@@ -3205,6 +2932,7 @@ const Booking = () => {
                                                                                                                                     className="close"
                                                                                                                                     data-dismiss="modal"
                                                                                                                                     aria-label="Close"
+                                                                                                                                    style={{ marginLeft:'60%', marginRight:'0', padding:'0'}}
                                                                                                                                     
                                                                                                                                 >
                                                                                                                                     <span 
@@ -3504,12 +3232,12 @@ const Booking = () => {
                                                                                                                                         <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
                                                                                                                                         <div className='col-md-2 accordionfarecabinbag1'>
                                                                                                                                             <ul>
-                                                                                                                                                <li><FlightCheckIn CheckIn={matches && matches[0]} onFlightCheckInChange={handleCheckIn} />/audlt</li>
+                                                                                                                                                <li><FlightCheckIn CheckIn={matches && matches[0]} onFlightCheckInChange={handleCheckIn} />/adult</li>
                                                                                                                                             </ul>
                                                                                                                                         </div>
                                                                                                                                         <div className='col-md-2 accordionfarehandbag1 '>
                                                                                                                                             <ul>
-                                                                                                                                                <li><FlightCabin Cabin={matches && matches[1]} onFlightCabinChange={handleCabin} />/audlt</li>
+                                                                                                                                                <li><FlightCabin Cabin={matches && matches[1]} onFlightCabinChange={handleCabin} />/adult</li>
                                                                                                                                             </ul>
                                                                                                                                         </div>
                                                                                                                                     </div>
@@ -3582,6 +3310,7 @@ const Booking = () => {
                                                                                                                                     className="close"
                                                                                                                                     data-dismiss="modal"
                                                                                                                                     aria-label="Close"
+                                                                                                                                    style={{ marginLeft:'60%', marginRight:'0', padding:'0'}}
                                                                                                                                     
                                                                                                                                 >
                                                                                                                                     <span 
@@ -3889,12 +3618,12 @@ const Booking = () => {
                                                                                                                                         <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
                                                                                                                                         <div className='col-md-2 accordionfarecabinbag1'>
                                                                                                                                             <ul>
-                                                                                                                                                <li><FlightCheckIn CheckIn={matches && matches[0]} onFlightCheckInChange={handleCheckIn} />/audlt</li>
+                                                                                                                                                <li><FlightCheckIn CheckIn={matches && matches[0]} onFlightCheckInChange={handleCheckIn} />/adult</li>
                                                                                                                                             </ul>
                                                                                                                                         </div>
                                                                                                                                         <div className='col-md-2 accordionfarehandbag1 '>
                                                                                                                                             <ul>
-                                                                                                                                                <li><FlightCabin Cabin={matches && matches[1]} onFlightCabinChange={handleCabin} />/audlt</li>
+                                                                                                                                                <li><FlightCabin Cabin={matches && matches[1]} onFlightCabinChange={handleCabin} />/adult</li>
                                                                                                                                             </ul>
                                                                                                                                         </div>
                                                                                                                                     </div>
@@ -3959,6 +3688,7 @@ const Booking = () => {
                                                                                                                 className="close"
                                                                                                                 data-dismiss="modal"
                                                                                                                 aria-label="Close"
+                                                                                                                style={{ marginLeft:'60%', marginRight:'0', padding:'0'}}
                                                                                                                 
                                                                                                             >
                                                                                                                 <span style={{width:'9px',height:'10px',display:'block'}}
@@ -4198,33 +3928,42 @@ const Booking = () => {
                                                                                                                                         {(() => {
                                                                                                                                             const uniqueCarriers1 = new Set();
 
-                                                                                                                                            segmentParse && segmentParse.forEach(segmentinfo => {
-                                                                                                                                                uniqueCarriers1.add(segmentinfo['$']['Carrier']);
-                                                                                                                                            });
+                                                                                                                                            if (Array.isArray(segmentParse)) {
+                                                                                                                                                segmentParse.forEach(segmentinfo => {
+                                                                                                                                                    uniqueCarriers1.add(segmentinfo['$']['Carrier']);
+                                                                                                                                                });
+                                                                                                                                            } else if (segmentParse && segmentParse['$'] && segmentParse['$']['Carrier']) {
+                                                                                                                                                uniqueCarriers1.add(segmentParse['$']['Carrier']);
+                                                                                                                                            }
 
                                                                                                                                             return (
                                                                                                                                                 segmentParse && Array.from(uniqueCarriers1).map((carrier, index) => (
-                                                                                                                                                    <div key={index}>
-                                                                                                                                                        <img
-                                                                                                                                                            className={`airportairlineimg`}
-                                                                                                                                                            src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
-                                                                                                                                                            alt="Airline logo"
-                                                                                                                                                            width="30px"
-                                                                                                                                                        />
-                                                                                                                                                        
-                                                                                                                                                            
-                                                                                                                                                            {segmentParse.map((segmentinfo, segmentindex) => (
-                                                                                                                                                                segmentinfo['$']['Carrier'] === carrier && (
-                                                                                                                                                                    <span key={segmentindex} className='airportflightnumber'>
-                                                                                                                                                                        <span className='airportairline'>{handleAirline(segmentinfo['$']['Carrier'])} </span>
-                                                                                                                                                                        {segmentindex > 0 && ', '}
-                                                                                                                                                                        {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
-                                                                                                                                                                    </span>
-                                                                                                                                                                )
-                                                                                                                                                            ))}
-                                                                                                                                                        
-                                                                                                                                                    </div>
-                                                                                                                                                ))
+                                                                                                                                                <div key={index}>
+                                                                                                                                                    <img
+                                                                                                                                                        className={`airportairlineimg`}
+                                                                                                                                                        src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
+                                                                                                                                                        alt="Airline logo"
+                                                                                                                                                        width="30px"
+                                                                                                                                                    />
+                                                                                                                                                    
+                                                                                                                                                    {Array.isArray(segmentParse)
+                                                                                                                                                        ? segmentParse.map((segmentinfo, segmentindex) => (
+                                                                                                                                                            segmentinfo['$']['Carrier'] === carrier && (
+                                                                                                                                                                <span key={segmentindex} className='airportflightnumber'>
+                                                                                                                                                                    <span className='airportairline'>{handleAirline(segmentinfo['$']['Carrier'])} </span>
+                                                                                                                                                                    {segmentindex > 0 && ', '}
+                                                                                                                                                                    {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
+                                                                                                                                                                </span>
+                                                                                                                                                            )
+                                                                                                                                                        ))
+                                                                                                                                                        : segmentParse['$']['Carrier'] === carrier && (
+                                                                                                                                                            <span className='airportflightnumber'>
+                                                                                                                                                                <span className='airportairline'>{handleAirline(segmentParse['$']['Carrier'])} </span>
+                                                                                                                                                                {segmentParse['$']['Carrier']} {segmentParse['$']['FlightNumber']}
+                                                                                                                                                            </span>
+                                                                                                                                                        )}
+                                                                                                                                                </div>
+                                                                                                                                            ))
                                                                                                                                             );
                                                                                                                                         })()}
 
@@ -4257,12 +3996,12 @@ const Booking = () => {
                                                                                                                                         <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
                                                                                                                                         <div className='col-md-2 accordionfarecabinbag1'>
                                                                                                                                             <ul>
-                                                                                                                                                <li><FlightCheckIn CheckIn={matches && matches[0]} onFlightCheckInChange={handleCheckIn} />/audlt</li>
+                                                                                                                                                <li><FlightCheckIn CheckIn={matches && matches[0]} onFlightCheckInChange={handleCheckIn} />/adult</li>
                                                                                                                                             </ul>
                                                                                                                                         </div>
                                                                                                                                         <div className='col-md-2 accordionfarehandbag1 '>
                                                                                                                                             <ul>
-                                                                                                                                                <li><FlightCabin Cabin={matches && matches[1]} onFlightCabinChange={handleCabin} />/audlt</li>
+                                                                                                                                                <li><FlightCabin Cabin={matches && matches[1]} onFlightCabinChange={handleCabin} />/adult</li>
                                                                                                                                             </ul>
                                                                                                                                         </div>
                                                                                                                                     </div>
@@ -4317,7 +4056,6 @@ const Booking = () => {
                                                                 
                                                                 <div className="" id="">
                                                                     {Passengerarray && Passengerarray.map((passengerinfo, passengerindex) => (
-                                                                        
                                                                         <div key={passengerindex}>
                                                                             <div id="totalPassenger" data-totalpassenger={1} />
                                                                             <input type="hidden" name="passengerkey[]" value={passengerinfo.Key} />
@@ -4333,21 +4071,21 @@ const Booking = () => {
                                                                                             type="text"
                                                                                             name="adult_first_name[]"
                                                                                             onKeyPress={handleKeyPress}
-                                                                                            data-index={passengerindex}
-                                                                                            disabled={bookingid}
+                                                                                            data-index={passengerindex} 
+                                                                                            readOnly={bookingid}
+                                                                                            // defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
+                                                                                            //     emptaxivaxi[passengerindex]['people_name'].split(' ')[0].trim()
+                                                                                            // }
                                                                                             Value={
                                                                                                 emptaxivaxi[passengerindex]?.people_name
                                                                                                     ? (() => {
                                                                                                         const nameParts = emptaxivaxi[passengerindex].people_name.trim().split(' ');
                                                                                                         return nameParts.length > 1
                                                                                                         ? nameParts.slice(0, nameParts.length - 1).join(' ').trim()
-                                                                                                        : nameParts[0] || 'NA';
+                                                                                                        : nameParts[0] || '';
                                                                                                     })()
-                                                                                                    : 'NA'
+                                                                                                    : ''
                                                                                                 }
-                                                                                            // defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
-                                                                                            //     emptaxivaxi[passengerindex]['people_name'].split(' ')[1].trim()
-                                                                                            // }
                                                                                         />
                                                                                     </div>
                                                                                     <span className="error-message adult_first_name-message" data-index={passengerindex} style={{display: "none", color: "red", fontWeight: "normal"}}>
@@ -4362,7 +4100,12 @@ const Booking = () => {
                                                                                             name="adult_last_name[]"
                                                                                             onKeyPress={handleKeyPress}
                                                                                             data-index={passengerindex}
-                                                                                            disabled={bookingid}
+                                                                                            // readOnly={bookingid}
+                                                                                            // defaultValue={
+                                                                                            //     emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
+                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ')[1] ?
+                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ').slice(1).join(' ').trim() : 'NA'
+                                                                                            // }
                                                                                             Value={
                                                                                                 emptaxivaxi[passengerindex]?.people_name
                                                                                                     ? (() => {
@@ -4370,15 +4113,10 @@ const Booking = () => {
                                                                                                         // If there is more than one name part, return the last name, else empty string
                                                                                                         return nameParts.length > 1
                                                                                                         ? nameParts[nameParts.length - 1].trim()
-                                                                                                        : 'NA'; // If only one part, leave it empty (or customize)
+                                                                                                        : ''; // If only one part, leave it empty (or customize)
                                                                                                     })()
-                                                                                                    : 'NA' // If no name exists, return 'NA'
+                                                                                                    : '' // If no name exists, return 'NA'
                                                                                                 }
-                                                                                            // defaultValue={
-                                                                                            //     emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
-                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ')[1] ?
-                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ').slice(1).join(' ').trim() : 'NA'
-                                                                                            // }
                                                                                         />
                                                                                     </div>
                                                                                     <span className="error-message adult_last_name-message" data-index={passengerindex} style={{display: "none", color: "red", fontWeight: "normal"}}>
@@ -4387,8 +4125,8 @@ const Booking = () => {
                                                                                 </div>
                                                                             </div>
                                                                             <div className="booking-form" style={{marginLeft: 5, marginRight: 5, marginBottom: 0}}>
-                                                                                <div className="booking-form-i booking-form-i2">
-                                                                                    <label>Date of Birth</label>
+                                                                                <div className="booking-form-i">
+                                                                                    <label style={{ paddingTop:'9px'}}>Date of Birth</label>
                                                                                     <div className="input">
                                                                                         <input
                                                                                             type="date"
@@ -4396,7 +4134,7 @@ const Booking = () => {
                                                                                             name="adult_age[]"
                                                                                             max={maxDate}
                                                                                             data-index={passengerindex}
-                                                                                            disabled={bookingid}
+                                                                                            readOnly={bookingid}
                                                                                             defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['date_of_birth'] &&
                                                                                                 emptaxivaxi[passengerindex]['date_of_birth']
                                                                                             }
@@ -4421,7 +4159,7 @@ const Booking = () => {
                                                                                         <select
                                                                                             className="custom-select1"
                                                                                             name="adult_gender[]"
-                                                                                            disabled={bookingid}
+                                                                                            // disabled={bookingid}
                                                                                             style={{
                                                                                                 padding: "6px 10px 6px 10px",
                                                                                                 width: "100%",
@@ -4433,6 +4171,7 @@ const Booking = () => {
                                                                                                 fontSize: 11
                                                                                             }}
                                                                                             data-index={passengerindex}
+                                                                                            readOnly={bookingid}
                                                                                             defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male" ? 'M' : 'F'}
                                                                                         >
                                                                                             <option value="M" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male"}>Male</option>
@@ -4454,6 +4193,96 @@ const Booking = () => {
                                                                             Save Passenger
                                                                         </button>
                                                                     </div>
+                                                                </div>
+                                                                
+                                                                </AccordionDetails>
+                                                                <AccordionActions>
+                                                                {/* <Button>Cancel</Button>
+                                                                <Button>Agree</Button> */}
+                                                                </AccordionActions>
+                                                            </Accordion>
+                                                            <div className="booking-devider" />
+                                                            <Accordion defaultExpanded expanded={accordion5Expanded} onChange={(event, isExpanded) => setAccordion5Expanded(isExpanded)}>
+                                                                <AccordionSummary
+                                                                expandIcon={<ExpandMoreIcon />}
+                                                                aria-controls="panel1-content"
+                                                                id="panel1-header"
+                                                                className="accordion"
+                                                                >
+                                                                    <img
+                                                                        src="/img/taxivaxi/meal_seats/user_icon.svg"
+                                                                        width="15px"
+                                                                    />&nbsp;
+                                                                GST Details &nbsp;&nbsp;
+                                                                {/* <span className='govid'> Important: Enter name as mentioned on your passport or Government approved IDs.</span> */}
+                                                                </AccordionSummary>
+                                                                <AccordionDetails>
+                                                                
+                                                                <div className="" id="">
+                                                                <div
+                                                                                className="booking-form gstblock"
+                                                                                style={{
+                                                                                    marginLeft: 5,
+                                                                                    marginRight: 5,
+                                                                                    marginBottom: 0
+                                                                                }}
+                                                                            >
+                                                                                <div className="booking-form-i booking-form-i3">
+                                                                                    <label>Comapany Name</label>
+                                                                                    <div className="input">
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            name="company_gst_name"
+                                                                                            // defaultValue=""
+                                                                                            defaultValue={formtaxivaxi.client_name || ""} 
+                                                                                            placeholder=""
+                                                                                        />
+                                                                                    </div>
+                                                                                    <span
+                                                                                        className="error-message company_gst_name-message"
+                                                                                        style={{
+                                                                                            display: "none",
+                                                                                            color: "red",
+                                                                                            fontWeight: "normal"
+                                                                                        }}
+                                                                                    >
+                                                                                        Please enter Company Name.
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div className="booking-form-i booking-form-i3">
+                                                                                    <label>Registration Number</label>
+                                                                                    <div className="input">
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            name="gst_registration_no"
+                                                                                            placeholder=""
+                                                                                            value={gstRegistrationNo}
+                                                                                            onChange={(e) => setGstRegistrationNo(e.target.value)}
+                                                                                            onKeyPress={handleGstKeyPress}
+                                                                                        />
+                                                                                    </div>
+                                                                                    <span
+                                                                                        className="error-message gst_registration_no-message"
+                                                                                        style={{
+                                                                                            display: "none",
+                                                                                            color: "red",
+                                                                                            fontWeight: "normal"
+                                                                                        }}
+                                                                                    >
+                                                                                        Please enter Registration Number.
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="add-passenger">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    id="save-passenger-btn"
+                                                                                    className="passenger-submit"
+                                                                                    onClick={handleSavePassenger2} // Invoke the validation function on button click
+                                                                                >
+                                                                                    Save Details
+                                                                                </button>
+                                                                            </div>
                                                                 </div>
                                                                 
                                                                 </AccordionDetails>
@@ -4493,9 +4322,9 @@ const Booking = () => {
                                                                                     <input
                                                                                         type="email"
                                                                                         name="email"
-                                                                                        disabled={bookingid}
                                                                                         // defaultValue=""
                                                                                         placeholder=""
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['people_email'] &&
                                                                                             emptaxivaxi[0]['people_email']
                                                                                         }
@@ -4523,7 +4352,7 @@ const Booking = () => {
                                                                                         maxLength={10}
                                                                                         minLength={10}
                                                                                         placeholder=""
-                                                                                        disabled={bookingid}
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['people_contact'] &&
                                                                                             emptaxivaxi[0]['people_contact']
                                                                                         }
@@ -4557,7 +4386,7 @@ const Booking = () => {
                                                                                         name="address"
                                                                                         // defaultValue=""
                                                                                         placeholder=""
-                                                                                        disabled={bookingid}
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_address'] ?
                                                                                             emptaxivaxi[0]['home_address'] : 'BAI Infosolutons Pvt. LTD.'
                                                                                         }
@@ -4582,7 +4411,7 @@ const Booking = () => {
                                                                                         name="street"
                                                                                         // defaultValue=""
                                                                                         placeholder=""
-                                                                                        disabled={bookingid}
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_address'] ?
                                                                                             emptaxivaxi[0]['home_address'] : 'Supreme HQ  Baner'
                                                                                         }
@@ -4617,7 +4446,7 @@ const Booking = () => {
                                                                                         // defaultValue=""
                                                                                         placeholder=""
                                                                                         onKeyPress={handleKeyPress}
-                                                                                        disabled={bookingid}
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_city'] ?
                                                                                             emptaxivaxi[0]['home_city'] : 'Pune'
                                                                                         }
@@ -4643,7 +4472,7 @@ const Booking = () => {
                                                                                         defaultValue=""
                                                                                         placeholder=""
                                                                                         onKeyPress={handleKeyPress}
-                                                                                        disabled={bookingid}
+                                                                                        readOnly={bookingid}
                                                                                         
                                                                                     />
                                                                                 </div>
@@ -4678,7 +4507,7 @@ const Booking = () => {
                                                                                         maxLength={6}
                                                                                         minLength={6}
                                                                                         placeholder=""
-                                                                                        disabled={bookingid}
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_city'] ?
                                                                                             emptaxivaxi[0]['home_city'] : '411021'
                                                                                         }
@@ -4703,8 +4532,7 @@ const Booking = () => {
                                                                                         name="country"
                                                                                         placeholder="Eg.IN"
                                                                                         defaultValue="IN"
-                                                                                        // readOnly
-                                                                                        disabled={bookingid}
+                                                                                        readOnly
                                                                                     />
                                                                                 </div>
                                                                                 <span
@@ -4719,7 +4547,7 @@ const Booking = () => {
                                                                                 </span>
                                                                             </div>
                                                                         </div>
-                                                                        <div className="booking-form">
+                                                                        {/* <div className="booking-form">
                                                                             <div className="booking-form-i  booking-form-i3" style={{width:'100%',height:'30px',marginLeft:'1%'}}>
                                                                                 
                                                                                 <input type='checkbox' onChange={handleCheckboxChange} checked={isChecked} />
@@ -4728,8 +4556,8 @@ const Booking = () => {
                                                                                 </label>
                                                                             </div>
                                                                             
-                                                                        </div>
-                                                                        {isChecked && (
+                                                                        </div> */}
+                                                                        {/* {isChecked && (
                                                                             <div
                                                                                 className="booking-form gstblock"
                                                                                 style={{
@@ -4783,7 +4611,7 @@ const Booking = () => {
                                                                                     </span>
                                                                                 </div>
                                                                             </div>
-                                                                        )}
+                                                                        )} */}
                                                                         <div className="booking-form-append" />
                                                                             <div className="add-passenger">
                                                                                                                     <div
@@ -4824,6 +4652,7 @@ const Booking = () => {
                                                                             <button type="submit" className="save_details" >
                                                                                 Save Details
                                                                             </button>
+                                                                            
                                                                             {/* </Link> */}
                                                                         </div>
                                                                     </div>
@@ -4834,6 +4663,7 @@ const Booking = () => {
                                                                 <Button>Agree</Button> */}
                                                                 </AccordionActions>
                                                             </Accordion>
+                                                            
                                                             <div className="booking-devider" />
                                                             
                                                         </div>
@@ -5314,10 +5144,11 @@ const Booking = () => {
                                                             </Accordion>
                                                             <div className="booking-devider" />
                                                             <div className="baggagae_policy">
-                                                            <span className='headingpolicies'>
+                                                            <span className='headingpolicies' style={{ display:'flex'}}>
                                                             <img src="img\taxivaxi\meal_seats\cancellation.svg"
                                                                 width="20px"
-                                                              />&nbsp;Cancellation Policy
+                                                              />&nbsp;
+                                                              Cancellation Policy
                                                                 <button
                                                                     type="button"
                                                                     className="farerules"
@@ -5514,30 +5345,31 @@ const Booking = () => {
                                                     const uniqueCarriers1 = new Set();
 
                                                     // Populate uniqueCarriers1 with unique carrier values
-                                                    segmentParse && segmentParse.forEach(segmentinfo => {
+                                                    segmentParse && (Array.isArray(segmentParse) ? segmentParse : [segmentParse]).forEach(segmentinfo => {
                                                         uniqueCarriers1.add(segmentinfo['$']['Carrier']);
                                                     });
 
                                                     return (
-                                                        segmentParse && Array.from(uniqueCarriers1).map((carrier, index) => (
+                                                        segmentParse &&
+                                                        Array.from(uniqueCarriers1).map((carrier, index) => (
                                                             <div key={index}>
                                                                 <img
                                                                     className={`airlineimg${index}`}
                                                                     src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                     alt="Airline logo"
                                                                     width="40px"
-                                                                /><br />
+                                                                />
+                                                                <br />
                                                                 
-                                                                    {/* Render flight numbers associated with the current carrier */}
-                                                                    {segmentParse.map((segmentinfo, segmentindex) => (
-                                                                        segmentinfo['$']['Carrier'] === carrier && (
-                                                                            <span key={segmentindex} className='flightnumber'>
-                                                                                {segmentindex > 0 && ', '}
-                                                                                {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
-                                                                            </span>
-                                                                        )
-                                                                    ))}
-                                                                
+                                                                {/* Render flight numbers associated with the current carrier */}
+                                                                {(Array.isArray(segmentParse) ? segmentParse : [segmentParse]).map((segmentinfo, segmentindex) => (
+                                                                    segmentinfo['$']['Carrier'] === carrier && (
+                                                                        <span key={segmentindex} className="flightnumber">
+                                                                            {segmentindex > 0 && ', '}
+                                                                            {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
+                                                                        </span>
+                                                                    )
+                                                                ))}
                                                             </div>
                                                         ))
                                                     );
@@ -5586,9 +5418,14 @@ const Booking = () => {
                                                 <div className="chk-line">
                                                     <span className="chk-l">Airlines:</span>
                                                     <span className="chk-r">
-                                                    {segmentParse && 
-                                                        Array.from(new Set(segmentParse.map(segmentinfo => segmentinfo['$']['Carrier'])))
-                                                        .map((carrier, index) => (
+                                                    {
+                                                        segmentParse &&
+                                                        Array.from(
+                                                            new Set(
+                                                                (Array.isArray(segmentParse) ? segmentParse : [segmentParse])
+                                                                .map(segmentinfo => segmentinfo['$']['Carrier'])
+                                                            )
+                                                        ).map((carrier, index) => (
                                                             <div key={index}>
                                                                 {handleAirline(carrier)}
                                                             </div>
