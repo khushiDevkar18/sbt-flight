@@ -738,7 +738,7 @@ function Home() {
                 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
                 soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
             );
-                console.log("response", response);
+                console.log("searchresponse", response);
                 console.timeEnd("API Call");
 
             const requestBody = {
@@ -912,7 +912,7 @@ return (
                                         <label className="bookingtype onewaybookingtype" htmlFor="departureRadio" style={getLabelStyle('oneway')}>One-Way</label>
                                     </div>
 
-                                    <div className="Return">
+                                    {/* <div className="Return">
                                         <input
                                             type="radio"
                                             className="bookingtypecheck"
@@ -923,7 +923,7 @@ return (
                                             id="returnRadio"
                                         />
                                         <label className="bookingtype returnbookingtype" htmlFor="returnRadio" style={getLabelStyle('Return')}>Return</label>
-                                    </div>
+                                    </div> */}
                                     <div className="clear"></div>
                                     
                                 </div>
@@ -1013,10 +1013,7 @@ return (
                                 <img src='/img/swapcircle.svg' width={'25px'} loading="lazy"/>
                                 </button>
 
-
-
                                 <div className="form-groupp" >
-
                                     <div className="location-info">
                                         <div className="input-a" style={{ border: 'none', boxShadow: 'none' }}>
                                             <div className="location-header">TO</div>
@@ -1217,12 +1214,9 @@ return (
                                 </div>
                             </div>
                                 
-
-                                
                             
                             <div id="error-message1" style={{ color: 'red', marginleft: '2%', fontfamily: 'Raleway', fontsize: '13px' }}></div>
                             <div id="error-message2" style={{ color: 'red', marginleft: '2%', fontfamily: 'Raleway', fontsize: '13px' }}></div>
-                            
 
                             {/* <button className="search-buttonn">SEARCH</button> */}
                             <button type="submit" className="search-buttonn" style={{ position:'absolute', bottom:'-121px', left:'41.5%'}} id="btnSearch">SEARCH</button>
