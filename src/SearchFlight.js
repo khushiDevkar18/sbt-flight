@@ -142,6 +142,7 @@ const SearchFlight = () => {
   const [pricesegment,setpricesegment] = useState([]);
   const [loadingIndex, setLoadingIndex] = useState(null);
   const [fareInfoRefsState, setFareInfoRefsState] = useState([]);
+  console.log('fareInfoRefsState', fareInfoRefsState);
 
   const handleSegmentKeyMatch = (segmentKey) => {
     setFareInfoRefsState([]);
@@ -200,7 +201,7 @@ const SearchFlight = () => {
           return null; // Skip entries where FareBasisCode is missing
       })
       .filter(Boolean);
-      console.log("Processed airPricingCommand:", airPricingCommand);
+      // console.log("Processed airPricingCommand:", airPricingCommand);
       const builder = require('xml2js').Builder;
           var pricepointXMLpc = new builder().buildObject({
             'soap:Envelope': {
@@ -256,7 +257,7 @@ const SearchFlight = () => {
           });
           const makeSoapRequest = async () => {
             var pricepointXML = pricepointXMLpc;
-            // console.log('main_prc', pricepointXML); 
+            console.log('main_prc', pricepointXML); 
   
             try {
               const priceresponse = await axios.post(
@@ -264,7 +265,7 @@ const SearchFlight = () => {
                 pricepointXML, { headers: { 'Content-Type': 'text/xml'  }}
               );
                 const priceResponse = priceresponse.data;    
-                // console.log('priceResponse', priceResponse);          
+                console.log('priceResponse', priceResponse);          
                 parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
                   if (err) {
                     console.error('Error parsing XML:', err);
@@ -999,7 +1000,7 @@ const handleSortingCriterionClick = (criteria) => {
   }).filter(Boolean);
   // console.log()
 
-  // console.log('seg', segmentArray);
+  console.log('seg', segmentArray);
   // console.log('segment',segmentArray["$"]["ProviderCode"]);
   const providerCode = segmentArray.find(segment => 
     segment['$'].ProviderCode || (segment['air:AirAvailInfo'] && segment['air:AirAvailInfo']['$'] && segment['air:AirAvailInfo']['$'].ProviderCode)
