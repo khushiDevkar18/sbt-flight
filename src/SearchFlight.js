@@ -433,6 +433,7 @@ const SearchFlight = () => {
             // if (matchedEntry) {
             //   SegmentParse['$'].HostTokenRef = matchedEntry.hostTokenRef;
             // }
+            console.log('demo comment');
             console.log('SegmentParse',SegmentParse);
             const builder = require('xml2js').Builder;
             var servicerequestXML = new builder().buildObject({
