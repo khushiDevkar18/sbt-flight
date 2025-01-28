@@ -106,6 +106,9 @@ const SearchFlight = () => {
   const searchreturnd = location.state && location.state.responseData?.searchreturnd;
   let no_of_seats = location.state && location.state.responseData?.no_of_seats;
   const request_id = location.state && location.state.responseData?.request_id;
+  const clientid = location.state && location.state.responseData?.clientid;
+  const is_gst_benefit = location.state && location.state.responseData?.is_gst_benefit;
+
 
   const adultCounts = parseInt(adult, 10) || 0;
   const childCounts = parseInt(child, 10) || 0;
@@ -161,26 +164,7 @@ const SearchFlight = () => {
     );
   
     console.log("Matched Data:", matchedData);
-    // const segmentkey = fareInfoRefKey['SegmentRef'];
-    // const hostkey = fareInfoRefKey['HostTokenRef'];
-    // const farekey = fareInfoRefKey['FareInfoRef'];
-    // const segmentArray = SegmentList.filter((segment) => {
-    //   return segment['$'] && segment['$']['Key'] === segmentkey;
-    // }).map((segment) => {
-    //   // Update the ProviderCode from air:AirAvailInfo if it exists
-    //   if (segment['air:AirAvailInfo'] && segment['air:AirAvailInfo']['$'] && segment['air:AirAvailInfo']['$'].ProviderCode) {
-    //     segment['$'].ProviderCode = segment['air:AirAvailInfo']['$'].ProviderCode;
-    //   }
 
-    //   // Add additional data if needed, using hostkey or farekey if required
-    //   segment['$'].HostTokenRef = hostkey;
-    //   segment['$'].ClassOfService = fareInfoRefKey['BookingCode'];
-
-    //   // Remove unnecessary properties if required
-    //   delete segment['air:FlightDetailsRef'];
-
-    //   return segment;
-    // });
     const segmentArray = matchedData.map((fareInfo) => {
       const segmentkey = fareInfo['SegmentRef'];
       const hostkey = fareInfo['HostTokenRef'];
@@ -433,7 +417,7 @@ const SearchFlight = () => {
             // if (matchedEntry) {
             //   SegmentParse['$'].HostTokenRef = matchedEntry.hostTokenRef;
             // }
-            console.log('demo comment');
+            // console.log('demo comment');
             console.log('SegmentParse',SegmentParse);
             const builder = require('xml2js').Builder;
             var servicerequestXML = new builder().buildObject({
@@ -501,7 +485,9 @@ const SearchFlight = () => {
               infant: formData.infant,
               FinalResponse: SearchFinalResponse,
               formtaxivaxi: formtaxivaxi,
-              booking_id: bookingid
+              booking_id: bookingid,
+              client_id: clientid,
+              is_gst_benefit:is_gst_benefit
             };
             setLoading(false);
             console.log('servicedata1', serviceData);
@@ -1608,7 +1594,10 @@ const SearchFlight = () => {
           infant: formData.infant,
           FinalResponse: SearchFinalResponse,
           formtaxivaxi: formtaxivaxi,
-          booking_id: bookingid
+          booking_id: bookingid,
+          client_id: clientid,
+          is_gst_benefit:is_gst_benefit
+
         };
         setLoading(false);
         console.log('servicedata', serviceData);

@@ -11,8 +11,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Swal from 'sweetalert2';
 import IconLoader from './IconLoader';
 // import ErrorLogger from './ErrorLogger';
+
 const FlightCheckIn = ({ CheckIn, onFlightCheckInChange }) => {
-    console.log("CheckIn", CheckIn)
     useEffect(() => {
         const newCheckIn = CheckIn;
         onFlightCheckInChange(newCheckIn);
@@ -32,6 +32,9 @@ const Booking = () => {
     const [loading, setLoading] = useState(false);
     const formtaxivaxi = location.state && location.state.serviceData.formtaxivaxi;
     const bookingid = location.state && location.state.serviceData.booking_id;
+    const clientid = location.state && location.state.serviceData?.client_id;
+    const is_gst_benefit = location.state && location.state.serviceData?.is_gst_benefit;
+
     let returns = 0;
     if (formtaxivaxi) {
         returns = formtaxivaxi['trip_type'] === "Round Trip" ? 1 : 0;
@@ -41,10 +44,11 @@ const Booking = () => {
     const apiairports = location.state && location.state.serviceData.apiairportsdata;
     const serviceresponse = location.state && location.state.serviceData.servicedata;
     const request = location.state?.serviceData || {};
-    console.log("request", request);
+
     const packageSelected = location.state && location.state.serviceData.packageselected;
-    console.log('packageSelec', packageSelected['air:AirPricingInfo']);
+
     const Airports = location.state && location.state.serviceData.Airports;
+
     const Airlines = location.state && location.state.serviceData.Airlines;
     const hostTokenParse = location.state && location.state.serviceData.hostToken;
     const Passengerarray = location.state && location.state.serviceData.Passengerarray;
@@ -70,15 +74,18 @@ const Booking = () => {
     const [emptaxivaxi, setEmptaxivaxi] = useState([]);
     const [updatepassengerarrays, setupdatepassengerarray] = useState([]);
     const [activeTab, setActiveTab] = useState(0);
-    const handleCheckIn = (baggage) => {
-        console.log("handleCheckIn", baggage);
+    const [clientGst, setClientGST] = useState([]);
+    const [clientFormGst, setClientFormGST] = useState([]);
+      
 
+    const handleCheckIn = (baggage) => {
         setCheckedIn(baggage);
     }
+
     const handleCabin = (baggage) => {
-        console.log("handleCabin", baggage);
         setCabin(baggage);
     }
+
     const mergedData = { ...emptaxivaxi };
     if (Passengers) {
         Object.keys(Passengers.keys).forEach(index => {
@@ -102,8 +109,8 @@ const Booking = () => {
         return false; // No non-empty properties found
     };
     useEffect(() => {
-        // Fetch data from API
         clearedData();
+        fetchGstData();
     }, []);
 
     const clearedData = async () => {
@@ -129,6 +136,7 @@ const Booking = () => {
 
             const responseData = await response.json();
             const data = responseData.result;
+            console.log("data",data)
             const organizedData = {};
 
             // Organize the response data
@@ -136,6 +144,55 @@ const Booking = () => {
                 organizedData[index] = emp;
             });
             setEmptaxivaxi(organizedData);
+        } catch (error) {
+            console.error('Error fetching employee data:', error);
+        }
+    };
+
+    const fetchGstData = async () => {
+        const formData = new URLSearchParams();
+        formData.append(`clientid`, clientid);
+
+        try {
+            if (is_gst_benefit == '1') {
+                const response = await fetch('https://demo.taxivaxi.com/api/flights/getClientGst', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString(),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const responseData = await response.json();
+                const data = responseData.result;
+  
+                const gstData = {
+                    gst_id: data.gst_id || '',
+                    billing_name: data.billing_name || '',
+                    billing_address: data.billing_address_line1 || '',
+                    billing_contact: data.billing_contact || ''
+                };
+    
+                setClientGST(gstData); 
+            }
+            else {
+                const gst_id = '07AAGCB3556P1Z7';
+                const billing_name = 'BAI INFOSOLUTIONS PRIVATE LIMITED';
+                const billing_address = '1 1075 1 2 GF 4/Mehrauli/New Delhi/110030';
+                const billing_contact = '9881102875';
+
+                const gstData= {
+                    gst_id,
+                    billing_name,
+                    billing_address,
+                    billing_contact
+                }
+                setClientGST(gstData);
+            }
         } catch (error) {
             console.error('Error fetching employee data:', error);
         }
@@ -459,15 +516,16 @@ const Booking = () => {
         return true;
     };
     const handleCompleteBooking = async (event) => {
-        // console.log('formhandelcomplete', event);
-        event.preventDefault();
+         event.preventDefault();
 
         let isValidpassenger = true;
+
         const finalupdatepassengerarray = Passengerarray.map((passengerinfo, passengerindex) => {
             const firstName = document.querySelector(`input[name="adult_first_name[]"][data-index="${passengerindex}"]`).value;
             const lastName = document.querySelector(`input[name="adult_last_name[]"][data-index="${passengerindex}"]`).value;
             const birthdate = document.querySelector(`input[name="adult_age[]"][data-index="${passengerindex}"]`).value;
             const gender = document.querySelector(`select[name="adult_gender[]"][data-index="${passengerindex}"]`).value;
+
             const age = calculateAge(birthdate);
 
             if (firstName.trim() === '') {
@@ -596,6 +654,10 @@ const Booking = () => {
         }
         function handleconfirmedbooked() {
             setLoading(true)
+            
+            
+
+
             const formatDate = (dateString) => {
                 const date = new Date(dateString);
                 const day = date.getDate().toString().padStart(2, '0');
@@ -689,7 +751,7 @@ const Booking = () => {
                     }
                 });
             });
-            // console.log(previousSelections);
+            
             let stopCounts = 0;
             let returnstopCounts = 0;
             segmentParse.forEach(segment => {
@@ -729,7 +791,6 @@ const Booking = () => {
                     const index = Math.floor(Math.random() * characters.length);
                     key += characters[index];
                 }
-
                 return key;
             }
             const passengersreservation = Passengers.keys.map((key, index) => {
@@ -762,7 +823,7 @@ const Booking = () => {
                         {
                             '$': {
                                 'Carrier': "AI",
-                                'FreeText': "IND/07AAGCB3556P1Z7/BAI INFOSOLUTIONS PRIVATE LIMITED",
+                                'FreeText': "IND/"+clientFormGst.GSTIN+"/"+clientFormGst.company_gst_name,
                                 'Key': generateUniqueKey(),
                                 'Status': "HK",
                                 'Type': "GSTN"
@@ -780,7 +841,7 @@ const Booking = () => {
                         {
                             '$': {
                                 'Carrier': "AI",
-                                'FreeText': "IND/9881102875",
+                                'FreeText': "IND/"+clientFormGst.company_gst_contact,
                                 'Key': generateUniqueKey(),
                                 'Status': "HK",
                                 'Type': "GSTP"
@@ -789,7 +850,7 @@ const Booking = () => {
                         {
                             '$': {
                                 'Carrier': "AI",
-                                'FreeText': "IND/1 1075 1 2 GF 4/Mehrauli/New Delhi/110030",
+                                'FreeText': "IND/"+clientFormGst.company_gst_address,
                                 'Key': generateUniqueKey(),
                                 'Status': "HK",
                                 'Type': "GSTA"
@@ -856,8 +917,8 @@ const Booking = () => {
                     }
                 });
             }
-            // console.log('passengersreservation', passengersreservation);
-            // console.log('packageSelected', packageSelected);
+
+            
             const passengerAges = Passengers.ageNames.map(calculateAge);
             const makeReservationRequest = async () => {
                 const username = 'Universal API/uAPI8645980109-af7494fa';
@@ -956,7 +1017,7 @@ const Booking = () => {
                 }
                 var xmlBuilder = new xml2js.Builder();
                 var reservationRequestXML = xmlBuilder.buildObject(reservationRequestEnvelope);
-                // console.log('reservationRequestXML',reservationRequestXML);
+                console.log('reservationRequestXML',reservationRequestXML);
 
                 var parser = new DOMParser();
                 var xmlDoc = parser.parseFromString(reservationRequestXML, 'text/xml');
@@ -981,9 +1042,6 @@ const Booking = () => {
 
                 var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
 
-
-                // console.log('modify', modifiedXmlString);
-                // alert("modify", modifiedXmlString);
                 try {
                     const reservationresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', modifiedXmlString, {
                         headers: {
@@ -1374,6 +1432,7 @@ const Booking = () => {
     }
 
     const navigate = useNavigate();
+
     const handlePassengerSubmit = async (event) => {
         event.preventDefault();
         const email = event.target.email.value.trim();
@@ -1384,6 +1443,20 @@ const Booking = () => {
         let state = event.target.state.value.trim();
         let postal_code = event.target.postal_code.value.trim();
         let country = event.target.country.value.trim();
+        
+        let GSTIN = event.target.gst_registration_no.value.trim();
+        let company_gst_name = event.target.company_gst_name.value.trim();
+        let company_gst_address = event.target.company_gst_address.value.trim();
+        let company_gst_contact = event.target.company_gst_contact.value.trim();
+
+        const gstFormDetails = {
+            GSTIN,
+            company_gst_name,
+            company_gst_address,
+            company_gst_contact
+        }
+
+        setClientFormGST(gstFormDetails);
 
         let isValidPassenger = true;
 
@@ -2814,7 +2887,7 @@ const Booking = () => {
 
                                                                                                                 const infoText = textinfor['_'];
                                                                                                                 const matches = infoText.match(/\b\d+\s?(kgs?|kg)\b/gi);
-                                                                                                                console.log("matches", matches);
+                                                                                                    
                                                                                                                 return (
                                                                                                                     <div key={textindex}>
                                                                                                                         <div className='row accordionfarename apiairportname'>
@@ -3572,7 +3645,7 @@ const Booking = () => {
 
                                                                                                                 const infoText = textinfor['_'];
                                                                                                                 const matches = infoText.match(/\b\d+\s?(kgs?|kg)\b/gi);
-                                                                                                                console.log("matches2", matches);
+                                                                                                 
                                                                                                                 return (
                                                                                                                     <div key={textindex}>
                                                                                                                         <div className='row accordionfarename apiairportname'>
@@ -3947,7 +4020,6 @@ const Booking = () => {
                                                                                                         const infoText = textinfor['_'];
                                                                                                         const matches = infoText.match(/\b\d+\s?(kgs?|kg)\b/gi);
 
-                                                                                                        console.log("matches3", matches);
                                                                                                         return (
                                                                                                             <div key={textindex}>
                                                                                                                 <div className='row accordionfarename apiairportname'>
@@ -4098,8 +4170,7 @@ const Booking = () => {
                                                                                             <div className="form-calendar-a">
                                                                                                 <select
                                                                                                     className="custom-select1"
-                                                                                                    name="adult_gender[]"
-                                                                                                    // disabled={bookingid}
+                                                                                                    name="adult_prefix[]"
                                                                                                     style={{
                                                                                                         padding: "6px 10px 6px 10px",
                                                                                                         width: "100%",
@@ -4118,9 +4189,6 @@ const Booking = () => {
                                                                                                     <option value="Mrs" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Female"}>Mrs.</option>
                                                                                                 </select>
                                                                                             </div>
-                                                                                            <span className="error-message adult_first_name-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                                Please enter the First name.
-                                                                                            </span>
                                                                                         </div>
 
                                                                                         <div className='col-md-9'>
@@ -4142,8 +4210,7 @@ const Booking = () => {
                                                                                                                 return nameParts.length > 1
                                                                                                                     ? nameParts.slice(0, nameParts.length - 1).join(' ').trim()
                                                                                                                     : nameParts[0] || '';
-                                                                                                            })()
-                                                                                                            : ''
+                                                                                                            })(): ''
                                                                                                     }
                                                                                                 />
                                                                                             </div>
@@ -4161,7 +4228,7 @@ const Booking = () => {
                                                                                             name="adult_last_name[]"
                                                                                             onKeyPress={handleKeyPress}
                                                                                             data-index={passengerindex}
-                                                                                            // readOnly={bookingid}
+                                                                                            readOnly={bookingid}
                                                                                             // defaultValue={
                                                                                             //     emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
                                                                                             //         emptaxivaxi[passengerindex]['people_name'].split(' ')[1] ?
@@ -4289,35 +4356,13 @@ const Booking = () => {
                                                                         }}
                                                                     >
                                                                         <div className="booking-form-i booking-form-i3">
-                                                                            <label>Comapany Name</label>
-                                                                            <div className="input">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    name="company_gst_name"
-                                                                                    // defaultValue=""
-                                                                                    defaultValue={formtaxivaxi.client_name || ""}
-                                                                                    placeholder=""
-                                                                                />
-                                                                            </div>
-                                                                            <span
-                                                                                className="error-message company_gst_name-message"
-                                                                                style={{
-                                                                                    display: "none",
-                                                                                    color: "red",
-                                                                                    fontWeight: "normal"
-                                                                                }}
-                                                                            >
-                                                                                Please enter Company Name.
-                                                                            </span>
-                                                                        </div>
-                                                                        <div className="booking-form-i booking-form-i3">
-                                                                            <label>Registration Number</label>
+                                                                            <label>GSTIN</label>
                                                                             <div className="input">
                                                                                 <input
                                                                                     type="text"
                                                                                     name="gst_registration_no"
                                                                                     placeholder=""
-                                                                                    value={gstRegistrationNo}
+                                                                                    defaultValue={clientGst.gst_id}
                                                                                     onChange={(e) => setGstRegistrationNo(e.target.value)}
                                                                                     onKeyPress={handleGstKeyPress}
                                                                                 />
@@ -4330,9 +4375,70 @@ const Booking = () => {
                                                                                     fontWeight: "normal"
                                                                                 }}
                                                                             >
-                                                                                Please enter Registration Number.
+                                                                                Please enter GSTIN.
                                                                             </span>
                                                                         </div>
+
+                                                                        <div className="booking-form-i booking-form-i3">
+                                                                            <label>Name</label>
+                                                                            <div className="input">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    name="company_gst_name"
+                                                                                    defaultValue={clientGst.billing_name}
+                                                                                    placeholder="" />
+                                                                            </div>
+                                                                            <span
+                                                                                className="error-message company_gst_name-message"
+                                                                                style={{
+                                                                                    display: "none",
+                                                                                    color: "red",
+                                                                                    fontWeight: "normal"
+                                                                                }}  >
+                                                                                Please enter Name.
+                                                                            </span>
+                                                                        </div>
+
+                                                                        <div className="booking-form-i booking-form-i3">
+                                                                            <label>GST Address</label>
+                                                                            <div className="input">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    name="company_gst_address"
+                                                                                    defaultValue={clientGst.billing_address}
+                                                                                    placeholder="" />
+                                                                            </div>
+                                                                            <span
+                                                                                className="error-message company_gst_name-message"
+                                                                                style={{
+                                                                                    display: "none",
+                                                                                    color: "red",
+                                                                                    fontWeight: "normal"
+                                                                                }}  >
+                                                                                Please enter GST Address.
+                                                                            </span>
+                                                                        </div>
+
+                                                                        <div className="booking-form-i booking-form-i3">
+                                                                            <label>GST Contact</label>
+                                                                            <div className="input">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    name="company_gst_contact"
+                                                                                    defaultValue={clientGst.billing_contact}
+                                                                                    placeholder="" />
+                                                                            </div>
+                                                                            <span
+                                                                                className="error-message company_gst_name-message"
+                                                                                style={{
+                                                                                    display: "none",
+                                                                                    color: "red",
+                                                                                    fontWeight: "normal"
+                                                                                }}  >
+                                                                                Please enter GST Contact.
+                                                                            </span>
+                                                                        </div>
+                                                                        
                                                                     </div>
                                                                     <div className="add-passenger">
                                                                         <button
@@ -4383,9 +4489,8 @@ const Booking = () => {
                                                                                 <input
                                                                                     type="email"
                                                                                     name="email"
-                                                                                    // defaultValue=""
                                                                                     placeholder=""
-                                                                                    readOnly={bookingid}
+                                                                                    // readOnly={bookingid}
                                                                                     defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['people_email'] &&
                                                                                         emptaxivaxi[0]['people_email']
                                                                                     }
@@ -4413,7 +4518,7 @@ const Booking = () => {
                                                                                     maxLength={10}
                                                                                     minLength={10}
                                                                                     placeholder=""
-                                                                                    readOnly={bookingid}
+                                                                                    // readOnly={bookingid}
                                                                                     defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['people_contact'] &&
                                                                                         emptaxivaxi[0]['people_contact']
                                                                                     }
@@ -4440,16 +4545,16 @@ const Booking = () => {
                                                                         }}
                                                                     >
                                                                         <div className="booking-form-i booking-form-i3">
-                                                                            <label>address</label>
+                                                                            <label>Address</label>
                                                                             <div className="input">
                                                                                 <input
                                                                                     type="text"
                                                                                     name="address"
                                                                                     // defaultValue=""
                                                                                     placeholder=""
-                                                                                    readOnly={bookingid}
+                                                                                    // readOnly={bookingid}
                                                                                     defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_address'] ?
-                                                                                        emptaxivaxi[0]['home_address'] : 'BAI Infosolutons Pvt. LTD.'
+                                                                                        emptaxivaxi[0]['home_address'] : ''
                                                                                     }
                                                                                 />
                                                                             </div>
@@ -4465,16 +4570,15 @@ const Booking = () => {
                                                                             </span>
                                                                         </div>
                                                                         <div className="booking-form-i booking-form-i3">
-                                                                            <label>street</label>
+                                                                            <label>Street</label>
                                                                             <div className="input">
                                                                                 <input
                                                                                     type="text"
                                                                                     name="street"
-                                                                                    // defaultValue=""
                                                                                     placeholder=""
-                                                                                    readOnly={bookingid}
+                                                                                    // readOnly={bookingid}
                                                                                     defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_address'] ?
-                                                                                        emptaxivaxi[0]['home_address'] : 'Supreme HQ  Baner'
+                                                                                        emptaxivaxi[0]['home_address'] : ''
                                                                                     }
                                                                                 />
                                                                             </div>
@@ -4499,17 +4603,16 @@ const Booking = () => {
                                                                         }}
                                                                     >
                                                                         <div className="booking-form-i booking-form-i3">
-                                                                            <label>city</label>
+                                                                            <label>City</label>
                                                                             <div className="input">
                                                                                 <input
                                                                                     type="text"
                                                                                     name="city"
-                                                                                    // defaultValue=""
                                                                                     placeholder=""
                                                                                     onKeyPress={handleKeyPress}
-                                                                                    readOnly={bookingid}
-                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_city'] ?
-                                                                                        emptaxivaxi[0]['home_city'] : 'Pune'
+                                                                                    // readOnly={bookingid}
+                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['city_name'] ?
+                                                                                        emptaxivaxi[0]['city_name'] : ''
                                                                                     }
                                                                                 />
                                                                             </div>
@@ -4525,15 +4628,17 @@ const Booking = () => {
                                                                             </span>
                                                                         </div>
                                                                         <div className="booking-form-i booking-form-i3">
-                                                                            <label>state</label>
+                                                                            <label>State</label>
                                                                             <div className="input">
                                                                                 <input
                                                                                     type="text"
                                                                                     name="state"
-                                                                                    defaultValue=""
                                                                                     placeholder=""
                                                                                     onKeyPress={handleKeyPress}
-                                                                                    readOnly={bookingid}
+                                                                                    // readOnly={bookingid}
+                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['state_name'] ?
+                                                                                        emptaxivaxi[0]['state_name'] : ''
+                                                                                    }
 
                                                                                 />
                                                                             </div>
@@ -4563,14 +4668,13 @@ const Booking = () => {
                                                                                 <input
                                                                                     type="text"
                                                                                     name="postal_code"
-                                                                                    // defaultValue=""
                                                                                     onKeyPress={handleNumberPress}
                                                                                     maxLength={6}
                                                                                     minLength={6}
                                                                                     placeholder=""
-                                                                                    readOnly={bookingid}
-                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_city'] ?
-                                                                                        emptaxivaxi[0]['home_city'] : '411021'
+                                                                                    // readOnly={bookingid}
+                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['postal_code'] ?
+                                                                                        emptaxivaxi[0]['postal_code'] : ''
                                                                                     }
                                                                                 />
                                                                             </div>
@@ -4586,14 +4690,15 @@ const Booking = () => {
                                                                             </span>
                                                                         </div>
                                                                         <div className="booking-form-i booking-form-i3">
-                                                                            <label>country code</label>
+                                                                            <label>Country Code</label>
                                                                             <div className="input">
                                                                                 <input
                                                                                     type="text"
                                                                                     name="country"
                                                                                     placeholder="Eg.IN"
-                                                                                    defaultValue="IN"
-                                                                                    readOnly
+                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['country_code'] ?
+                                                                                        emptaxivaxi[0]['country_code'] : 'IN'
+                                                                                    }
                                                                                 />
                                                                             </div>
                                                                             <span
