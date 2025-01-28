@@ -168,7 +168,7 @@ const navigate = useNavigate();
                     'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
                     soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
                   );
- 
+ console.log("response",response)
                   const responseData = {
                       responsedata: response.data,
                       searchfromcity: searchfrom,

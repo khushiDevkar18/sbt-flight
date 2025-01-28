@@ -823,7 +823,7 @@ function Home() {
                 fromcotrav: '1',
                 };
                 console.timeEnd("redirect");
-            // console.log('responsedata', responseData);
+            console.log('searchresponse', response);
             navigate('/SearchFlight', { state: { responseData } });
             } catch (error) {
                 // ErrorLogger.logError('search_api',soapEnvelope,error);

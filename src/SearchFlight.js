@@ -526,12 +526,12 @@ const SearchFlight = () => {
   };
 
   const calculateFinalPrice = (totalPrice, markup, seatType, fareName) => {
+
     // Parse markup if it's a JSON string
     if (typeof markup === "string") {
       try {
         markup = JSON.parse(markup);
       } catch (error) {
-        // console.error("Failed to parse markup JSON:", error);
         return parseFloat(totalPrice.replace("INR", "").trim()); // Return the original price
       }
     }
