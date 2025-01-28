@@ -163,7 +163,7 @@ const SearchFlight = () => {
         allSegmentKeys.includes(fareInfo.SegmentRef) // Use allSegmentKeys from state for connecting flights
     );
   
-    console.log("Matched Data:", matchedData);
+    // console.log("Matched Data:", matchedData);
 
     const segmentArray = matchedData.map((fareInfo) => {
       const segmentkey = fareInfo['SegmentRef'];
@@ -189,7 +189,7 @@ const SearchFlight = () => {
         return segment;
       });
     }).flat();
-    console.log('segmentArray', segmentArray);
+    // console.log('segmentArray', segmentArray);
     // const comHostTokens = HostList
     //   .filter(hostToken => hostToken['$'] && hostToken['$']['Key'] === hostkey) // Match the hostkey
     //   .map(hostToken => ({
@@ -308,15 +308,15 @@ const SearchFlight = () => {
 
     const makeSoapRequest = async () => {
       var pricepointXML = pricepointXMLpc;
-      console.log('main_prc', pricepointXML); 
-      console.log("in api1")
+      // console.log('main_prc', pricepointXML); 
+      // console.log("in api1")
       try {
         const priceresponse = await axios.post(
           'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest',
           pricepointXML, { headers: { 'Content-Type': 'text/xml' } }
         );
         const priceResponse = priceresponse.data;
-        console.log('priceResponse', priceResponse);          
+        // console.log('priceResponse', priceResponse);          
         parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
           if (err) {
             console.error('Error parsing XML:', err);
@@ -359,12 +359,12 @@ const SearchFlight = () => {
                 });
               }
             }
-            console.log('ca',combinedArray);
+            // console.log('ca',combinedArray);
 
             const HostToken = pricereponse['common_v52_0:HostToken'];
             const SegmentParse = segmentpricereponse;
-            console.log('hosttoken', HostToken);
-            console.log('seg', SegmentParse);
+            // console.log('hosttoken', HostToken);
+            // console.log('seg', SegmentParse);
 
             // let finaldeparturedate = SegmentParse['$']['DepartureTime'];
             // let finalarrivaldate = SegmentParse['$']['ArrivalTime'];
@@ -418,7 +418,7 @@ const SearchFlight = () => {
             //   SegmentParse['$'].HostTokenRef = matchedEntry.hostTokenRef;
             // }
             // console.log('demo comment');
-            console.log('SegmentParse',SegmentParse);
+            // console.log('SegmentParse',SegmentParse);
             const builder = require('xml2js').Builder;
             var servicerequestXML = new builder().buildObject({
               'soap:Envelope': {
@@ -452,7 +452,7 @@ const SearchFlight = () => {
                 }
               }
             });
-            console.log('servicerequestXML', servicerequestXML);
+            // console.log('servicerequestXML', servicerequestXML);
             const serviceresponse = axios.post(
               'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest',
               servicerequestXML, { headers: { 'Content-Type': 'text/xml' } }
@@ -595,30 +595,41 @@ const SearchFlight = () => {
         const lowFareSearchRsp = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp'];
         if (lowFareSearchRsp !== null && lowFareSearchRsp !== undefined) {
           const pricepointlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirPricePointList']['air:AirPricePoint'];
-          // const flightoptionlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirPricePointList']['air:AirPricePoint'][0]['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'];  
+
           const extractedBookingInfo = [];
 
+          // Iterate through the AirPricePoint list
           pricepointlist.forEach((airPricePoint) => {
-            // Access the nested air:Option directly
-            const options = airPricePoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option'];
+            const airPricingInfo = airPricePoint['air:AirPricingInfo'];
+            if (!airPricingInfo) return; // Skip if no AirPricingInfo is found
 
-            // Normalize options to an array
-            const optionsArray = Array.isArray(options) ? options : [options];
+            const flightOptionsList = airPricingInfo['air:FlightOptionsList'];
+            if (!flightOptionsList) return; // Skip if no FlightOptionsList is found
 
-            optionsArray.forEach((airOption) => {
-              const bookingInfo = airOption['air:BookingInfo'];
+            const flightOptions = flightOptionsList['air:FlightOption'];
+            const flightOptionArray = Array.isArray(flightOptions) ? flightOptions : [flightOptions]; // Normalize to array
 
-              // Normalize bookingInfo to always be an array
-              const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
+            // Iterate through each air:FlightOption
+            flightOptionArray.forEach((flightOption) => {
+              const options = flightOption['air:Option'];
+              const optionsArray = Array.isArray(options) ? options : [options]; // Normalize to array
 
-              // Extract the "$" part from each bookingInfo
-              bookingInfoArray.forEach((info) => {
-                if (info && info["$"]) {
-                  extractedBookingInfo.push(info["$"]);
-                }
+              // Iterate through each air:Option
+              optionsArray.forEach((airOption) => {
+                const bookingInfo = airOption['air:BookingInfo'];
+                const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo]; // Normalize to array
+
+                // Extract the "$" part from each bookingInfo
+                bookingInfoArray.forEach((info) => {
+                  if (info && info["$"]) {
+                    extractedBookingInfo.push(info["$"]); // Push the extracted info into the result array
+                  }
+                });
               });
             });
           });
+
+          // console.log("Extracted Booking Info:", extractedBookingInfo);
 
           const Segmentlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirSegmentList']['air:AirSegment'];
           const flightdetailist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FlightDetailsList']['air:FlightDetails'];
@@ -4869,18 +4880,17 @@ const SearchFlight = () => {
                               if (airlineCheck && airlinereturnCheck && stopsCheck && stopsreturnCheck && arrivaltimeCheck && departuretimeCheck) {
                                 if (totalPrice >= priceRange[0] && totalPrice <= priceRange[1]) {
                                   const collectedSegmentRefs = [];
-                                  const options = pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option'];
+                                  const options = pricepoint['air:AirPricingInfo']?.['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'];
 
-                                  // Normalize options to an array
-                                  const optionsArray = Array.isArray(options) ? options : [options];
+                                  // Normalize options to an array only if it exists
+                                  const optionsArray = Array.isArray(options) ? options : options ? [options] : [];
 
                                   optionsArray.forEach((airOption) => {
-                                    const bookingInfo = airOption['air:BookingInfo'];
+                                    const bookingInfo = airOption?.['air:BookingInfo'];
 
-                                    // Normalize bookingInfo to always be an array
-                                    const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
+                                    // Normalize bookingInfo to an array only if it exists
+                                    const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : bookingInfo ? [bookingInfo] : [];
 
-                                    // Extract SegmentRef from each bookingInfo
                                     bookingInfoArray.forEach((info) => {
                                       if (info && info["$"] && info["$"]["SegmentRef"]) {
                                         const segmentRef = info["$"]["SegmentRef"];
@@ -4888,6 +4898,7 @@ const SearchFlight = () => {
                                       }
                                     });
                                   });
+                                  {/* console.log('collectedSegmentRefs', collectedSegmentRefs); */}
 
                                   // Check if any SegmentRef in collectedSegmentRefs is already rendered
                                   const shouldSkipForm = collectedSegmentRefs.some((ref) => renderedSegmentRefs.has(ref));
@@ -4902,8 +4913,6 @@ const SearchFlight = () => {
                                       <React.Fragment key={priceindex}>
                                         {/* {collectedSegmentRefs.map((segmentRef, index) => (                                         */}
                                         <form onSubmit={(e) => handlePriceSubmit(e, priceindex)}>
-
-
                                           <div key={priceindex}>
                                             {pricepoint && pricepoint['air:AirPricingInfo'] && (
                                               (pricepoint['air:AirPricingInfo'][0]?.['air:FlightOptionsList']?.['air:FlightOption'] && Array.isArray(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'])) ||
@@ -4912,8 +4921,6 @@ const SearchFlight = () => {
                                               <div>
 
                                                 <div
-
-                                                  // className={`flight-item fly-in ${selectedFlights.includes(pricepoint['air:AirPricingInfo']) ? "selected-flight" : ""}`}
                                                   className={`flight-item fly-in ${selectedFlights.some(
                                                     (selectedFlight) =>
                                                       selectedFlight["$"].Key === pricepoint["air:AirPricingInfo"]["$"].Key &&

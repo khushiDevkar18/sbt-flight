@@ -912,7 +912,7 @@ return (
                                         <label className="bookingtype onewaybookingtype" htmlFor="departureRadio" style={getLabelStyle('oneway')}>One-Way</label>
                                     </div>
 
-                                    {/* <div className="Return">
+                                    <div className="Return">
                                         <input
                                             type="radio"
                                             className="bookingtypecheck"
@@ -923,7 +923,7 @@ return (
                                             id="returnRadio"
                                         />
                                         <label className="bookingtype returnbookingtype" htmlFor="returnRadio" style={getLabelStyle('Return')}>Return</label>
-                                    </div> */}
+                                    </div>
                                     <div className="clear"></div>
                                     
                                 </div>
