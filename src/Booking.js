@@ -136,7 +136,7 @@ const Booking = () => {
 
             const responseData = await response.json();
             const data = responseData.result;
-            console.log("data",data)
+            // console.log("data",data)
             const organizedData = {};
 
             // Organize the response data
@@ -935,7 +935,7 @@ const Booking = () => {
                                 '$': {
                                     'AuthorizedBy': 'TAXIVAXI',
                                     'RetainReservation': 'Both',
-                                    'TargetBranch': 'P4451438',
+                                    'TargetBranch': 'P7206253',
                                     'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                     'RestrictWaitlist': 'true',
                                     'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
@@ -983,7 +983,7 @@ const Booking = () => {
                                         '$': {
                                             'BankCountryCode': "IN",
                                             'CVV': "737",
-                                            'ExpDate': "2024-11",
+                                            'ExpDate': "2026-11",
                                             'Name': "Pavan Patil",
                                             'Number': "4111111111111111",
                                             'Type': "VI",
@@ -1017,7 +1017,7 @@ const Booking = () => {
                 }
                 var xmlBuilder = new xml2js.Builder();
                 var reservationRequestXML = xmlBuilder.buildObject(reservationRequestEnvelope);
-                console.log('reservationRequestXML',reservationRequestXML);
+                
 
                 var parser = new DOMParser();
                 var xmlDoc = parser.parseFromString(reservationRequestXML, 'text/xml');
@@ -1041,6 +1041,8 @@ const Booking = () => {
                 }
 
                 var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
+                console.log('modifiedXmlString',modifiedXmlString);
+                
 
                 try {
                     const reservationresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', modifiedXmlString, {
@@ -1050,7 +1052,7 @@ const Booking = () => {
                         },
                     });
                     const reservationResponse = reservationresponse.data;
-                    // console.log('reservationResponse',reservationResponse);
+                    console.log('reservationResponse',reservationResponse);
                     // alert("resp", reservationResponse);
                     parseString(reservationResponse, { explicitArray: false }, (err, reservationresult) => {
                         if (err) {
@@ -1118,7 +1120,7 @@ const Booking = () => {
                                         'soap:Body': {
                                             'univ:UniversalRecordRetrieveReq': {
                                                 '$': {
-                                                    'TargetBranch': 'P4451438',
+                                                    'TargetBranch': 'P7206253',
                                                     'RetrieveProviderReservationDetails': 'true',
                                                     'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
                                                     'xmlns:com': 'http://www.travelport.com/schema/common_v52_0',
@@ -1171,7 +1173,7 @@ const Booking = () => {
                                                     'AuthorizedBy': 'TAXIVAXI',
                                                     'RetrieveProviderReservationDetails': 'true',
                                                     'ReturnInfoOnFail': 'true',
-                                                    'TargetBranch': 'P4451438',
+                                                    'TargetBranch': 'P7206253',
                                                     'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
                                                     'xmlns:common': 'http://www.travelport.com/schema/common_v52_0',
@@ -1285,7 +1287,7 @@ const Booking = () => {
                                                 },
                                                 'univ:AirMerchandisingFulfillmentReq': {
                                                     '$': {
-                                                        'TargetBranch': 'P4451438'
+                                                        'TargetBranch': 'P7206253'
                                                     },
                                                     'com:BillingPointOfSaleInfo': {
                                                         '$': {
@@ -1357,7 +1359,7 @@ const Booking = () => {
                                                 },
                                                 'univ:AirMerchandisingFulfillmentReq': {
                                                     '$': {
-                                                        'TargetBranch': 'P4451438'
+                                                        'TargetBranch': 'P7206253'
                                                     },
                                                     'com:BillingPointOfSaleInfo': {
                                                         '$': {
@@ -1612,7 +1614,7 @@ const Booking = () => {
                                         '$': {
                                             'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                             'AuthorizedBy': 'TAXIVAXI',
-                                            'TargetBranch': 'P4451438',
+                                            'TargetBranch': 'P7206253',
                                             'ReturnSeatPricing': 'true',
                                             'ReturnBrandingInfo': 'true'
                                         },
@@ -2121,7 +2123,7 @@ const Booking = () => {
                                             'air:AirPriceReq': {
                                                 '$': {
                                                     'AuthorizedBy': 'TAXIVAXI',
-                                                    'TargetBranch': 'P4451438',
+                                                    'TargetBranch': 'P7206253',
                                                     'FareRuleType': 'short',
                                                     'TraceId': 'TVSBP001',
                                                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -2290,7 +2292,7 @@ const Booking = () => {
                                                             },
                                                             'air:AirMerchandisingOfferAvailabilityReq': {
                                                                 '$': {
-                                                                    'TargetBranch': 'P4451438',
+                                                                    'TargetBranch': 'P7206253',
                                                                     'TraceId': 'ac191f0b9c0546659065f29389eae552'
                                                                 },
                                                                 'com:BillingPointOfSaleInfo': {
@@ -2357,7 +2359,7 @@ const Booking = () => {
                                                                         '$': {
                                                                             'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                                                             'AuthorizedBy': 'TAXIVAXI',
-                                                                            'TargetBranch': 'P4451438',
+                                                                            'TargetBranch': 'P7206253',
                                                                             'ReturnSeatPricing': 'true',
                                                                             'ReturnBrandingInfo': 'true'
                                                                         },
