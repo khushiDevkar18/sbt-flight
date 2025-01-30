@@ -83,7 +83,7 @@ const SearchFlight = () => {
   const handleFlightDepartureDateChange = (newDepartureDate) => {
     setflightDepartureDate(newDepartureDate);
   };
-  // let dataFound = false;
+  let dataFound = false;
 
   const airlines = location.state && location.state.responseData.airlinedata;
   const apiairports = location.state && location.state.responseData.apiairportsdata;
@@ -316,7 +316,7 @@ const SearchFlight = () => {
           pricepointXML, { headers: { 'Content-Type': 'text/xml' } }
         );
         const priceResponse = priceresponse.data;
-        console.log('priceResponse', priceResponse);          
+        // console.log('priceResponse', priceResponse);          
         parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
           if (err) {
             console.error('Error parsing XML:', err);
@@ -788,14 +788,21 @@ const SearchFlight = () => {
     }
   };
 
- 
+  // const [sortingCriterion, setSortingCriterion] = useState('');
+
+  // const handleSortingCriterionClick = (criteria) => {
+  //   setSortingCriterion(criteria);
+  // };
   const [sortingCriterion, setSortingCriterion] = useState('1'); // Track the sorting criterion
   const [sortDirection, setSortDirection] = useState('asc'); // Track the sorting direction ('asc' or 'desc')
 
   const handleSortingCriterionClick = (criteria) => {
     if (sortingCriterion === criteria) {
+      // Toggle sort direction if the same criterion is clicked
+      // setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
+      // Set new criterion and reset to ascending order
       setSortingCriterion(criteria);
       setSortDirection('asc');
     }
@@ -2465,9 +2472,9 @@ const SearchFlight = () => {
   };
 
   const approverButtonClick = () => {
-    console.log('hi');
+    // console.log('hi');
     const segregateFlights = (flight) => {
-      console.log('flight', flight);
+      // console.log('flight', flight);
       const flightOptionsList = flight["air:FlightOptionsList"];
       const flightOption = flightOptionsList?.["air:FlightOption"];
       const flightOptionArray = Array.isArray(flightOption) ? flightOption : [flightOption];
@@ -2627,50 +2634,9 @@ const SearchFlight = () => {
 
   };
 
-  // const renderedSegmentRefs = new Set();
-  
-  // const [dataFound, setDataFound] = useState(false);
-  const renderedSegmentRefs = useRef(new Set()); // Track already rendered segments
-  const [filteredFlights, setFilteredFlights] = useState([]);
-  // console.log('filteredFlights',filteredFlights);
-  
-useEffect(() => {
-    setFilteredFlights([]); // Clear previous flights to avoid duplicates
-  
-    flightOptions.forEach((pricepoint, priceindex) => {
-      setTimeout(() => { // Introduce a delay for incremental rendering
-        const totalPrice = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
-        if (totalPrice >= priceRange[0] && totalPrice <= priceRange[1]) {
-          const collectedSegmentRefs = [];
-          const options = pricepoint['air:AirPricingInfo']?.['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'];
-  
-          const optionsArray = Array.isArray(options) ? options : options ? [options] : [];
-          optionsArray.forEach((airOption) => {
-            const bookingInfo = airOption?.['air:BookingInfo'];
-            const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : bookingInfo ? [bookingInfo] : [];
-  
-            bookingInfoArray.forEach((info) => {
-              if (info?.['$']?.['SegmentRef']) {
-                const segmentRef = info['$']['SegmentRef'];
-                collectedSegmentRefs.push(segmentRef);
-              }
-            });
-          });
-  
-          const shouldSkipForm = collectedSegmentRefs.some((ref) => renderedSegmentRefs.current.has(ref));
-  
-          if (!shouldSkipForm) {
-            collectedSegmentRefs.forEach((ref) => renderedSegmentRefs.current.add(ref));
-  
-            setFilteredFlights((prevFlights) => [...prevFlights, pricepoint]); // Add one by one
-          }
-        }
-      }, priceindex * 300); // Delay each flight render
-    });
-  }, [flightOptions, priceRange]);
-
-  
-
+  const renderedSegmentRefs = new Set();
+  // const renderedSegmentRefs = useRef(new Set());
+  // console.log('wdqfhsjy',renderedSegmentRefs);
 
   return (
     <div className="yield-content" style={{ background: '#e8e4ff' }}>
@@ -3683,8 +3649,13 @@ useEffect(() => {
                             </div>
                           </div>
 
-                          {filteredFlights.length > 0 ? (
-                            filteredFlights.map(pricepoint => {
+                          {flightOptions.slice().sort((a, b) => {
+                            // Always sort by price as the default sorting
+                            const priceA = parseFloat(a.$.TotalPrice.replace(/[^\d.]/g, ''));
+                            const priceB = parseFloat(b.$.TotalPrice.replace(/[^\d.]/g, ''));
+                            return priceA - priceB;
+                          })
+                            .map(pricepoint => {
                               pricepoint.price = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
                               let result = {};
                               pricepoint['air:AirPricingInfo'] && (
@@ -4197,9 +4168,15 @@ useEffect(() => {
                                 default:
                                   {/* return 0; */ }
                               }
-                            }).map(( pricepoint, priceindex ) => {
-                              {/* console.log('price', pricepoint); */}
+                            }).map((pricepoint, priceindex) => {
+                              {/* console.log('pricepopint', pricepoint); */ }
+                              {/* console.log('xyz', pricepoint['air:AirPricingInfo']['air:FareInfoRef']); */ }
                               const totalPrice = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
+                              const isFlightSelected = selectedFlights.some(
+                                (selectedFlight) =>
+                                  selectedFlight["$"].Key === pricepoint["air:AirPricingInfo"]["$"].Key &&
+                                  selectedFlight.isReturn === pricepoint["air:AirPricingInfo"].isReturn
+                              );
                               let result = {};
                               {
                                 pricepoint['air:AirPricingInfo'] && (
@@ -4902,8 +4879,40 @@ useEffect(() => {
                               const stopsCheck = selectedStops.length === 0 || selectedStops.includes(result['stop']);
                               const stopsreturnCheck = selectedreturnStops.length === 0 || selectedreturnStops.includes(result['returnstop']);
                               if (airlineCheck && airlinereturnCheck && stopsCheck && stopsreturnCheck && arrivaltimeCheck && departuretimeCheck) {
-                                return (
-                              <React.Fragment key={priceindex}>
+                                if (totalPrice >= priceRange[0] && totalPrice <= priceRange[1]) {
+                                  
+                                  const collectedSegmentRefs = [];
+                                  const options = pricepoint['air:AirPricingInfo']?.['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'];
+
+                                  // Normalize options to an array only if it exists
+                                  const optionsArray = Array.isArray(options) ? options : options ? [options] : [];
+
+                                  optionsArray.forEach((airOption) => {
+                                    const bookingInfo = airOption?.['air:BookingInfo'];
+
+                                    // Normalize bookingInfo to an array only if it exists
+                                    const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : bookingInfo ? [bookingInfo] : [];
+
+                                    bookingInfoArray.forEach((info) => {
+                                      if (info && info["$"] && info["$"]["SegmentRef"]) {
+                                        const segmentRef = info["$"]["SegmentRef"];
+                                        collectedSegmentRefs.push(segmentRef);
+                                      }
+                                    });
+                                  });
+                                  {/* console.log('collectedSegmentRefs', collectedSegmentRefs); */}
+
+                                  // Check if any SegmentRef in collectedSegmentRefs is already rendered
+                                  const shouldSkipForm = collectedSegmentRefs.some((ref) => renderedSegmentRefs.has(ref));
+
+                                  if (!shouldSkipForm) {
+                                    // Add all SegmentRefs from collectedSegmentRefs to the global set
+                                    collectedSegmentRefs.forEach((ref) => renderedSegmentRefs.add(ref));
+
+                                    dataFound = true;
+
+                                    return (
+                                      <React.Fragment key={priceindex}>
                                         <form onSubmit={(e) => handlePriceSubmit(e, priceindex)}>
                                           <div key={priceindex}>
                                             {pricepoint && pricepoint['air:AirPricingInfo'] && (
@@ -16035,25 +16044,22 @@ useEffect(() => {
 
                                           </div>
 
-                                          </form>
-                                </React.Fragment>
-                                )
+                                        </form>
+                                      </React.Fragment>
+                                    );
+                                  }
+                                }
                               }
-                            })
-                              
-                            ) : (
-                              <div key="not-found">
-                                <div style={{ textAlign: 'center', background: 'white', padding: '10px' }}>
-                                  <p style={{ fontWeight: '600' }} className='datanotfound'>
-                                    No Data is found for applied filter.
-                                  </p>
-                                  <p>We couldn't find any flights with all the filters you’ve selected. Try removing some filters</p>
-                                  <a href="/" className="back-home-btn" style={{ fontWeight: '600', lineHeight: '3.5', backgroundColor: '#785eff', padding: '15px 35px', color: '#fff', textDecoration: 'none', width: '100%', textTransform: 'uppercase', fontFamily: 'raleway', fontSize: '14px' }}>
-                                    Back to Home
-                                  </a>
-                                </div>
-                              </div>
-                            )}
+                              return null;
+                            })}
+                          {!dataFound && <div key="not-found">
+                            <div style={{ textAlign: 'center', background: 'white', padding: '10px' }}>
+                              {/* <img src="img/taxivaxi/result_not_found/result not found 1 taxivaxi.png" style={{ width: '100%', paddingBottom: '50px' }} /> */}
+                              <p style={{ fontWeight: '600' }} className='datanotfound'>No Data is found for applied filter.</p>
+                              <p>We couldn't find any flights with all the filters you’ve selected. Try removing some filters</p>
+                              <a href="/" className="back-home-btn" style={{ fontWeight: '600', lineHeight: '3.5', backgroundColor: '#785eff', padding: '15px 35px', color: '#fff', textDecoration: 'none', width: '100%', textTransform: 'uppercase', fontFamily: 'raleway', fontSize: '14px' }}>Back to Home</a>
+                            </div>
+                          </div>}
                         </>
                       ) : (
                         <>
