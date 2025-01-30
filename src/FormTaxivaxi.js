@@ -65,7 +65,8 @@ const navigate = useNavigate();
                   const request_type = formtaxivaxiData['request_type'];
                   const client_id = formtaxivaxiData['client_id'];
                   const is_gst_benefit = formtaxivaxiData['is_gst_benefit'];
-
+                  const flight_type = formtaxivaxiData['flight_type'];
+                  
                   const adult = no_of_seats;
                   const child = 0;
                   const infant = 0;
@@ -194,7 +195,8 @@ const navigate = useNavigate();
                       no_of_seats: no_of_seats,
                       request_id: request_id,
                       clientid: client_id,
-                      is_gst_benefit:is_gst_benefit
+                      is_gst_benefit: is_gst_benefit,
+                      flighttype:flight_type
                   };
                   navigate('/SearchFlight', { state: { responseData } });
                   await new Promise(resolve => setTimeout(resolve, 1000));

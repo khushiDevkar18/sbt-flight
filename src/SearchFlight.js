@@ -108,7 +108,7 @@ const SearchFlight = () => {
   const request_id = location.state && location.state.responseData?.request_id;
   const clientid = location.state && location.state.responseData?.clientid;
   const is_gst_benefit = location.state && location.state.responseData?.is_gst_benefit;
-
+  const flight_type =location.state && location.state.responseData?.flighttype;
 
   const adultCounts = parseInt(adult, 10) || 0;
   const childCounts = parseInt(child, 10) || 0;
@@ -118,7 +118,7 @@ const SearchFlight = () => {
   const [infantCount, setInfantCount] = useState(infantCounts);
 
   if (no_of_seats === '' || no_of_seats === 'NULL' || no_of_seats === 'undefined' || no_of_seats == null) {
-    no_of_seats = adultCount + childCount + infantCount;  // Fallback to sum of counts
+    no_of_seats = adultCount + childCount + infantCount;  
   }
 
   const request = location.state?.responseData || {};
@@ -130,11 +130,12 @@ const SearchFlight = () => {
   const [cabinClass, setCabinClass] = useState(cabinclass);
   const [inputOrigin, setInputOrigin] = useState(request.searchfromcity);
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
+
   const [ismodify, setismodify] = useState(true);
   const [origin, setOrigin] = useState([]);
   const [allAirportsOrigin, setAllAirportsOrigin] = useState([]);
   const [airportOriginCodes, setAirportOriginCodes] = useState(null);
-
+  
   const [inputDestination, setInputDestination] = useState(request.searchtocity);
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
   const [destination, setDestination] = useState([]);
@@ -525,7 +526,7 @@ const SearchFlight = () => {
     });
   };
 
-  const calculateFinalPrice = (totalPrice, markup, seatType, fareName) => {
+  const calculateFinalPrice = (totalPrice, markup, seatType, fareName,airline,flighttype) => {
 
     // Parse markup if it's a JSON string
     if (typeof markup === "string") {
@@ -540,15 +541,23 @@ const SearchFlight = () => {
     const numericPrice = parseFloat(totalPrice.replace("INR", "").trim());
 
     if (!Array.isArray(markup)) {
-      // console.error("Markup is not an array:", markup);
       return numericPrice; // Return the original price
     }
 
     // Find the applicable markup based on fareName
-    let applicableMarkup = markup.find(
-      (m) => m.seat_type === seatType && m.fare_name === fareName
-    );
+    
+    let applicableMarkup = markup.find((m) => {
+      const seatTypeMatch = m.seat_type === seatType || m.seat_type === '';
+      const fareNameMatch = !fareName || m.fare_name === fareName || m.fare_name === '' || m.fare_name == null;
 
+      const flightTypeMatch = !flighttype || m.flight_type === flighttype || m.flight_type === '';
+
+      const airlineMatch = !airline || m.airline_full_name === airline || m.airline_full_name === '' || m.airline_full_name == null;
+
+      return seatTypeMatch && fareNameMatch && flightTypeMatch && airlineMatch;
+    });
+
+    // console.log("applicableMarkup",applicableMarkup)
     // If no specific fareName markup found, fallback to Base Fare
     if (!applicableMarkup) {
       applicableMarkup = markup.find(
@@ -560,16 +569,20 @@ const SearchFlight = () => {
       console.warn("No applicable markup found; applying original price.");
       return numericPrice;
     }
-
+    console.log("Without markup", numericPrice)
+    console.log("markup type",applicableMarkup.markup_type)
+    console.log("markup value",applicableMarkup.markup_value)
+    
     // Calculate the final price based on markup type
     const markupValue = parseFloat(applicableMarkup.markup_value);
-    if (applicableMarkup.markup_type === "fixed") {
+    if (applicableMarkup.markup_type === "Fixed") {
+      console.log('with markup', numericPrice + markupValue);
       return numericPrice + markupValue; // Add fixed value
-    } else if (applicableMarkup.markup_type === "percentage") {
+    } else if (applicableMarkup.markup_type === "Percentage") {
+      console.log('with markup', numericPrice + (numericPrice * markupValue) / 100);
       return numericPrice + (numericPrice * markupValue) / 100; // Add percentage
     }
 
-    return numericPrice; // Default return if no markup type matches
   };
 
   const swapOriginAndDestination = () => {
@@ -9611,10 +9624,12 @@ const SearchFlight = () => {
                                                                         <>
                                                                           {(() => {
                                                                             const totalPrice =
-                                                                              pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
+                                                                            pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
                                                                             const seatType = cabinClass; // Set the seat type dynamically as needed
                                                                             const fareName = "Base Fare";
-                                                                            const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName);
+                                                                            const airline = inputOrigin;
+                                                                              
+                                                                            const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName,airline,flight_type);
 
                                                                             return (
                                                                               <>
@@ -9630,8 +9645,10 @@ const SearchFlight = () => {
                                                                             const totalPrice =
                                                                               pricepoint['air:AirPricingInfo']['$']['TotalPrice'];
                                                                             const seatType = cabinClass; // Set the seat type dynamically as needed
-                                                                            const fareName = "Base Fare";
-                                                                            const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName);
+                                                                                const fareName = "Base Fare";
+                                                                                const airline = inputOrigin;
+
+                                                                            const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName,airline,flight_type);
 
                                                                             return (
                                                                               <>
@@ -11187,11 +11204,13 @@ const SearchFlight = () => {
                                                                                       {(() => {
                                                                                         const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
                                                                                         const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const airline = inputOrigin;
                                                                                         const calculatedPrice = calculateFinalPrice(
                                                                                           numericTotalPrice,
                                                                                           markupdata,
                                                                                           cabinClass,
-                                                                                          priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                          priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'],// Pass the fare name (e.g., "ECO VALUE")
+                                                                                          airline,flight_type
                                                                                         );
 
                                                                                         return (
@@ -11252,11 +11271,13 @@ const SearchFlight = () => {
                                                                                         {(() => {
                                                                                           const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
                                                                                           const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const airline = inputOrigin;
                                                                                           const calculatedPrice = calculateFinalPrice(
                                                                                             numericTotalPrice,
                                                                                             markupdata,
                                                                                             cabinClass,
                                                                                             priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                            ,airline,flight_type
                                                                                           );
 
                                                                                           return (
@@ -11306,12 +11327,14 @@ const SearchFlight = () => {
                                                                                   <div className="selectprice">
                                                                                     {(() => {
                                                                                       const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
-                                                                                      const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const airline = inputOrigin;
                                                                                       const calculatedPrice = calculateFinalPrice(
                                                                                         numericTotalPrice,
                                                                                         markupdata,
                                                                                         cabinClass,
                                                                                         priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                        ,airline,flight_type
                                                                                       );
 
                                                                                       return (
@@ -11365,11 +11388,13 @@ const SearchFlight = () => {
                                                                                       {(() => {
                                                                                         const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
                                                                                         const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const airline = inputOrigin;
                                                                                         const calculatedPrice = calculateFinalPrice(
                                                                                           numericTotalPrice,
                                                                                           markupdata,
                                                                                           cabinClass,
                                                                                           priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                          ,airline,flight_type
                                                                                         );
 
                                                                                         return (
@@ -11430,11 +11455,13 @@ const SearchFlight = () => {
                                                                                         {(() => {
                                                                                           const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
                                                                                           const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const airline = inputOrigin;
                                                                                           const calculatedPrice = calculateFinalPrice(
                                                                                             numericTotalPrice,
                                                                                             markupdata,
                                                                                             cabinClass,
                                                                                             priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                            ,airline,flight_type
                                                                                           );
 
                                                                                           return (
@@ -11484,12 +11511,15 @@ const SearchFlight = () => {
                                                                                   <div className="selectprice">
                                                                                     {(() => {
                                                                                       const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
-                                                                                      const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const airline = inputOrigin;
+
                                                                                       const calculatedPrice = calculateFinalPrice(
                                                                                         numericTotalPrice,
                                                                                         markupdata,
                                                                                         cabinClass,
                                                                                         priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                        ,airline,flight_type
                                                                                       );
 
                                                                                       return (
@@ -11549,11 +11579,13 @@ const SearchFlight = () => {
                                                                                       {(() => {
                                                                                         const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
                                                                                         const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const airline = inputOrigin;
                                                                                         const calculatedPrice = calculateFinalPrice(
                                                                                           numericTotalPrice,
                                                                                           markupdata,
                                                                                           cabinClass,
                                                                                           priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                          ,airline,flight_type
                                                                                         );
 
                                                                                         return (
@@ -11614,11 +11646,13 @@ const SearchFlight = () => {
                                                                                         {(() => {
                                                                                           const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
                                                                                           const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const airline = inputOrigin;
                                                                                           const calculatedPrice = calculateFinalPrice(
                                                                                             numericTotalPrice,
                                                                                             markupdata,
                                                                                             cabinClass,
                                                                                             priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                            ,airline,flight_type
                                                                                           );
 
                                                                                           return (
@@ -11668,12 +11702,15 @@ const SearchFlight = () => {
                                                                                   <div className="selectprice">
                                                                                     {(() => {
                                                                                       const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
-                                                                                      const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const airline = inputOrigin;
+
                                                                                       const calculatedPrice = calculateFinalPrice(
                                                                                         numericTotalPrice,
                                                                                         markupdata,
                                                                                         cabinClass,
                                                                                         priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                        ,airline,flight_type
                                                                                       );
 
                                                                                       return (
@@ -11731,12 +11768,14 @@ const SearchFlight = () => {
                                                                                     <div className="selectprice">
                                                                                       {(() => {
                                                                                         const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
-                                                                                        const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const airline = inputOrigin;
                                                                                         const calculatedPrice = calculateFinalPrice(
                                                                                           numericTotalPrice,
                                                                                           markupdata,
                                                                                           cabinClass,
                                                                                           priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                          ,airline,flight_type
                                                                                         );
 
                                                                                         return (
@@ -11812,12 +11851,14 @@ const SearchFlight = () => {
                                                                                       <div className="selectprice">
                                                                                         {(() => {
                                                                                           const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
-                                                                                          const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                            const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                            const airline = inputOrigin;
                                                                                           const calculatedPrice = calculateFinalPrice(
                                                                                             numericTotalPrice,
                                                                                             markupdata,
                                                                                             cabinClass,
                                                                                             priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                            ,airline,flight_type
                                                                                           );
 
                                                                                           return (
@@ -11867,12 +11908,14 @@ const SearchFlight = () => {
                                                                                   <div className="selectprice">
                                                                                     {(() => {
                                                                                       const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
-                                                                                      const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const airline = inputOrigin;
                                                                                       const calculatedPrice = calculateFinalPrice(
                                                                                         numericTotalPrice,
                                                                                         markupdata,
                                                                                         cabinClass,
                                                                                         priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                        ,airline,flight_type
                                                                                       );
 
                                                                                       return (
@@ -11928,8 +11971,9 @@ const SearchFlight = () => {
                                                                   const totalPrice =
                                                                     pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
                                                                   const seatType = cabinClass; // Set the seat type dynamically as needed
-                                                                  const fareName = "Base Fare";
-                                                                  const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName);
+                                                                    const fareName = "Base Fare";
+                                                                    const airline = inputOrigin;
+                                                                  const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName,airline,flight_type);
 
                                                                   return (
                                                                     <>
@@ -11945,8 +11989,9 @@ const SearchFlight = () => {
                                                                   const totalPrice =
                                                                     pricepoint['air:AirPricingInfo']['$']['TotalPrice'];
                                                                   const seatType = cabinClass; // Set the seat type dynamically as needed
-                                                                  const fareName = "Base Fare";
-                                                                  const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName);
+                                                                      const fareName = "Base Fare";
+                                                                      const airline = inputOrigin;
+                                                                  const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName,airline,flight_type);
 
 
                                                                   return (
@@ -13639,8 +13684,9 @@ const SearchFlight = () => {
                                                                             const totalPrice =
                                                                               pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
                                                                             const seatType = cabinClass; // Set the seat type dynamically as needed
-                                                                            const fareName = "Base Fare";
-                                                                            const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName);
+                                                                              const fareName = "Base Fare";
+                                                                              const airline = inputOrigin;
+                                                                            const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName,airline,flight_type);
 
                                                                             return (
                                                                               <>
@@ -13656,8 +13702,9 @@ const SearchFlight = () => {
                                                                             const totalPrice =
                                                                               pricepoint['air:AirPricingInfo']['$']['TotalPrice'];
                                                                             const seatType = cabinClass; // Set the seat type dynamically as needed
-                                                                            const fareName = "Base Fare";
-                                                                            const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName);
+                                                                                const fareName = "Base Fare";
+                                                                                const airline = inputOrigin;
+                                                                            const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName,airline,flight_type);
 
                                                                             return (
                                                                               <>
@@ -15151,11 +15198,13 @@ const SearchFlight = () => {
                                                                             const numericTotalPrice = totalAmount
                                                                               .replace("INR", "")
                                                                               .trim(); // Extract numeric part of price
+                                                                              const airline = inputOrigin;
                                                                             const calculatedPrice = calculateFinalPrice(
                                                                               numericTotalPrice,
                                                                               markupdata,
                                                                               cabinClass,
                                                                               matchingFareInfo['$']['FareFamily'] // Pass the fare family name
+                                                                              ,airline,flight_type
                                                                             );
 
                                                                             return (
@@ -15229,11 +15278,13 @@ const SearchFlight = () => {
                                                                                         {(() => {
                                                                                           const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
                                                                                           const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const airline = inputOrigin;
                                                                                           const calculatedPrice = calculateFinalPrice(
                                                                                             numericTotalPrice,
                                                                                             markupdata,
                                                                                             cabinClass,
                                                                                             priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                            ,airline,flight_type
                                                                                           );
 
                                                                                           return (
@@ -15294,11 +15345,13 @@ const SearchFlight = () => {
                                                                                           {(() => {
                                                                                             const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
                                                                                             const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                            const airline = inputOrigin;
                                                                                             const calculatedPrice = calculateFinalPrice(
                                                                                               numericTotalPrice,
                                                                                               markupdata,
                                                                                               cabinClass,
                                                                                               priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              ,airline,flight_type
                                                                                             );
 
                                                                                             return (
@@ -15349,12 +15402,14 @@ const SearchFlight = () => {
                                                                                     <div className="selectprice">
                                                                                       {(() => {
                                                                                         const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
-                                                                                        const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const airline = inputOrigin;
                                                                                         const calculatedPrice = calculateFinalPrice(
                                                                                           numericTotalPrice,
                                                                                           markupdata,
                                                                                           cabinClass,
                                                                                           priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                          ,airline,flight_type
                                                                                         );
 
                                                                                         return (
@@ -15409,11 +15464,13 @@ const SearchFlight = () => {
                                                                                         {(() => {
                                                                                           const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
                                                                                           const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const airline = inputOrigin;
                                                                                           const calculatedPrice = calculateFinalPrice(
                                                                                             numericTotalPrice,
                                                                                             markupdata,
                                                                                             cabinClass,
                                                                                             priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                            ,airline,flight_type
                                                                                           );
 
                                                                                           return (
@@ -15475,11 +15532,13 @@ const SearchFlight = () => {
                                                                                           {(() => {
                                                                                             const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
                                                                                             const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                            const airline = inputOrigin;
                                                                                             const calculatedPrice = calculateFinalPrice(
                                                                                               numericTotalPrice,
                                                                                               markupdata,
                                                                                               cabinClass,
                                                                                               priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              ,airline,flight_type
                                                                                             );
 
                                                                                             return (
@@ -15530,12 +15589,14 @@ const SearchFlight = () => {
                                                                                     <div className="selectprice">
                                                                                       {(() => {
                                                                                         const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
-                                                                                        const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const airline = inputOrigin;
                                                                                         const calculatedPrice = calculateFinalPrice(
                                                                                           numericTotalPrice,
                                                                                           markupdata,
                                                                                           cabinClass,
                                                                                           priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                          ,airline,flight_type
                                                                                         );
 
                                                                                         return (
@@ -15595,11 +15656,13 @@ const SearchFlight = () => {
                                                                                         {(() => {
                                                                                           const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
                                                                                           const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const airline = inputOrigin;
                                                                                           const calculatedPrice = calculateFinalPrice(
                                                                                             numericTotalPrice,
                                                                                             markupdata,
                                                                                             cabinClass,
                                                                                             priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                            ,airline,flight_type
                                                                                           );
 
                                                                                           return (
@@ -15660,11 +15723,13 @@ const SearchFlight = () => {
                                                                                           {(() => {
                                                                                             const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
                                                                                             const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                            const airline = inputOrigin;
                                                                                             const calculatedPrice = calculateFinalPrice(
                                                                                               numericTotalPrice,
                                                                                               markupdata,
                                                                                               cabinClass,
                                                                                               priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              ,airline,flight_type
                                                                                             );
 
                                                                                             return (
@@ -15714,12 +15779,14 @@ const SearchFlight = () => {
                                                                                     <div className="selectprice">
                                                                                       {(() => {
                                                                                         const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
-                                                                                        const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const airline = inputOrigin;
                                                                                         const calculatedPrice = calculateFinalPrice(
                                                                                           numericTotalPrice,
                                                                                           markupdata,
                                                                                           cabinClass,
                                                                                           priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                          ,airline,flight_type
                                                                                         );
 
                                                                                         return (
@@ -15777,12 +15844,14 @@ const SearchFlight = () => {
                                                                                       <div className="selectprice">
                                                                                         {(() => {
                                                                                           const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
-                                                                                          const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                            const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                            const airline = inputOrigin;
                                                                                           const calculatedPrice = calculateFinalPrice(
                                                                                             numericTotalPrice,
                                                                                             markupdata,
                                                                                             cabinClass,
                                                                                             priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                            ,airline,flight_type
                                                                                           );
 
                                                                                           return (
@@ -15860,12 +15929,14 @@ const SearchFlight = () => {
                                                                                         <div className="selectprice">
                                                                                           {(() => {
                                                                                             const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
-                                                                                            const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                              const airline = inputOrigin;
                                                                                             const calculatedPrice = calculateFinalPrice(
                                                                                               numericTotalPrice,
                                                                                               markupdata,
                                                                                               cabinClass,
                                                                                               priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                              ,airline,flight_type
                                                                                             );
 
                                                                                             return (
@@ -15915,12 +15986,14 @@ const SearchFlight = () => {
                                                                                     <div className="selectprice">
                                                                                       {(() => {
                                                                                         const totalPrice = priceParseData['air:AirPricingInfo'].$.TotalPrice;
-                                                                                        const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                          const airline = inputOrigin;
                                                                                         const calculatedPrice = calculateFinalPrice(
                                                                                           numericTotalPrice,
                                                                                           markupdata,
                                                                                           cabinClass,
                                                                                           priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] // Pass the fare name (e.g., "ECO VALUE")
+                                                                                          ,airline,flight_type
                                                                                         );
 
                                                                                         return (
