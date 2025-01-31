@@ -4208,7 +4208,7 @@ useEffect(() => {
                                   {/* return 0; */ }
                               }
                             }).map(( pricepoint, priceindex ) => {
-                              {/* console.log('price', pricepoint); */}
+                              console.log('price', pricepoint);
                               const totalPrice = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
                               {/* console.log('totalPrice',totalPrice); */}
                               let result = {};
@@ -15043,7 +15043,7 @@ useEffect(() => {
                                                                                         Base Price
                                                                                       </div>
                                                                                       <div className="flight-details-c">
-                                                                                        Surcharge
+                                                                                        Surchargeee
                                                                                       </div>
                                                                                     </div>
                                                                                     <div className="flight-details-r">
