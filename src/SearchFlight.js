@@ -317,7 +317,7 @@ const SearchFlight = () => {
           pricepointXML, { headers: { 'Content-Type': 'text/xml' } }
         );
         const priceResponse = priceresponse.data;
-        console.log('priceResponse', priceResponse);          
+        // console.log('priceResponse', priceResponse);          
         parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
           if (err) {
             console.error('Error parsing XML:', err);
@@ -364,54 +364,64 @@ const SearchFlight = () => {
 
             const HostToken = pricereponse['common_v52_0:HostToken'];
             const SegmentParse = segmentpricereponse;
-            // console.log('hosttoken', HostToken);
-            // console.log('seg', SegmentParse);
 
-            // let finaldeparturedate = SegmentParse['$']['DepartureTime'];
-            // let finalarrivaldate = SegmentParse['$']['ArrivalTime'];
-            let finaldeparturedate='' ; 
-            let finalreturndate = '';
-            let finalarrivaldate ='' ;
-            if (formData.bookingType === "Return") {
-              SegmentParse.map((segmentInfo, segmentindex) => {
-        
-                if (segmentindex === 0) {
-                  finaldeparturedate = segmentInfo['$']['DepartureTime'];
-                }
-                if (segmentInfo['$']['Group'] === '1') {
-                  finalreturndate = segmentInfo['$']['DepartureTime'];
-                  return true;
-                }
-                return false;
-              });
-            } else {
-              SegmentParse.map((segmentInfo, segmentindex) => {
-        
-                if (segmentindex === 0) {
-                  finaldeparturedate = segmentInfo['$']['DepartureTime'];
-                  finalarrivaldate = segmentInfo['$']['ArrivalTime'];
-                }
-        
-              });
-            }
-            for (let i = 0; i < SegmentParse.length; i++) {
-              let currentSegment = SegmentParse[i];
-              for (let j = i + 1; j < SegmentParse.length; j++) {
-                const nextSegment = SegmentParse[j];
-                if (currentSegment.$.Group === nextSegment.$.Group) {
-                  currentSegment['air:Connection'] = "";
-                  currentSegment = SegmentParse[j];
-                  break;
-                }
-              }
-            }
-            SegmentParse.forEach(segment => {
-              const segmentKey = segment['$'].Key;
-              const matchedEntry = combinedArray.find(entry => entry.segmentRef === segmentKey);
-              if (matchedEntry) {
-                segment['$'].HostTokenRef = matchedEntry.hostTokenRef;
-              }
-            });
+// Convert SegmentParse to an array if it's a single object
+const segmentArray = Array.isArray(SegmentParse) ? SegmentParse : [SegmentParse];
+
+let finaldeparturedate = '';
+let finalreturndate = '';
+let finalarrivaldate = '';
+
+if (formData.bookingType === "Return") {
+  segmentArray.forEach((segmentInfo, segmentindex) => {
+    if (segmentindex === 0) {
+      finaldeparturedate = segmentInfo['$']['DepartureTime'];
+    }
+    if (segmentInfo['$']['Group'] === '1') {
+      finalreturndate = segmentInfo['$']['DepartureTime'];
+    }
+  });
+} else {
+  // Handle cases where the index is not 0
+  segmentArray.forEach((segmentInfo, segmentindex) => {
+    if (segmentindex === 0) {
+      finaldeparturedate = segmentInfo['$']['DepartureTime'];
+      finalarrivaldate = segmentInfo['$']['ArrivalTime'];
+    } else {
+      // Handle subsequent segments (not index 0)
+      finaldeparturedate = segmentInfo['$']['DepartureTime'];
+      finalarrivaldate = segmentInfo['$']['ArrivalTime'];
+    }
+  });
+
+  // If it's a single segment, ensure the dates are still assigned
+  if (segmentArray.length === 1 && segmentArray[0]['$']) {
+    finaldeparturedate = segmentArray[0]['$']['DepartureTime'];
+    finalarrivaldate = segmentArray[0]['$']['ArrivalTime'];
+  }
+}
+// console.log('h1');
+// Handle 'air:Connection' assignment for segments within the same group
+for (let i = 0; i < segmentArray.length; i++) {
+  let currentSegment = segmentArray[i];
+
+  for (let j = i + 1; j < segmentArray.length; j++) {
+    const nextSegment = segmentArray[j];
+    if (currentSegment.$.Group === nextSegment.$.Group) {
+      currentSegment['air:Connection'] = "";
+      break;
+    }
+  }
+}
+
+// Assign 'HostTokenRef' based on segmentRef
+segmentArray.forEach(segment => {
+  const segmentKey = segment['$'].Key;
+  const matchedEntry = combinedArray.find(entry => entry.segmentRef === segmentKey);
+  if (matchedEntry) {
+    segment['$'].HostTokenRef = matchedEntry.hostTokenRef;
+  }
+});
             // const segmentKey = SegmentParse['$'].Key;
             // const matchedEntry = combinedArray.find(entry => entry.segmentRef === segmentKey);
 
@@ -458,7 +468,7 @@ const SearchFlight = () => {
               'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest',
               servicerequestXML, { headers: { 'Content-Type': 'text/xml' } }
             );
-            // const serviceResponse = serviceresponse.data;
+            const serviceResponse = serviceresponse.data;
             const serviceData = {
               apiairportsdata: apiairports,
               servicedata: serviceresponse.data,
@@ -491,7 +501,7 @@ const SearchFlight = () => {
               is_gst_benefit:is_gst_benefit
             };
             setLoading(false);
-            console.log('servicedata1', serviceData);
+            // console.log('servicedata1', serviceData);
             navigate('/bookingProcess', { state: { serviceData } });
 
           } else {
@@ -569,17 +579,17 @@ const SearchFlight = () => {
       console.warn("No applicable markup found; applying original price.");
       return numericPrice;
     }
-    console.log("Without markup", numericPrice)
-    console.log("markup type",applicableMarkup.markup_type)
-    console.log("markup value",applicableMarkup.markup_value)
+    // console.log("Without markup", numericPrice)
+    // console.log("markup type",applicableMarkup.markup_type)
+    // console.log("markup value",applicableMarkup.markup_value)
     
     // Calculate the final price based on markup type
     const markupValue = parseFloat(applicableMarkup.markup_value);
     if (applicableMarkup.markup_type === "Fixed") {
-      console.log('with markup', numericPrice + markupValue);
+      // console.log('with markup', numericPrice + markupValue);
       return numericPrice + markupValue; // Add fixed value
     } else if (applicableMarkup.markup_type === "Percentage") {
-      console.log('with markup', numericPrice + (numericPrice * markupValue) / 100);
+      // console.log('with markup', numericPrice + (numericPrice * markupValue) / 100);
       return numericPrice + (numericPrice * markupValue) / 100; // Add percentage
     }
 
