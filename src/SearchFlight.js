@@ -7092,6 +7092,19 @@ useEffect(() => {
                                                                                       <div className="flight-details-c">
                                                                                         Base Price
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                        ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                            <div key={index} className="flight-details-c">
+                                                                                              {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {tax["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          ))
+                                                                                        : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                            <div className="flight-details-c">
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          )}
                                                                                       <div className="flight-details-c">
                                                                                         Surcharge
                                                                                       </div>
@@ -7105,6 +7118,19 @@ useEffect(() => {
                                                                                         {pricepoint.$.BasePrice.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.BasePrice.replace('INR', '')}
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                        ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                            <div key={index} className="flight-details-c">
+                                                                                              {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {tax["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          ))
+                                                                                        : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                            <div className="flight-details-c">
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          )}
                                                                                       <div className="flight-details-c">
                                                                                         {pricepoint.$.Taxes.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.Taxes.replace('INR', '')}
@@ -7815,6 +7841,19 @@ useEffect(() => {
                                                                                       <div className="flight-details-c">
                                                                                         Base Price
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                        ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                            <div key={index} className="flight-details-c">
+                                                                                              {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {tax["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          ))
+                                                                                        : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                            <div className="flight-details-c">
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          )}
                                                                                       <div className="flight-details-c">
                                                                                         Surcharge
                                                                                       </div>
@@ -7828,6 +7867,19 @@ useEffect(() => {
                                                                                         {pricepoint.$.BasePrice.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.BasePrice.replace('INR', '')}
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                        ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                            <div key={index} className="flight-details-c">
+                                                                                              {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {tax["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          ))
+                                                                                        : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                            <div className="flight-details-c">
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          )}
                                                                                       <div className="flight-details-c">
                                                                                         {pricepoint.$.Taxes.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.Taxes.replace('INR', '')}
@@ -10298,6 +10350,19 @@ useEffect(() => {
                                                                                       <div className="flight-details-c">
                                                                                         Base Price
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                        ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                            <div key={index} className="flight-details-c">
+                                                                                              {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {tax["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          ))
+                                                                                        : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                            <div className="flight-details-c">
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          )}
                                                                                       <div className="flight-details-c">
                                                                                         Surcharge
                                                                                       </div>
@@ -10311,6 +10376,19 @@ useEffect(() => {
                                                                                         {pricepoint.$.BasePrice.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.BasePrice.replace('INR', '')}
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                        ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                            <div key={index} className="flight-details-c">
+                                                                                              {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {tax["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          ))
+                                                                                        : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                            <div className="flight-details-c">
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          )}
                                                                                       <div className="flight-details-c">
                                                                                         {pricepoint.$.Taxes.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.Taxes.replace('INR', '')}
@@ -11027,6 +11105,19 @@ useEffect(() => {
                                                                                       <div className="flight-details-c">
                                                                                         Base Price
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                        ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                            <div key={index} className="flight-details-c">
+                                                                                              {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {tax["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          ))
+                                                                                        : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                            <div className="flight-details-c">
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          )}
                                                                                       <div className="flight-details-c">
                                                                                         Surcharge
                                                                                       </div>
@@ -11040,6 +11131,19 @@ useEffect(() => {
                                                                                         {pricepoint.$.BasePrice.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.BasePrice.replace('INR', '')}
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                        ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                            <div key={index} className="flight-details-c">
+                                                                                              {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {tax["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          ))
+                                                                                        : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                            <div className="flight-details-c">
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          )}
                                                                                       <div className="flight-details-c">
                                                                                         {pricepoint.$.Taxes.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.Taxes.replace('INR', '')}
@@ -14341,6 +14445,19 @@ useEffect(() => {
                                                                                       <div className="flight-details-c">
                                                                                         Base Price
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                        ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                            <div key={index} className="flight-details-c">
+                                                                                              {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {tax["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          ))
+                                                                                        : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                            <div className="flight-details-c">
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          )}
                                                                                       <div className="flight-details-c">
                                                                                         Surcharge
                                                                                       </div>
@@ -14354,6 +14471,19 @@ useEffect(() => {
                                                                                         {pricepoint.$.BasePrice.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.BasePrice.replace('INR', '')}
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                        ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                            <div key={index} className="flight-details-c">
+                                                                                              {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {tax["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          ))
+                                                                                        : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                            <div className="flight-details-c">
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          )}
                                                                                       <div className="flight-details-c">
                                                                                         {pricepoint.$.Taxes.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.Taxes.replace('INR', '')}
@@ -15056,7 +15186,6 @@ useEffect(() => {
                                                                                             {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"]}
                                                                                           </div>
                                                                                         )}
-                                                                                      
                                                                                       
                                                                                       <div className="flight-details-c">
                                                                                         Surcharge
