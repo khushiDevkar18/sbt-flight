@@ -2507,6 +2507,8 @@ const SearchFlight = () => {
               to_city: handleApiAirport(matchingSegment["$"]["Destination"] || "Unknown"),
               departure_datetime: matchingSegment["$"]["DepartureTime"] || "Unknown",
               arrival_datetime: matchingSegment["$"]["ArrivalTime"] || "Unknown",
+              origin_airline_city: handleAirport(matchingSegment['$']['Origin']) || "Unknown",
+              destination_airline_city:handleAirport(matchingSegment['$']['Destination']) || "Unknown",
             };
           }).filter(Boolean); // Remove null entries
 
@@ -3153,33 +3155,7 @@ useEffect(() => {
 
                 {flightOptions && flightOptions.length > 0 &&
                   <>
-                    <div className="side-block fly-in">
-                      <div className="side-price">
-                        <div className="price-ammounts">
-                          <p className="price-ammountsp">
-                            <label htmlFor="amount" className="side-lbl">
-                              Price range:
-                            </label>
-
-                          </p>
-                        </div>
-                        <div className="price-ranger">
-                          <Slider
-                            min={minvalue}
-                            max={maxvalue}
-                            range
-                            value={priceRange}
-                            onChange={handlePriceChange}
-                          // marks={{ [minvalue]: `${minvalue}`, [maxvalue]: `${maxvalue}` }}
-                          />
-                        </div>
-                        <div className="price-ammounts">
-                          <input type="text" id="ammount-from" value={`${priceRange[0]}`} readOnly />
-                          <input type="text" id="ammount-to" value={`${priceRange[1]}`} readOnly />
-                          <div className="clear" />
-                        </div>
-                      </div>
-                    </div>
+                    
                     <div className="side-block fly-in">
                       <div className="side-stars">
                         <div className="side-padding">
@@ -3648,6 +3624,33 @@ useEffect(() => {
                       </div>
                     )}
 
+<div className="side-block fly-in">
+                      <div className="side-price">
+                        <div className="price-ammounts">
+                          <p className="price-ammountsp">
+                            <label htmlFor="amount" className="side-lbl">
+                              Price range:
+                            </label>
+
+                          </p>
+                        </div>
+                        <div className="price-ranger">
+                          <Slider
+                            min={minvalue}
+                            max={maxvalue}
+                            range
+                            value={priceRange}
+                            onChange={handlePriceChange}
+                          // marks={{ [minvalue]: `${minvalue}`, [maxvalue]: `${maxvalue}` }}
+                          />
+                        </div>
+                        <div className="price-ammounts">
+                          <input type="text" id="ammount-from" value={`${priceRange[0]}`} readOnly />
+                          <input type="text" id="ammount-to" value={`${priceRange[1]}`} readOnly />
+                          <div className="clear" />
+                        </div>
+                      </div>
+                    </div>
                     <div className="side-block fly-in">
                       <button className="scrolltotop" type="button" onClick={handleScrollToTop}>Scroll To Top</button>
                     </div>
@@ -4208,7 +4211,7 @@ useEffect(() => {
                                   {/* return 0; */ }
                               }
                             }).map(( pricepoint, priceindex ) => {
-                              console.log('price', pricepoint);
+                              {/* console.log('price', pricepoint); */}
                               const totalPrice = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
                               {/* console.log('totalPrice',totalPrice); */}
                               let result = {};
@@ -15042,8 +15045,21 @@ useEffect(() => {
                                                                                       <div className="flight-details-c">
                                                                                         Base Price
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                      ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                          <div key={index} className="flight-details-c">
+                                                                                            {tax["$"]["Category"]}
+                                                                                          </div>
+                                                                                        ))
+                                                                                      : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                          <div className="flight-details-c">
+                                                                                            {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"]}
+                                                                                          </div>
+                                                                                        )}
+                                                                                      
+                                                                                      
                                                                                       <div className="flight-details-c">
-                                                                                        Surchargeee
+                                                                                        Surcharge
                                                                                       </div>
                                                                                     </div>
                                                                                     <div className="flight-details-r">
@@ -15055,6 +15071,19 @@ useEffect(() => {
                                                                                         {pricepoint.$.BasePrice.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.BasePrice.replace('INR', '')}
                                                                                       </div>
+                                                                                      {Array.isArray(pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                                                        ? pricepoint["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                                                            <div key={index} className="flight-details-c">
+                                                                                              {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {tax["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          ))
+                                                                                        : pricepoint["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                                                            <div className="flight-details-c">
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                                              {pricepoint["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                                                            </div>
+                                                                                          )}
                                                                                       <div className="flight-details-c">
                                                                                         {pricepoint.$.Taxes.includes('INR') ? '₹ ' : ''}
                                                                                         {pricepoint.$.Taxes.replace('INR', '')}
