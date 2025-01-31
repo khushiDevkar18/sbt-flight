@@ -2642,6 +2642,7 @@ const SearchFlight = () => {
   const renderedSegmentRefs = useRef(new Set()); // Track already rendered segments
   const [filteredFlights, setFilteredFlights] = useState([]);
   // console.log('filteredFlights',filteredFlights);
+  //useEffect
   
 useEffect(() => {
     setFilteredFlights([]); // Clear previous flights to avoid duplicates
