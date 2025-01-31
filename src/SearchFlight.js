@@ -2583,6 +2583,7 @@ const SearchFlight = () => {
       client_name: clientName,
       spoc_name: spocName,
     };
+    console.log('payload', payload);
     const apiLink = 'https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking';
 
     axios.post(apiLink, JSON.stringify(payload), {

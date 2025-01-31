@@ -654,10 +654,7 @@ const Booking = () => {
         }
         function handleconfirmedbooked() {
             setLoading(true)
-            
-            
-
-
+        
             const formatDate = (dateString) => {
                 const date = new Date(dateString);
                 const day = date.getDate().toString().padStart(2, '0');
@@ -2618,17 +2615,17 @@ const Booking = () => {
                                                                                         {fareIndex === 0 &&
                                                                                             <>
                                                                                                 <span className='headingpolicies'>
-                                                                                                    Selected Package Details
+                                                                                                    Flight Details
                                                                                                     <span
                                                                                                     >
-                                                                                                        <button
+                                                                                                        {/* <button
                                                                                                             type="button"
                                                                                                             className="packagemore"
                                                                                                             data-toggle="modal"
                                                                                                             data-target=".bd-example-modal-lg"
                                                                                                         >
                                                                                                             Package Details
-                                                                                                        </button>
+                                                                                                        </button> */}
 
                                                                                                     </span>
                                                                                                 </span>
@@ -2646,7 +2643,7 @@ const Booking = () => {
                                                                                                                     className="modal-title"
                                                                                                                     id="exampleModalLabel"
                                                                                                                 >
-                                                                                                                    Selected Package Details
+                                                                                                                    Flight Details
                                                                                                                 </h5>
                                                                                                                 <button
                                                                                                                     type="button"
@@ -3000,16 +2997,16 @@ const Booking = () => {
                                                                         packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['air:Text'] ? (
                                                                             <div className="baggagae_policy">
                                                                                 <span className='headingpolicies' >
-                                                                                    Selected Package Details
+                                                                                    Flight Details
                                                                                     <span>
-                                                                                        <button
+                                                                                        {/* <button
                                                                                             type="button"
                                                                                             className="packagemore"
                                                                                             data-toggle="modal"
                                                                                             data-target=".bd-example-modal-lg"
                                                                                         >
                                                                                             Package Details
-                                                                                        </button>
+                                                                                        </button> */}
                                                                                     </span>
                                                                                 </span>
                                                                                 <div
@@ -3026,7 +3023,7 @@ const Booking = () => {
                                                                                                     className="modal-title"
                                                                                                     id="exampleModalLabel"
                                                                                                 >
-                                                                                                    Selected Package Details
+                                                                                                    Flight Details
                                                                                                 </h5>
                                                                                                 <button
                                                                                                     type="button"
@@ -3378,16 +3375,16 @@ const Booking = () => {
                                                                                         {fareIndex === 0 &&
                                                                                             <>
                                                                                                 <span className='headingpolicies' >
-                                                                                                    Selected Package Details
+                                                                                                    Flight Details
                                                                                                     <span>
-                                                                                                        <button
+                                                                                                        {/* <button
                                                                                                             type="button"
                                                                                                             className="packagemore"
                                                                                                             data-toggle="modal"
                                                                                                             data-target=".bd-example-modal-lg"
                                                                                                         >
                                                                                                             Package Details
-                                                                                                        </button>
+                                                                                                        </button> */}
                                                                                                     </span>
                                                                                                 </span>
                                                                                                 <div
@@ -3756,16 +3753,16 @@ const Booking = () => {
                                                                         packageSelected['air:AirPricingInfo']['air:FareInfo']['air:Brand']['air:Text'] ? (
                                                                             <div className="baggagae_policy">
                                                                                 <span className='headingpolicies' >
-                                                                                    Selected Package Details
+                                                                                    Flight Details
                                                                                     <span>
-                                                                                        <button
+                                                                                        {/* <button
                                                                                             type="button"
                                                                                             className="packagemore"
                                                                                             data-toggle="modal"
                                                                                             data-target=".bd-example-modal-lg"
                                                                                         >
                                                                                             Package Details
-                                                                                        </button>
+                                                                                        </button> */}
                                                                                     </span>
                                                                                 </span>
                                                                                 <div
@@ -3782,7 +3779,7 @@ const Booking = () => {
                                                                                                     className="modal-title"
                                                                                                     id="exampleModalLabel"
                                                                                                 >
-                                                                                                    Selected Package Details
+                                                                                                    Flight Details
                                                                                                 </h5>
                                                                                                 <button
                                                                                                     type="button"
@@ -4304,6 +4301,7 @@ const Booking = () => {
                                                                                             readOnly={bookingid}
                                                                                             defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male" ? 'M' : 'F'}
                                                                                         >
+                                                                                            <option value="">Select Gender</option>
                                                                                             <option value="M" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male"}>Male</option>
                                                                                             <option value="F" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Female"}>Female</option>
                                                                                         </select>
