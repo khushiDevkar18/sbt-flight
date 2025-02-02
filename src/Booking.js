@@ -736,44 +736,49 @@ const Booking = () => {
                     });
                 }
 
-                segmentParse.forEach(segment => {
+                const segmentArray = Array.isArray(segmentParse) ? segmentParse : [segmentParse];
+
+                segmentArray.forEach(segment => {
                     if (segmentseat === segment['$']['Key']) {
-                        let segmentseat = {
+                        let segmentseatData = {
                             'seat_no': seatselect.code,
                             'seat-price': seat_price,
                             'passenger': seatselect.passenger,
                             'segment_key': segment['$'].Key,
                         };
-                        formseat.push(segmentseat);
+                        formseat.push(segmentseatData);
                     }
                 });
+
             });
             
             let stopCounts = 0;
             let returnstopCounts = 0;
-            segmentParse.forEach(segment => {
-                const groupNumber = parseInt(segment['$']['Group']);
-                if (groupNumber === 0) {
-                    stopCounts++;
-                }
-                if (groupNumber === 1) {
-                    returnstopCounts++;
-                }
-            });
-            const segmenttaxivaxis = [];
-            segmentParse.forEach(segment => {
-                let segmenttaxivaxi = {
-                    'Key': segment['$'].Key,
-                    'FlightNumber': segment['$'].FlightNumber,
-                    'Carrier': segment['$'].Carrier,
-                    'Origin': segment['$'].Origin,
-                    'Destination': segment['$'].Destination,
-                    'DepartureTime': segment['$'].DepartureTime,
-                    'ArrivalTime': segment['$'].ArrivalTime,
-                    'Group': segment['$'].Group,
-                };
-                segmenttaxivaxis.push(segmenttaxivaxi);
-            });
+            const segmentss = Array.isArray(segmentParse) ? segmentParse : [segmentParse];
+
+segmentss.forEach(segment => {
+    const groupNumber = parseInt(segment['$']['Group']);
+    if (groupNumber === 0) {
+        stopCounts++;
+    }
+    if (groupNumber === 1) {
+        returnstopCounts++;
+    }
+});
+const segmenttaxivaxis = [];
+segmentss.forEach(segment => {
+    let segmenttaxivaxi = {
+        'Key': segment['$'].Key,
+        'FlightNumber': segment['$'].FlightNumber,
+        'Carrier': segment['$'].Carrier,
+        'Origin': segment['$'].Origin,
+        'Destination': segment['$'].Destination,
+        'DepartureTime': segment['$'].DepartureTime,
+        'ArrivalTime': segment['$'].ArrivalTime,
+        'Group': segment['$'].Group,
+    };
+    segmenttaxivaxis.push(segmenttaxivaxi);
+});
             if (stopCounts > 0) {
                 stopCounts = stopCounts - 1;
             }
@@ -1084,6 +1089,7 @@ const Booking = () => {
 
                                 const formDataString = JSON.stringify(formtaxivaxiData);
                                 const encodedFormDataString = encodeURIComponent(formDataString);
+                                console.log('encodedFormDataString',encodedFormDataString);
                                 const redirectUrl = 'http://cotrav.tv/taxivaxi/add-flight-booking?formtaxivaxi=' + encodedFormDataString;
                                 window.location.href = redirectUrl;
                             } else {
