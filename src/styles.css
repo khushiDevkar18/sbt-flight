@@ -759,7 +759,9 @@ textarea {
 
 .swiper-container {
   /* position: relative; */
-  background: url(../public/img/sider-01.png) center bottom;
+  /* background: url(../public/img/sider-01.png) center bottom; */
+  background: url(../public/img/Landing_Page_IMG.jpg) center bottom;
+  
 }
 
 .swiper-preloader-bg {
@@ -903,6 +905,7 @@ textarea {
 }
 
 .page-search.full-width-search .search-tab-content {
+  height: 216px !important;
   width: 100%;
 }
 
@@ -2128,6 +2131,10 @@ button.srch-btn {
   box-shadow: 0 1px 1px 0 rgba(50, 50, 50, 0.05);
   /* color: red; */
 min-height: 34px;
+border: none;
+box-shadow:none;
+
+padding-left: 12px;
 }
 
 .custom-datepicker {
@@ -18542,7 +18549,7 @@ width: auto;
 .pages_filter{
   box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
   position: relative;
-  top: -44px;
+  top: 12px;
   left: 12%;
   width: 70%;
   background: #fff;
@@ -18794,7 +18801,7 @@ ul.dropdown-menu li a:hover {
 }
 
 .selected-flight-list {
-  max-height: 500px;
+  max-height: 200px;
   overflow-y: auto;
   margin: 10px 0;
 }
@@ -19305,10 +19312,54 @@ button#search-button:hover {
   flex-direction: column;
   flex-wrap: wrap;
   justify-content: space-between;
-  padding: 15px;
+  /* padding: 15px; */
   /* background-color: #f0f0f0; */
   border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); */
+}
+.services{
+  /* position: relative;
+  top:20px; */
+  display: flex;
+  flex-direction: column;
+  flex-wrap:wrap;
+  justify-content: space-between;
+  padding: 25px;
+  
+  /* width: 80%; */
+  align-items: center;
+  /* background-color: #f0f0f0; */
+  border-radius: 5px;
+  box-shadow: 4px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.parent-container {
+  position: relative; /* This sets a positioning context for child elements */
+  width: 100%;
+  height: 300px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+}
+
+.base-div {
+  position: relative;
+  width: 80%;
+  height: 200px;
+  background-color: #d0d0ff;
+  margin: 20px auto;
+  z-index: 1; /* Lower z-index ensures it stays below */
+}
+
+.floating-div {
+  position: absolute; /* Make it float above */
+  top: 50px; /* Adjust positioning as needed */
+  left: 50px; /* Adjust positioning as needed */
+  width: 150px;
+  height: 100px;
+  background-color: rgba(255, 100, 100, 0.9); /* Semi-transparent for better visibility */
+  z-index: 10; /* Higher z-index ensures it stays above */
+  border-radius: 5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .trip-type-container {
@@ -19376,6 +19427,8 @@ button#search-button:hover {
   width: 200px;
   margin-top: 20px; /* Add spacing above the button */
   margin: auto;
+
+ 
 }
 .search-buttonn:hover{
   background-color: #644ed4;
@@ -19412,6 +19465,7 @@ button#search-button:hover {
   font-family: 'Montserrat', sans-serif;
   padding-left: 12px;
   margin-right: 5px;
+  
   /* margin: 10px 0; */
 }
 
@@ -19421,6 +19475,7 @@ button#search-button:hover {
   color: #7a7a7a;
   text-transform: uppercase;
   margin-bottom: 5px;
+
 }
 
 .city-name-input {
@@ -19492,4 +19547,9 @@ button#search-button:hover {
   color: #7a7a7a;
 }
 
-
+.textsize{
+  font-size: 11px !important;
+}
+.Select-box{
+  width: 50px !important;
+}

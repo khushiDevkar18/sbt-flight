@@ -6,6 +6,7 @@ import FormTaxivaxi from './FormTaxivaxi';
 import Booking from './Booking';
 import BookingComplete from './BookingComplete';
 import Home from './Home';
+import SearchHotel from './SearchHotel';
 import PageNotFound from './PageNotFound';
 import TryAgainLater from './TryAgainLater';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -24,6 +25,7 @@ const App = () => {
           <Route path="/bookingCompleted" element={<BookingComplete />}/>
           <Route path="/pagenotfound" element={<PageNotFound />}/>
           <Route path="/tryagainlater" element={<TryAgainLater />}/>
+          <Route path="/SearchHotel" element={<SearchHotel />}/>
           <Route path="*" element={<PageNotFound />} />
         </Routes>
         </div>
