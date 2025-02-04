@@ -1615,6 +1615,8 @@ const Booking = () => {
             const passengerLastNames = Array.from(formData.getAll('adult_last_name[]'));
             const passengerAgeNames = Array.from(formData.getAll('adult_age[]'));
             const passengerGenderNames = Array.from(formData.getAll('adult_gender[]'));
+            // const passengeremail = Array.from(formData.getAll('email'));
+            // const passengercontact = Array.from(formData.getAll('contact_details'));
 
             const passengerNamesWithPrefix = passengerGenderNames.map(gender => {
                 if (gender === 'F') {
@@ -1655,7 +1657,9 @@ const Booking = () => {
                 firstNames: [],
                 lastNames: [],
                 gender: [],
-                age: []
+                age: [],
+                contact: [],
+                email: []
             };
 
             for (let i = 0; i < passengerKeys.length; i++) {
@@ -1665,6 +1669,8 @@ const Booking = () => {
                     passengerDetailss.firstNames.push(passengerFirstNames[i]);
                     passengerDetailss.lastNames.push(passengerLastNames[i]);
                     passengerDetailss.gender.push(passengerGenderNames[i]);
+                    passengerDetailss.email.push(passengerEmail[i]);
+                    passengerDetailss.contact.push(passengerContactNo[i]);
                     passengerDetailss.age.push(passengerAgeNames[i]);
                 }
             }
@@ -1677,10 +1683,14 @@ const Booking = () => {
             const formattedDetails = passengerDetails.keys.map((key, index) => {
                 const firstName = passengerFirstNames[index];
                 const lastName = passengerLastNames[index];
+                const email = passengerEmail;  // Handle cases where email might be missing
+    const contactNo = passengerContactNo;
                 return `
                     Passenger ${index + 1}:
                     ${firstName} ${lastName}
-                    ${passengerGenderNames[index] === 'F' ? '(Female)' : '(Male)'}
+                    ${passengerGenderNames[index] === 'F' ? '(Female)' : '(Male)'}<br>
+                    Email: ${email}<br>
+        Contact No: ${contactNo}<br>
                 `;
             }).join('<br><br>');
 

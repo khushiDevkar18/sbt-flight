@@ -3421,29 +3421,36 @@ const SearchFlight = () => {
 
                     <div className="side-block fly-in">
                       <div className="side-stars">
-                        <div className="side-padding">
-                          <div className="side-lbl">Airlines</div>
+                      <div className="side-padding">
+                        <div className="side-lbl">Airlines</div>
 
-                          {SegmentList &&
-                            SegmentList.length > 0 &&
-                            [...new Set(SegmentList.map((SegmentListinfo) => SegmentListinfo['$']['Carrier']))].map(
-                              (carrier, index) => (
-                                <React.Fragment key={index}>
-                                  <div className="checkbox">
-                                    <input
-                                      type="checkbox"
-                                      id={`myCheck_${index}`}
-                                      name="airline"
-                                      value={carrier}
-                                      onChange={() => handleAirlineCheckboxChange(carrier)}
-                                      checked={selectedAirlines.includes(carrier)}
-                                    />
-                                    <label htmlFor={`myCheck_${index}`}>{handleAirline(carrier)}</label>
-                                  </div>
-                                </React.Fragment>
-                              )
-                            )}
-                        </div>
+                        {SegmentList &&
+                          SegmentList.length > 0 &&
+                          [...new Set(SegmentList.map((SegmentListinfo) => SegmentListinfo['$']['Carrier']))].map(
+                            (carrier, index) => (
+                              <div className="checkbox" key={index}>
+                                <input
+                                  type="checkbox"
+                                  id={`myCheck_${index}`}
+                                  name="airline"
+                                  value={carrier}
+                                  style ={{width:'17px', height:'30px'}}
+                                  onChange={() => handleAirlineCheckboxChange(carrier)}
+                                  checked={selectedAirlines.includes(carrier)}
+                                />
+                                <label htmlFor={`myCheck_${index}`} className="airline-label">
+                                  <img
+                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
+                                    alt={`${carrier} logo`}
+                                    className="airline-logo"
+                                    onError={(e) => e.target.style.display = 'none'} // Hide broken images
+                                  />
+                                  {handleAirline(carrier)}
+                                </label>
+                              </div>
+                            )
+                          )}
+                      </div>
                       </div>
                     </div>
                     {formData.bookingType === "Return" && (
@@ -3466,7 +3473,16 @@ const SearchFlight = () => {
                                         onChange={() => handlereturnAirlineCheckboxChange(carrier)}
                                         checked={selectedreturnAirlines.includes(carrier)}
                                       />
-                                      <label htmlFor={`myCheck_${index}`}>{handleAirline(carrier)}</label>
+                                      <label htmlFor={`myCheck_${index}`} className="airline-label">
+                                  <img
+                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
+                                    alt={`${carrier} logo`}
+                                    className="airline-logo"
+                                    onError={(e) => e.target.style.display = 'none'} // Hide broken images
+                                  />
+                                  {handleAirline(carrier)}
+                                </label>
+                                      {/* <label htmlFor={`myCheck_${index}`}>{handleAirline(carrier)}</label> */}
                                     </div>
                                   </React.Fragment>
                                 )
@@ -4866,11 +4882,15 @@ const SearchFlight = () => {
                                                                                           )),
                                                                                           Array.from(uniqueCarriers1).map((carrier, index) => (
                                                                                             <div key={index}>
+                                                                                            <div className="airline-container">
                                                                                               <img
                                                                                                 className={`airlineimg${index}`}
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                                                 alt="Airline logo"
-                                                                                                width="40px" loading="lazy" /><br />
+                                                                                                width="40px"
+                                                                                              />
+                                                                                              <span className="flightnumber">{handleAirline(carrier)}</span>
+                                                                                              </div><br />
                                                                                               <div>
                                                                                                 {pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].map((bookingInfo, bookingindex) => (
                                                                                                   <div key={bookingindex}>
@@ -4914,6 +4934,7 @@ const SearchFlight = () => {
                                                                                                   width="40px"
                                                                                                 /><br />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
                                                                                                 </span>
                                                                                               </div>
@@ -4946,11 +4967,15 @@ const SearchFlight = () => {
                                                                                           )),
                                                                                           Array.from(uniqueCarriers2).map((carrier, index) => (
                                                                                             <div key={index}>
+                                                                                            <div className="airline-container">
                                                                                               <img
                                                                                                 className={`airlineimg${index}`}
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                                                 alt="Airline logo"
-                                                                                                width="40px" /><br />
+                                                                                                width="40px"
+                                                                                              />
+                                                                                              <span className="flightnumber">{handleAirline(carrier)}</span>
+                                                                                              </div><br />
                                                                                               <div>
                                                                                                 {pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['air:BookingInfo'].map((bookingInfo, bookingindex) => (
                                                                                                   <div key={bookingindex}>
@@ -4992,6 +5017,7 @@ const SearchFlight = () => {
                                                                                                   width="40px"
                                                                                                 /><br />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   ,{segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
                                                                                                 </span>
                                                                                               </div>
@@ -5036,11 +5062,15 @@ const SearchFlight = () => {
                                                                                           )),
                                                                                           Array.from(uniqueCarriers3).map((carrier, index) => (
                                                                                             <div key={index}>
+                                                                                            <div className="airline-container">
                                                                                               <img
                                                                                                 className={`airlineimg${index}`}
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                                                 alt="Airline logo"
-                                                                                                width="40px" /><br />
+                                                                                                width="40px"
+                                                                                              />
+                                                                                              <span className="flightnumber">{handleAirline(carrier)}</span>
+                                                                                              </div><br />
                                                                                               <div>
                                                                                                 {pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].map((bookingInfo, bookingindex) => (
                                                                                                   <div key={bookingindex}>
@@ -5082,6 +5112,7 @@ const SearchFlight = () => {
                                                                                                   width="40px"
                                                                                                 /><br />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
                                                                                                 </span>
                                                                                               </div>
@@ -5114,11 +5145,15 @@ const SearchFlight = () => {
                                                                                           )),
                                                                                           Array.from(uniqueCarriers4).map((carrier, index) => (
                                                                                             <div key={index}>
+                                                                                            <div className="airline-container">
                                                                                               <img
                                                                                                 className={`airlineimg${index}`}
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                                                 alt="Airline logo"
-                                                                                                width="40px" /><br />
+                                                                                                width="40px"
+                                                                                              />
+                                                                                              <span className="flightnumber">{handleAirline(carrier)}</span>
+                                                                                              </div><br/>
                                                                                               <div>
                                                                                                 {pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['air:BookingInfo'].map((bookingInfo, bookingindex) => (
                                                                                                   <div key={bookingindex}>
@@ -5159,6 +5194,7 @@ const SearchFlight = () => {
                                                                                                   width="40px"
                                                                                                 /><br />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
                                                                                                 </span>
                                                                                               </div>
@@ -7910,11 +7946,16 @@ const SearchFlight = () => {
                                                                                           )),
                                                                                           Array.from(uniqueCarriers5).map((carrier, index) => (
                                                                                             <div key={index}>
+                                                                                            <div className="airline-container">
                                                                                               <img
                                                                                                 className={`airlineimg${index}`}
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                                                 alt="Airline logo"
-                                                                                                width="40px" /><br />
+                                                                                                width="40px"
+                                                                                              />
+                                                                                              <span className="flightnumber">{handleAirline(carrier)}</span>
+                                                                                              </div><br/>
+                                                                                              <br/>
                                                                                               <div>
                                                                                                 {pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['air:BookingInfo'].map((bookingInfo, bookingindex) => (
                                                                                                   <div key={bookingindex}>
@@ -7956,6 +7997,7 @@ const SearchFlight = () => {
                                                                                                   width="40px"
                                                                                                 /><br />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
                                                                                                 </span>
                                                                                               </div>
@@ -7994,11 +8036,16 @@ const SearchFlight = () => {
                                                                                           )),
                                                                                           Array.from(uniqueCarriers6).map((carrier, index) => (
                                                                                             <div key={index}>
+                                                                                            <div className="airline-container">
                                                                                               <img
                                                                                                 className={`airlineimg${index}`}
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                                                 alt="Airline logo"
-                                                                                                width="40px" /><br />
+                                                                                                width="40px"
+                                                                                              />
+                                                                                              <span className="flightnumber">{handleAirline(carrier)}</span>
+                                                                                              </div><br/>
+                                                                                              <br/>
                                                                                               <div>
                                                                                                 {pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['air:BookingInfo'].map((bookingInfo, bookingindex) => (
                                                                                                   <div key={bookingindex}>
@@ -8041,6 +8088,7 @@ const SearchFlight = () => {
                                                                                                   width="40px"
                                                                                                 /><br />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
                                                                                                 </span>
                                                                                               </div>
@@ -8090,11 +8138,15 @@ const SearchFlight = () => {
                                                                                           )),
                                                                                           Array.from(uniqueCarriers7).map((carrier, index) => (
                                                                                             <div key={index}>
+                                                                                            <div className="airline-container">
                                                                                               <img
                                                                                                 className={`airlineimg${index}`}
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                                                 alt="Airline logo"
-                                                                                                width="40px" /><br />
+                                                                                                width="40px"
+                                                                                              />
+                                                                                              <span className="flightnumber">{handleAirline(carrier)}</span>
+                                                                                              </div><br/>
                                                                                               <div>
                                                                                                 {pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['air:BookingInfo'].map((bookingInfo, bookingindex) => (
                                                                                                   <div key={bookingindex}>
@@ -8136,6 +8188,7 @@ const SearchFlight = () => {
                                                                                                   width="40px"
                                                                                                 /><br />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
                                                                                                 </span>
                                                                                               </div>
@@ -8173,11 +8226,15 @@ const SearchFlight = () => {
                                                                                           )),
                                                                                           Array.from(uniqueCarriers8).map((carrier, index) => (
                                                                                             <div key={index}>
+                                                                                            <div className="airline-container">
                                                                                               <img
                                                                                                 className={`airlineimg${index}`}
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                                                 alt="Airline logo"
-                                                                                                width="40px" /><br />
+                                                                                                width="40px"
+                                                                                              />
+                                                                                              <span className="flightnumber">{handleAirline(carrier)}</span>
+                                                                                              </div><br/>
                                                                                               <div>
                                                                                                 {pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][1]['air:Option']['air:BookingInfo'].map((bookingInfo, bookingindex) => (
                                                                                                   <div key={bookingindex}>
@@ -8219,6 +8276,7 @@ const SearchFlight = () => {
                                                                                                   width="40px"
                                                                                                 /><br />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
                                                                                                 </span>
                                                                                               </div>
@@ -12078,11 +12136,15 @@ const SearchFlight = () => {
                                                                                           )),
                                                                                           Array.from(uniqueCarriers9).map((carrier, index) => (
                                                                                             <div key={index} style={{ marginLeft: '10%', marginRight: '5%' }}>
+                                                                                            <div className="airline-container">
                                                                                               <img
                                                                                                 className={`airlineimg${index}`}
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                                                 alt="Airline logo"
-                                                                                                width="40px" />
+                                                                                                width="40px"
+                                                                                              />
+                                                                                              <span className="flightnumber">{handleAirline(carrier)}</span>
+                                                                                              </div><br/>
                                                                                               <div>
                                                                                                 {pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['air:BookingInfo'].map((bookingInfo, bookingindex) => (
                                                                                                   <div key={bookingindex}>
@@ -12124,6 +12186,7 @@ const SearchFlight = () => {
 
                                                                                                 />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
 
                                                                                                 </span>
@@ -12157,21 +12220,23 @@ const SearchFlight = () => {
                                                                                             </div>
                                                                                           )),
                                                                                           Array.from(uniqueCarriers10).map((carrier, index) => (
-                                                                                            <div key={index} style={{ marginLeft: '10%', marginRight: '5%' }}>
+                                                                                            <div key={index} style={{ marginLeft: '5%', marginRight: '5%' }}>
+                                                                                            <div className="airline-container">
                                                                                               <img
                                                                                                 className={`airlineimg${index}`}
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                                                 alt="Airline logo"
                                                                                                 width="40px"
-
                                                                                               />
+                                                                                              <span className="flightnumber">{handleAirline(carrier)}</span>
+                                                                                              </div><br/>
                                                                                               <div>
                                                                                                 {pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].map((bookingInfo, bookingindex) => (
                                                                                                   <div key={bookingindex}>
                                                                                                     {bookingInfo['$'] && SegmentList.map((segmentinfo, segmentindex) => {
                                                                                                       if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef'] && segmentinfo['$']['Carrier'] === carrier) {
                                                                                                         return (
-                                                                                                          <span key={segmentindex} className='flightnumber'>
+                                                                                                          <span key={segmentindex} className='flightnumber'> 
                                                                                                             {bookingindex > 0 && ', '}
                                                                                                             {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
                                                                                                           </span>
@@ -12199,7 +12264,7 @@ const SearchFlight = () => {
                                                                                           ) {
 
                                                                                             return (
-                                                                                              <div key={segmentindex} style={{ marginLeft: '10%', marginRight: '5%' }}>
+                                                                                              <div key={segmentindex} style={{ marginLeft: '5%', marginRight: '5%' }}>
                                                                                                 <img
                                                                                                   src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
                                                                                                   alt="Airline logo"
@@ -12207,6 +12272,7 @@ const SearchFlight = () => {
 
                                                                                                 />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
                                                                                                 </span>
                                                                                               </div>
@@ -12254,14 +12320,16 @@ const SearchFlight = () => {
                                                                                             </div>
                                                                                           )),
                                                                                           Array.from(uniqueCarriers11).map((carrier, index) => (
-                                                                                            <div key={index} style={{ marginLeft: '10%', marginRight: '5%' }}>
+                                                                                            <div key={index} style={{ marginLeft: '5%', marginRight: '5%' }}>
+                                                                                            <div className="airline-container">
                                                                                               <img
                                                                                                 className={`airlineimg${index}`}
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
                                                                                                 alt="Airline logo"
                                                                                                 width="40px"
-
                                                                                               />
+                                                                                              <span className="flightnumber">{handleAirline(carrier)}</span>
+                                                                                              </div><br/>
                                                                                               <div>
                                                                                                 {pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option'][0]['air:BookingInfo'].map((bookingInfo, bookingindex) => (
                                                                                                   <div key={bookingindex}>
@@ -12296,7 +12364,7 @@ const SearchFlight = () => {
                                                                                           ) {
 
                                                                                             return (
-                                                                                              <div key={segmentindex} style={{ marginLeft: '10%', marginRight: '5%' }}>
+                                                                                              <div key={segmentindex} style={{ marginLeft: '5%', marginRight: '5%' }}>
                                                                                                 <img
                                                                                                   src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
                                                                                                   alt="Airline logo"
@@ -12304,6 +12372,7 @@ const SearchFlight = () => {
 
                                                                                                 />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
                                                                                                 </span>
                                                                                               </div>
@@ -12321,49 +12390,61 @@ const SearchFlight = () => {
                                                                                   Array.isArray(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'])
                                                                                   ? (
                                                                                     <div>
-                                                                                      {(() => {
-                                                                                        const uniqueCarriers12 = new Set();
-                                                                                        return (
-                                                                                          pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].map((bookingInfo, bookingindex) => (
-                                                                                            <div key={bookingindex}>
-                                                                                              {bookingInfo['$'] && SegmentList.map((segmentinfo, segmentindex) => {
-                                                                                                if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
-                                                                                                  uniqueCarriers12.add(segmentinfo['$']['Carrier']);
+  {(() => {
+    const uniqueCarriers12 = new Set();
+    
+    // Collect all unique carriers from SegmentList
+    pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].forEach(
+      (bookingInfo) => {
+        if (bookingInfo['$']) {
+          SegmentList.forEach((segmentinfo) => {
+            if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+              uniqueCarriers12.add(segmentinfo['$']['Carrier']);
+            }
+          });
+        }
+      }
+    );
 
-                                                                                                }
-                                                                                              })}
-                                                                                            </div>
-                                                                                          )),
-                                                                                          Array.from(uniqueCarriers12).map((carrier, index) => (
-                                                                                            <div key={index} style={{ marginLeft: '10%', marginRight: '5%' }}>
-                                                                                              <img
-                                                                                                className={`airlineimg${index}`}
-                                                                                                src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
-                                                                                                alt="Airline logo"
-                                                                                                width="40px"
-                                                                                              />
-                                                                                              <div>
-                                                                                                {pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].map((bookingInfo, bookingindex) => (
-                                                                                                  <div key={bookingindex}>
-                                                                                                    {bookingInfo['$'] && SegmentList.map((segmentinfo, segmentindex) => {
-                                                                                                      if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef'] && segmentinfo['$']['Carrier'] === carrier) {
-                                                                                                        return (
-                                                                                                          <span key={segmentindex} className='flightnumber'>
-                                                                                                            {bookingindex > 0 && ', '}
-                                                                                                            {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
-                                                                                                          </span>
-                                                                                                        );
-                                                                                                      }
-                                                                                                    })}
-                                                                                                  </div>
-                                                                                                ))}
-                                                                                              </div>
+    return Array.from(uniqueCarriers12).map((carrier, index) => (
+      <div key={index} style={{ marginLeft: '5%', marginRight: '5%' }}>
+        {/* Airline Logo */}
+        <div className="airline-container">
+        <img
+          className={`airlineimg${index}`}
+          src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
+          alt="Airline logo"
+          width="40px"
+        />
+        <span className="flightnumber">{handleAirline(carrier)}</span>
+        </div>
+        <br/>
 
-                                                                                            </div>
-                                                                                          ))
-                                                                                        );
-                                                                                      })()}
-                                                                                    </div>
+        {/* Flight Numbers */}
+        <div>
+          {pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo'].map(
+            (bookingInfo, bookingindex) => (
+              <div key={bookingindex}>
+                {bookingInfo['$'] &&
+                  SegmentList.map((segmentinfo, segmentindex) => {
+                    if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef'] && segmentinfo['$']['Carrier'] === carrier) {
+                      return (
+                        <span key={segmentindex} className="flightnumber">
+                          {bookingindex > 0 && ', '}
+                          {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
+                        </span>
+                      );
+                    }
+                  })}
+              </div>
+            )
+          )}
+        </div>
+      </div>
+    ));
+  })()}
+</div>
+
                                                                                   ) : (
                                                                                     <div>
                                                                                       {pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption']['air:Option']['air:BookingInfo']['$'] &&
@@ -12376,7 +12457,7 @@ const SearchFlight = () => {
                                                                                           ) {
 
                                                                                             return (
-                                                                                              <div key={segmentindex} style={{ marginLeft: '10%', marginRight: '5%' }}>
+                                                                                              <div key={segmentindex} style={{ marginLeft: '5%', marginRight: '5%' }}>
                                                                                                 <img
                                                                                                   src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
                                                                                                   alt="Airline logo"
@@ -12384,6 +12465,7 @@ const SearchFlight = () => {
 
                                                                                                 />
                                                                                                 <span className='flightnumber1'>
+                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                   {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
                                                                                                 </span>
                                                                                               </div>
@@ -15273,9 +15355,9 @@ const SearchFlight = () => {
                                                                         </div>
                                                                       </div>
                                                                     </div>
-                                                                    {bookingid && (
+                                                                    {/* {bookingid && ( */}
                                                                       <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleach(fareInfoRefKey)}>Book Now</button></div>
-                                                                    )}
+                                                                    {/* )} */}
                                                                     <button
                                                                       className="add-btn"
                                                                       type="button"

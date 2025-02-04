@@ -4365,6 +4365,20 @@ nav ul li {
 .side-padding {
   padding: 21px 18px 20px 18px;
 }
+/* .airline-label {
+  display: flex;
+  align-items: center;
+  gap: 8px; 
+  font-size: 14px;
+  color: #333; 
+} */
+
+.airline-logo {
+  width: 17px; /* Adjust size as needed */
+  height: 17px;
+  object-fit: contain;
+  border-radius: 3px; /* Optional: To make logos look uniform */
+}
 
 .side-lbl {
   font-size: 13px;
@@ -4468,18 +4482,22 @@ nav ul li {
 .side-block .checkbox {
   margin-bottom: 18px;
   height: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .side-block .checkbox label {
   display: block;
-  margin-top: -19px;
-  margin-left: 20px;
+  margin-left: 7px;
   font-family: 'Open Sans';
   cursor: pointer;
   font-weight: 600;
   text-transform: capitalize;
   font-size: 11px;
   color: #848484;
+  gap: 10px;
+  display: flex;
 }
 
 .side-block .checkbox label.active {
@@ -4668,6 +4686,8 @@ nav ul li {
   width: 115px;
   float: left;
   overflow: hidden;
+  /* display: grid;
+  justify-content: center; */
 }
 
 .flt-l-b1 {
@@ -18007,6 +18027,9 @@ color: #fff;
     font-family: 'Montserrat';
     font-size: 14px;
 }
+.airline-name{
+
+}
 .flightnumber{
   font-size: 11px;
     font-family: 'Montserrat';
@@ -18014,6 +18037,7 @@ color: #fff;
     width: auto;
     float: left;
     color: #000;
+    margin-top: 5px;
 }
 .flightnumber1{
   font-size: 11px;
@@ -18021,7 +18045,7 @@ color: #fff;
 }
 .company{
   width: 100%;
-  margin-left: 10%;
+  margin-left: 5%;
 }
 .airlineimg1{
     position: absolute;
@@ -18775,6 +18799,7 @@ ul.dropdown-menu li a:hover {
   border-radius: 10px 10px 0 0;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
   padding: 10px;
+  z-index: 10000;
 }
 
 .selected-flight-header {
