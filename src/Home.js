@@ -877,9 +877,8 @@ function Home() {
   const [filteredCities, setFilteredCities] = useState([]); // Filtered cities for search
   const [showDropdown, setShowDropdown] = useState(false); // Controls dropdown visibility
   const [selectedCity, setSelectedCity] = useState(""); // Selected city
-  const [hotelcityList, setHotelCityList] = useState([]); 
+  const [hotelcityList, setHotelCityList] = useState([]);
   const [hotelCodes, setHotelCodes] = useState([]);
- 
 
   useEffect(() => {
     const storedCities = sessionStorage.getItem("cityList");
@@ -909,19 +908,20 @@ function Home() {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
-        
           const data = await response.json();
-if (data.success === "1" && data.response.Status.Code === 200) {
-  const cityList = data.response.CityList || [];
-  setCityList(cityList);
-  setFilteredCities(cityList);
+          if (data.success === "1" && data.response.Status.Code === 200) {
+            const cityList = data.response.CityList || [];
+            setCityList(cityList);
+            setFilteredCities(cityList);
 
-  // Store in sessionStorage
-  sessionStorage.setItem("cityList", JSON.stringify(cityList));
-} else {
-  console.error("Error fetching cities:", data.response.Status.Description);
-}
-
+            // Store in sessionStorage
+            sessionStorage.setItem("cityList", JSON.stringify(cityList));
+          } else {
+            console.error(
+              "Error fetching cities:",
+              data.response.Status.Description
+            );
+          }
         } catch (error) {
           console.error("Error fetching cities:", error);
         }
@@ -953,14 +953,14 @@ if (data.success === "1" && data.response.Status.Code === 200) {
   useEffect(() => {
     const fetchCity = async () => {
       if (filteredCities.length === 0) return; // Ensure filteredCities has data
-      
+
       const cityCode = filteredCities[0]?.Code; // Get the first city's code
       // if (!cityCode) return; // Avoid API call if cityCode is null
-      
+
       // console.log("Fetching hotels for City Code:", cityCode);
-      
+
       // console.log('TB Hotel Code List')
-      
+
       try {
         const response = await fetch(
           "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelCodesList",
@@ -971,23 +971,23 @@ if (data.success === "1" && data.response.Status.Code === 200) {
               Authorization: `Basic ${btoa("TBOStaticAPITest:Tbo@11530818")}`,
             },
             body: JSON.stringify({
-             "CityCode": cityCode,
-            "IsDetailedResponse": "true"
+              CityCode: cityCode,
+              IsDetailedResponse: "true",
             }),
           }
         );
-  
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-  
+
         const data = await response.json();
         // console.log("Hotel :", data);
-  
+
         if (data.success === "1" && data.response.Status.Code === 200) {
           const hotels = data.response.Hotels || []; // Fix: Access Hotels from data.response
           setHotelCityList(hotels);
-        
+
           if (hotels.length > 0) {
             const codes = hotels.map((hotel) => hotel.HotelCode);
             // console.log(codes);
@@ -996,29 +996,30 @@ if (data.success === "1" && data.response.Status.Code === 200) {
             console.warn("No hotels found in response.");
           }
         } else {
-          console.error("Error fetching hotels:", data.response.Status.Description);
+          console.error(
+            "Error fetching hotels:",
+            data.response.Status.Description
+          );
         }
-        
       } catch (error) {
         console.error("Error fetching hotels:", error);
       }
     };
-  
+
     fetchCity();
   }, [filteredCities]); // Runs whenever `filteredCities` changes
-  
-      // console.log(hotelCodes);
+
+  // console.log(hotelCodes);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Control dropdown visibility
   const [roomCount, setRoomCount] = useState(1);
   const [roomadultCount, setRoomAdultCount] = useState(2);
   const [roomchildCount, setRoomChildCount] = useState(2);
-  const [childrenAges, setChildrenAges] = useState([2,8]);
+  const [childrenAges, setChildrenAges] = useState([2, 8]);
 
   const handleToggleHotel = () => {
     setIsDropdownOpen((prev) => !prev); // Toggle dropdown visibility
   };
-
 
   const handleSelection = (type, value) => {
     if (type === "children") {
@@ -1051,28 +1052,29 @@ if (data.success === "1" && data.response.Status.Code === 200) {
     }));
   };
 
- 
   const formatDate1 = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-  
-  
-  
+
   const handleHotelSearch = async (e) => {
     e.preventDefault();
-  
-    const checkIn = formData.checkInDate ? formatDate1(formData.checkInDate) : "";
-    const checkOut = formData.checkOutDate ? formatDate1(formData.checkOutDate) : "";
+
+    const checkIn = formData.checkInDate
+      ? formatDate1(formData.checkInDate)
+      : "";
+    const checkOut = formData.checkOutDate
+      ? formatDate1(formData.checkOutDate)
+      : "";
     const Rooms = roomCount;
     const Adults = roomadultCount;
     const Children = roomchildCount;
     const ChildAge = childrenAges;
     const CityCode = hotelCodes.toString();
-    console.log(CityCode);
-  
+    // console.log(CityCode);
+
     const requestBody = {
       CheckIn: checkIn,
       CheckOut: checkOut,
@@ -1096,11 +1098,9 @@ if (data.success === "1" && data.response.Status.Code === 200) {
         HotelName: null,
       },
     };
-  
-    
-    
+
     // console.log("Authorization Header:", `Basic ${btoa("Bai:Bai@12345")}`);
-  
+
     try {
       const response = await fetch(
         "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
@@ -1113,21 +1113,19 @@ if (data.success === "1" && data.response.Status.Code === 200) {
           body: JSON.stringify(requestBody),
         }
       );
-  
-      
-  
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+
       const data = await response.json();
       console.log("Hotel data:", data);
       if (data.success === "1" && data.response.Status.Code === 200) {
-        setHotelCityList(data.response.HotelResult || []); 
-        console.log('asd');
+        setHotelCityList(data.response.HotelResult || []);
+        console.log("asd");
         // navigate("/SearchFlight", { state: { responseData } });
-        navigate("/SearchHotel", { 
-          state: { 
+        navigate("/SearchHotel", {
+          state: {
             hotelList: data.response.HotelResult,
             searchParams: {
               checkIn,
@@ -1138,13 +1136,11 @@ if (data.success === "1" && data.response.Status.Code === 200) {
               ChildAge,
               CityCode,
               filteredCities,
-            }
-          } 
+            },
+          },
         });
         // navigate("/SearchHotel", { state: { hotelList: data.HotelResult } });
-
       } else {
-       
         Swal.fire({
           // icon: "error",
           title: "Error",
@@ -1153,20 +1149,14 @@ if (data.success === "1" && data.response.Status.Code === 200) {
       }
     } catch (error) {
       console.error("Error fetching hotels:", error);
-  
-      
+
       Swal.fire({
         icon: "error",
         title: "Request Failed",
         text: error.message || "Failed to fetch hotel data.",
       });
     }
-      
-  
-   
   };
-  
-  
 
   return (
     <div className="yield-content">
@@ -1208,12 +1198,17 @@ if (data.success === "1" && data.response.Status.Code === 200) {
                       <div className="services">
                         <div className="flex flex-cols gap-2">
                           {/* Plane Icon */}
-                        
-                          <img src="../img/Flight-01.png" alt="Flight Image" className="w-10 h-10" onClick={() => handleIconClick("flight")}
+
+                          <img
+                            src="../img/Flight-01.png"
+                            alt="Flight Image"
+                            className="w-10 h-10"
+                            onClick={() => handleIconClick("flight")}
                             style={{
                               color: activeForm === "flight" ? "blue" : "black",
                               cursor: "pointer",
-                            }} ></img>
+                            }}
+                          ></img>
                           {/* <i
                             className="fas fa-plane cursor-pointer"
                             onClick={() => handleIconClick("flight")}
@@ -1224,11 +1219,16 @@ if (data.success === "1" && data.response.Status.Code === 200) {
                           ></i> */}
 
                           {/* Hotel Icon */}
-                          <img src="../img/Hotel-02.png" alt="Hotel Image" className="w-8 h-8" onClick={() => handleIconClick("hotel")}
+                          <img
+                            src="../img/Hotel-02.png"
+                            alt="Hotel Image"
+                            className="w-8 h-8"
+                            onClick={() => handleIconClick("hotel")}
                             style={{
                               color: activeForm === "hotel" ? "blue" : "black",
                               cursor: "pointer",
-                            }} ></img>
+                            }}
+                          ></img>
                           {/* <i
                             className="fas fa-hotel cursor-pointer"
                             onClick={() => handleIconClick("hotel")}
@@ -2050,37 +2050,45 @@ if (data.success === "1" && data.response.Status.Code === 200) {
                             </div>
                           </form>
                         ) : activeForm === "hotel" ? (
-                          <form className="hotel-form "onSubmit={handleHotelSearch}>
+                          <form
+                            className="hotel-form "
+                            onSubmit={handleHotelSearch}
+                          >
                             <div className=" hotel-box ">
                               <div className="hotel-container flex flex-cols ">
                                 {/* Input for City, Property, or Location */}
                                 <div className="from-hotel-group">
-      <div className="location-headers">City, Property Name or Location</div>
-      <div className="location-details">
-        <input
-          type="text"
-          className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
-          placeholder="Enter City"
-          value={selectedCity}
-          onChange={handleInputChange}
-          onClick={() => setShowDropdown(true)} // Show dropdown on click
-        />
+                                  <div className="location-headers">
+                                    City, Property Name or Location
+                                  </div>
+                                  <div className="location-details">
+                                    <input
+                                      type="text"
+                                      className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                      placeholder="Enter City"
+                                      value={selectedCity}
+                                      onChange={handleInputChange}
+                                      onClick={() => setShowDropdown(true)} // Show dropdown on click
+                                    />
 
-        {showDropdown && filteredCities.length > 0 && (
-          <div className="absolute w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-y-auto z-10 dropdown-size">
-            {filteredCities.map((city) => (
-              <div
-                key={city.Code}
-                className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                onClick={() => handleCitySelect(city.Name)}
-              >
-                {city.Name}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+                                    {showDropdown &&
+                                      filteredCities.length > 0 && (
+                                        <div className="absolute w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-y-auto z-10 dropdown-size">
+                                          {filteredCities.map((city) => (
+                                            <div
+                                              key={city.Code}
+                                              className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                                              onClick={() =>
+                                                handleCitySelect(city.Name)
+                                              }
+                                            >
+                                              {city.Name}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                  </div>
+                                </div>
 
                                 {/* Check-In Date */}
                                 <div className="from-hotel-group">
@@ -2101,7 +2109,7 @@ if (data.success === "1" && data.response.Status.Code === 200) {
                                       name="searchCheckIn"
                                       selected={formData.checkInDate} // Separate variable for Check-In date
                                       dateFormat="dd/MM/yyyy"
-                                       placeholderText="Add Check-In Date"
+                                      placeholderText="Add Check-In Date"
                                       minDate={new Date()}
                                       value={formData.checkInDate}
                                       open={isCheckInOpen} // Separate state for Check-In calendar visibility
@@ -2155,9 +2163,7 @@ if (data.success === "1" && data.response.Status.Code === 200) {
                                         setCheckOutIsOpen(false); // Close the DatePicker
                                       }}
                                       dateFormat="dd/MM/yyyy"
-                                      minDate={
-                                        formData.checkInDate
-                                      } // Ensure Check-Out date is after Return date
+                                      minDate={formData.checkInDate} // Ensure Check-Out date is after Return date
                                       placeholderText="Add Check-Out Date"
                                       open={isCheckOutOpen}
                                       onClickOutside={() =>
