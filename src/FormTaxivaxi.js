@@ -12,7 +12,6 @@ import Slider from 'rc-slider';
 import "rc-slider/assets/index.css";
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
-import IconLoader from './IconLoader';
 
 
 const FormTaxivaxi = () => {
@@ -168,6 +167,7 @@ const navigate = useNavigate();
                   const client_id = formtaxivaxiData['client_id'];
                   const is_gst_benefit = formtaxivaxiData['is_gst_benefit'];
                   const flight_type = formtaxivaxiData['flight_type'];
+                  const access_token = formtaxivaxiData['access_token'];
                   
                   const adult = no_of_seats;
                   const child = 0;
@@ -306,6 +306,7 @@ const navigate = useNavigate();
                       clientid: client_id,
                       is_gst_benefit: is_gst_benefit,
                       flighttype: flight_type,
+                      accessToken:access_token
                   };
                   console.log('resp', responseData);
  
@@ -357,7 +358,7 @@ const navigate = useNavigate();
       <div className="yield-content">
         {loading && (<div className="page-center-loaderr flex items-center justify-center">
                             <div className="big-loader flex items-center justify-center">
-                                <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" />
+                                <img className="loader-gif" src="/img/cotravloader.gif" alt="Loader" />
                                 <p className="text-center ml-4 text-gray-600 text-lg">
                                 Retrieving flight details. Please wait a moment.
                                 </p>

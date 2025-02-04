@@ -9,7 +9,6 @@ import { format, parseISO ,parse,isValid  } from 'date-fns';
 import SearchFlight from './SearchFlight';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
-import IconLoader from './IconLoader';
 // import ErrorLogger from './ErrorLogger';
 function Home() {
     const [activeTab, setActiveTab] = useState('flight');
@@ -855,7 +854,8 @@ return (
                     {loading &&  
                         <div className="page-center-loader flex items-center justify-center">
                             <div className="big-loader flex items-center justify-center">
-                                <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" />
+                        {/* <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" /> */}
+                        <img className="loader-gif" src="/img/cotravloader.gif" alt="Loader" />
                                 <p className="text-center ml-4 text-gray-600 text-lg">
                                 
                                 </p>
