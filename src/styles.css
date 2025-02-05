@@ -255,7 +255,7 @@ textarea {
 
 .body-wrapper {
   padding-bottom: 50px;
-  padding-top: 10px;
+  /* padding-top: 10px; */
   background-color: #e8e4ff;
 }
 
@@ -336,11 +336,110 @@ textarea {
 .wrapper-padding {
   position: relative;
 }
+.airport-flight-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Aligns elements in a row */
+  width: 100%;
+  padding: 8px 12px;
+}
+
+.airport-flight-container {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Space between image and details */
+  flex-grow: 1;
+}
+.airport-flight-details {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between airline name, number, and aircraft type */
+}
+.airport-cabin-class {
+  margin-left: auto;
+  font-weight: bold;
+  color: #333;
+  margin-right: 2%;
+}
+.baggage-info {
+  display: flex;
+  /* justify-content: space-between; */
+  padding: 10px 0;
+  font-size: 14px;
+  color: #333;
+  border-top: 1px solid #ddd;
+  gap: 20px;
+}
+.baggage-icon {
+  width: 16px; /* Adjust size as needed */
+  height: 16px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.cabin-baggage {
+  display: inline-flex;
+  align-items: center; /* Aligns the image and text properly */
+  gap: 5px; /* Adds a little space between the image and text */
+}
+.checkin-baggage{
+  display: inline-flex;
+  align-items: center; /* Aligns the image and text properly */
+  gap: 5px; /* Adds a little space between the image and text */
+}
 
 .main-cont {
   width: 100%;
   min-width: 300px;
+  margin-top: 30px;
 }
+
+.styled-table {
+  width: 80%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.styled-table th,
+.styled-table td {
+  border: 1px solid rgb(227, 227, 227); 
+  padding: 8px;
+  text-align: left;
+}
+
+.styled-table th {
+  background-color: #f4f4f4;
+}
+
+.styled-table th, .styled-table td {
+  width: 50%;  /* Ensure equal width for both columns */
+  padding-left: 4%;
+}
+
+.sub-header {
+  font-weight: normal;  /* Makes the text inside brackets not bold */
+  font-size: 0.9em;      /* Optional: adjusts the size of the subtext */
+}
+.table-container {
+  margin-top: 20px;  /* Adjust the top margin as needed */
+  margin-bottom: 20px;  /* Adjust the bottom margin as needed */
+}
+.note {
+  font-size: 0.7em;       /* Smaller font size */
+  color: #555;            /* Lighter color for the note */
+  margin-top: 10px;       /* Adds some space above the note */
+  margin-bottom: 10px;    /* Adds space below the note */
+}
+.highlighted-note {
+  font-size: 0.8em;
+  color: #555;
+  margin-top: 20px;
+  width: 80%;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f6e2d5;  
+  border-radius: 5px;         /* Optional: rounded corners */
+}
+
 
 .header-a {
   height: 40px;
@@ -5579,6 +5678,9 @@ sup {
   padding-right: 0px;
   text-align: center;
 }
+.sp-page{
+  position: relative;
+}
 
 .sp-page-a {
   width: 100%;
@@ -7974,7 +8076,7 @@ preferences-list-alt li {
 .bagg-form-details{
   margin-bottom: 0% !important;
   display: block;
-  margin-left: 1%;
+  /* margin-left: 1%; */
   margin-top: 2% !important;
   margin-bottom: 2% !important;
 }
@@ -18466,18 +18568,32 @@ body::-webkit-scrollbar-thumb:hover {
   font-weight: 600;
   margin: 1%;
 }
+.accordionfarename .airport{
+  /* font-size: 14px;*/
+   width: auto; 
+  color: black;
+  font-family: 'Montserrat';
+  font-weight: 600;
+  margin: 1%;
+}
+.flight-details-container {
+  background: #f4f4f4;
+  padding: 15px;
+  /* border-radius: 5px; */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
 .accordionfarename .vertical_line{
-  border-left: 1px dashed #a0a0a0;
-    height: 25px;
-    margin-left: 2.2%;
-    width: 3%;
+  border-left: 2px dashed #a0a0a0;
+    height: 22px;
+    margin-left: 2.8%;
+    width: 4.6%;
 }
 .airportcabin{
   font-size: 13px;
 }
 
 .airportflightnumber{
-  margin-left: 1%;
+  /* margin-left: 1%; */
 }
 .airportairline{
   color: black;
@@ -18936,6 +19052,15 @@ body, h1, h2, h3, h4, h5, h6, p, ul, li, input, button {
   font-family: Arial, sans-serif;
 }
 
+.bgGradient {
+  background-image: linear-gradient(0deg,#15457b,#051423);
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-height: 160px;
+}
+
 header.search-bar {
   background-color: #281f55; /* Dark Blue Background */
   padding: 15px;
@@ -18947,6 +19072,19 @@ header.search-bar {
   position: sticky;
   top: 0;
   z-index: 10; /* Ensure it stays on top */
+  margin-bottom: 10px;
+}
+header.search-barr {
+  background-color: #281f55; /* Dark Blue Background */
+  padding: 15px;
+  margin: 0 auto;
+  max-width: 1325px;
+  /* border-radius: 5px; */
+  margin-top: 53px; /* Space below fixed header */
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  /* position: sticky;
+  top: 0;
+  z-index: 10;  */
 }
 
 .hsw_inner {

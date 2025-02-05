@@ -2678,7 +2678,10 @@ const Booking = () => {
 
     return (
 
-        <div className="yield-content">
+        <div className="yield-content" style={{ background: '#e8e4ff' }}>
+        {/* <header className="search-barr" id="widgetHeader">
+            <p style={{ color: 'white'}}>Complete Your Booking</p>
+        </header> */}
             {loading &&
                 <div className="page-center-loader flex items-center justify-center">
                     <div className="big-loader flex items-center justify-center">
@@ -2693,12 +2696,15 @@ const Booking = () => {
 
             <div className="main-cont" id="main_cont">
                 <div className="body-wrapper">
+                
                     <div className="wrapper-padding">
-                        <div className="page-head">
+                    <span class="bgGradient"></span>
+                    <p style={{ color: 'white'}}>Complete Your Booking</p>
+                        {/* <div className="page-head">
                             <div className="page-title" />
                             <div className="breadcrumbs"></div>
                             <div className="clear" />
-                        </div>
+                        </div> */}
                         <div className="sp-page">
                             <div className="sp-page-a">
                                 <div className="sp-page-l">
@@ -2976,10 +2982,7 @@ const Booking = () => {
                                                                                             </>
                                                                                         }
                                                                                         <div className='row' style={{ border: '1px solid #e3e3e3', margin: '0% 0%' }}>
-                                                                                            <div
-                                                                                                className="booking-form bagg-form-details"
-
-                                                                                            >
+                                                                                            <div className="booking-form bagg-form-details">
 
                                                                                                 {Array.isArray(fareInfo['air:Brand']['air:Text'])
                                                                                                     ? (
@@ -2994,86 +2997,75 @@ const Booking = () => {
 
                                                                                                                 return (
                                                                                                                     <div key={textindex}>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <span className='airportcabin'>
-                                                                                                                                {(() => {
-                                                                                                                                    const uniqueCarriers1 = new Set();
+                                                                                                                        <div className="airport-flight-row">
+                                                                                                                            {(() => {
+                                                                                                                                const uniqueCarriers1 = new Set();
+                                                                                                                                segmentParse.forEach(segmentinfo => uniqueCarriers1.add(segmentinfo['$']['Carrier']));
 
-                                                                                                                                    segmentParse && segmentParse.forEach(segmentinfo => {
-                                                                                                                                        uniqueCarriers1.add(segmentinfo['$']['Carrier']);
-                                                                                                                                    });
-                                                                                                                                    return (
-                                                                                                                                        segmentParse && Array.from(uniqueCarriers1).map((carrier, index) => (
+                                                                                                                                return (
+                                                                                                                                    Array.from(uniqueCarriers1).map((carrier, index) => (
+                                                                                                                                        <div key={index} className="airport-flight-container">
+                                                                                                                                            {/* Airline Logo */}
+                                                                                                                                            <img
+                                                                                                                                                className="airport-airline-img"
+                                                                                                                                                src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
+                                                                                                                                                alt="Airline logo"
+                                                                                                                                            />
 
-                                                                                                                                            <div key={index}>
-                                                                                                                                                <img
-                                                                                                                                                    className={`airportairlineimg`}
-                                                                                                                                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
-                                                                                                                                                    alt="Airline logo"
-                                                                                                                                                    width="30px"
-                                                                                                                                                />
-
-
+                                                                                                                                            {/* Airline Name, Flight Number, and Aircraft Type */}
+                                                                                                                                            <div className="airport-flight-details">
+                                                                                                                                                <span className="airport-airline-name">{handleAirline(carrier)}
                                                                                                                                                 {segmentParse
                                                                                                                                                     .filter(segmentinfo => segmentinfo['$']['Carrier'] === carrier)
-                                                                                                                                                    .map((segmentinfo, segmentindex) => {
-                                                                                                                                                        if (fareIndex === segmentindex) {
-                                                                                                                                                            return (
-                                                                                                                                                                <span key={segmentindex} className='airportflightnumber'>
-                                                                                                                                                                    <span className='airportairline'>{handleAirline(segmentinfo['$']['Carrier'])} </span>
-                                                                                                                                                                    {segmentindex > 0 && ', '}
-                                                                                                                                                                    {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
-                                                                                                                                                                </span>
-                                                                                                                                                            );
-                                                                                                                                                        }
-                                                                                                                                                        return null;
-                                                                                                                                                    })
+                                                                                                                                                    .map((segmentinfo, segmentindex) => (
+                                                                                                                                                        fareIndex === segmentindex && (
+                                                                                                                                                            <span key={segmentindex} className="airport-flight-number">
+                                                                                                                                                                {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
+                                                                                                                                                            </span>
+                                                                                                                                                        )
+                                                                                                                                                    ))
                                                                                                                                                 }
-
-
+                                                                                                                                                </span>
+                                                                                                                                                
                                                                                                                                             </div>
-                                                                                                                                        ))
-                                                                                                                                    );
-                                                                                                                                })()}
 
-                                                                                                                            </span>
+                                                                                                                                            {/* Cabin Class */}
+                                                                                                                                            <div className="airport-cabin-class">{classType}</div>
+                                                                                                                                        </div>
+                                                                                                                                    ))
+                                                                                                                                );
+                                                                                                                            })()}
                                                                                                                         </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <div className='col-md-5'>
-                                                                                                                                <span className='apicircle'>◯</span>
-                                                                                                                                <span className='airportname'>
-                                                                                                                                    {handleAirport(fareInfo['$']['Origin'])}
-                                                                                                                                </span>
-                                                                                                                                {handleApiAirport(fareInfo['$']['Origin'])}
-                                                                                                                            </div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinclass'>Cabin Class</div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinbag'>Check-In Baggage</div>
-                                                                                                                            <div className='col-md-2 accordionfarehandbag'>Cabin Baggage</div>
-                                                                                                                        </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <span className='vertical_line'></span>
-                                                                                                                            {handleEffectiveDate(fareInfo['$']['Origin']['DepartureDate'])}
-                                                                                                                        </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <div className='col-md-5'>
-                                                                                                                                <span className='apicircle'>◯</span>
-                                                                                                                                <span className='airportname'>
-                                                                                                                                    {handleAirport(fareInfo['$']['Destination'])}
-                                                                                                                                </span>
-                                                                                                                                {handleApiAirport(fareInfo['$']['Destination'])}
-                                                                                                                            </div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinbag1'>
-                                                                                                                                <ul>
-                                                                                                                                    <li><FlightCheckIn CheckIn={matches && matches[0] ? matches[0] : 'NA'} onFlightCheckInChange={handleCheckIn} /></li>
-                                                                                                                                </ul>
-                                                                                                                            </div>
-                                                                                                                            <div className='col-md-2 accordionfarehandbag1 '>
-                                                                                                                                <ul>
-                                                                                                                                    <li><FlightCabin Cabin={matches && matches[1] ? matches[1] : 'NA'} onFlightCabinChange={handleCabin} /></li>
-                                                                                                                                </ul>
-                                                                                                                            </div>
-                                                                                                                        </div>
+                                                                                                                        <div className="flight-details-container">
+                                                                                                                <div className='row accordionfarename apiairportname'>
+                                                                                                                        <span className='apicircle'>◯</span>
+                                                                                                                        <span className='airportname'>
+                                                                                                                        {handleAirport(fareInfo['$']['Origin'])}
+                                                                                                                        </span>
+                                                                                                                        <span className='airport'>
+                                                                                                                        {handleApiAirport(fareInfo['$']['Origin'])}</span>
+                                                                                                                </div>
+                                                                                                                <div className='row accordionfarename apiairportname'>
+                                                                                                                    <span className='vertical_line'></span>
+                                                                                                                    {handleEffectiveDate(fareInfo['$']['Origin']['DepartureDate'])}
+                                                                                                                </div>
+                                                                                                                <div className='row accordionfarename apiairportname'>
+                                                                                                                        <span className='apicircle'>◯</span>
+                                                                                                                        <span className='airportname'>
+                                                                                                                            {handleAirport(fareInfo['$']['Destination'])}
+                                                                                                                        </span>
+                                                                                                                        <span className='airport'>
+                                                                                                                        {handleApiAirport(fareInfo['$']['Destination'])}</span>
+                                                                                                                </div>
+                                                                                                                <div className='baggage-info'>
+                                                                                                                <span className="cabin-baggage">
+                                                                                                                <img src="/img/cabin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Cabin Baggage:</strong> {matches && matches[1] ? matches[1] : 'NA'}
+                                                                                                                    </span>
+                                                                                                                    <span className="checkin-baggage">
+                                                                                                                    <img src="/img/checkin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Check-In Baggage:</strong> {matches && matches[0] ? matches[0] : 'NA'}
+                                                                                                                    </span>                                                                                                                
+                                                                                                                    </div>
+                                                                                                                </div>
                                                                                                                     </div>
 
                                                                                                                 );
@@ -3372,76 +3364,69 @@ const Booking = () => {
                                                                                                         console.log("matches1", matches);
                                                                                                         return (
                                                                                                             <div key={textindex}>
+                                                                                                            <div className="airport-flight-row">
+    {(() => {
+        const uniqueCarriers = new Set();
+        segmentParse.forEach(segmentinfo => uniqueCarriers.add(segmentinfo['$']['Carrier']));
+
+        return Array.from(uniqueCarriers).map((carrier, index) => (
+            <div key={index} className="airport-flight-container">
+                {/* Airline Logo */}
+                <img
+                    className="airportairlineimg"
+                    src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
+                    alt="Airline logo"
+                    width="30px"
+                />
+
+                {/* Flight Details */}
+                <div className="airport-flight-details">
+                    <span className="airportairline">{handleAirline(carrier)}
+                    {segmentParse
+                        .filter(segmentinfo => segmentinfo['$']['Carrier'] === carrier)
+                        .map((segmentinfo, segmentindex) => (
+                            <span key={segmentindex}>
+                                {segmentindex > 0 && ', '}
+                                {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
+                            </span>
+                        ))}
+                        </span>
+                </div>
+            </div>
+        ));
+    })()}
+
+    {/* Cabin Class (Aligned to the Right) */}
+    <span className="airport-cabin-class">{classType}</span>
+</div>
+                                                                                                                <div className="flight-details-container">
                                                                                                                 <div className='row accordionfarename apiairportname'>
-                                                                                                                    <span className='airportcabin'>
-                                                                                                                        {(() => {
-                                                                                                                            const uniqueCarriers1 = new Set();
-
-                                                                                                                            segmentParse && segmentParse.forEach(segmentinfo => {
-                                                                                                                                uniqueCarriers1.add(segmentinfo['$']['Carrier']);
-                                                                                                                            });
-
-                                                                                                                            return (
-                                                                                                                                segmentParse && Array.from(uniqueCarriers1).map((carrier, index) => (
-                                                                                                                                    <div key={index}>
-                                                                                                                                        <img
-                                                                                                                                            className={`airportairlineimg`}
-                                                                                                                                            src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
-                                                                                                                                            alt="Airline logo"
-                                                                                                                                            width="30px"
-                                                                                                                                        />
-
-
-                                                                                                                                        {segmentParse.map((segmentinfo, segmentindex) => (
-                                                                                                                                            segmentinfo['$']['Carrier'] === carrier && (
-                                                                                                                                                <span key={segmentindex} className='airportflightnumber'>
-                                                                                                                                                    <span className='airportairline'>{handleAirline(segmentinfo['$']['Carrier'])} </span>
-                                                                                                                                                    {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
-                                                                                                                                                </span>
-                                                                                                                                            )
-                                                                                                                                        ))}
-
-                                                                                                                                    </div>
-                                                                                                                                ))
-                                                                                                                            );
-                                                                                                                        })()}
-
-                                                                                                                    </span>
-                                                                                                                </div>
-                                                                                                                <div className='row accordionfarename apiairportname'>
-                                                                                                                    <div className='col-md-5'>
                                                                                                                         <span className='apicircle'>◯</span>
                                                                                                                         <span className='airportname'>
                                                                                                                             {handleAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Origin'])}
                                                                                                                         </span>
-                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Origin'])}
-                                                                                                                    </div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinclass'>Cabin Class</div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinbag'>Check-In Baggage</div>
-                                                                                                                    <div className='col-md-2 accordionfarehandbag'>Cabin Baggage</div>
+                                                                                                                        <span className='airport'>
+                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Origin'])}</span>
                                                                                                                 </div>
                                                                                                                 <div className='row accordionfarename apiairportname'>
                                                                                                                     <span className='vertical_line'></span>
                                                                                                                     {handleEffectiveDate(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['DepartureDate'])}
                                                                                                                 </div>
                                                                                                                 <div className='row accordionfarename apiairportname'>
-                                                                                                                    <div className='col-md-5'>
                                                                                                                         <span className='apicircle'>◯</span>
                                                                                                                         <span className='airportname'>
                                                                                                                             {handleAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Destination'])}
                                                                                                                         </span>
-                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Destination'])}
-                                                                                                                    </div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinbag1'>
-                                                                                                                        <ul>
-                                                                                                                            <li><FlightCheckIn CheckIn={matches && matches[0] ? matches[0] : 'NA'} onFlightCheckInChange={handleCheckIn} /></li>
-                                                                                                                        </ul>
-                                                                                                                    </div>
-                                                                                                                    <div className='col-md-2 accordionfarehandbag1 '>
-                                                                                                                        <ul>
-                                                                                                                            <li><FlightCabin Cabin={matches && matches[1] ? matches[1] : 'NA'} onFlightCabinChange={handleCabin} /></li>
-                                                                                                                        </ul>
+                                                                                                                        <span className='airport'>
+                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Destination'])}</span>
+                                                                                                                </div>
+                                                                                                                <div className='baggage-info'>
+                                                                                                                <span className="cabin-baggage">
+                                                                                                                <img src="/img/cabin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Cabin Baggage:</strong> {matches && matches[1] ? matches[1] : 'NA'}
+                                                                                                                    </span>
+                                                                                                                    <span className="checkin-baggage">
+                                                                                                                    <img src="/img/checkin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Check-In Baggage:</strong> {matches && matches[0] ? matches[0] : 'NA'}
+                                                                                                                    </span>                                                                                                                
                                                                                                                     </div>
                                                                                                                 </div>
                                                                                                             </div>
@@ -3752,84 +3737,82 @@ const Booking = () => {
 
                                                                                                                 return (
                                                                                                                     <div key={textindex}>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <span className='airportcabin'>
-                                                                                                                                {(() => {
-                                                                                                                                    const uniqueCarriers1 = new Set();
+                                                                                                                    <div className="row accordionfarename apiairportname">
+    <div className="airport-flight-row">
+        {(() => {
+            const uniqueCarriers1 = new Set();
 
-                                                                                                                                    segmentParse && segmentParse.forEach(segmentinfo => {
-                                                                                                                                        uniqueCarriers1.add(segmentinfo['$']['Carrier']);
-                                                                                                                                    });
+            segmentParse && segmentParse.forEach(segmentinfo => {
+                uniqueCarriers1.add(segmentinfo['$']['Carrier']);
+            });
 
-                                                                                                                                    return (
-                                                                                                                                        segmentParse && Array.from(uniqueCarriers1).map((carrier, index) => (
-                                                                                                                                            <div key={index}>
-                                                                                                                                                <img
-                                                                                                                                                    className={`airportairlineimg`}
-                                                                                                                                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
-                                                                                                                                                    alt="Airline logo"
-                                                                                                                                                    width="30px"
-                                                                                                                                                />
+            return (
+                segmentParse &&
+                Array.from(uniqueCarriers1).map((carrier, index) => (
+                    <div key={index} className="airport-flight-container">
+                        <img
+                            className="airportairlineimg"
+                            src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
+                            alt="Airline logo"
+                            width="30px"
+                        />
 
+                        <div className="airport-flight-details">
+                        {(Array.isArray(segmentParse) ? segmentParse : [segmentParse])
+  .filter(segmentinfo => segmentinfo?.['$']?.['Carrier'] === carrier)
+  .map((segmentinfo, segmentindex) => {
+    if (fareIndex === segmentindex) {
+      return (
+        <span key={segmentindex} className="airportflightnumber">
+          <span className="airportairline">
+            {handleAirline(segmentinfo['$']['Carrier'])}{" "}
+            {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
+          </span>
+        </span>
+      );
+    }
+    return null;
+  })}
+                        </div>
+                    </div>
+                ))
+            );
+        })()}
 
-                                                                                                                                                {segmentParse
-                                                                                                                                                    .filter(segmentinfo => segmentinfo['$']['Carrier'] === carrier)
-                                                                                                                                                    .map((segmentinfo, segmentindex) => {
-                                                                                                                                                        if (fareIndex === segmentindex) {
-                                                                                                                                                            return (
-                                                                                                                                                                <span key={segmentindex} className='airportflightnumber'>
-                                                                                                                                                                    <span className='airportairline'>{handleAirline(segmentinfo['$']['Carrier'])} </span>
-                                                                                                                                                                    {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
-                                                                                                                                                                </span>
-                                                                                                                                                            );
-                                                                                                                                                        }
-                                                                                                                                                        return null;
-                                                                                                                                                    })
-                                                                                                                                                }
-
-                                                                                                                                            </div>
-                                                                                                                                        ))
-                                                                                                                                    );
-                                                                                                                                })()}
-
-                                                                                                                            </span>
-                                                                                                                        </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <div className='col-md-5'>
-                                                                                                                                <span className='apicircle'>◯</span>
-                                                                                                                                <span className='airportname'>
-                                                                                                                                    {handleAirport(fareInfo['$']['Origin'])}
-                                                                                                                                </span>
-                                                                                                                                {handleApiAirport(fareInfo['$']['Origin'])}
-                                                                                                                            </div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinclass'>Cabin Class</div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinbag'>Check-In Baggage</div>
-                                                                                                                            <div className='col-md-2 accordionfarehandbag'>Cabin Baggage</div>
-                                                                                                                        </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <span className='vertical_line'></span>
-                                                                                                                            {handleEffectiveDate(fareInfo['$']['DepartureDate'])}
-                                                                                                                        </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <div className='col-md-5'>
-                                                                                                                                <span className='apicircle'>◯</span>
-                                                                                                                                <span className='airportname'>
-                                                                                                                                    {handleAirport(fareInfo['$']['Destination'])}
-                                                                                                                                </span>
-                                                                                                                                {handleApiAirport(fareInfo['$']['Destination'])}
-                                                                                                                            </div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinbag1'>
-                                                                                                                                <ul>
-                                                                                                                                    <li><FlightCheckIn CheckIn={matches && matches[0] ? matches[0] : 'NA'} onFlightCheckInChange={handleCheckIn} /></li>
-                                                                                                                                </ul>
-                                                                                                                            </div>
-                                                                                                                            <div className='col-md-2 accordionfarehandbag1 '>
-                                                                                                                                <ul>
-                                                                                                                                    <li><FlightCabin Cabin={matches && matches[1] ? matches[1] : 'NA'} onFlightCabinChange={handleCabin} /></li>
-                                                                                                                                </ul>
-                                                                                                                            </div>
-                                                                                                                        </div>
+        {/* Right-aligned cabin class */}
+        <span className="airport-cabin-class">{classType}</span>
+    </div>
+</div>
+                                                                                                                        <div className="flight-details-container">
+                                                                                                                <div className='row accordionfarename apiairportname'>
+                                                                                                                        <span className='apicircle'>◯</span>
+                                                                                                                        <span className='airportname'>
+                                                                                                                            {handleAirport(fareInfo['$']['Origin'])}
+                                                                                                                        </span>
+                                                                                                                        <span className='airport'>
+                                                                                                                        {handleApiAirport(fareInfo['$']['Origin'])}</span>
+                                                                                                                </div>
+                                                                                                                <div className='row accordionfarename apiairportname'>
+                                                                                                                    <span className='vertical_line'></span>
+                                                                                                                    {handleEffectiveDate(fareInfo['$']['DepartureDate'])}
+                                                                                                                </div>
+                                                                                                                <div className='row accordionfarename apiairportname'>
+                                                                                                                        <span className='apicircle'>◯</span>
+                                                                                                                        <span className='airportname'>
+                                                                                                                            {handleAirport(fareInfo['$']['Destination'])}
+                                                                                                                        </span>
+                                                                                                                        <span className='airport'>
+                                                                                                                        {handleApiAirport(fareInfo['$']['Destination'])}</span>
+                                                                                                                </div>
+                                                                                                                <div className='baggage-info'>
+                                                                                                                <span className="cabin-baggage">
+                                                                                                                <img src="/img/cabin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Cabin Baggage:</strong> {matches && matches[1] ? matches[1] : 'NA'}
+                                                                                                                    </span>
+                                                                                                                    <span className="checkin-baggage">
+                                                                                                                    <img src="/img/checkin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Check-In Baggage:</strong> {matches && matches[0] ? matches[0] : 'NA'}
+                                                                                                                    </span>                                                                                                                
+                                                                                                                    </div>
+                                                                                                                </div>
                                                                                                                     </div>
 
                                                                                                                 );
@@ -4126,86 +4109,91 @@ const Booking = () => {
 
                                                                                                         return (
                                                                                                             <div key={textindex}>
+                                                                                                            <div className="row accordionfarename apiairportname">
+    <div className="airport-flight-row">
+        {(() => {
+            const uniqueCarriers1 = new Set();
+
+            if (Array.isArray(segmentParse)) {
+                segmentParse.forEach(segmentinfo => {
+                    uniqueCarriers1.add(segmentinfo['$']['Carrier']);
+                });
+            } else if (segmentParse && segmentParse['$'] && segmentParse['$']['Carrier']) {
+                uniqueCarriers1.add(segmentParse['$']['Carrier']);
+            }
+
+            return (
+                segmentParse &&
+                Array.from(uniqueCarriers1).map((carrier, index) => (
+                    <div key={index} className="airport-flight-container">
+                        <img
+                            className="airportairlineimg"
+                            src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
+                            alt="Airline logo"
+                            width="30px"
+                        />
+
+                        <div className="airport-flight-details">
+                            {Array.isArray(segmentParse)
+                                ? segmentParse
+                                      .filter(segmentinfo => segmentinfo['$']['Carrier'] === carrier)
+                                      .map((segmentinfo, segmentindex) => (
+                                          <span key={segmentindex} className="airportflightnumber">
+                                              <span className="airportairline">
+                                                  {handleAirline(segmentinfo['$']['Carrier'])}
+                                              </span>{" "}
+                                              {segmentindex > 0 && ", "}
+                                              {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
+                                          </span>
+                                      ))
+                                : segmentParse['$']['Carrier'] === carrier && (
+                                      <span className="airportflightnumber">
+                                          <span className="airportairline">
+                                              {handleAirline(segmentParse['$']['Carrier'])}
+                                              {" "}
+                                              {segmentParse['$']['Carrier']} {segmentParse['$']['FlightNumber']}
+                                          </span>
+                                          
+                                      </span>
+                                  )}
+                        </div>
+                    </div>
+                ))
+            );
+        })()}
+
+        {/* Right-aligned cabin class */}
+        <span className="airport-cabin-class">{classType}</span>
+    </div>
+</div>
+                                                                                                                <div className="flight-details-container">
                                                                                                                 <div className='row accordionfarename apiairportname'>
-                                                                                                                    <span className='airportcabin'>
-                                                                                                                        {(() => {
-                                                                                                                            const uniqueCarriers1 = new Set();
-
-                                                                                                                            if (Array.isArray(segmentParse)) {
-                                                                                                                                segmentParse.forEach(segmentinfo => {
-                                                                                                                                    uniqueCarriers1.add(segmentinfo['$']['Carrier']);
-                                                                                                                                });
-                                                                                                                            } else if (segmentParse && segmentParse['$'] && segmentParse['$']['Carrier']) {
-                                                                                                                                uniqueCarriers1.add(segmentParse['$']['Carrier']);
-                                                                                                                            }
-
-                                                                                                                            return (
-                                                                                                                                segmentParse && Array.from(uniqueCarriers1).map((carrier, index) => (
-                                                                                                                                    <div key={index}>
-                                                                                                                                        <img
-                                                                                                                                            className={`airportairlineimg`}
-                                                                                                                                            src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
-                                                                                                                                            alt="Airline logo"
-                                                                                                                                            width="30px"
-                                                                                                                                        />
-
-                                                                                                                                        {Array.isArray(segmentParse)
-                                                                                                                                            ? segmentParse.map((segmentinfo, segmentindex) => (
-                                                                                                                                                segmentinfo['$']['Carrier'] === carrier && (
-                                                                                                                                                    <span key={segmentindex} className='airportflightnumber'>
-                                                                                                                                                        <span className='airportairline'>{handleAirline(segmentinfo['$']['Carrier'])} </span>
-                                                                                                                                                        {segmentindex > 0 && ', '}
-                                                                                                                                                        {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
-                                                                                                                                                    </span>
-                                                                                                                                                )
-                                                                                                                                            ))
-                                                                                                                                            : segmentParse['$']['Carrier'] === carrier && (
-                                                                                                                                                <span className='airportflightnumber'>
-                                                                                                                                                    <span className='airportairline'>{handleAirline(segmentParse['$']['Carrier'])} </span>
-                                                                                                                                                    {segmentParse['$']['Carrier']} {segmentParse['$']['FlightNumber']}
-                                                                                                                                                </span>
-                                                                                                                                            )}
-                                                                                                                                    </div>
-                                                                                                                                ))
-                                                                                                                            );
-                                                                                                                        })()}
-
-                                                                                                                    </span>
-                                                                                                                </div>
-                                                                                                                <div className='row accordionfarename apiairportname'>
-                                                                                                                    <div className='col-md-5'>
                                                                                                                         <span className='apicircle'>◯</span>
                                                                                                                         <span className='airportname'>
                                                                                                                             {handleAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Origin'])}
                                                                                                                         </span>
-                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Origin'])}
-                                                                                                                    </div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinclass'>Cabin Class</div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinbag'>Check-In Baggage</div>
-                                                                                                                    <div className='col-md-2 accordionfarehandbag'>Cabin Baggage</div>
+                                                                                                                        <span className='airport'>
+                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Origin'])}</span>
                                                                                                                 </div>
                                                                                                                 <div className='row accordionfarename apiairportname'>
                                                                                                                     <span className='vertical_line'></span>
                                                                                                                     {handleEffectiveDate(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['DepartureDate'])}
                                                                                                                 </div>
                                                                                                                 <div className='row accordionfarename apiairportname'>
-                                                                                                                    <div className='col-md-5'>
                                                                                                                         <span className='apicircle'>◯</span>
                                                                                                                         <span className='airportname'>
                                                                                                                             {handleAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Destination'])}
                                                                                                                         </span>
-                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Destination'])}
-                                                                                                                    </div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinbag1'>
-                                                                                                                        <ul>
-                                                                                                                            <li><FlightCheckIn CheckIn={matches && matches[0] ? matches[0] : 'NA'} onFlightCheckInChange={handleCheckIn} /></li>
-                                                                                                                        </ul>
-                                                                                                                    </div>
-                                                                                                                    <div className='col-md-2 accordionfarehandbag1 '>
-                                                                                                                        <ul>
-                                                                                                                            <li><FlightCabin Cabin={matches && matches[1] ? matches[1] : 'NA'} onFlightCabinChange={handleCabin} /></li>
-                                                                                                                        </ul>
+                                                                                                                        <span className='airport'>
+                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Destination'])}</span>
+                                                                                                                </div>
+                                                                                                                <div className='baggage-info'>
+                                                                                                                <span className="cabin-baggage">
+                                                                                                                <img src="/img/cabin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Cabin Baggage:</strong> {matches && matches[1] ? matches[1] : 'NA'}
+                                                                                                                    </span>
+                                                                                                                    <span className="checkin-baggage">
+                                                                                                                    <img src="/img/checkin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Check-In Baggage:</strong> {matches && matches[0] ? matches[0] : 'NA'}
+                                                                                                                    </span>                                                                                                                
                                                                                                                     </div>
                                                                                                                 </div>
                                                                                                             </div>
@@ -4230,9 +4218,160 @@ const Booking = () => {
                                                             )
                                                         )
                                                 )}
+                                                {/* <span className='apicircle'>◯</span> */}
+                                                <div className="table-container">
+                                                    <h1>Cancellation Charges</h1>
+                                                    <table className="styled-table">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>
+                                                            Time frame <br />
+                                                            <span className="sub-header">(From Scheduled flight departure)</span>
+                                                            </th>
+                                                            <th>
+                                                            Airline fee <br />
+                                                            <span className="sub-header">(Per passenger)</span>
+                                                            </th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        {Array.isArray(packageSelected['air:AirPricingInfo']) ? (
+                                                            packageSelected['air:AirPricingInfo'].flatMap((pricingInfo) =>
+                                                            Array.isArray(pricingInfo['air:CancelPenalty']) ? (
+                                                                pricingInfo['air:CancelPenalty'].map((cancelpolicy, cancelindex) => (
+                                                                <tr key={cancelindex}>
+                                                                    <td>
+                                                                    {cancelpolicy?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                    </td>
+                                                                    <td>
+                                                                    {(cancelpolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                    {(cancelpolicy?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                    </td>
+                                                                </tr>
+                                                                ))
+                                                            ) : (
+                                                                <tr key={'single'}>
+                                                                <td>
+                                                                    {pricingInfo?.['air:CancelPenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                </td>
+                                                                <td>
+                                                                    {(pricingInfo?.['air:CancelPenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                    {(pricingInfo?.['air:CancelPenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                </td>
+                                                                </tr>
+                                                            )
+                                                            )
+                                                        ) : (
+                                                            Array.isArray(packageSelected['air:AirPricingInfo']['air:CancelPenalty']) ? (
+                                                            packageSelected['air:AirPricingInfo']['air:CancelPenalty'].map((cancelpolicy, cancelindex) => (
+                                                                <tr key={cancelindex}>
+                                                                <td>
+                                                                    {cancelpolicy?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                </td>
+                                                                <td>
+                                                                    {(cancelpolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                    {(cancelpolicy?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                </td>
+                                                                </tr>
+                                                            ))
+                                                            ) : (
+                                                            <tr key={'single'}>
+                                                                <td>
+                                                                {packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                </td>
+                                                                <td>
+                                                                {(packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                {(packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                </td>
+                                                            </tr>
+                                                            )
+                                                        )}
+                                                        </tbody>
+                                                    </table>
+                                                    <p className="note">* From the Time of Departure</p>
+                                                </div>
+                                                <p className="highlighted-note">
+                                                <strong>*Important:</strong> The airline fee is indicative. Cotrav does not guarantee the accuracy of this information.
+                                                    All fees mentioned are per passenger. All Refunds are airline approval.
+                                                </p>
+                                                <div className="table-container">
+                                                    <h1>Date Change Charges</h1>
+                                                    <table className="styled-table">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>
+                                                            Time frame <br />
+                                                            <span className="sub-header">(From Scheduled flight departure)</span>
+                                                            </th>
+                                                            <th>
+                                                            Airline fee + Fare difference<br />
+                                                            <span className="sub-header">(Per passenger)</span>
+                                                            </th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+  {Array.isArray(packageSelected['air:AirPricingInfo']) ? (
+    packageSelected['air:AirPricingInfo'].flatMap((pricingInfo) =>
+      Array.isArray(pricingInfo['air:ChangePenalty']) ? (
+        pricingInfo['air:ChangePenalty'].map((changepolicy, changeindex) => (
+          <tr key={changeindex}>
+            <td>
+              {changepolicy?.['$']?.['PenaltyApplies'] || 'NA'}
+            </td>
+            <td>
+              {(changepolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+              {(changepolicy?.['air:Amount'] || 'NA').replace('INR', '')}
+            </td>
+          </tr>
+        ))
+      ) : (
+        <tr key={'single-change'}>
+          <td>
+            {pricingInfo?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
+          </td>
+          <td>
+            {(pricingInfo?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+            {(pricingInfo?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
+          </td>
+        </tr>
+      )
+    )
+  ) : (
+    Array.isArray(packageSelected['air:AirPricingInfo']['air:ChangePenalty']) ? (
+      packageSelected['air:AirPricingInfo']['air:ChangePenalty'].map((changepolicy, changeindex) => (
+        <tr key={changeindex}>
+          <td>
+            {changepolicy?.['$']?.['PenaltyApplies'] || 'NA'}
+          </td>
+          <td>
+            {(changepolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+            {(changepolicy?.['air:Amount'] || 'NA').replace('INR', '')}
+          </td>
+        </tr>
+      ))
+    ) : (
+      <tr key={'single-change'}>
+        <td>
+          {packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
+        </td>
+        <td>
+          {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+          {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
+        </td>
+      </tr>
+    )
+  )}
+</tbody>
 
-
-
+                                                    </table>
+                                                </div>
+                                                <p className="highlighted-note">
+                                                <strong>*Important:</strong>The airline fee is indicative. Cotrav does not guarantee the accuracy of this information.
+                                                    All fees mentioned are per passenger. Date change charges are applicable only on selecting the same airline on
+                                                    a new date. The difference in fares between the old & the new booking will also be payable by the user.
+                                                    Please refer to the date change charges section above for details on the number of allowd free date changes
+                                                    if applicable
+                                                </p>
                                                 {/* <div className="booking-devider" /> */}
                                                 <form ref={formRef} onSubmit={(e) => handlePassengerSubmit(e)} style={{ marginTop: '1%' }}>
                                                     <input

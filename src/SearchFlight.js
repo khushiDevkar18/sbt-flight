@@ -15361,6 +15361,7 @@ const SearchFlight = () => {
                                                                     <button
                                                                       className="add-btn"
                                                                       type="button"
+                                                                      title="Share Flight Option"
                                                                       onClick={() => handleCheckboxChange(pricepoint["air:AirPricingInfo"], matchingFareInfo["$"]["Amount"], matchingFareInfo["$"]["FareFamily"])}
                                                                     >
                                                                       {
@@ -16172,6 +16173,7 @@ const SearchFlight = () => {
                                                                 <button
                                                                   className="add-btn"
                                                                   type="button"
+                                                                  title="Share Flight Option"
                                                                   onClick={() => {
                                                                     const fareName = extractFareName(priceParseData);
                                                                     const farePrice = priceParseData['$']['TotalPrice']
