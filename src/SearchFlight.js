@@ -16167,9 +16167,9 @@ const SearchFlight = () => {
                                                                   )}
                                                                 </div>
 
-                                                                {bookingid && (
+                                                                {/* {bookingid && ( */}
                                                                   <div className='buttonbook' style={{ width: "37%" }}><button type='button' className="continuebutton" style={{ marginTop: "7px", color: "white", backgroundColor: "#785eff", border: "none", padding: "5px 5px 5px 5px", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
-                                                                )}
+                                                                {/* )} */}
                                                                 <button
                                                                   className="add-btn"
                                                                   type="button"

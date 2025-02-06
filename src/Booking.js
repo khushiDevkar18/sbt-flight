@@ -9,8 +9,11 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Swal from 'sweetalert2';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 // import IconLoader from './IconLoader';
 // import ErrorLogger from './ErrorLogger';
+
 
 const FlightCheckIn = ({ CheckIn, onFlightCheckInChange }) => {
     useEffect(() => {
@@ -87,6 +90,11 @@ const Booking = () => {
     // const [noOfSeats, setSeatCount] = useState([]);
     const [pnr_no, setPnrCode] = useState([]);
     const noOfSeats = formtaxivaxi['no_of_seats'];
+    const [value, setValue] = useState('');
+  
+    const handleChange = (value) => {
+        setValue(value);
+    };
 
 
     const handleCheckIn = (baggage) => {
@@ -1612,6 +1620,7 @@ const Booking = () => {
             const passengerKeys = Array.from(formData.getAll('passengerkey[]'));
             const passengerCode = Array.from(formData.getAll('passengercode[]'));
             const passengerFirstNames = Array.from(formData.getAll('adult_first_name[]'));
+            // console.log('passengerFirstNames',passengerFirstNames);
             const passengerLastNames = Array.from(formData.getAll('adult_last_name[]'));
             const passengerAgeNames = Array.from(formData.getAll('adult_age[]'));
             const passengerGenderNames = Array.from(formData.getAll('adult_gender[]'));
@@ -1838,15 +1847,21 @@ const Booking = () => {
     }
 
     const validateSavePassenger = (Passengerarray) => {
+        console.log('Passengerarray', Passengerarray);
         let isValid = true;
 
         const updatepassengerarray = Passengerarray.map((passengerinfo, passengerindex) => {
             const firstName = document.querySelector(`input[name="adult_first_name[]"][data-index="${passengerindex}"]`).value;
+            console.log('firstName', firstName);
+            const email1 = document.querySelector(`input[name="email1"][data-index="${passengerindex}"]`).value;
+            console.log('email1', email1); 
+            const cnct = document.querySelector(`input[name="contact_details1"][data-index="${passengerindex}"]`).value;
+            console.log('cnct', cnct); 
             const lastName = document.querySelector(`input[name="adult_last_name[]"][data-index="${passengerindex}"]`).value;
-            const birthdate = document.querySelector(`input[name="adult_age[]"][data-index="${passengerindex}"]`).value;
+            // const birthdate = document.querySelector(`input[name="adult_age[]"][data-index="${passengerindex}"]`).value;
             const gender = document.querySelector(`select[name="adult_gender[]"][data-index="${passengerindex}"]`).value;
-            const age = calculateAge(birthdate);
-
+            // const age = calculateAge(birthdate);
+ 
             if (firstName.trim() === '') {
                 isValid = false;
                 const firstNameError = document.querySelector(`.adult_first_name-message[data-index="${passengerindex}"]`);
@@ -1897,7 +1912,7 @@ const Booking = () => {
                     ...passengerinfo,
                     adult_first_name: firstName,
                     adult_last_name: lastName,
-                    adult_age: age,
+                    // adult_age: age,
                     adult_gender: gender,
                 };
             } else {
@@ -1947,6 +1962,7 @@ const Booking = () => {
     const [previousSelections, setPreviousSelections] = useState([]);
 
     const handleseatSelectiondisplay = (seatpassenger, seatsegment, seatcode, optionalservicekey) => {
+        console.log('seat detail ', seatpassenger, seatsegment, seatcode, optionalservicekey);
         setseatcodeselected(seatcode);
         setseatpassengerselected(seatpassenger);
         setseatsegmentselected(seatsegment);
@@ -4405,153 +4421,145 @@ const Booking = () => {
                                                                             <h1 style={{ backgroundColor: "#fff", marginLeft: 5, marginTop: 10 }}>
                                                                                 {passengerinfo.Code === "ADT" ? `Adult (${passengerindex + 1})` : passengerinfo.Code === "INF" ? `Infant (${passengerindex + 1})` : `Child (${passengerindex + 1})`}
                                                                             </h1>
-                                                                            <div className="booking-form" style={{ marginLeft: 5, marginRight: 5, marginBottom: 0 }}>
-                                                                                <div className="booking-form-i booking-form-i2">
-                                                                                    <div className='row'>
-                                                                                        <div className='col-md-3'>
-                                                                                            <label>Prefix</label>
-                                                                                            <div className="form-calendar-a">
-                                                                                                <select
-                                                                                                    className="custom-select1"
-                                                                                                    name="adult_prefix[]"
-                                                                                                    style={{
-                                                                                                        padding: "6px 10px 6px 10px",
-                                                                                                        width: "100%",
-                                                                                                        border: "1px solid #e3e3e3",
-                                                                                                        height: 36,
-                                                                                                        fontFamily: '"Raleway"',
-                                                                                                        cursor: "pointer",
-                                                                                                        color: "#626262",
-                                                                                                        fontSize: 11
-                                                                                                    }}
-                                                                                                    data-index={passengerindex}
-                                                                                                    readOnly={bookingid}
-                                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male" ? 'Mr' : 'Mrs'}
-                                                                                                >
-                                                                                                    <option value="Mr" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male"}>Mr.</option>
-                                                                                                    <option value="Mrs" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Female"}>Mrs.</option>
-                                                                                                </select>
-                                                                                            </div>
-                                                                                        </div>
-
-                                                                                        <div className='col-md-9'>
-                                                                                            <label>First Name</label>
-                                                                                            <div className="input">
-                                                                                                <input
-                                                                                                    type="text"
-                                                                                                    name="adult_first_name[]"
-                                                                                                    onKeyPress={handleKeyPress}
-                                                                                                    data-index={passengerindex}
-                                                                                                    readOnly={bookingid}
-                                                                                                    // defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
-                                                                                                    //     emptaxivaxi[passengerindex]['people_name'].split(' ')[0].trim()
-                                                                                                    // }
-                                                                                                    Value={
-                                                                                                        emptaxivaxi[passengerindex]?.people_name
-                                                                                                            ? (() => {
-                                                                                                                const nameParts = emptaxivaxi[passengerindex].people_name.trim().split(' ');
-                                                                                                                return nameParts.length > 1
-                                                                                                                    ? nameParts.slice(0, nameParts.length - 1).join(' ').trim()
-                                                                                                                    : nameParts[0] || '';
-                                                                                                            })() : ''
-                                                                                                    }
-                                                                                                />
-                                                                                            </div>
-                                                                                            <span className="error-message adult_first_name-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                                Please enter the First name.
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="booking-form-i booking-form-i2">
-                                                                                    <label>Last Name</label>
-                                                                                    <div className="input">
-                                                                                        <input
-                                                                                            type="text"
-                                                                                            name="adult_last_name[]"
-                                                                                            onKeyPress={handleKeyPress}
+                                                                            <div className="booking-container1">
+                                                                            {/* First Row: Prefix, First Name, Last Name */}
+                                                                            <div className="booking-row">
+                                                                                <div className="booking-field booking-prefix">
+                                                                                    <label>Prefix</label>
+                                                                                    <div className="form-calendar1">
+                                                                                        <select
+                                                                                            className="custom-select"
+                                                                                            name="adult_prefix[]"
                                                                                             data-index={passengerindex}
                                                                                             readOnly={bookingid}
-                                                                                            // defaultValue={
-                                                                                            //     emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
-                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ')[1] ?
-                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ').slice(1).join(' ').trim() : 'NA'
-                                                                                            // }
-                                                                                            Value={
-                                                                                                emptaxivaxi[passengerindex]?.people_name
-                                                                                                    ? (() => {
-                                                                                                        const nameParts = emptaxivaxi[passengerindex].people_name.trim().split(' ');
-                                                                                                        // If there is more than one name part, return the last name, else empty string
-                                                                                                        return nameParts.length > 1
-                                                                                                            ? nameParts[nameParts.length - 1].trim()
-                                                                                                            : nameParts[0]; // If only one part, leave it empty (or customize)
-                                                                                                    })()
-                                                                                                    : '' // If no name exists, return 'NA'
-                                                                                            }
-                                                                                        />
+                                                                                            defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Male" ? 'Mr' : 'Mrs'}
+                                                                                        >
+                                                                                            <option value="Mr" selected={emptaxivaxi?.[passengerindex]?.gender === "Male"}>Mr.</option>
+                                                                                            <option value="Mrs" selected={emptaxivaxi?.[passengerindex]?.gender === "Female"}>Mrs.</option>
+                                                                                        </select>
                                                                                     </div>
+                                                                                </div>
+
+                                                                                <div className="booking-field booking-name">
+                                                                                    <label>First Name</label>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        name="adult_first_name[]"
+                                                                                        onKeyPress={handleKeyPress}
+                                                                                        data-index={passengerindex}
+                                                                                        readOnly={bookingid}
+                                                                                        defaultValue={
+                                                                                            emptaxivaxi?.[passengerindex]?.people_name
+                                                                                                ? emptaxivaxi[passengerindex].people_name.trim().split(' ').slice(0, -1).join(' ').trim()
+                                                                                                : ''
+                                                                                        }
+                                                                                    />
+                                                                                    <span className="error-message adult_first_name-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
+                                                                                                Please enter the First name.
+                                                                                            </span>
+                                                                                </div>
+
+                                                                                <div className="booking-field booking-name">
+                                                                                    <label>Last Name</label>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        name="adult_last_name[]"
+                                                                                        onKeyPress={handleKeyPress}
+                                                                                        data-index={passengerindex}
+                                                                                        readOnly={bookingid}
+                                                                                        defaultValue={
+                                                                                            emptaxivaxi?.[passengerindex]?.people_name
+                                                                                                ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
+                                                                                                : ''
+                                                                                        }
+                                                                                    />
                                                                                     <span className="error-message adult_last_name-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
                                                                                         Please enter the last name.
                                                                                     </span>
                                                                                 </div>
                                                                             </div>
-                                                                            <div className="booking-form" style={{ marginLeft: 5, marginRight: 5, marginBottom: 0 }}>
-                                                                                <div className="booking-form-i">
-                                                                                    <label style={{ paddingTop: '9px' }}>Date of Birth</label>
-                                                                                    <div className="input">
-                                                                                        <input
-                                                                                            type="date"
-                                                                                            placeholder="mm/dd/yyyy"
-                                                                                            name="adult_age[]"
-                                                                                            max={maxDate}
-                                                                                            data-index={passengerindex}
-                                                                                            readOnly={bookingid}
-                                                                                            defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['date_of_birth'] &&
-                                                                                                emptaxivaxi[passengerindex]['date_of_birth']
-                                                                                            }
+
+                                                                            {/* Second Row: Email, Mobile, Gender */}
+                                                                            <div className="booking-row">
+                                                                                <div className="booking-field booking-email">
+                                                                                    <label>Email ID</label>
+                                                                                    <input
+                                                                                        type="email"
+                                                                                        name="email1"
+                                                                                        data-index={passengerindex}  
+                                                                                        placeholder=""
+                                                                                        defaultValue={emptaxivaxi?.[0]?.people_email || ''}
+                                                                                    />
+                                                                                    <span className="error-message">Please enter Email ID.</span>
+                                                                                </div>
+
+                                                                                <div className="booking-field booking-mobile">
+                                                                                    <label>Mobile Number</label>
+                                                                                    <div className="mobile-input-wrapper">
+                                                                                        <PhoneInput
+                                                                                        international
+                                                                                        defaultCountry="IN" // Set default country to India
+                                                                                        value={value}
+                                                                                        data-index={passengerindex} 
+                                                                                        onChange={handleChange}
+                                                                                        className="phone-input"
+                                                                                        placeholder="Enter phone number"
+                                                                                        name="contact_details1"
                                                                                         />
                                                                                     </div>
-                                                                                    <span className="error-message adult_age-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                        Please enter Age.
-                                                                                    </span>
-                                                                                    <span className="error-message adult_age-message1" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                        Adult age should be 12y+ .
-                                                                                    </span>
-                                                                                    <span className="error-message adult_age-message2" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                        Child age should be 2y - 12y.
-                                                                                    </span>
-                                                                                    <span className="error-message adult_age-message3" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                        Infant age should be below 2y.
+                                                                                    <span className="error-message">
+                                                                                        {value && !isValidPhoneNumber(value) && "Please enter a valid Mobile Number."}
                                                                                     </span>
                                                                                 </div>
-                                                                                <div className="booking-form-i booking-form-i2">
+
+                                                                                <div className="booking-field booking-gender">
                                                                                     <label>Gender</label>
-                                                                                    <div className="form-calendar-a">
+                                                                                    <div className="form-calendar1">
                                                                                         <select
-                                                                                            className="custom-select1"
+                                                                                            className="custom-select"
                                                                                             name="adult_gender[]"
-                                                                                            // disabled={bookingid}
-                                                                                            style={{
-                                                                                                padding: "6px 10px 6px 10px",
-                                                                                                width: "100%",
-                                                                                                border: "1px solid #e3e3e3",
-                                                                                                height: 36,
-                                                                                                fontFamily: '"Raleway"',
-                                                                                                cursor: "pointer",
-                                                                                                color: "#626262",
-                                                                                                fontSize: 11
-                                                                                            }}
                                                                                             data-index={passengerindex}
                                                                                             readOnly={bookingid}
-                                                                                            defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male" ? 'M' : 'F'}
+                                                                                            defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Male" ? 'M' : 'F'}
                                                                                         >
                                                                                             <option value="">Select Gender</option>
-                                                                                            <option value="M" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male"}>Male</option>
-                                                                                            <option value="F" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Female"}>Female</option>
+                                                                                            <option value="M" selected={emptaxivaxi?.[passengerindex]?.gender === "Male"}>Male</option>
+                                                                                            <option value="F" selected={emptaxivaxi?.[passengerindex]?.gender === "Female"}>Female</option>
                                                                                         </select>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
+
+                                                                        </div>
+                                                                        <div style={{ display: 'flex',gap: '5px' }}>
+                                                                            <img src="/img/checkin_bag.svg" alt="Cabin Baggage" className="baggage-icon" />
+                                                                            <span style={{ color: '#000000', fontSize: 'small', fontWeight: 'bold' }}>Frequent Flyer Number</span>
+                                                                            <span style={{ color: '#757575', fontSize: 'small' }}>(Avail extra benefits & earn points)</span>
+                                                                            </div>
+                                                                            <div className="booking-row" style={{ marginTop:'10px'}}>
+                                                                            <div className="booking-field booking-email">
+                                                                                    <label>Frequent Flyer Airline</label>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        name="flyername"
+                                                                                        data-index={passengerindex}  
+                                                                                        placeholder=""
+                                                                                        
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="booking-field booking-email">
+                                                                                    <label>Frequent Flyer No</label>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        name="flyernumber"
+                                                                                        data-index={passengerindex}  
+                                                                                        placeholder=""
+                                                                                        
+                                                                                    />
+                                                                                </div>
+
+                                                                            </div>
+
                                                                             <div className="booking-form-append" />
                                                                         </div>
                                                                     ))}
@@ -4560,7 +4568,7 @@ const Booking = () => {
                                                                             type="button"
                                                                             id="save-passenger-btn"
                                                                             className="passenger-submit"
-                                                                            onClick={handleSavePassenger} // Invoke the validation function on button click
+                                                                            onClick={handleSavePassenger} 
                                                                         >
                                                                             Save Passenger
                                                                         </button>
@@ -4957,71 +4965,7 @@ const Booking = () => {
                                                                             </span>
                                                                         </div>
                                                                     </div>
-                                                                    {/* <div className="booking-form">
-                                                                            <div className="booking-form-i  booking-form-i3" style={{width:'100%',height:'30px',marginLeft:'1%'}}>
-                                                                                
-                                                                                <input type='checkbox' onChange={handleCheckboxChange} checked={isChecked} />
-                                                                                <label className='confirmtocontinue' style={{display:'inline'}}>
-                                                                                    I have a GST number (Optional)
-                                                                                </label>
-                                                                            </div>
-                                                                            
-                                                                        </div> */}
-                                                                    {/* {isChecked && (
-                                                                            <div
-                                                                                className="booking-form gstblock"
-                                                                                style={{
-                                                                                    marginLeft: 5,
-                                                                                    marginRight: 5,
-                                                                                    marginBottom: 0
-                                                                                }}
-                                                                            >
-                                                                                <div className="booking-form-i booking-form-i3">
-                                                                                    <label>Comapany Name</label>
-                                                                                    <div className="input">
-                                                                                        <input
-                                                                                            type="text"
-                                                                                            name="company_gst_name"
-                                                                                            defaultValue=""
-                                                                                            placeholder=""
-                                                                                        />
-                                                                                    </div>
-                                                                                    <span
-                                                                                        className="error-message company_gst_name-message"
-                                                                                        style={{
-                                                                                            display: "none",
-                                                                                            color: "red",
-                                                                                            fontWeight: "normal"
-                                                                                        }}
-                                                                                    >
-                                                                                        Please enter Company Name.
-                                                                                    </span>
-                                                                                </div>
-                                                                                <div className="booking-form-i booking-form-i3">
-                                                                                    <label>Registration Number</label>
-                                                                                    <div className="input">
-                                                                                        <input
-                                                                                            type="text"
-                                                                                            name="gst_registration_no"
-                                                                                            placeholder=""
-                                                                                            value={gstRegistrationNo}
-                                                                                            onChange={(e) => setGstRegistrationNo(e.target.value)}
-                                                                                            onKeyPress={handleGstKeyPress}
-                                                                                        />
-                                                                                    </div>
-                                                                                    <span
-                                                                                        className="error-message gst_registration_no-message"
-                                                                                        style={{
-                                                                                            display: "none",
-                                                                                            color: "red",
-                                                                                            fontWeight: "normal"
-                                                                                        }}
-                                                                                    >
-                                                                                        Please enter Registration Number.
-                                                                                    </span>
-                                                                                </div>
-                                                                            </div>
-                                                                        )} */}
+                                                                   
                                                                     <div className="booking-form-append" />
                                                                     <div className="add-passenger">
                                                                         <div
@@ -5087,16 +5031,21 @@ const Booking = () => {
                                                 <form onSubmit={(e) => handleCompleteBooking(e)}>
 
                                                     <Accordion expanded={seatresponseparse ? accordion3Expanded : false} onChange={(event, isExpanded) => setAccordion3Expanded(isExpanded)}>
-                                                        <AccordionSummary
-                                                            expandIcon={<ExpandMoreIcon />}
-                                                            aria-controls="panel3-content"
-                                                            id="panel3-header"
-                                                            className={`accordion ${emptyseatmap ? 'emptyseatmap' : ''}`}                                                                >
-                                                            <img
-                                                                src="/img/taxivaxi/meal_seats/seat 3.svg"
-                                                                width="20px"
-                                                            />&nbsp;Choose Seats
-                                                        </AccordionSummary>
+                                                    <AccordionSummary
+                                                    expandIcon={<ExpandMoreIcon />}
+                                                    aria-controls="panel3-content"
+                                                    id="panel3-header"
+                                                    className={`accordion ${emptyseatmap ? 'emptyseatmap' : ''}`}
+                                                    >
+
+                                                    <img src="/img/taxivaxi/meal_seats/seat3.svg" width="20px" />&nbsp;Choose Seats
+                                                    {/* Conditionally render the seat number if selected */}
+                                                    {previousSelections.some(selection => selection.passenger === passengereventKeys) && (
+                                                        <span style={{ marginLeft: '20px' }}>
+                                                        Seat No. {previousSelections.filter(selection => selection.passenger === passengereventKeys).map(selection => selection.code).join(', ')}
+                                                        </span>
+                                                    )}
+                                                    </AccordionSummary>
                                                         <AccordionDetails>
                                                             <div className='panel' id="panel2" style={{ maxHeight: "450px" }}>
                                                                 <div className='seatleft'>
