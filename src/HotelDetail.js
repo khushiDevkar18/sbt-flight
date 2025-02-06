@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 const HotelDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -20,6 +21,22 @@ const HotelDetails = () => {
       (prevIndex) => (prevIndex - 1 + images.length) % images.length
     );
   };
+  const [map, setMap] = useState(null);
+
+  const containerStyle = {
+    width: '100%',
+    height: '400px',
+  };
+  const center = {
+    lat: 37.3861,  // Latitude of the location
+    lng: -122.0838, // Longitude of the location
+  };
+
+  const { hotel, matchedHotel, hotelList } = location.state || {}; // Fallback for safety
+  console.log('tranfer data in hotel detail page',hotel);
+  console.log('tranfer data in hotel detail page',matchedHotel);
+  console.log('tranfer data in hotel detail page',hotelList);
+
   return (
     <div className="hoteldetail-conatiner">
       <nav className="text-sm text-gray-600 flex gap-2 py-3 px-5">
@@ -40,7 +57,7 @@ const HotelDetails = () => {
         <span className="text-gray-900 font-semibold">Hotel Name</span>
       </nav>
       <div className="flex items-center justify-center py-2">
-        <div className="max-w-[71rem] w-full bg-white shadow-[4px_6px_10px_-3px_#bfc9d4]  border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none hotel-border">
+        <div className="max-w-[75rem] w-full bg-white shadow-[4px_6px_10px_-3px_#bfc9d4]  border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none hotel-border">
           <div className="py-3 px-3 ">
             <h5 className="text-[#3b3f5c] text-xl mb-3 font-semibold dark:text-white-light">
               Hotel Name{" "}
@@ -171,7 +188,7 @@ const HotelDetails = () => {
         </div>
       </div>
       <div className="flex items-center justify-center py-2">
-        <div className="max-w-[71rem] w-full bg-white shadow-[4px_6px_10px_-3px_#bfc9d4]  border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none hotel-border">
+        <div className="max-w-[75rem] w-full bg-white shadow-[4px_6px_10px_-3px_#bfc9d4]  border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none hotel-border">
           <div className="py-3 px-3 ">
             {/* <h5 className="text-[#3b3f5c] text-xl mb-3 font-semibold dark:text-white-light">
               Hotel Name{" "}
@@ -260,7 +277,31 @@ const HotelDetails = () => {
           </div>
         </div>
       </div>
-      {/* Add your hotel details content here */}
+
+      <div className="flex items-center justify-center py-2">
+      <div className="max-w-[75rem] w-full bg-white shadow-[4px_6px_10px_-3px_#bfc9d4] border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none hotel-border">
+        <div className="py-3 px-3">
+          <div className="border w-full h-full hotel-border">
+            <div className="border-b w-full">
+              <h6 className="text-sm py-2 px-3 font-semibold">Location</h6>
+            </div>
+            <div className="w-full h-[400px]">
+              {/* LoadScript should be loaded once in the app, not here in every component */}
+              <LoadScript googleMapsApiKey="AIzaSyCnfQ-TTa0kZzAPvcgc9qyorD34aIxaZhk">
+                <GoogleMap
+                  mapContainerStyle={containerStyle}
+                  center={center}
+                  zoom={14}
+                  onLoad={map => setMap(map)} // Optional: store map object in state
+                >
+                  <Marker position={center} />
+                </GoogleMap>
+              </LoadScript>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   );
 };

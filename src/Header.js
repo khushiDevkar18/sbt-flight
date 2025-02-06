@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import DatePicker from "react-datepicker";
@@ -6,8 +6,13 @@ import DatePicker from "react-datepicker";
 
 const Header = () => {
     const location = useLocation();
+    const searchData = JSON.parse(sessionStorage.getItem('hotelData'));
+
+    
     const [hotelList, setHotelCityList] = useState(location.state?.hotelList || []);
-    const searchParams = location.state?.searchParams || {};
+    const searchParams = searchData || {};
+    const datew= searchParams.checkIn;
+    // console.log(searchParams);
 const navigate = useNavigate();
     const parseDate = (dateStr) => {
        if (!dateStr) return null;
@@ -26,17 +31,21 @@ const navigate = useNavigate();
      };
    
      // State initialization with parsed dates from searchParams
-     const [checkInDate, setCheckInDate] = useState(
-       parseDate(searchParams.checkIn) || new Date()
-     );
-     const [checkOutDate, setCheckOutDate] = useState(
-       parseDate(searchParams.checkOut) || new Date()
-     );
+     const [checkInDate, setCheckInDate] = useState(() => {
+        const parsedDate = parseDate(searchParams.checkIn);
+        return parsedDate instanceof Date && !isNaN(parsedDate) ? parsedDate : new Date();
+      });
+      
+      const [checkOutDate, setCheckOutDate] = useState(() => {
+        const parsedDate = parseDate(searchParams.checkOut);
+        return parsedDate instanceof Date && !isNaN(parsedDate) ? parsedDate : new Date();
+      });
+      
      const [isCheckInOpen, setCheckInIsOpen] = useState(false);
      const [isCheckOutOpen, setCheckOutIsOpen] = useState(false);
-     // console.log( 'previous date ',searchParams.checkIn);
-     // console.log('Displayed date ',parseDate(searchParams.checkIn));
-     // console.log('actual date displayed',formatDate(checkInDate))
+     // // console.log( 'previous date ',searchParams.checkIn);
+     // // console.log('Displayed date ',parseDate(searchParams.checkIn));
+     // // console.log('actual date displayed',formatDate(checkInDate))
      // Handle date changes
      const handleCheckInDateChange = (date) => {
        setCheckInDate(date);
@@ -46,9 +55,11 @@ const navigate = useNavigate();
        setCheckOutDate(date);
      };
      const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Control dropdown visibility
-     const [roomCount, setRoomCount] = useState(searchParams.Rooms);
-     const [roomadultCount, setRoomAdultCount] = useState(searchParams.Adults);
-     const [roomchildCount, setRoomChildCount] = useState(searchParams.Children);
+     const [roomCount, setRoomCount] = useState(() => Number(searchParams.Rooms) || 0);
+const [roomadultCount, setRoomAdultCount] = useState(() => Number(searchParams.Adults) || 0);
+const [roomchildCount, setRoomChildCount] = useState(() => Number(searchParams.Children) || 0);
+
+   
      const [childrenAges, setChildrenAges] = useState(
        searchParams.childrenAges || []
      );
@@ -76,12 +87,15 @@ const navigate = useNavigate();
      const [filteredCities, setFilteredCities] = useState([]); // Filtered list
      const [showDropdown, setShowDropdown] = useState(false); // Controls dropdown visibility
      const [cityName, setCityName] = useState(
-        (searchParams.filteredCities || [])[0]?.Name || ""
+        searchParams.filteredCities && searchParams.filteredCities.length > 0
+          ? searchParams.filteredCities[0].Name
+          : ""
       );
       
-     console.log(cityName); 
+      
+     // console.log(cityName); 
      const [isTyping, setIsTyping] = useState(false);
-     useEffect(() => {
+     useLayoutEffect(() => {
        const storedCities = sessionStorage.getItem("cityList");
    
        if (storedCities) {
@@ -152,19 +166,19 @@ const navigate = useNavigate();
      };
    
    //  const hotelList = location.state?.hotelList || [];
-    console.log(hotelList);
+    // console.log(hotelList);
      const [hotelCodes, setHotelCodes] = useState([]);
-     // console.log(hotelCodes);
-    useEffect(() => {
+     // // console.log(hotelCodes);
+     useLayoutEffect(() => {
         const fetchCity = async () => {
           if (filteredCities.length === 0) return; // Ensure filteredCities has data
     
           const cityCode = filteredCities[0]?.Code; // Get the first city's code
           // if (!cityCode) return; // Avoid API call if cityCode is null
     
-          console.log("Fetching hotels for City Code:", cityCode);
+          // console.log("Fetching hotels for City Code:", cityCode);
     
-          // console.log('TB Hotel Code List')
+          // // console.log('TB Hotel Code List')
     
           try {
             const response = await fetch(
@@ -187,7 +201,7 @@ const navigate = useNavigate();
             }
     
             const data = await response.json();
-            // console.log("Hotel :", data);
+            // // console.log("Hotel :", data);
     
             if (data.success === "1" && data.response.Status.Code === 200) {
               const hotels = data.response.Hotels || []; // Fix: Access Hotels from data.response
@@ -195,7 +209,7 @@ const navigate = useNavigate();
     
               if (hotels.length > 0) {
                 const codes = hotels.map((hotel) => hotel.HotelCode);
-                // console.log(codes);
+                // // console.log(codes);
                 setHotelCodes(codes);
               } else {
                 console.warn("No hotels found in response.");
@@ -230,14 +244,14 @@ const navigate = useNavigate();
           const Children = roomchildCount;
           const ChildAge = childrenAges;
           const CityCode = hotelCodes.toString();
-          // console.log(CityCode);
-          console.log("Check-In Date:", checkIn);
-          console.log("Check-Out Date:", checkOut);
-          console.log("Rooms:", Rooms);
-          console.log("Adults:", Adults);
-          console.log("Children:", Children);
-          console.log("Children Ages:", ChildAge);
-          console.log("City Code:", CityCode);
+          // // console.log(CityCode);
+          // console.log("Check-In Date:", checkIn);
+          // console.log("Check-Out Date:", checkOut);
+          // console.log("Rooms:", Rooms);
+          // console.log("Adults:", Adults);
+          // console.log("Children:", Children);
+          // console.log("Children Ages:", ChildAge);
+          // console.log("City Code:", CityCode);
           const requestBody = {
             CheckIn: checkIn,
             CheckOut: checkOut,
@@ -262,7 +276,7 @@ const navigate = useNavigate();
             },
           };
       
-          console.log(requestBody);
+          // console.log(requestBody);
       
           try {
             const response = await fetch(
@@ -282,26 +296,35 @@ const navigate = useNavigate();
             }
       
           const data = await response.json();
-                console.log("Hotel data:", data);
+                // console.log("Hotel data:", data);
                 if (data.success === "1" && data.response.Status.Code === 200) {
-                  setHotelCityList(data.response.HotelResult || []);
-                  console.log("asd");
-                  // navigate("/SearchFlight", { state: { responseData } });
-                  navigate("/SearchHotel", {
-                    state: {
+                    setHotelCityList(data.response.HotelResult || []);
+                    console.log("asd");
+                  
+                    // Prepare the data to store in sessionStorage
+                    const searchData = {
                       hotelList: data.response.HotelResult,
-                      searchParams: {
-                        checkIn,
-                        checkOut,
-                        Rooms,
-                        Adults,
-                        Children,
-                        ChildAge,
-                        CityCode,
-                        filteredCities,
-                      },
-                    },
-                  });
+                     
+                    };
+                   const searchParams = {
+                      checkIn,
+                      checkOut,
+                      Rooms,
+                      Adults,
+                      Children,
+                      ChildAge,
+                      CityCode,
+                      filteredCities,
+                    };
+                    // Store the data in sessionStorage
+                    sessionStorage.setItem('hotelData', JSON.stringify(searchParams));
+                    sessionStorage.setItem('hotelSearchData', JSON.stringify(searchData));
+                  
+                    // Navigate to SearchHotel with the state
+                    navigate("/SearchHotel", {
+                      state: searchData,
+                    });
+                  
                   // navigate("/SearchHotel", { state: { hotelList: data.HotelResult } });
                 } else {
                   Swal.fire({
@@ -320,7 +343,27 @@ const navigate = useNavigate();
             });
           }
         };
-   
+        const [showHeader, setShowHeader] = useState(true);
+        const [lastScrollY, setLastScrollY] = useState(0);
+      
+        useLayoutEffect(() => {
+          const handleScroll = () => {
+            if (window.scrollY > lastScrollY) {
+              // Scrolling Down - Hide Header
+              setShowHeader(false);
+            } else {
+              // Scrolling Up - Show Header
+              setShowHeader(true);
+            }
+            setLastScrollY(window.scrollY);
+          };
+      
+          window.addEventListener("scroll", handleScroll);
+          return () => {
+            window.removeEventListener("scroll", handleScroll);
+          };
+        }, [lastScrollY]);
+      
    // import ErrorLogger from './ErrorLogger';
   return (
     <>
@@ -363,6 +406,7 @@ const navigate = useNavigate();
         </section>
       </div>
       <header id="top">
+        {showHeader && (
         <div className="header-b">
           <div className="mobile-menu">
             <nav>
@@ -406,74 +450,76 @@ const navigate = useNavigate();
               </ul>
             </nav>
           </div>
+         
+ <div className={`wrapper-padding ${showHeader ? '' : 'hidden'}`}>
 
-          <div className="wrapper-padding">
-            <div className="header-logo">
-              <a href="index-2.html">
-                <img alt="" src="img/taxivaxi/logo/cotrav_logo.svg" />
-              </a>
-            </div>
-            <div className="header-right">
-              <div className="hdr-srch">
-                <a href="#" className="hdr-srch-btn"></a>
-              </div>
-              <div className="hdr-srch-overlay">
-                <div className="hdr-srch-overlay-a">
-                  <input type="text" placeholder="Start typing..." />
-                  <a href="#" className="srch-close"></a>
-                  <div className="clear"></div>
-                </div>
-              </div>
-              <div className="hdr-srch-devider"></div>
-              <a href="#" className="menu-btn"></a>
-              <nav className="header-nav">
-                <ul>
-                  <li>
-                    <Link className="nav-links" to="/">
-                      HOME
-                    </Link>
-                  </li>
-
-                  <li>
-                    <a className="has-child" href="#">
-                      Services
-                    </a>
-                    <ul className="dropdown-menu">
-                      <li>
-                        <a href="flightOneWay.html">Hotel Booking</a>
-                      </li>
-                      <li>
-                        <a href="flightOneWay.html">Cabs</a>
-                      </li>
-                      <li>
-                        <a href="flightOneWay.html">
-                          Ticketing - Train, Bus & flight
-                        </a>
-                      </li>
-                      <li>
-                        <a href="flightOneWay.html">Logistics</a>
-                      </li>
-                      <li>
-                        <a href="flightOneWay.html">FRRO/FRO consultancy</a>
-                      </li>
-                    </ul>
-                  </li>
-                  <li>
-                    <a className="has-child" href="#">
-                      About US
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#">CONTATCS</a>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-            <div className="clear"></div>
-          </div>
+    <div className="header-logo">
+      <a href="index-2.html">
+        <img alt="" src="img/taxivaxi/logo/cotrav_logo.svg" />
+      </a>
+    </div>
+    <div className="header-right">
+      <div className="hdr-srch">
+        <a href="#" className="hdr-srch-btn"></a>
+      </div>
+      <div className="hdr-srch-overlay">
+        <div className="hdr-srch-overlay-a">
+          <input type="text" placeholder="Start typing..." />
+          <a href="#" className="srch-close"></a>
+          <div className="clear"></div>
         </div>
+      </div>
+      <div className="hdr-srch-devider"></div>
+      <a href="#" className="menu-btn"></a>
+      <nav className="header-nav">
+        <ul>
+          <li>
+            <Link className="nav-links" to="/">
+              HOME
+            </Link>
+          </li>
+          <li>
+            <a className="has-child" href="#">
+              Services
+            </a>
+            <ul className="dropdown-menu">
+              <li>
+                <a href="flightOneWay.html">Hotel Booking</a>
+              </li>
+              <li>
+                <a href="flightOneWay.html">Cabs</a>
+              </li>
+              <li>
+                <a href="flightOneWay.html">Ticketing - Train, Bus & Flight</a>
+              </li>
+              <li>
+                <a href="flightOneWay.html">Logistics</a>
+              </li>
+              <li>
+                <a href="flightOneWay.html">FRRO/FRO consultancy</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a className="has-child" href="#">
+              About Us
+            </a>
+          </li>
+          <li>
+            <a href="#">CONTACTS</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div className="clear"></div>
+  </div>
+
+
+         
+        </div>
+        )}
       </header>
-      {location.pathname !== "/" && (
+      { location.pathname !== "/" && (
       <header className="search-bar2" id="widgetHeader">
         <form onSubmit={handleHotelSearch}>
             <div id="search-widget" className="hsw v2">

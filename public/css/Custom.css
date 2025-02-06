@@ -1,5 +1,5 @@
 .hotel-box {
-    padding: 35px;
+  padding: 1px 21px 11px 21px;
   }
   .hotel-container {
     /* margin-bottom: 41px; */
@@ -48,8 +48,8 @@
   }
   .serach_button{
     position: absolute;
-    bottom: -164px;
-    left: 41%
+    bottom: -105px;
+    left: 41%;
   }
   .dropdown-size{
       font-family: sans-serif;
@@ -255,7 +255,7 @@
 }
 .photos-hotels{
   width: 62%;
-  height: 100%;
+  height: 335px;
   object-fit: cover;
   border-radius: 16px; /* Optional: Rounds the corners */
 /* box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2); Optional: Adds a shadow */
@@ -292,4 +292,8 @@ ul {
 }
 .information_button{
   color: #785ef7;
+}
+.active_tabs {
+
+border-color: #785ef7;
 }

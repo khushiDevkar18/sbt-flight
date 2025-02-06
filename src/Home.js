@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, Children } from "react";
+import React, { useEffect, useState, useRef, Children, useLayoutEffect } from "react";
 import axios from "axios";
 import { parseString } from "xml2js";
 import XMLParser from "react-xml-parser";
@@ -12,7 +12,6 @@ import Cookies from "js-cookie";
 import IconLoader from "./IconLoader";
 // import ErrorLogger from './ErrorLogger';
 function Home() {
-  const [activeTab, setActiveTab] = useState("flight");
   const [loading, setLoading] = useState(true);
   const searchRef = useRef(null);
   const [airlineData, setAirlineResponse] = useState(null);
@@ -868,9 +867,10 @@ function Home() {
   // const [formActual, setformActual] = useState(null);
   // console.log('form', formActual);
   const [activeForm, setActiveForm] = useState("flight"); // Default form is shown initially
-
-  const handleIconClick = (formType) => {
-    setActiveForm(formType);
+  const [activeTab, setActiveTab] = useState("flight");
+  const handleIconClick = (type) => {
+    setActiveTab(type); // Ensure the correct tab is active
+    setActiveForm(type); // Ensure the correct form is displayed
   };
 
   const [cityList, setCityList] = useState([]); // List of cities
@@ -880,7 +880,7 @@ function Home() {
   const [hotelcityList, setHotelCityList] = useState([]);
   const [hotelCodes, setHotelCodes] = useState([]);
 
-  useEffect(() => {
+ useLayoutEffect(() => {
     const storedCities = sessionStorage.getItem("cityList");
 
     if (storedCities) {
@@ -898,9 +898,8 @@ function Home() {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                // Authorization: `Basic ${btoa("TBOStaticAPITest:Tbo@11530818")}`,
               },
-              body: JSON.stringify({ CountryCode:"IN" }),
+              body: JSON.stringify({ CountryCode: "IN" }),
             }
           );
 
@@ -929,7 +928,8 @@ function Home() {
 
       fetchCities();
     }
-  }, []);
+  }, []); // Only runs once when the component mounts
+
 
   // Handle city search and filter
   const handleInputChange = (e) => {
@@ -950,7 +950,7 @@ function Home() {
     setSelectedCity(cityName);
     setShowDropdown(false); // Hide the dropdown after selection
   };
-  useEffect(() => {
+  useLayoutEffect(() => {
     const fetchCity = async () => {
       if (filteredCities.length === 0) return; // Ensure filteredCities has data
 
@@ -1124,22 +1124,31 @@ function Home() {
       if (data.success === "1" && data.response.Status.Code === 200) {
         setHotelCityList(data.response.HotelResult || []);
         console.log("asd");
-        // navigate("/SearchFlight", { state: { responseData } });
+      
+        // Prepare the data to store in sessionStorage
+        const searchData = {
+          hotelList: data.response.HotelResult,
+         
+        };
+       const searchParams = {
+          checkIn,
+          checkOut,
+          Rooms,
+          Adults,
+          Children,
+          ChildAge,
+          CityCode,
+          filteredCities,
+        };
+        // Store the data in sessionStorage
+        sessionStorage.setItem('hotelData', JSON.stringify(searchParams));
+        sessionStorage.setItem('hotelSearchData', JSON.stringify(searchData));
+      
+        // Navigate to SearchHotel with the state
         navigate("/SearchHotel", {
-          state: {
-            hotelList: data.response.HotelResult,
-            searchParams: {
-              checkIn,
-              checkOut,
-              Rooms,
-              Adults,
-              Children,
-              ChildAge,
-              CityCode,
-              filteredCities,
-            },
-          },
+          state: searchData,
         });
+      
         // navigate("/SearchHotel", { state: { hotelList: data.HotelResult } });
       } else {
         Swal.fire({
@@ -1195,10 +1204,10 @@ function Home() {
                     <nav className="page-search-tabs">
                       <div className="clear"></div>
                     </nav>
-                    <div className="pages_filter">
+                    {/* <div className="pages_filter">
                       <div className="services">
                         <div className="flex flex-cols gap-2">
-                          {/* Plane Icon */}
+                         
 
                           <img
                             src="../img/Flight-01.png"
@@ -1210,16 +1219,9 @@ function Home() {
                               cursor: "pointer",
                             }}
                           ></img>
-                          {/* <i
-                            className="fas fa-plane cursor-pointer"
-                            onClick={() => handleIconClick("flight")}
-                            style={{
-                              color: activeForm === "flight" ? "blue" : "black",
-                              cursor: "pointer",
-                            }}
-                          ></i> */}
+                         
 
-                          {/* Hotel Icon */}
+                       
                           <img
                             src="../img/Hotel-02.png"
                             alt="Hotel Image"
@@ -1230,25 +1232,85 @@ function Home() {
                               cursor: "pointer",
                             }}
                           ></img>
-                          {/* <i
-                            className="fas fa-hotel cursor-pointer"
-                            onClick={() => handleIconClick("hotel")}
-                            style={{
-                              color: activeForm === "hotel" ? "blue" : "black",
-                              cursor: "pointer",
-                            }}
-                          ></i> */}
+                        
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                     <div
                       className="page-search-content"
                       style={{
-                        display: activeTab === "flight" ? "block" : "none",
+                        display:
+                          activeTab === "flight" || activeTab === "hotel"
+                            ? "block"
+                            : "none",
                       }}
                     >
-                      <div className="search-tab-content ">
-                        {activeForm === "flight" ? (
+                      <div className="search-tab-content">
+                        <div className="py-3 px-4 flex flex-cols gap-4 ">
+                          {/* Flight Icon */}
+                          <div
+                            className={`gap-1 flex items-center border-b ${
+                              activeForm === "flight"
+                                ? "information_button border-b  active_tabs"
+                                : "border-b-2 border-transparent"
+                            }`}
+                            onClick={() => handleIconClick("flight")}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <img
+                              src="../img/Flight-01.png"
+                              alt="Flight Image"
+                              className="w-8 h-8"
+                              style={{
+                                filter:
+                                  activeForm === "flight"
+                                    ? "grayscale(0%)"
+                                    : "grayscale(100%)",
+                                tintColor:
+                                  activeForm === "flight" ? "blue" : "black",
+                              }}
+                            />
+                            <span
+                              className="text-lg font-semibold"
+                              style={{ cursor: "pointer" }}
+                            >
+                              Flight
+                            </span>
+                          </div>
+
+                          {/* Hotel Icon */}
+                          <div
+                            className={`gap-1 flex items-center ${
+                              activeForm === "hotel"
+                                ? "information_button  border-b  active_tabs"
+                                : "border-b-2 border-transparent"
+                            }`}
+                            onClick={() => handleIconClick("hotel")}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <img
+                              src="../img/Hotel-02.png"
+                              alt="Hotel Image"
+                              className="w-6 h-6"
+                              style={{
+                                filter:
+                                  activeForm === "hotel"
+                                    ? "grayscale(0%)"
+                                    : "grayscale(100%)",
+                                tintColor:
+                                  activeForm === "hotel" ? "blue" : "black",
+                              }}
+                            />
+                            <span
+                              className="text-lg font-semibold"
+                              style={{ cursor: "pointer" }}
+                            >
+                              Hotel
+                            </span>
+                          </div>
+                        </div>
+
+                        {activeForm === "flight" && (
                           <form
                             id="submit-form"
                             onSubmit={(e) => handleSubmit(e)}
@@ -2050,7 +2112,10 @@ function Home() {
                               </button>
                             </div>
                           </form>
-                        ) : activeForm === "hotel" ? (
+                        )}
+
+                        {/* Hotel Form */}
+                        {activeForm === "hotel" && (
                           <form
                             className="hotel-form "
                             onSubmit={handleHotelSearch}
@@ -2377,11 +2442,6 @@ function Home() {
                               SEARCH
                             </button>
                           </form>
-                        ) : (
-                          <div>
-                            <h2>Default Form</h2>
-                            <p>This is the default form content.</p>
-                          </div>
                         )}
                       </div>
                     </div>

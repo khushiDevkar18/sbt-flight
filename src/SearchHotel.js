@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import DatePicker from "react-datepicker";
@@ -19,20 +19,30 @@ import {
 const SearchHotel = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const hotelList = location.state?.hotelList || [];
-  const searchParams = location.state?.searchParams || {};
-
-  console.log("Received Hotel List:", searchParams);
-  // //console.log("Hotel Attractions:", hotel.Attractions);
-
+  const searchData = JSON.parse(sessionStorage.getItem("hotelSearchData")) || [];
+  const hotelList = Array.isArray(location.state?.hotelList)
+    ? location.state?.hotelList
+    : Array.isArray(searchData)
+    ? searchData
+    : [];
+  
+  const searchParams = JSON.parse(sessionStorage.getItem("hotelData")) || {};
+  
+  console.log("Received Hotel List:", hotelList);
+  
   const [hotelDetails, setHotelDetails] = useState([]);
   const hotelcodes = localStorage.getItem("hotelDetails");
-  // //console.log(hotelcodes);
-  useEffect(() => {
+  
+  useLayoutEffect(() => {
     const fetchCity = async () => {
-      const codes = hotelList.map((hotel) => hotel.HotelCode);
+      if (!Array.isArray(hotelList) || hotelList.length === 0) {
+        console.error("hotelList is not a valid array:", hotelList);
+        return; // Exit if hotelList is not an array or is empty
+      }
+  
+      const codes = hotelList.map((hotel) => hotel.HotelCode); // ✅ Safe .map()
       const hotelcodes = codes.toString(); // Convert array to comma-separated string
-
+  
       try {
         const response = await fetch(
           "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelDetails",
@@ -47,29 +57,28 @@ const SearchHotel = () => {
             }),
           }
         );
-
+  
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-
+  
         const data = await response.json();
         console.log("Hotel data:", data);
-
+  
         if (data.success === "1" && data.response.Status.Code === 200) {
           setHotelDetails(data.response.HotelDetails || []);
           localStorage.setItem(
             "hotelDetails",
             JSON.stringify(data.response.HotelDetails || [])
           );
-
-          // ✅ Fix: Use `data.response.HotelDetails` instead of `hotels`
+  
           const validHotels = (data.response.HotelDetails || []).filter(
             (hotel) => hotel.Map
           );
           if (validHotels.length > 0) {
             const firstHotel = validHotels[0];
             const coordinates = firstHotel.Map.split("|").map(Number);
-            setMapCenter({ lat: coordinates[0], lng: coordinates[1] }); // ✅ Update map center
+            setMapCenter({ lat: coordinates[0], lng: coordinates[1] });
           }
         } else {
           console.error(
@@ -81,9 +90,10 @@ const SearchHotel = () => {
         console.error("Error fetching hotels:", error);
       }
     };
-
+  
     fetchCity();
-  }, [hotelList]);
+  }, [hotelList]); // ✅ hotelList is always an array now
+  
 
   const renderRatingText = (rating) => {
     if (rating > 4.5) return "Excellent";
@@ -165,9 +175,12 @@ const SearchHotel = () => {
       return `Policy: From ${policy.FromDate}`;
     });
   };
-   const [cityName, setCityName] = useState(
-          (searchParams.filteredCities || [])[0]?.Name || ""
-        );
+    const [cityName, setCityName] = useState(
+           searchParams.filteredCities && searchParams.filteredCities.length > 0
+             ? searchParams.filteredCities[0].Name
+             : ""
+         );
+         
 
   return (
     <>
@@ -304,7 +317,7 @@ const SearchHotel = () => {
                   <div
                     key={hotel.HotelCode}
                     className="w-full py-2 px-3 transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
-                    onClick={() => navigate("/hotel-detail", { state: { hotel, matchedHotel, hotelList } })}
+                    onClick={() => navigate("/HotelDetail", { state: { hotel, matchedHotel, hotelList } })}
                   >
                     <div className="max-w-[57rem] w-full flex flex-cols bg-white shadow-[4px_6px_10px_-3px_#bfc9d4] rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none transition-shadow duration-300 hover:shadow-lg">
                       {/* Hotel Image */}
@@ -358,10 +371,29 @@ const SearchHotel = () => {
                             <p>No inclusions available</p>
                           )}
                         </div>
+                       <p className="text-sm text-green-700 ">
+                          {formatCancelPolicies(
+                            matchedHotel.Rooms[0].CancelPolicies
+                          )}
+                        </p>
+
                       </div>
                 
                       {/* Price & Book Button */}
                       <div className="w-1/4 py-3 px-3 flex flex-col items-end border-l border-gray-300">
+                      <div className="flex items-center  gap-2">
+                          <span className="hotel-form-text-color text-lg font-semibold">
+                            {renderRatingText(hotel.HotelRating)}{" "}
+                          </span>
+                          <div className="border border-gray-300 px-2 flex items-center text-sm  rating-color font-semibold">
+                            {" "}
+                            {hotel.HotelRating}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-1 mb-4">
+                          {renderStars(hotel.HotelRating)}
+                        </div>
+
                         <span className="text-lg font-semibold hotel-form-text-color">₹ {matchedHotel.Rooms?.[0]?.TotalFare || "N/A"}</span>
                         <span className="text-xs">+ ₹ {matchedHotel.Rooms?.[0]?.TotalTax || "0"} taxes & fees</span>
                         <div className="flex gap-3 mt-5">
