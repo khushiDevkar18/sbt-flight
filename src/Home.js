@@ -900,7 +900,7 @@ function Home() {
                 "Content-Type": "application/json",
                 // Authorization: `Basic ${btoa("TBOStaticAPITest:Tbo@11530818")}`,
               },
-              body: JSON.stringify({ CountryCode: "IN" }),
+              body: JSON.stringify({ CountryCode:"IN" }),
             }
           );
 
@@ -955,6 +955,7 @@ function Home() {
       if (filteredCities.length === 0) return; // Ensure filteredCities has data
 
       const cityCode = filteredCities[0]?.Code; // Get the first city's code
+      console.log(cityCode);
       // if (!cityCode) return; // Avoid API call if cityCode is null
 
       // console.log("Fetching hotels for City Code:", cityCode);

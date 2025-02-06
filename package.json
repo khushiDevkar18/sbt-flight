@@ -35,6 +35,7 @@
     "stream": "^0.0.2",
     "sweetalert": "^2.1.2",
     "sweetalert2": "^11.6.13",
+    "swiper": "^11.2.2",
     "timers": "^0.1.1",
     "timers-browserify": "^2.0.12",
     "web-vitals": "^2.1.4",

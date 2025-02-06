@@ -89,6 +89,7 @@
     border: none;
     box-shadow: none;
     padding-left: 12px;
+    height: 50px;
   }
   .card-container{
     padding-bottom: 50px;
@@ -248,5 +249,47 @@
 .rating-color:hover {
   background-color: #5a3ec8;
 }
-
-
+.hotel-city{
+  margin-top: 0;
+    margin-bottom: 1rem;
+}
+.photos-hotels{
+  width: 62%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px; /* Optional: Rounds the corners */
+/* box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2); Optional: Adds a shadow */
+}
+.photos-hotel{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  /* box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2); */
+}
+.text-sizes-color{
+  font-size: 13px;
+  /* color: gray; */
+}
+.hoteldetail-conatiner{
+  background-color: #f2f2f2;
+}
+.hotel-border{
+  border-radius: 16px;
+}
+ul {
+  padding-left: 1rem !important;
+}
+.photos-hotelss{
+  width: 100%;
+  height: 80%;
+  object-fit: cover;
+  border-radius: 16px;
+}
+.hotel_button_color{
+  background-color: #e8e4ff;
+  border-color: #785ef7;
+}
+.information_button{
+  color: #785ef7;
+}
