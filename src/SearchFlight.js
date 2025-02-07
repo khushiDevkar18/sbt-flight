@@ -1169,7 +1169,7 @@ const SearchFlight = () => {
               }
             }
           });
-          // console.log('prc_1g',pricepointXMLpc); 
+          console.log('prc_1g',pricepointXMLpc); 
         }
 
         else if (providerCodeValue === 'ACH') {
@@ -1187,14 +1187,14 @@ const SearchFlight = () => {
         const makeSoapRequest = async () => {
           var pricepointXML = pricepointXMLpc;
           console.log("in api2")
-          console.log('main_prc', pricepointXML);
+          // console.log('main_prc', pricepointXML);
           try {
             const priceresponse = await axios.post(
               'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest',
               pricepointXML, { headers: { 'Content-Type': 'text/xml' } }
             );
             const priceResponse = priceresponse.data;
-            console.log('priceResponse', priceResponse);
+            // console.log('priceResponse', priceResponse);
 
             parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
               if (err) {

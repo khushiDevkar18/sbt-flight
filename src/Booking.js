@@ -1960,6 +1960,7 @@ const Booking = () => {
     const [seatsegmentselected, setseatsegmentselected] = useState(null);
     const [seatoptionalkeyselected, setseatoptionalkeyselected] = useState(null);
     const [previousSelections, setPreviousSelections] = useState([]);
+    console.log('previousSelections',previousSelections);
 
     const handleseatSelectiondisplay = (seatpassenger, seatsegment, seatcode, optionalservicekey) => {
         console.log('seat detail ', seatpassenger, seatsegment, seatcode, optionalservicekey);
@@ -2668,29 +2669,29 @@ const Booking = () => {
         }
     }, [totalCount]);
 
-    useEffect(() => {
-        const priceItemsContainer = document.getElementById('price-items');
-        setTotalCount(prices.length);
-        priceItemsContainer.innerHTML = '';
-        // console.log(prices);
-        prices.forEach((price, index) => {
-            const priceItem = document.createElement('div');
-            priceItem.classList.add('price-item');
-            priceItem.style.width = `${(1 / totalCount) * 100}%`;
+    // useEffect(() => {
+    //     const priceItemsContainer = document.getElementById('price-items');
+    //     setTotalCount(prices.length);
+    //     priceItemsContainer.innerHTML = '';
+    //     // console.log(prices);
+    //     prices.forEach((price, index) => {
+    //         const priceItem = document.createElement('div');
+    //         priceItem.classList.add('price-item');
+    //         priceItem.style.width = `${(1 / totalCount) * 100}%`;
 
-            const conditionSpan = document.createElement('span');
-            conditionSpan.textContent = price.condition;
-            conditionSpan.classList.add('conditionSpan');
-            priceItem.appendChild(conditionSpan);
+    //         const conditionSpan = document.createElement('span');
+    //         conditionSpan.textContent = price.condition;
+    //         conditionSpan.classList.add('conditionSpan');
+    //         priceItem.appendChild(conditionSpan);
 
-            const conditionSpanprice = document.createElement('span');
-            conditionSpanprice.textContent = price.price;
-            conditionSpanprice.classList.add('conditionSpanprice');
-            priceItem.appendChild(conditionSpanprice);
+    //         const conditionSpanprice = document.createElement('span');
+    //         conditionSpanprice.textContent = price.price;
+    //         conditionSpanprice.classList.add('conditionSpanprice');
+    //         priceItem.appendChild(conditionSpanprice);
 
-            priceItemsContainer.appendChild(priceItem);
-        });
-    }, [prices, totalCount]);
+    //         priceItemsContainer.appendChild(priceItem);
+    //     });
+    // }, [prices, totalCount]);
 
     return (
 
@@ -4432,7 +4433,9 @@ const Booking = () => {
                                                                                             name="adult_prefix[]"
                                                                                             data-index={passengerindex}
                                                                                             readOnly={bookingid}
-                                                                                            defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Male" ? 'Mr' : 'Mrs'}
+                                                                                            defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Female" ? "Mrs" : "Mr"}
+
+                                                                                            // defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Male" ? 'Mr' : 'Mrs'}
                                                                                         >
                                                                                             <option value="Mr" selected={emptaxivaxi?.[passengerindex]?.gender === "Male"}>Mr.</option>
                                                                                             <option value="Mrs" selected={emptaxivaxi?.[passengerindex]?.gender === "Female"}>Mrs.</option>
@@ -4520,7 +4523,7 @@ const Booking = () => {
                                                                                             name="adult_gender[]"
                                                                                             data-index={passengerindex}
                                                                                             readOnly={bookingid}
-                                                                                            defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Male" ? 'M' : 'F'}
+                                                                                            defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Female" ? 'F' : 'M'}
                                                                                         >
                                                                                             <option value="">Select Gender</option>
                                                                                             <option value="M" selected={emptaxivaxi?.[passengerindex]?.gender === "Male"}>Male</option>
@@ -4722,7 +4725,7 @@ const Booking = () => {
                                                                     src="img/taxivaxi/meal_seats/user_icon.svg"
                                                                     width="15px"
                                                                 />&nbsp;
-                                                                Address details
+                                                                Contact details
                                                             </AccordionSummary>
                                                             <AccordionDetails>
 
@@ -4788,7 +4791,7 @@ const Booking = () => {
                                                                             </span>
                                                                         </div>
                                                                     </div>
-                                                                    <div
+                                                                    {/* <div
                                                                         className="booking-form"
                                                                         style={{
                                                                             marginLeft: 5,
@@ -4845,8 +4848,8 @@ const Booking = () => {
                                                                                 Please enter Street.
                                                                             </span>
                                                                         </div>
-                                                                    </div>
-                                                                    <div
+                                                                    </div> */}
+                                                                    {/* <div
                                                                         className="booking-form"
                                                                         style={{
                                                                             marginLeft: 5,
@@ -4905,8 +4908,8 @@ const Booking = () => {
                                                                                 Please enter State.
                                                                             </span>
                                                                         </div>
-                                                                    </div>
-                                                                    <div
+                                                                    </div> */}
+                                                                    {/* <div
                                                                         className="booking-form"
                                                                         style={{
                                                                             marginLeft: 5,
@@ -4964,7 +4967,7 @@ const Booking = () => {
                                                                                 Please enter Country.
                                                                             </span>
                                                                         </div>
-                                                                    </div>
+                                                                    </div> */}
                                                                    
                                                                     <div className="booking-form-append" />
                                                                     <div className="add-passenger">
@@ -5032,24 +5035,28 @@ const Booking = () => {
 
                                                     <Accordion expanded={seatresponseparse ? accordion3Expanded : false} onChange={(event, isExpanded) => setAccordion3Expanded(isExpanded)}>
                                                     <AccordionSummary
-                                                    expandIcon={<ExpandMoreIcon />}
-                                                    aria-controls="panel3-content"
-                                                    id="panel3-header"
-                                                    className={`accordion ${emptyseatmap ? 'emptyseatmap' : ''}`}
+                                                        expandIcon={<ExpandMoreIcon />}
+                                                        aria-controls="panel3-content"
+                                                        id="panel3-header"
+                                                        className={`accordion ${emptyseatmap ? 'emptyseatmap' : ''}`}
                                                     >
+                                                        <img src="/img/taxivaxi/meal_seats/seat3.svg" width="20px" />&nbsp;Choose Seats
+                                                        
+                                                        {/* Conditionally render seat number and price */}
+                                                        {previousSelections.some(selection => selection.passenger === passengereventKeys) && (
+                                                            <span style={{ marginLeft: '20px' }}>
+                                                                Seat No. {previousSelections
+                                                                    .filter(selection => selection.passenger === passengereventKeys)
+                                                                    .map(selection => selection.code)
+                                                                    .join(', ')}
 
-                                                    <img src="/img/taxivaxi/meal_seats/seat3.svg" width="20px" />&nbsp;Choose Seats
-                                                    {/* Conditionally render the seat number if selected */}
-                                                    {previousSelections.some(selection => selection.passenger === passengereventKeys) && (
-                                                        <span style={{ marginLeft: '20px' }}>
-                                                        Seat No. {previousSelections.filter(selection => selection.passenger === passengereventKeys).map(selection => selection.code).join(', ')}
-                                                        </span>
-                                                    )}
+                                                            </span>
+                                                        )}
                                                     </AccordionSummary>
                                                         <AccordionDetails>
                                                             <div className='panel' id="panel2" style={{ maxHeight: "450px" }}>
                                                                 <div className='seatleft'>
-                                                                    <div className='seatleftul'>
+                                                                <div className='seatleftul'>
                                                                         {Passengers && Passengers.keys && Passengers.keys.length > 1 ? (
                                                                             Passengers.keys.map((key, index) => (
                                                                                 Passengers.codes[index] !== 'INF' && (
@@ -5061,7 +5068,15 @@ const Booking = () => {
                                                                                         onClick={() => handlePassengerevent(key, index)}
                                                                                     >
                                                                                         {Passengers.namesWithPrefix[index]}. {Passengers.firstNames[index]}<br />
-                                                                                        <span>Seat No. {previousSelections.some(selection => selection.passenger === key) && `${previousSelections.filter(selection => selection.passenger === key).map(selection => selection.code).join(', ')}`}</span>
+                                                                                        <span>
+                                                                                            Seat No. {previousSelections.some(selection => selection.passenger === key) &&
+                                                                                            `${previousSelections.filter(selection => selection.passenger === key).map(selection => selection.code).join(', ')}`}
+                                                                                        </span>
+                                                                                        <br />
+                                                                                        <span>
+                                                                                            {previousSelections.some(selection => selection.passenger === key) &&
+                                                                                            `Price - ${previousSelections.filter(selection => selection.passenger === key).map(selection => handleOptional(selection.optionalkey)).join(', ')}`}
+                                                                                        </span>
                                                                                     </button>
                                                                                 )
                                                                             ))
@@ -5071,14 +5086,22 @@ const Booking = () => {
                                                                                     Passengers.codes[0] !== 'INF' && (
                                                                                         <button type="button" className="seatleftli tablinkseat active" id="defaultopen" onClick={() => handlePassengerevent(Passengers.keys[0], 0)}>
                                                                                             {Passengers.namesWithPrefix[0]}. {Passengers.firstNames[0]}<br />
-                                                                                            <span>Seat No. {previousSelections.some(selection => selection.passenger === Passengers.keys[0]) && `${previousSelections.filter(selection => selection.passenger === Passengers.keys[0]).map(selection => selection.code).join(', ')}`}</span>
+                                                                                            <span>
+                                                                                                Seat No. {previousSelections.some(selection => selection.passenger === Passengers.keys[0]) &&
+                                                                                                `${previousSelections.filter(selection => selection.passenger === Passengers.keys[0]).map(selection => selection.code).join(', ')}`}
+                                                                                            </span>
+                                                                                            <br />
+                                                                                            <span>
+                                                                                                {previousSelections.some(selection => selection.passenger === Passengers.keys[0]) &&
+                                                                                                `Price - ${previousSelections.filter(selection => selection.passenger === Passengers.keys[0]).map(selection => handleOptional(selection.optionalkey)).join(', ')}`}
+                                                                                            </span>
                                                                                         </button>
                                                                                     )
                                                                                 )}
                                                                             </>
                                                                         )}
-
                                                                     </div>
+
                                                                 </div>
                                                                 <div className='tabcontentseat'>
                                                                     <div className='seatright'>
@@ -5500,7 +5523,7 @@ const Booking = () => {
                                                         <AccordionActions>
                                                         </AccordionActions>
                                                     </Accordion>
-                                                    <div className="booking-devider" />
+                                                    {/* <div className="booking-devider" />
                                                     <div className="baggagae_policy">
                                                         <span className='headingpolicies' style={{ display: 'flex' }}>
                                                             <img src="img\taxivaxi\meal_seats\cancellation.svg"
@@ -5655,7 +5678,7 @@ const Booking = () => {
                                                             </div>
 
                                                         </div>
-                                                    </div>
+                                                    </div> */}
                                                     <div className="booking-devider" />
                                                     <div>
                                                         <input type='checkbox' /><label className='confirmtocontinue'>I confirm that I have read and I accept the <a href="#">Fare Rules</a> , the <a href="#">Privacy Policy</a> , the <a href="#">User Agreement</a> and <a href="#">Terms of Service</a> of Taxivaxi</label>

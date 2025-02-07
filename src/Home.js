@@ -734,6 +734,7 @@ function Home() {
                 console.timeEnd("make api request");
 
             sessionStorage.setItem('searchdata', soapEnvelope);
+            console.log('search data', soapEnvelope);
             console.time("API Call");
             const response = await axios.post(
                 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
