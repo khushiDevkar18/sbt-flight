@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import DatePicker from "react-datepicker";
@@ -14,35 +14,39 @@ import {
   useLoadScript,
 } from "@react-google-maps/api";
 
-// //console.log("asdafdsfa");
+// //// console.log("asdafdsfa");
 
 const SearchHotel = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const searchData = JSON.parse(sessionStorage.getItem("hotelSearchData")) || [];
+
+  const searchParams = JSON.parse(sessionStorage.getItem("hotelData")) || {};
+  const hotelData = JSON.parse(sessionStorage.getItem("hotel")) || {};
+  // // console.log("Received Hotel List:", hotelData);
+  const searchData =
+    JSON.parse(sessionStorage.getItem("hotelSearchData")) || [];
   const hotelList = Array.isArray(location.state?.hotelList)
     ? location.state?.hotelList
     : Array.isArray(searchData)
     ? searchData
     : [];
-  
-  const searchParams = JSON.parse(sessionStorage.getItem("hotelData")) || {};
-  
-  console.log("Received Hotel List:", hotelList);
-  
-  const [hotelDetails, setHotelDetails] = useState([]);
-  const hotelcodes = localStorage.getItem("hotelDetails");
-  
+
+  const [hotelDetails, setHotelDetails] = useState(() => {
+    // Try getting data from sessionStorage first
+    const storedData = sessionStorage.getItem("hotelDetails");
+    return storedData ? JSON.parse(storedData) : [];
+  });
+
   useLayoutEffect(() => {
     const fetchCity = async () => {
       if (!Array.isArray(hotelList) || hotelList.length === 0) {
-        console.error("hotelList is not a valid array:", hotelList);
+        // console.error("hotelList is not a valid array:", hotelList);
         return; // Exit if hotelList is not an array or is empty
       }
-  
+
       const codes = hotelList.map((hotel) => hotel.HotelCode); // ✅ Safe .map()
       const hotelcodes = codes.toString(); // Convert array to comma-separated string
-  
+
       try {
         const response = await fetch(
           "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelDetails",
@@ -57,21 +61,21 @@ const SearchHotel = () => {
             }),
           }
         );
-  
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-  
+
         const data = await response.json();
-        console.log("Hotel data:", data);
-  
+        // console.log("Hotel data:", data);
+
         if (data.success === "1" && data.response.Status.Code === 200) {
           setHotelDetails(data.response.HotelDetails || []);
-          localStorage.setItem(
+          sessionStorage.setItem(
             "hotelDetails",
             JSON.stringify(data.response.HotelDetails || [])
           );
-  
+
           const validHotels = (data.response.HotelDetails || []).filter(
             (hotel) => hotel.Map
           );
@@ -90,10 +94,25 @@ const SearchHotel = () => {
         console.error("Error fetching hotels:", error);
       }
     };
-  
+
     fetchCity();
   }, [hotelList]); // ✅ hotelList is always an array now
-  
+
+  const combinedHotels = useMemo(() => {
+    return hotelDetails.map((hotel) => {
+      const matchedHotelList = hotelList.find(
+        (item) => item.HotelCode === hotel.HotelCode
+      );
+      const matchedHotelData = hotelData[hotel.HotelCode] || {};
+
+      return {
+        ...hotel, // Base details
+        ...matchedHotelList, // Override with hotelList data if found
+        ...matchedHotelData, // Override with hotelData if found
+      };
+    });
+  }, [hotelDetails, hotelList, hotelData]); // Recompute only when dependencies change
+  console.log(combinedHotels);
 
   const renderRatingText = (rating) => {
     if (rating > 4.5) return "Excellent";
@@ -113,33 +132,24 @@ const SearchHotel = () => {
     );
   };
 
-  // Extract and clean attractions from the provided data
-  const extractAttraction = (attractions) => {
-    if (!attractions || Object.keys(attractions).length === 0) {
-      return "No Attractions Available";
+  const extractAttraction = (Description) => {
+    if (!Description || typeof Description !== "string") {
+      return "No Location Available";
     }
 
-    //console.log("Raw Attractions Data:", attractions); // Debugging Log
+    // Use regex to extract text after "HeadLine :"
+    const match = Description.match(/HeadLine\s*:\s*([^<]+)/);
 
-    // Convert object values into a single string
-    const attractionText = Object.values(attractions).join("\n");
-
-    // Extract the first paragraph and clean HTML tags
-    const firstAttraction = attractionText
-      .replace(/<br\s*\/?>/gi, "\n") // Replace <br> with new lines
-      .replace(/<\/?p>/gi, "") // Remove <p> tags
-      .split("\n")[0] // Get the first paragraph only
-      .trim(); // Remove extra spaces
-
-    return firstAttraction || "No Attractions Available";
+    return match ? match[1].trim() : "No Location Available";
   };
+
   const mapContainerStyle = {
     width: "100%",
     height: "400px", // Ensure height is set, otherwise the map won't show
   };
 
   const defaultCenter = { lat: 40.7128, lng: -74.006 };
-  // //console.log(storedCities);
+  // //// console.log(storedCities);
   const [mapCenter, setMapCenter] = useState({ lat: 40.7128, lng: -74.006 });
 
   const [isOpen, setIsOpen] = useState(false);
@@ -161,26 +171,38 @@ const SearchHotel = () => {
       document.head.removeChild(style);
     };
   }, []);
-  const formatCancelPolicies = (cancelPolicies) => {
-    if (!Array.isArray(cancelPolicies) || cancelPolicies.length === 0) {
-      return ["No cancellation policies available."]; // Return as an array
+  const formatCancelPolicies = (CancelPolicies) => {
+    if (!Array.isArray(CancelPolicies) || CancelPolicies.length === 0) {
+      return ["No cancellation policies available."];
     }
 
-    return cancelPolicies.map((policy) => {
+    const today = new Date(); // Get today's date
+    today.setHours(0, 0, 0, 0); // Remove time part for accurate comparison
+
+    return CancelPolicies.filter((policy) => {
+      // Convert FromDate to a Date object
+      const policyDate = new Date(
+        policy.FromDate.split(" ")[0].split("-").reverse().join("-")
+      );
+      return policyDate >= today; // Only keep future or current dates
+    }).map((policy) => {
+      const formattedDate = policy.FromDate.split(" ")[0]; // Extract only DD-MM-YYYY
       if (policy.ChargeType === "Fixed" && policy.CancellationCharge === 0) {
         return `Free Cancellation till check-in`;
+      } else if (policy.ChargeType === "Fixed") {
+        return `Booking will be canceled from ${formattedDate} with a charge of ${policy.CancellationCharge}`;
       } else if (policy.ChargeType === "Percentage") {
-        return `Cancellation charge of ${policy.CancellationCharge}%`;
+        return `From ${formattedDate}, the cancellation charge is ${policy.CancellationCharge}%`;
       }
-      return `Policy: From ${policy.FromDate}`;
+      return `Policy starts from ${formattedDate}`;
     });
   };
-    const [cityName, setCityName] = useState(
-           searchParams.filteredCities && searchParams.filteredCities.length > 0
-             ? searchParams.filteredCities[0].Name
-             : ""
-         );
-         
+
+  const [cityName, setCityName] = useState(
+    searchParams.filteredCities && searchParams.filteredCities.length > 0
+      ? searchParams.filteredCities[0].Name
+      : ""
+  );
 
   return (
     <>
@@ -206,7 +228,7 @@ const SearchHotel = () => {
                     if (!hotel.Map) return null;
 
                     const coordinates = hotel.Map.split("|").map(Number);
-                    // console.log(
+                    // // console.log(
                     //   "Coordinates for hotel:",
                     //   hotel.HotelName,
                     //   coordinates
@@ -298,54 +320,62 @@ const SearchHotel = () => {
               </div>
             </div>
           </div>
-          <div className="w-full  items-center justify-center">
-            <p className="py-7 px-6 heading-line mb-0">
-              Showing Properties in {cityName}
-              {/* {isTyping ? "Recently Viewed" : `Showing Properties in ${cityName}`} */}
-            </p>
-            {hotelDetails &&
-            Array.isArray(hotelDetails) &&
-            hotelDetails.length > 0 ? (
-              hotelDetails.map((hotel) => {
-                // Ensure hotelList exists and is an array
-                const matchedHotel = hotelList?.find(
-                  (item) => item.HotelCode === hotel.HotelCode
-                );
-
-                // If a matching hotel is found, display its details
-                return matchedHotel ? (
+         
+            <div className="w-full items-center justify-center">
+              <p className="py-7 px-6 heading-line mb-0">
+                Showing Properties in {cityName}
+              </p>
+              {combinedHotels.length > 0 ? (
+                combinedHotels.map((hotel) => (
                   <div
                     key={hotel.HotelCode}
                     className="w-full py-2 px-3 transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
-                    onClick={() => navigate("/HotelDetail", { state: { hotel, matchedHotel, hotelList } })}
+                    onClick={() =>
+                      navigate("/HotelDetail", { state: { combinedHotels } })
+                    }
                   >
-                    <div className="max-w-[57rem] w-full flex flex-cols bg-white shadow-[4px_6px_10px_-3px_#bfc9d4] rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none transition-shadow duration-300 hover:shadow-lg">
-                      {/* Hotel Image */}
+                    <div className="max-w-[57rem] w-full flex flex-cols bg-white shadow-md rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none transition-shadow duration-300 hover:shadow-lg">
                       <div className="py-3 px-3 w-1/3">
                         <div className="photos-container">
-                          {Array.isArray(hotel.Images) && hotel.Images.length > 0 ? (
+                          {Array.isArray(hotel.Images) &&
+                          hotel.Images.length > 0 ? (
                             <>
-                              <img src={hotel.Images[0]} alt="Hotel" className="hotel-photo" />
+                              <img
+                                src={hotel.Images[0]}
+                                alt="Hotel"
+                                className="hotel-photo"
+                              />
                               <div className="grid grid-cols-4 gap-2 py-1">
-                                {hotel.Images.slice(1, 5).map((image, index) => (
-                                  <div key={index} className="image-container relative">
-                                    <img src={image} alt={`Hotel ${index + 1}`} className={`hotel-photos ${index === 3 ? "blur-sm" : ""}`} />
-                                    {index === 3 && (
-                                      <div className="absolute top-0 left-0 right-0 bottom-0 flex justify-center items-center">
-                                        <span
-                                          className="text-white text-xs font-semibold cursor-pointer"
-                                          onClick={(e) => {
-                                            e.stopPropagation(); // Prevent navigation when clicking "View All"
-                                            setIsOpenImage(true);
-                                            setSelectedHotel(hotel.Images);
-                                          }}
-                                        >
-                                          View All
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
+                                {hotel.Images.slice(1, 5).map(
+                                  (image, index) => (
+                                    <div
+                                      key={index}
+                                      className="image-container relative"
+                                    >
+                                      <img
+                                        src={image}
+                                        alt={`Hotel ${index + 1}`}
+                                        className={`hotel-photos ${
+                                          index === 3 ? "blur-sm" : ""
+                                        }`}
+                                      />
+                                      {index === 3 && (
+                                        <div className="absolute top-0 left-0 right-0 bottom-0 flex justify-center items-center">
+                                          <span
+                                            className="text-white text-xs font-semibold cursor-pointer"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setIsOpenImage(true);
+                                              setSelectedHotel(hotel.Images);
+                                            }}
+                                          >
+                                            View All
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                )}
                               </div>
                             </>
                           ) : (
@@ -353,51 +383,102 @@ const SearchHotel = () => {
                           )}
                         </div>
                       </div>
-                
-                      {/* Hotel Info */}
-                      <div className="w-1/2 py-3 px-1">
-                        <h3 className="text-lg font-semibold">{hotel.HotelName || "No Name Available"}</h3>
-                        <p className="text-sm font-semibold hotel-form-text-color">
-                          {hotel.CityName || "No City Available"} | <span className="text-xs" style={{ color: "gray" }}>{extractAttraction(hotel.Attractions)}</span>
-                        </p>
-                        <div className="flex items-start flex-wrap gap-2">
-                          {Array.isArray(matchedHotel.Rooms) && matchedHotel.Rooms.length > 0 ? (
-                            <ul className="list-disc pl-4 text-xs space-y-1">
-                              {matchedHotel.Rooms[0].Inclusion.split(",").map((item, index) => (
-                                <li key={index}>{item.trim()}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p>No inclusions available</p>
-                          )}
-                        </div>
-                       <p className="text-sm text-green-700 ">
-                          {formatCancelPolicies(
-                            matchedHotel.Rooms[0].CancelPolicies
-                          )}
-                        </p>
 
-                      </div>
-                
-                      {/* Price & Book Button */}
-                      <div className="w-1/4 py-3 px-3 flex flex-col items-end border-l border-gray-300">
-                      <div className="flex items-center  gap-2">
-                          <span className="hotel-form-text-color text-lg font-semibold">
-                            {renderRatingText(hotel.HotelRating)}{" "}
+                      <div className="w-1/2 py-3 px-1">
+                        <h3 className="text-lg font-semibold">
+                          {hotel.HotelName || "No Name Available"}
+                        </h3>
+                        <p className="text-sm font-semibold hotel-form-text-color">
+                          {hotel.CityName || "No City Available"} |{" "}
+                          <span className="text-xs text-gray-500">
+                            {extractAttraction(hotel.Description)}
                           </span>
-                          <div className="border border-gray-300 px-2 flex items-center text-sm  rating-color font-semibold">
-                            {" "}
+                        </p>
+                        <div className="flex flex-wrap gap-3 text-xs mb-3">
+                          {[
+                            {
+                              keyword: "restaurant",
+                              label: "Restaurant",
+                              icon: "/img/food1.svg",
+                            },
+                            {
+                              keyword: "parking",
+                              label: "Parking Available",
+                              icon: "/img/parking.svg",
+                            },
+                            {
+                              keyword: "conference",
+                              label: "Conference Space",
+                              icon: "/img/conference.svg",
+                            },
+                          ]
+                            .filter(({ keyword }) =>
+                              hotel.HotelFacilities.some((facility) =>
+                                facility.toLowerCase().includes(keyword)
+                              )
+                            )
+                            .map(({ icon, label }, index) => (
+                              <span
+                                key={index}
+                                className="flex items-center gap-2"
+                              >
+                                <img
+                                  src={icon}
+                                  alt={label}
+                                  className="w-5 h-5"
+                                />{" "}
+                                {label}
+                              </span>
+                            ))}
+                        </div>
+
+                        <div className="text-xs text-green-700">
+                          {formatCancelPolicies(
+                            hotel?.Rooms?.[0]?.CancelPolicies || []
+                          ).map((policy, index) => (
+                            <div key={index} className="flex gap-2">
+                              <img
+                                src="../img/tick.svg"
+                                className="w-3 h-5"
+                                alt="✔"
+                              />{" "}
+                              {policy}
+                            </div>
+                          ))}
+                        </div>
+
+                        {hotel?.Rooms?.[0]?.Inclusion && (
+                          <div className="text-xs text-green-700 flex items-center mt-1">
+                            <img
+                              src="/img/tick.svg"
+                              alt="✔"
+                              className="w-3 h-3 mr-1"
+                            />
+                            <span>{hotel.Rooms[0].Inclusion}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="w-1/4 py-3 px-3 flex flex-col items-end border-l border-gray-300">
+                        <div className="flex items-center gap-2">
+                          <span className="hotel-form-text-color text-lg font-semibold">
+                            {renderRatingText(hotel.HotelRating)}
+                          </span>
+                          <div className="border border-gray-300 px-2 flex items-center text-sm rating-color font-semibold">
                             {hotel.HotelRating}
                           </div>
                         </div>
                         <div className="flex items-center space-x-1 mb-4">
                           {renderStars(hotel.HotelRating)}
                         </div>
-
-                        <span className="text-lg font-semibold hotel-form-text-color">₹ {matchedHotel.Rooms?.[0]?.TotalFare || "N/A"}</span>
-                        <span className="text-xs">+ ₹ {matchedHotel.Rooms?.[0]?.TotalTax || "0"} taxes & fees</span>
+                        <span className="text-lg font-semibold hotel-form-text-color">
+                          ₹ {hotel.Rooms?.[0]?.TotalFare || "N/A"}
+                        </span>
+                        <span className="text-xs">
+                          + ₹ {hotel.Rooms?.[0]?.TotalTax || "0"} taxes & fees
+                        </span>
                         <div className="flex gap-3 mt-5">
-                          <button className="border-2 w-20 h-7 border-[#785ef7] text-[#785ef7] bg-transparent px-2  rounded-md  text-xs transition duration-300 hover:bg-[#785ef7] hover:text-white">
+                          <button className="border-2 w-20 h-7 border-[#785ef7] text-[#785ef7] bg-transparent px-2 rounded-md text-xs transition duration-300 hover:bg-[#785ef7] hover:text-white">
                             Added
                           </button>
                           <button className="bg-[#785ef7] w-20 h-7 text-white px-2 rounded-md font-semibold text-xs transition duration-300 hover:bg-[#5a3ec8]">
@@ -405,14 +486,15 @@ const SearchHotel = () => {
                           </button>
                         </div>
                       </div>
+
                     </div>
                   </div>
-                ) : null;
-              })
-            ) : (
-              <p className="text-center col-span-3">Loading hotels...</p>
-            )}
-          </div>
+                ))
+              ) : (
+                <p>No hotels found</p>
+              )}
+            </div>
+          
         </div>
       </div>
     </>

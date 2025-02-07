@@ -178,7 +178,7 @@ function Home() {
           }
         );
       } catch (error) {
-        console.error(error);
+        // console.error(error);
         // navigate('/tryagainlater');
       } finally {
         setLoading(false);
@@ -893,7 +893,7 @@ function Home() {
       const fetchCities = async () => {
         try {
           const response = await fetch(
-            "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtCityList",
+            "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtCityLists",
             {
               method: "POST",
               headers: {
@@ -1099,6 +1099,9 @@ function Home() {
         HotelName: null,
       },
     };
+    const hotel= hotelcityList;
+    console.log(hotel);
+    
 
     // console.log("Authorization Header:", `Basic ${btoa("Bai:Bai@12345")}`);
 
@@ -1120,10 +1123,10 @@ function Home() {
       }
 
       const data = await response.json();
-      console.log("Hotel data:", data);
+      // console.log("Hotel data:", data);
       if (data.success === "1" && data.response.Status.Code === 200) {
         setHotelCityList(data.response.HotelResult || []);
-        console.log("asd");
+        // console.log("asd");
       
         // Prepare the data to store in sessionStorage
         const searchData = {
@@ -1142,6 +1145,7 @@ function Home() {
         };
         // Store the data in sessionStorage
         sessionStorage.setItem('hotelData', JSON.stringify(searchParams));
+        sessionStorage.setItem('hotel', JSON.stringify(hotel));
         sessionStorage.setItem('hotelSearchData', JSON.stringify(searchData));
       
         // Navigate to SearchHotel with the state
@@ -1160,11 +1164,11 @@ function Home() {
     } catch (error) {
       console.error("Error fetching hotels:", error);
 
-      Swal.fire({
-        icon: "error",
-        title: "Request Failed",
-        text: error.message || "Failed to fetch hotel data.",
-      });
+      // Swal.fire({
+      //   icon: "error",
+      //   title: "Request Failed",
+      //   text: error.message || "Failed to fetch hotel data.",
+      // });
     }
   };
 
