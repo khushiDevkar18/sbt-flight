@@ -328,12 +328,11 @@ const SearchHotel = () => {
               {combinedHotels.length > 0 ? (
                 combinedHotels.map((hotel) => (
                   <div
-                    key={hotel.HotelCode}
-                    className="w-full py-2 px-3 transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
-                    onClick={() =>
-                      navigate("/HotelDetail", { state: { combinedHotels } })
-                    }
-                  >
+                  key={hotel.HotelCode}
+                  className="w-full py-2 px-3 transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
+                  onClick={() => navigate("/HotelDetail", { state: { hotel } })}
+                >
+                
                     <div className="max-w-[57rem] w-full flex flex-cols bg-white shadow-md rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none transition-shadow duration-300 hover:shadow-lg">
                       <div className="py-3 px-3 w-1/3">
                         <div className="photos-container">
