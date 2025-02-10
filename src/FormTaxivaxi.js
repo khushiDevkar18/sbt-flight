@@ -161,6 +161,7 @@ const navigate = useNavigate();
                   const spoc_name = formtaxivaxiData['spoc_name'];
                   const markup = formtaxivaxiData['markup_details'];
                   const booking_id = formtaxivaxiData['booking_id'];
+                  const is_approved  = formtaxivaxiData['is_approved '];
                   const no_of_seats = formtaxivaxiData['no_of_seats'];
                   const request_id = formtaxivaxiData['request_id'];
                   const request_type = formtaxivaxiData['request_type'];
@@ -301,6 +302,7 @@ const navigate = useNavigate();
                       spocname:spoc_name,
                       markupdata: markup,
                       bookingid: booking_id,
+                      isapproved: is_approved,
                       no_of_seats: no_of_seats,
                       request_id: request_id,
                       clientid: client_id,

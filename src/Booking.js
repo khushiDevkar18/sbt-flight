@@ -10,7 +10,7 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Swal from 'sweetalert2';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
-import 'react-phone-number-input/style.css';
+import 'react-phone-number-input/style.css';    
 // import IconLoader from './IconLoader';
 // import ErrorLogger from './ErrorLogger';
 
@@ -51,6 +51,7 @@ const Booking = () => {
     const carrier = segment[0]['$']['SupplierCode'];
     
     const apiairports = location.state && location.state.serviceData.apiairportsdata;
+    // console.log('apiairports',apiairports);
     const serviceresponse = location.state && location.state.serviceData.servicedata;
     const request = location.state?.serviceData || {};
 
@@ -157,7 +158,7 @@ const Booking = () => {
 
             const responseData = await response.json();
             const data = responseData.result;
-            // console.log("data",data)
+            console.log("data",data)
             const organizedData = {};
 
             // Organize the response data
@@ -275,6 +276,7 @@ const Booking = () => {
                 return;
             }
             const serviceRsp = serviceresult['SOAP:Envelope']['SOAP:Body']['air:AirMerchandisingOfferAvailabilityRsp'];
+            // console.log('serviceRsp',serviceRsp);
 
             if (serviceRsp !== null && serviceRsp !== undefined) {
                 if (serviceresult['SOAP:Envelope']['SOAP:Body']['air:AirMerchandisingOfferAvailabilityRsp']['air:OptionalServices']) {
@@ -567,32 +569,32 @@ const Booking = () => {
                 lastNameError.style.display = 'none';
             }
 
-            if (passengerinfo.Code === 'ADT' && !(age >= 12)) {
-                isValidpassenger = false;
-                const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
-                ageError1.style.display = 'block';
-            } else if (passengerinfo.Code === 'CNN' && !(age >= 2 && age <= 12)) {
-                isValidpassenger = false;
-                const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
-                ageError2.style.display = 'block';
-            } else if (passengerinfo.Code === 'INF' && !(age >= 0 && age <= 2)) {
-                isValidpassenger = false;
-                const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
-                ageError3.style.display = 'block';
-            } else if (birthdate.trim() === '') {
-                isValidpassenger = false;
-                const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
-                ageError.style.display = 'block';
-            } else {
-                const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
-                const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
-                const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
-                const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
-                ageError.style.display = 'none';
-                ageError1.style.display = 'none';
-                ageError2.style.display = 'none';
-                ageError3.style.display = 'none';
-            }
+            // if (passengerinfo.Code === 'ADT' && !(age >= 12)) {
+            //     isValidpassenger = false;
+            //     const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
+            //     ageError1.style.display = 'block';
+            // } else if (passengerinfo.Code === 'CNN' && !(age >= 2 && age <= 12)) {
+            //     isValidpassenger = false;
+            //     const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
+            //     ageError2.style.display = 'block';
+            // } else if (passengerinfo.Code === 'INF' && !(age >= 0 && age <= 2)) {
+            //     isValidpassenger = false;
+            //     const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
+            //     ageError3.style.display = 'block';
+            // } else if (birthdate.trim() === '') {
+            //     isValidpassenger = false;
+            //     const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
+            //     ageError.style.display = 'block';
+            // } else {
+            //     const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
+            //     const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
+            //     const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
+            //     const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
+            //     ageError.style.display = 'none';
+            //     ageError1.style.display = 'none';
+            //     ageError2.style.display = 'none';
+            //     ageError3.style.display = 'none';
+            // }
 
             if (isValidpassenger) {
                 return {
@@ -1034,6 +1036,7 @@ const Booking = () => {
                         }
                     }
                 };
+                // console.log()
                 if (specificSeatAssignments.length > 0) {
                     // specificSeatAssignments.forEach(specificSeatAssignment => {
                     reservationRequestEnvelope['soapenv:Envelope']['soapenv:Body']['univ:AirCreateReservationReq']['air:SpecificSeatAssignment'] = specificSeatAssignments;
@@ -1553,12 +1556,12 @@ const Booking = () => {
         event.preventDefault();
         const email = event.target.email.value.trim();
         const contactDetails = event.target.contact_details.value.trim();
-        let address = event.target.address.value.trim();
-        let street = event.target.street.value.trim();
-        let city = event.target.city.value.trim();
-        let state = event.target.state.value.trim();
-        let postal_code = event.target.postal_code.value.trim();
-        let country = event.target.country.value.trim();
+        let address = event.target.address ? event.target.address.value.trim() : "NA";
+        let street = event.target.street ? event.target.street.value.trim() : "NA";
+        let city = event.target.city ? event.target.city.value.trim() : "NA";
+        let state = event.target.state ? event.target.state.value.trim() : "NA";
+        let postal_code = event.target.postal_code ? event.target.postal_code.value.trim() : "NA";
+        let country = event.target.country ? event.target.country.value.trim() : "NA";
 
         let GSTIN = event.target.gst_registration_no.value.trim();
         let company_gst_name = event.target.company_gst_name.value.trim();
@@ -1768,6 +1771,7 @@ const Booking = () => {
                                 }
                             }
                         });
+                        console.log('seatMapRequestXML', seatMapRequestXML);
 
                         try {
                             const seatresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', seatMapRequestXML, {
@@ -1847,20 +1851,21 @@ const Booking = () => {
     }
 
     const validateSavePassenger = (Passengerarray) => {
-        console.log('Passengerarray', Passengerarray);
+        // console.log('Passengerarray', Passengerarray);
         let isValid = true;
 
         const updatepassengerarray = Passengerarray.map((passengerinfo, passengerindex) => {
             const firstName = document.querySelector(`input[name="adult_first_name[]"][data-index="${passengerindex}"]`).value;
-            console.log('firstName', firstName);
+            // console.log('firstName', firstName);
             const email1 = document.querySelector(`input[name="email1"][data-index="${passengerindex}"]`).value;
-            console.log('email1', email1); 
+            // console.log('email1', email1); 
             const cnct = document.querySelector(`input[name="contact_details1"][data-index="${passengerindex}"]`).value;
-            console.log('cnct', cnct); 
+            // console.log('cnct', cnct); 
             const lastName = document.querySelector(`input[name="adult_last_name[]"][data-index="${passengerindex}"]`).value;
-            // const birthdate = document.querySelector(`input[name="adult_age[]"][data-index="${passengerindex}"]`).value;
+            const birthdate = document.querySelector(`input[name="adult_age[]"][data-index="${passengerindex}"]`).value;
             const gender = document.querySelector(`select[name="adult_gender[]"][data-index="${passengerindex}"]`).value;
-            // const age = calculateAge(birthdate);
+            const age = calculateAge(birthdate);
+            // console.log('age', age);
  
             if (firstName.trim() === '') {
                 isValid = false;
@@ -1912,7 +1917,7 @@ const Booking = () => {
                     ...passengerinfo,
                     adult_first_name: firstName,
                     adult_last_name: lastName,
-                    // adult_age: age,
+                    adult_age: age,
                     adult_gender: gender,
                 };
             } else {
@@ -1960,10 +1965,10 @@ const Booking = () => {
     const [seatsegmentselected, setseatsegmentselected] = useState(null);
     const [seatoptionalkeyselected, setseatoptionalkeyselected] = useState(null);
     const [previousSelections, setPreviousSelections] = useState([]);
-    console.log('previousSelections',previousSelections);
+    // console.log('previousSelections',previousSelections);
 
     const handleseatSelectiondisplay = (seatpassenger, seatsegment, seatcode, optionalservicekey) => {
-        console.log('seat detail ', seatpassenger, seatsegment, seatcode, optionalservicekey);
+        // console.log('seat detail ', seatpassenger, seatsegment, seatcode, optionalservicekey);
         setseatcodeselected(seatcode);
         setseatpassengerselected(seatpassenger);
         setseatsegmentselected(seatsegment);
@@ -4434,8 +4439,6 @@ const Booking = () => {
                                                                                             data-index={passengerindex}
                                                                                             readOnly={bookingid}
                                                                                             defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Female" ? "Mrs" : "Mr"}
-
-                                                                                            // defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Male" ? 'Mr' : 'Mrs'}
                                                                                         >
                                                                                             <option value="Mr" selected={emptaxivaxi?.[passengerindex]?.gender === "Male"}>Mr.</option>
                                                                                             <option value="Mrs" selected={emptaxivaxi?.[passengerindex]?.gender === "Female"}>Mrs.</option>
@@ -4444,7 +4447,7 @@ const Booking = () => {
                                                                                 </div>
 
                                                                                 <div className="booking-field booking-name">
-                                                                                    <label>First Name</label>
+                                                                                    <label>First Name<span className="mandatory-star">*</span></label>
                                                                                     <input
                                                                                         type="text"
                                                                                         name="adult_first_name[]"
@@ -4463,7 +4466,7 @@ const Booking = () => {
                                                                                 </div>
 
                                                                                 <div className="booking-field booking-name">
-                                                                                    <label>Last Name</label>
+                                                                                    <label>Last Name<span className="mandatory-star">*</span></label>
                                                                                     <input
                                                                                         type="text"
                                                                                         name="adult_last_name[]"
@@ -4480,6 +4483,25 @@ const Booking = () => {
                                                                                         Please enter the last name.
                                                                                     </span>
                                                                                 </div>
+                                                                                <div className="booking-form-i" style={{ display: "none" }}> {/* Hide the entire field */}
+                                                                                    <input
+                                                                                        type="date"
+                                                                                        name="adult_age[]"
+                                                                                        max={maxDate}
+                                                                                        data-index={passengerindex}
+                                                                                        readOnly={bookingid}
+                                                                                        defaultValue={
+                                                                                            emptaxivaxi &&
+                                                                                            emptaxivaxi[passengerindex] &&
+                                                                                            emptaxivaxi[passengerindex]['date_of_birth']
+                                                                                                ? emptaxivaxi[passengerindex]['date_of_birth']
+                                                                                                : new Date(new Date().setFullYear(new Date().getFullYear() - 99))
+                                                                                                    .toISOString()
+                                                                                                    .split("T")[0] // Converts to YYYY-MM-DD format
+                                                                                        }
+                                                                                    />
+                                                                                </div>
+
                                                                             </div>
 
                                                                             {/* Second Row: Email, Mobile, Gender */}
@@ -5683,7 +5705,7 @@ const Booking = () => {
                                                     <div>
                                                         <input type='checkbox' /><label className='confirmtocontinue'>I confirm that I have read and I accept the <a href="#">Fare Rules</a> , the <a href="#">Privacy Policy</a> , the <a href="#">User Agreement</a> and <a href="#">Terms of Service</a> of Taxivaxi</label>
                                                     </div>
-                                                    <button type="button" id="back_button" onClick={handleBackButtonClick}>
+                                                    <button type="button" id="back_button" onClick={() => window.history.back()}>
                                                         Back
                                                     </button>
 

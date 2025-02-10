@@ -100,6 +100,7 @@ const SearchFlight = () => {
   const spocname = location.state && location.state.responseData?.spocname;
   const markupdata = location.state && location.state.responseData?.markupdata;
   const bookingid = location.state && location.state.responseData?.bookingid;
+  const is_approved = location.state && location.state.responseData?.isapproved;
   const searchdeparturedate = location.state && location.state.responseData?.searchdeparturedate;
   // alert(searchdeparturedate);
   const searchreturnd = location.state && location.state.responseData?.searchreturnd;
@@ -203,7 +204,7 @@ const SearchFlight = () => {
       return uniqueSegments;
     }, []);
   
-  console.log("segmentArray", segmentArray);
+  // console.log("segmentArray", segmentArray);
   
 
     const comHostTokens = matchedData.map((fareInfo) => {
@@ -241,7 +242,7 @@ const SearchFlight = () => {
         .filter(Boolean); // Remove nulls
     }).flat();
 
-    console.log("Processed airPricingCommand:", airPricingCommand);
+    // console.log("Processed airPricingCommand:", airPricingCommand);
     const builder = require('xml2js').Builder;
     var pricepointXMLpc = new builder().buildObject({
       'soap:Envelope': {
@@ -447,6 +448,7 @@ const SearchFlight = () => {
             const serviceresponse = axios.post(
               'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', servicerequestXML);
             const serviceResponse = serviceresponse.data;
+            // console.log('serviceResponse', serviceresponse);
 
             const serviceData = {
               apiairportsdata: apiairports,
@@ -1429,6 +1431,7 @@ const SearchFlight = () => {
         const serviceresponse = await axios.post(
           'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', servicerequestXML);
         // const serviceResponse = serviceresponse.data;
+        console.log('serviceresponse',serviceresponse.data);
         const serviceData = {
           apiairportsdata: apiairports,
           servicedata: serviceresponse.data,
@@ -2249,11 +2252,23 @@ const SearchFlight = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clientName, setClientName] = useState(clientname);
   const [spocName, setSpocName] = useState(spocname);
-  const [spocEmail, setSpocEmail] = useState(spocemail); // Prefill and allow editing
+  // const [spocEmail, setSpocEmail] = useState(spocemail.split(',')); // Prefill and allow editing
   const normalizedAdditionalEmails = Array.isArray(additionalemail) ? additionalemail : [additionalemail];
-  const normalizedCCEmails = Array.isArray(ccmail) ? ccmail : [ccmail];
+  const normalizedCCEmails = Array.isArray(ccmail) 
+  ? ccmail.flatMap(email => email.split(',').map(e => e.trim())) 
+  : ccmail ? ccmail.split(',').map(e => e.trim()) 
+  : [];
+
   const [ccEmails, setCCEmails] = useState(normalizedCCEmails);
   const [ccEmailInput, setCCEmailInput] = useState("");
+  const normalizedSpocEmails = Array.isArray(spocemail)
+  ? spocemail.flatMap(email => email.split(',').map(e => e.trim()))
+  : spocemail ? spocemail.split(',').map(e => e.trim()) 
+  : [];
+
+const [spocEmails, setSpocEmails] = useState(normalizedSpocEmails);
+const [spocEmailInput, setSpocEmailInput] = useState("");
+
 
   // Initialize state with the normalized array
   const [additionalEmails, setAdditionalEmails] = useState(normalizedAdditionalEmails);
@@ -2263,8 +2278,8 @@ const SearchFlight = () => {
   const [isEmailValid, setIsEmailValid] = useState(true); // State to check email validity
 
   const handleSend = () => {
-    if (!spocEmail) {
-      setIsEmailValid(false); // Mark email as invalid if it's empty
+    if (!spocEmails) {
+      setIsEmailValid(false); // Mark eman
     } else {
       setIsEmailValid(true); // Reset if email is valid
       approverButtonClick(); // Call the function to send
@@ -2308,16 +2323,32 @@ const SearchFlight = () => {
   };
 
   // Handle adding the CC email when the input loses focus (onBlur event)
+  // const handleAddCCEmailOnBlur = () => {
+  //   if (
+  //     typeof ccEmailInput === "string" &&
+  //     ccEmailInput.trim() !== "" &&
+  //     !ccEmails.includes(ccEmailInput.trim())
+  //   ) {
+  //     setCCEmails((prev) => [...prev, ccEmailInput.trim()]);
+  //     setCCEmailInput(""); // Clear input
+  //   }
+  // };
+
   const handleAddCCEmailOnBlur = () => {
-    if (
-      typeof ccEmailInput === "string" &&
-      ccEmailInput.trim() !== "" &&
-      !ccEmails.includes(ccEmailInput.trim())
-    ) {
-      setCCEmails((prev) => [...prev, ccEmailInput.trim()]);
+    if (ccEmailInput.trim() !== "") {
+      const newEmails = ccEmailInput.split(',').map(email => email.trim());
+      setCCEmails((prev) => [...new Set([...prev, ...newEmails])]); // Remove duplicates
       setCCEmailInput(""); // Clear input
     }
   };
+  const handleAddSpocEmailOnBlur = () => {
+    if (spocEmailInput.trim() !== "") {
+      const newEmails = spocEmailInput.split(',').map(email => email.trim());
+      setSpocEmails((prev) => [...new Set([...prev, ...newEmails])]); // Remove duplicates
+      setSpocEmailInput(""); // Clear input
+    }
+  };
+  
 
   const handleRemoveCCEmail = (emailToRemove) => {
     setCCEmails(ccEmails.filter((email) => email !== emailToRemove));
@@ -2420,7 +2451,7 @@ const SearchFlight = () => {
     const payload = {
 
       booking_id: bookingid,
-      email: spocEmail,
+      email: spocEmails,
       seat_type: cabinclass,
       departure_date: searchdeparturedate,
       return_date: searchreturnd,
@@ -11986,7 +12017,7 @@ const SearchFlight = () => {
                                                                     )
                                                                 )}
                                                               </div>
-                                                              {bookingid && (
+                                                              {is_approved === '1' && (
                                                                 <div className='buttonbook' style={{ width: "37%" }}><button type='button' className="continuebutton" style={{ marginTop: "11px", color: "white", backgroundColor: "#785eff", border: "none", padding: "3%", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
                                                               )}
                                                             </div>
@@ -15355,7 +15386,8 @@ const SearchFlight = () => {
                                                                         </div>
                                                                       </div>
                                                                     </div>
-                                                                    {/* {bookingid && ( */}
+                                                                    {/* {is_approved === '1'  && ( */}
+                                                                    
                                                                       <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleach(fareInfoRefKey)}>Book Now</button></div>
                                                                     {/* )} */}
                                                                     <button
@@ -16167,7 +16199,7 @@ const SearchFlight = () => {
                                                                   )}
                                                                 </div>
 
-                                                                {/* {bookingid && ( */}
+                                                                {/* {is_approved === '1'  && ( */}
                                                                   <div className='buttonbook' style={{ width: "37%" }}><button type='button' className="continuebutton" style={{ marginTop: "7px", color: "white", backgroundColor: "#785eff", border: "none", padding: "5px 5px 5px 5px", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
                                                                 {/* )} */}
                                                                 <button
@@ -16445,14 +16477,23 @@ const SearchFlight = () => {
             </div>
 
             <div className="form-group">
-              <label>SPOC Email</label>
-              <input
-                type="email"
-                value={spocEmail}
-                placeholder='Add SPOC email'
-                onChange={(e) => setSpocEmail(e.target.value)}
-              />
-            </div>
+  <label>Email</label>
+  <div className="chips-input-container">
+    {spocEmails.map((email, index) => (
+      <div className="chip" key={index}>
+        <span>{email}</span>
+        <button type="button" onClick={() => setSpocEmails(spocEmails.filter(e => e !== email))}>×</button>
+      </div>
+    ))}
+    <input
+      type="email"
+      value={spocEmailInput || ""}
+      onChange={(e) => setSpocEmailInput(e.target.value)}
+      placeholder={spocEmails.length === 0 ? "Add Email" : "Add Email"}
+      onBlur={handleAddSpocEmailOnBlur} // Add email when input loses focus
+    />
+  </div>
+</div>
 
             <div className="form-group">
               <label>Additional Email</label>
