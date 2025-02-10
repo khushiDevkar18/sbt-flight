@@ -928,6 +928,11 @@ const Booking = () => {
                     packageSelected['air:AirPricingInfo']['air:PassengerType']['$']['BookingTravelerRef'] = Passengers.keys[passengerTypeIndex];
                 }
             }
+            if (packageSelected['air:OptionalServices']) {
+                delete packageSelected['air:OptionalServices']['air:OptionalService'];
+                delete packageSelected['air:OptionalServices']['air:OptionalServiceRules'];
+            
+            }
             const specificSeatAssignments = [];
             if (previousSelections.length !== 0) {
                 previousSelections.forEach(seatSelection => {
@@ -946,6 +951,7 @@ const Booking = () => {
                     }
                 });
             }
+            console.log('packageSelected', packageSelected);
 
             const passengerAges = Passengers.ageNames.map(calculateAge);
             const makeReservationRequest = async () => {
@@ -1429,7 +1435,7 @@ const Booking = () => {
                                                             'xmlns:common_v52_0': 'http://www.travelport.com/schema/common_v52_0'
                                                         },
                                                         'air:OptionalServicesTotal': '',
-                                                        'air:OptionalService': mergedArray
+                                                        // 'air:OptionalService': mergedArray
                                                     }
                                                 }
                                             }
@@ -1501,7 +1507,7 @@ const Booking = () => {
                                                             'xmlns:common_v52_0': 'http://www.travelport.com/schema/common_v52_0'
                                                         },
                                                         'air:OptionalServicesTotal': '',
-                                                        'air:OptionalService': mergedArray
+                                                        // 'air:OptionalService': mergedArray
                                                     }
                                                 }
                                             }
