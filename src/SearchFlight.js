@@ -9651,7 +9651,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                             return (
                                                                               <>
                                                                                 {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                {finalPrice.toFixed(2)} {/* Show final price with markup applied */}
+                                                                                {Math.floor(finalPrice)}
                                                                               </>
                                                                             );
                                                                           })()}
@@ -9670,7 +9670,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                             return (
                                                                               <>
                                                                                 {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                {finalPrice.toFixed(2)} {/* Show final price with markup applied */}
+                                                                                {Math.floor(finalPrice)} {/* Show final price with markup applied */}
                                                                               </>
                                                                             );
                                                                           })()}
@@ -12046,7 +12046,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                   return (
                                                                     <>
                                                                       {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                      {finalPrice.toFixed(2)} {/* Show final price with markup applied */}
+                                                                      {Math.floor(finalPrice)} {/* Show final price with markup applied */}
                                                                     </>
                                                                   );
                                                                 })()}
@@ -12065,7 +12065,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                   return (
                                                                     <>
                                                                       {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                      {finalPrice.toFixed(2)} {/* Show final price with markup applied */}
+                                                                      {Math.floor(finalPrice)} {/* Show final price with markup applied */}
                                                                     </>
                                                                   );
                                                                 })()}
@@ -13783,7 +13783,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                             return (
                                                                               <>
                                                                                 {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                {finalPrice.toFixed(2)} {/* Show final price with markup applied */}
+                                                                                {Math.floor(finalPrice)} {/* Show final price with markup applied */}
                                                                               </>
                                                                             );
                                                                           })()}
@@ -13801,7 +13801,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                             return (
                                                                               <>
                                                                                 {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                                {finalPrice.toFixed(2)} {/* Show final price with markup applied */}
+                                                                                {Math.floor(finalPrice)} {/* Show final price with markup applied */}
                                                                               </>
                                                                             );
                                                                           })()}
@@ -15386,10 +15386,10 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         </div>
                                                                       </div>
                                                                     </div>
-                                                                    {/* {is_approved === '1'  && ( */}
+                                                                    {is_approved === '1'  && (
                                                                     
                                                                       <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleach(fareInfoRefKey)}>Book Now</button></div>
-                                                                    {/* )} */}
+                                                                    )}
                                                                     <button
                                                                       className="add-btn"
                                                                       type="button"
@@ -16199,9 +16199,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                   )}
                                                                 </div>
 
-                                                                {/* {is_approved === '1'  && ( */}
+                                                                {is_approved === '1'  && (
                                                                   <div className='buttonbook' style={{ width: "37%" }}><button type='button' className="continuebutton" style={{ marginTop: "7px", color: "white", backgroundColor: "#785eff", border: "none", padding: "5px 5px 5px 5px", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
-                                                                {/* )} */}
+                                                                )}
                                                                 <button
                                                                   className="add-btn"
                                                                   type="button"
@@ -16394,7 +16394,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                 color: fareIndex === 0 ? '#000' : '#785eff',
                               }}
                             >
-                              ₹ {fare.price.replace('INR', '').trim()}
+                             ₹ {Math.floor(Number(fare.price.replace('INR', '').trim()))}
                             </span>
                             <span
                               style={{
@@ -16477,7 +16477,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
             </div>
 
             <div className="form-group">
-  <label>Email</label>
+  <label>Email To</label>
   <div className="chips-input-container">
     {spocEmails.map((email, index) => (
       <div className="chip" key={index}>
