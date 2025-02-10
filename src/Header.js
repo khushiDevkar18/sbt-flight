@@ -3,371 +3,391 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import DatePicker from "react-datepicker";
 
-
 const Header = () => {
-    const location = useLocation();
-    const searchData = JSON.parse(sessionStorage.getItem('hotelData'));
+  const location = useLocation();
+  const [loader, setLoader]= useState(false);
+  const searchData = JSON.parse(sessionStorage.getItem("hotelData"));
+  // console.log(searchData);
 
-    
-    const [hotelcityList, setHotelCityList] = useState([]);
-    const searchParams = searchData || {};
-    const datew= searchParams.checkIn;
-    // console.log(searchParams);
-const navigate = useNavigate();
-    const parseDate = (dateStr) => {
-       if (!dateStr) return null;
-       const [year, month, day] = dateStr.split("-").map(Number);
-       if (!year || !month || !day) return null; // Ensure valid numbers
-       return new Date(year, month - 1, day); // JS months are 0-based
-     };
-   
-     // Function to format date as DD-MM-YYYY
-     const formatDate = (date) => {
-       if (!(date instanceof Date) || isNaN(date)) return ""; // Check if valid date
-       const day = String(date.getDate()).padStart(2, "0");
-       const month = String(date.getMonth() + 1).padStart(2, "0");
-       const year = date.getFullYear();
-       return `${day}-${month}-${year}`;
-     };
-   
-     // State initialization with parsed dates from searchParams
-     const [checkInDate, setCheckInDate] = useState(() => {
-        const parsedDate = parseDate(searchParams.checkIn);
-        return parsedDate instanceof Date && !isNaN(parsedDate) ? parsedDate : new Date();
-      });
-      
-      const [checkOutDate, setCheckOutDate] = useState(() => {
-        const parsedDate = parseDate(searchParams.checkOut);
-        return parsedDate instanceof Date && !isNaN(parsedDate) ? parsedDate : new Date();
-      });
-      
-     const [isCheckInOpen, setCheckInIsOpen] = useState(false);
-     const [isCheckOutOpen, setCheckOutIsOpen] = useState(false);
-     // // console.log( 'previous date ',searchParams.checkIn);
-     // // console.log('Displayed date ',parseDate(searchParams.checkIn));
-     // // console.log('actual date displayed',formatDate(checkInDate))
-     // Handle date changes
-     const handleCheckInDateChange = (date) => {
-       setCheckInDate(date);
-     };
-   
-     const handleCheckOutDateChange = (date) => {
-       setCheckOutDate(date);
-     };
-     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Control dropdown visibility
-     const [roomCount, setRoomCount] = useState(() => Number(searchParams.Rooms) || 0);
-const [roomadultCount, setRoomAdultCount] = useState(() => Number(searchParams.Adults) || 0);
-const [roomchildCount, setRoomChildCount] = useState(() => Number(searchParams.Children) || 0);
+  const [hotelcityList, setHotelCityList] = useState([]);
+  const searchParams = searchData || {};
+  // const datew = searchParams.checkIn;
+  // console.log(searchParams);
+  const navigate = useNavigate();
+  const parseDate = (dateStr) => {
+    if (!dateStr) return null;
+    const [year, month, day] = dateStr.split("-").map(Number);
+    if (!year || !month || !day) return null; // Ensure valid numbers
+    return new Date(year, month - 1, day); // JS months are 0-based
+  };
 
-   
-     const [childrenAges, setChildrenAges] = useState(
-       searchParams.childrenAges || []
-     );
-   
-     const handleToggleHotel = () => {
-       setIsDropdownOpen((prev) => !prev); // Toggle dropdown visibility
-     };
-   
-     const handleSelection = (type, value) => {
-       if (type === "children") {
-         setRoomChildCount(value);
-         setChildrenAges(new Array(value).fill(null)); // Initialize children ages
-       } else if (type === "adults") {
-         setRoomAdultCount(value);
-       } else if (type === "rooms") {
-         setRoomCount(value);
-       }
-     };
-     const handleChildAgeChange = (index, age) => {
-       const updatedAges = [...childrenAges];
-       updatedAges[index] = age;
-       setChildrenAges(updatedAges);
-     };
-     const [cityList, setCityList] = useState([]); // List of cities
-     const [filteredCities, setFilteredCities] = useState([]); // Filtered list
-     const [showDropdown, setShowDropdown] = useState(false); // Controls dropdown visibility
-     const [cityName, setCityName] = useState(
-        searchParams.filteredCities && searchParams.filteredCities.length > 0
-          ? searchParams.filteredCities[0].Name
-          : ""
-      );
-      
-      
-     // console.log(cityName); 
-     const [isTyping, setIsTyping] = useState(false);
-     useLayoutEffect(() => {
-       const storedCities = sessionStorage.getItem("cityList");
-   
-       if (storedCities) {
-         // Use stored data if available
-         const parsedCities = JSON.parse(storedCities);
-         setCityList(parsedCities);
-         setFilteredCities(parsedCities);
-       } else {
-         // Fetch API data only if not available in sessionStorage
-         const fetchCities = async () => {
-           try {
-             const response = await fetch(
-               "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtCityLists",
-               {
-                 method: "POST",
-                 headers: {
-                   "Content-Type": "application/json",
-                 },
-                 body: JSON.stringify({CountryCode:"IN" }),
-               }
-             );
-   
-             if (!response.ok) {
-               throw new Error(`HTTP error! status: ${response.status}`);
-             }
-   
-             const data = await response.json();
-             if (data.success === "1" && data.response.Status.Code === 200) {
-               const cityList = data.response.CityList || [];
-               setCityList(cityList);
-               setFilteredCities(cityList);
-   
-               // Store in sessionStorage
-               sessionStorage.setItem("cityList", JSON.stringify(cityList));
-             } else {
-               console.error(
-                 "Error fetching cities:",
-                 data.response.Status.Description
-               );
-             }
-           } catch (error) {
-             console.error("Error fetching cities:", error);
-           }
-         };
-   
-         fetchCities();
-       }
-     }, []);
-   
-     // Handle input change and filter city list
-     const handleInputChange = (e) => {
-       const searchValue = e.target.value.toLowerCase();
-       setCityName(searchValue);
-   
-       const filtered = cityList.filter((city) =>
-         city.Name.toLowerCase().includes(searchValue)
-       );
-       setFilteredCities(filtered);
-       setShowDropdown(true); 
-       setIsTyping(true);// Show dropdown when searching
-     };
-   
-     // Handle city selection
-     const handleCitySelect = (city) => {
-       
-       setCityName(city.Name); // Set selected city name
-       setShowDropdown(false); // Hide dropdown
-     };
-   
-   //  const hotelList = location.state?.hotelList || [];
-    // console.log(hotelList);
-     const [hotelCodes, setHotelCodes] = useState([]);
-     // // console.log(hotelCodes);
-     useLayoutEffect(() => {
-        const fetchCity = async () => {
-          if (filteredCities.length === 0) return; // Ensure filteredCities has data
-    
-          const cityCode = filteredCities[0]?.Code; // Get the first city's code
-          // if (!cityCode) return; // Avoid API call if cityCode is null
-    
-          // console.log("Fetching hotels for City Code:", cityCode);
-    
-          // // console.log('TB Hotel Code List')
-    
-          try {
-            const response = await fetch(
-              "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelCodesList",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                 //  Authorization: `Basic ${btoa("TBOStaticAPITest:Tbo@11530818")}`,
-                },
-                body: JSON.stringify({
-                  CityCode: cityCode,
-                  IsDetailedResponse: "true",
-                }),
-              }
-            );
-    
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-    
-            const data = await response.json();
-            // // console.log("Hotel :", data);
-    
-            if (data.success === "1" && data.response.Status.Code === 200) {
-              const hotels = data.response.Hotels || []; // Fix: Access Hotels from data.response
-             
-    
-              if (hotels.length > 0) {
-                const codes = hotels.map((hotel) => hotel.HotelCode);
-                // // console.log(codes);
-                setHotelCodes(codes);
-              } else {
-                console.warn("No hotels found in response.");
-              }
-            } else {
-              console.error(
-                "Error fetching hotels:",
-                data.response.Status.Description
-              );
-            }
-          } catch (error) {
-            console.error("Error fetching hotels:", error);
-          }
-        };
-    
-        fetchCity();
-      }, [filteredCities]);
-      const formatDate1 = (date) => {
-       const year = date.getFullYear();
-       const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
-       const day = String(date.getDate()).padStart(2, "0");
-       return `${year}-${month}-${day}`;
-     };
-   
-       const handleHotelSearch = async (e) => {
-          e.preventDefault();
-      
-          const checkIn = checkInDate ? formatDate1(checkInDate) : "";
-     const checkOut = checkOutDate ? formatDate1(checkOutDate) : "";
-          const Rooms = roomCount;
-          const Adults = roomadultCount;
-          const Children = roomchildCount;
-          const ChildAge = childrenAges;
-          const CityCode = hotelCodes.toString();
-          // // console.log(CityCode);
-          // console.log("Check-In Date:", checkIn);
-          // console.log("Check-Out Date:", checkOut);
-          // console.log("Rooms:", Rooms);
-          // console.log("Adults:", Adults);
-          // console.log("Children:", Children);
-          // console.log("Children Ages:", ChildAge);
-          // console.log("City Code:", CityCode);
-          const requestBody = {
-            CheckIn: checkIn,
-            CheckOut: checkOut,
-            HotelCodes: CityCode,
-            GuestNationality: "IN",
-            PaxRooms: [
-              {
-                Adults: Adults,
-                Children: Children,
-                ChildrenAges: ChildAge,
+  // Function to format date as DD-MM-YYYY
+  const formatDate = (date) => {
+    if (!(date instanceof Date) || isNaN(date)) return ""; // Check if valid date
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  // State initialization with parsed dates from searchParams
+  const [checkInDate, setCheckInDate] = useState(() => {
+    const parsedDate = parseDate(searchParams.checkIn);
+    return parsedDate instanceof Date && !isNaN(parsedDate)
+      ? parsedDate
+      : new Date();
+  });
+
+  const [checkOutDate, setCheckOutDate] = useState(() => {
+    const parsedDate = parseDate(searchParams.checkOut);
+    return parsedDate instanceof Date && !isNaN(parsedDate)
+      ? parsedDate
+      : new Date();
+  });
+
+  const [isCheckInOpen, setCheckInIsOpen] = useState(false);
+  const [isCheckOutOpen, setCheckOutIsOpen] = useState(false);
+  // // console.log( 'previous date ',searchParams.checkIn);
+  // // console.log('Displayed date ',parseDate(searchParams.checkIn));
+  // // console.log('actual date displayed',formatDate(checkInDate))
+  // Handle date changes
+  const handleCheckInDateChange = (date) => {
+    setCheckInDate(date);
+  };
+
+  const handleCheckOutDateChange = (date) => {
+    setCheckOutDate(date);
+  };
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Control dropdown visibility
+  const [roomCount, setRoomCount] = useState(
+    () => Number(searchParams.Rooms) || 0
+  );
+  const [roomadultCount, setRoomAdultCount] = useState(
+    () => Number(searchParams.Adults) || 0
+  );
+  const [roomchildCount, setRoomChildCount] = useState(
+    () => Number(searchParams.Children) || 0
+  );
+
+  const [childrenAges, setChildrenAges] = useState(
+    searchParams.childrenAges || []
+  );
+
+  const handleToggleHotel = () => {
+    setIsDropdownOpen((prev) => !prev); // Toggle dropdown visibility
+  };
+
+  const handleSelection = (type, value) => {
+    if (type === "children") {
+      setRoomChildCount(value);
+      setChildrenAges(new Array(value).fill(null)); // Initialize children ages
+    } else if (type === "adults") {
+      setRoomAdultCount(value);
+    } else if (type === "rooms") {
+      setRoomCount(value);
+    }
+  };
+  const handleChildAgeChange = (index, age) => {
+    const updatedAges = [...childrenAges];
+    updatedAges[index] = age;
+    setChildrenAges(updatedAges);
+  };
+  const [cityList, setCityList] = useState([]); // List of cities
+  const [filteredCities, setFilteredCities] = useState([]); // Filtered list
+  const [showDropdown, setShowDropdown] = useState(false); // Controls dropdown visibility
+  const [cityName, setCityName] = useState(
+    searchParams.filteredCities && searchParams.filteredCities.length > 0
+      ? searchParams.filteredCities[0].Name
+      : ""
+  );
+
+  // console.log(cityName);
+  const [isTyping, setIsTyping] = useState(false);
+  useLayoutEffect(() => {
+    const storedCities = sessionStorage.getItem("cityList");
+
+    if (storedCities) {
+      // Use stored data if available
+      const parsedCities = JSON.parse(storedCities);
+      setCityList(parsedCities);
+      setFilteredCities(parsedCities);
+    } else {
+      // Fetch API data only if not available in sessionStorage
+      const fetchCities = async () => {
+        try {
+          const response = await fetch(
+            "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtCityLists",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
               },
-            ],
-            ResponseTime: 23.0,
-            IsDetailedResponse: true,
-            Filters: {
-              Refundable: false,
-              NoOfRooms: 1,
-              MealType: 0,
-              OrderBy: 0,
-              StarRating: 0,
-              HotelName: null,
-            },
-          };
-          const hotel= hotelcityList;
-          console.log(hotel);
-          
-          // console.log(requestBody);
-      
-          try {
-            const response = await fetch(
-              "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  // Authorization: `Basic ${btoa("Bai:Bai@12345")}`,
-                },
-                body: JSON.stringify(requestBody),
-              }
-            );
-      
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
+              body: JSON.stringify({ CountryCode: "IN" }),
             }
-      
-          const data = await response.json();
-                // console.log("Hotel data:", data);
-                if (data.success === "1" && data.response.Status.Code === 200) {
-                        setHotelCityList(data.response.HotelResult || []);
-                        // console.log("asd");
-                      
-                        // Prepare the data to store in sessionStorage
-                        const searchData = {
-                          hotelList: data.response.HotelResult,
-                         
-                        };
-                       const searchParams = {
-                          checkIn,
-                          checkOut,
-                          Rooms,
-                          Adults,
-                          Children,
-                          ChildAge,
-                          CityCode,
-                          filteredCities,
-                        };
-                        // Store the data in sessionStorage
-                        sessionStorage.setItem('hotelData', JSON.stringify(searchParams));
-                        sessionStorage.setItem('hotel', JSON.stringify(hotel));
-                        sessionStorage.setItem('hotelSearchData', JSON.stringify(searchData));
-                      
-                        // Navigate to SearchHotel with the state
-                        navigate("/SearchHotel", {
-                          state: searchData,
-                        });
-                      
-                        // navigate("/SearchHotel", { state: { hotelList: data.HotelResult } });
-                      } else {
-                        Swal.fire({
-                          // icon: "error",
-                          title: "Error",
-                          text: data.response.Status.Description || "Something went wrong!",
-                        });
-                      }
-                    } catch (error) {
-            console.error("Error fetching hotels:", error);
-      
-            Swal.fire({
-              icon: "error",
-              title: "Request Failed",
-              text: error.message || "Failed to fetch hotel data.",
-            });
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
+
+          const data = await response.json();
+          console.log(data);
+          if (data.Status.Code === 200) {
+            const cityList = data.CityList || [];
+            setCityList(cityList);
+            setFilteredCities(cityList);
+
+            // Store in sessionStorage
+            sessionStorage.setItem("cityList", JSON.stringify(cityList));
+          } else {
+            console.error("Error fetching cities:", data.Status.Description);
+          }
+        } catch (error) {
+          console.error("Error fetching cities:", error);
+        }
+      };
+
+      fetchCities();
+    }
+  }, []);
+
+  // Handle input change and filter city list
+  const handleInputChange = (e) => {
+    const searchValue = e.target.value.toLowerCase();
+    setCityName(searchValue);
+
+    const filtered = cityList.filter((city) =>
+      city.Name.toLowerCase().includes(searchValue)
+    );
+    setFilteredCities(filtered);
+    setShowDropdown(true);
+    setIsTyping(true); // Show dropdown when searching
+  };
+
+  // Handle city selection
+  const handleCitySelect = (city) => {
+    setCityName(city.Name); // Set selected city name
+    setShowDropdown(false); // Hide dropdown
+  };
+ const showHeader2 = location.pathname === "/SearchHotel" || location.pathname === "/HotelDetail";
+  //  const hotelList = location.state?.hotelList || [];
+  // console.log(hotelList);
+  const [hotelCodes, setHotelCodes] = useState([]);
+  // // console.log(hotelCodes);
+  useLayoutEffect(() => {
+    const fetchCity = async () => {
+      if (filteredCities.length === 0) return; // Ensure filteredCities has data
+
+      const cityCode = filteredCities[0]?.Code; // Get the first city's code
+      // if (!cityCode) return; // Avoid API call if cityCode is null
+
+      // console.log("Fetching hotels for City Code:", cityCode);
+
+      // // console.log('TB Hotel Code List')
+
+      try {
+        const response = await fetch(
+          "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelCodesList",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              //  Authorization: `Basic ${btoa("TBOStaticAPITest:Tbo@11530818")}`,
+            },
+            body: JSON.stringify({
+              CityCode: cityCode,
+              IsDetailedResponse: "true",
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        // // console.log("Hotel :", data);
+
+        if (data.success === "1" && data.response.Status.Code === 200) {
+          const hotels = data.response.Hotels || []; // Fix: Access Hotels from data.response
+
+          if (hotels.length > 0) {
+            const codes = hotels.map((hotel) => hotel.HotelCode);
+            // // console.log(codes);
+            setHotelCodes(codes);
+          } else {
+            console.warn("No hotels found in response.");
+          }
+        } else {
+          console.error(
+            "Error fetching hotels:",
+            data.response.Status.Description
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching hotels:", error);
+      }
+    };
+
+    fetchCity();
+  }, [filteredCities]);
+  const formatDate1 = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleHotelSearch = async (e) => {
+    e.preventDefault();
+
+    const checkIn = checkInDate ? formatDate1(checkInDate) : "";
+    const checkOut = checkOutDate ? formatDate1(checkOutDate) : "";
+    const Rooms = roomCount;
+    const Adults = roomadultCount;
+    const Children = roomchildCount;
+    const ChildAge = childrenAges;
+    const CityCode = hotelCodes.toString();
+    // // console.log(CityCode);
+    // console.log("Check-In Date:", checkIn);
+    // console.log("Check-Out Date:", checkOut);
+    // console.log("Rooms:", Rooms);
+    // console.log("Adults:", Adults);
+    // console.log("Children:", Children);
+    // console.log("Children Ages:", ChildAge);
+    // console.log("City Code:", CityCode);
+    const requestBody = {
+      CheckIn: checkIn,
+      CheckOut: checkOut,
+      HotelCodes: CityCode,
+      GuestNationality: "IN",
+      PaxRooms: [
+        {
+          Adults: Adults,
+          Children: Children,
+          ChildrenAges: ChildAge,
+        },
+      ],
+      ResponseTime: 23.0,
+      IsDetailedResponse: true,
+      Filters: {
+        Refundable: false,
+        NoOfRooms: 1,
+        MealType: 0,
+        OrderBy: 0,
+        StarRating: 0,
+        HotelName: null,
+      },
+    };
+    const hotel = hotelcityList;
+    console.log(hotel);
+
+    // console.log(requestBody);
+
+    try {
+      setLoader(true);
+      const response = await fetch(
+        "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Authorization: `Basic ${btoa("Bai:Bai@12345")}`,
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // console.log("Hotel data:", data);
+      if (data.success === "1" && data.response.Status.Code === 200) {
+        setHotelCityList(data.response.HotelResult || []);
+        // console.log("asd");
+
+        // Prepare the data to store in sessionStorage
+        const searchData = {
+          hotelList: data.response.HotelResult,
         };
-        const [showHeader, setShowHeader] = useState(true);
-        const [lastScrollY, setLastScrollY] = useState(0);
-      
-        useLayoutEffect(() => {
-          const handleScroll = () => {
-            if (window.scrollY > lastScrollY) {
-              // Scrolling Down - Hide Header
-              setShowHeader(false);
-            } else {
-              // Scrolling Up - Show Header
-              setShowHeader(true);
-            }
-            setLastScrollY(window.scrollY);
-          };
-      
-          window.addEventListener("scroll", handleScroll);
-          return () => {
-            window.removeEventListener("scroll", handleScroll);
-          };
-        }, [lastScrollY]);
-      
-   // import ErrorLogger from './ErrorLogger';
+        const searchParams = {
+          checkIn,
+          checkOut,
+          Rooms,
+          Adults,
+          Children,
+          ChildAge,
+          CityCode,
+          filteredCities,
+        };
+        // Store the data in sessionStorage
+        sessionStorage.setItem("hotelData", JSON.stringify(searchParams));
+        sessionStorage.setItem("hotel", JSON.stringify(hotel));
+        sessionStorage.setItem("hotelSearchData", JSON.stringify(searchData));
+
+        // Navigate to SearchHotel with the state
+        navigate("/SearchHotel", {
+          state: searchData,
+        });
+        setLoader(false);
+        // navigate("/SearchHotel", { state: { hotelList: data.HotelResult } });
+      } else {
+        Swal.fire({
+          // icon: "error",
+          title: "Error",
+          text: data.response.Status.Description || "Something went wrong!",
+        });
+        setLoader(false);
+      }
+    } catch (error) {
+      console.error("Error fetching hotels:", error);
+
+      Swal.fire({
+        // icon: "error",
+        title: "Request Failed",
+        text: error.message || "Failed to fetch hotel data.",
+      });
+      setLoader(false);
+    }
+  };
+  const [showHeader, setShowHeader] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    let timeout;
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+
+      if (scrollY === 0) {
+        // User is at the top, always show the header
+        setShowHeader(true);
+      } else if (scrollY > lastScrollY) {
+        // Scrolling down, hide the header
+        setShowHeader(false);
+      } else {
+        // Scrolling up, show the header
+        setShowHeader(true);
+      }
+
+      setLastScrollY(scrollY);
+
+      // Optional: Prevent flickering by adding a delay before hiding again
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        if (window.scrollY > 100) setShowHeader(false);
+      }, 2000); // Auto-hide after 2 seconds if not at the top
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(timeout);
+    };
+  }, [lastScrollY]);
+
+  // import ErrorLogger from './ErrorLogger';
   return (
     <>
       <div className="overlay"></div>
@@ -410,127 +430,123 @@ const [roomchildCount, setRoomChildCount] = useState(() => Number(searchParams.C
       </div>
       <header id="top">
         {showHeader && (
-        <div className="header-b">
-          <div className="mobile-menu">
-            <nav>
-              <ul>
-                <li>
-                  <Link className="has-child" to="/">
-                    HOME
-                  </Link>
-                </li>
+          <div className="header-b">
+            <div className="mobile-menu">
+              <nav>
+                <ul>
+                  <li>
+                    <Link className="has-child" to="/">
+                      HOME
+                    </Link>
+                  </li>
 
-                <li>
-                  <a className="has-child" href="#">
-                    Services
-                  </a>
+                  <li>
+                    <a className="has-child" href="#">
+                      Services
+                    </a>
+                    <ul>
+                      <li>
+                        <a href="#">Hotel Booking</a>
+                      </li>
+                      <li>
+                        <a href="#">Cabs</a>
+                      </li>
+                      <li>
+                        <a href="#">Ticketing - Train, Bus & flight</a>
+                      </li>
+                      <li>
+                        <a href="#">logistics</a>
+                      </li>
+                      <li>
+                        <a href="#">FRRO/FRO consultancy</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <a className="has-child" href="#">
+                      About US
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#">CONTACTS</a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
+            <div className={`wrapper-padding ${showHeader ? "" : "hidden"}`}>
+              <div className="header-logo">
+                <a href="index-2.html">
+                  <img alt="" src="img/taxivaxi/logo/cotrav_logo.svg" />
+                </a>
+              </div>
+              <div className="header-right">
+                <div className="hdr-srch">
+                  <a href="#" className="hdr-srch-btn"></a>
+                </div>
+                <div className="hdr-srch-overlay">
+                  <div className="hdr-srch-overlay-a">
+                    <input type="text" placeholder="Start typing..." />
+                    <a href="#" className="srch-close"></a>
+                    <div className="clear"></div>
+                  </div>
+                </div>
+                <div className="hdr-srch-devider"></div>
+                <a href="#" className="menu-btn"></a>
+                <nav className="header-nav">
                   <ul>
                     <li>
-                      <a href="#">Hotel Booking</a>
+                      <Link className="nav-links" to="/">
+                        HOME
+                      </Link>
                     </li>
                     <li>
-                      <a href="#">Cabs</a>
+                      <a className="has-child" href="#">
+                        Services
+                      </a>
+                      <ul className="dropdown-menu">
+                        <li>
+                          <a href="flightOneWay.html">Hotel Booking</a>
+                        </li>
+                        <li>
+                          <a href="flightOneWay.html">Cabs</a>
+                        </li>
+                        <li>
+                          <a href="flightOneWay.html">
+                            Ticketing - Train, Bus & Flight
+                          </a>
+                        </li>
+                        <li>
+                          <a href="flightOneWay.html">Logistics</a>
+                        </li>
+                        <li>
+                          <a href="flightOneWay.html">FRRO/FRO consultancy</a>
+                        </li>
+                      </ul>
                     </li>
                     <li>
-                      <a href="#">Ticketing - Train, Bus & flight</a>
+                      <a className="has-child" href="#">
+                        About Us
+                      </a>
                     </li>
                     <li>
-                      <a href="#">logistics</a>
-                    </li>
-                    <li>
-                      <a href="#">FRRO/FRO consultancy</a>
+                      <a href="#">CONTACTS</a>
                     </li>
                   </ul>
-                </li>
-                <li>
-                  <a className="has-child" href="#">
-                    About US
-                  </a>
-                </li>
-                <li>
-                  <a href="#">CONTACTS</a>
-                </li>
-              </ul>
-            </nav>
+                </nav>
+              </div>
+              <div className="clear"></div>
+            </div>
           </div>
-         
- <div className={`wrapper-padding ${showHeader ? '' : 'hidden'}`}>
-
-    <div className="header-logo">
-      <a href="index-2.html">
-        <img alt="" src="img/taxivaxi/logo/cotrav_logo.svg" />
-      </a>
-    </div>
-    <div className="header-right">
-      <div className="hdr-srch">
-        <a href="#" className="hdr-srch-btn"></a>
-      </div>
-      <div className="hdr-srch-overlay">
-        <div className="hdr-srch-overlay-a">
-          <input type="text" placeholder="Start typing..." />
-          <a href="#" className="srch-close"></a>
-          <div className="clear"></div>
-        </div>
-      </div>
-      <div className="hdr-srch-devider"></div>
-      <a href="#" className="menu-btn"></a>
-      <nav className="header-nav">
-        <ul>
-          <li>
-            <Link className="nav-links" to="/">
-              HOME
-            </Link>
-          </li>
-          <li>
-            <a className="has-child" href="#">
-              Services
-            </a>
-            <ul className="dropdown-menu">
-              <li>
-                <a href="flightOneWay.html">Hotel Booking</a>
-              </li>
-              <li>
-                <a href="flightOneWay.html">Cabs</a>
-              </li>
-              <li>
-                <a href="flightOneWay.html">Ticketing - Train, Bus & Flight</a>
-              </li>
-              <li>
-                <a href="flightOneWay.html">Logistics</a>
-              </li>
-              <li>
-                <a href="flightOneWay.html">FRRO/FRO consultancy</a>
-              </li>
-            </ul>
-          </li>
-          <li>
-            <a className="has-child" href="#">
-              About Us
-            </a>
-          </li>
-          <li>
-            <a href="#">CONTACTS</a>
-          </li>
-        </ul>
-      </nav>
-    </div>
-    <div className="clear"></div>
-  </div>
-
-
-         
-        </div>
         )}
       </header>
-      { location.pathname !== "/" && (
-      <header className="search-bar2" id="widgetHeader">
-        <form onSubmit={handleHotelSearch}>
+      {showHeader2 && (
+        <header className="search-bar2" id="widgetHeader">
+          <form onSubmit={handleHotelSearch}>
             <div id="search-widget" className="hsw v2">
               <div className="hsw_inner" style={{ marginLeft: "4%" }}>
                 <div className="hsw_inputBox tripTypeWrapper grid grid-cols-5 gap-10">
-                
                   <div className="hotel-form-box ">
-                   
                     {/* Clickable div to trigger dropdown */}
                     <div
                       className="flex gap-2"
@@ -544,18 +560,19 @@ const [roomchildCount, setRoomChildCount] = useState(() => Number(searchParams.C
 
                     {/* Searchable input field */}
                     <div className="hotel-city-name-2">
-                    <input
-                      type="text"
-                      className=" font-semibold  hotel-city"
-                      value={cityName}
-                      onChange={handleInputChange}
-                      placeholder="Search City"
-                      onFocus={() => setShowDropdown(true)} // Show dropdown when input is focused
-                    /></div>
+                      <input
+                        type="text"
+                        className=" font-semibold  hotel-city"
+                        value={cityName}
+                        onChange={handleInputChange}
+                        placeholder="Search City"
+                        onFocus={() => setShowDropdown(true)} // Show dropdown when input is focused
+                      />
+                    </div>
 
                     {/* Dropdown for city selection */}
                     {showDropdown && filteredCities.length > 0 && (
-                      <div className="absolute w-25 bg-white border border-gray-300 mt-1 max-h-60 overflow-y-auto z-10 dropdown-size">
+                      <div className="absolute w-25 bg-white border border-gray-300 margin_City max-h-60 overflow-y-auto z-10 dropdown-size">
                         {filteredCities.map((city) => (
                           <div
                             key={city.Code}
@@ -596,7 +613,9 @@ const [roomchildCount, setRoomChildCount] = useState(() => Number(searchParams.C
                           onClickOutside={() => setCheckInIsOpen(false)}
                         />
                       ) : (
-                        <p className="font-semibold">{formatDate(checkInDate)}</p>
+                        <p className="font-semibold">
+                          {formatDate(checkInDate)}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -630,7 +649,9 @@ const [roomchildCount, setRoomChildCount] = useState(() => Number(searchParams.C
                           onClickOutside={() => setCheckOutIsOpen(false)}
                         />
                       ) : (
-                        <p className="font-semibold">{formatDate(checkOutDate)}</p>
+                        <p className="font-semibold">
+                          {formatDate(checkOutDate)}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -646,8 +667,9 @@ const [roomchildCount, setRoomChildCount] = useState(() => Number(searchParams.C
                       <img src="../img/downarrow.svg" className="w-3 h-4"></img>
                     </div>
                     <p className="hotel-city-name-2 font-semibold whitespace-nowrap">
-  {roomCount} Rooms, {roomadultCount} Adults, {roomchildCount} Children
-</p>
+                      {roomCount} Rooms, {roomadultCount} Adults,{" "}
+                      {roomchildCount} Children
+                    </p>
 
                     {isDropdownOpen && (
                       <div
@@ -787,7 +809,6 @@ const [roomchildCount, setRoomChildCount] = useState(() => Number(searchParams.C
                   </div>
 
                   <button className="search-buttonn rounded-lg">Search</button>
-                
                 </div>
               </div>
             </div>

@@ -78,7 +78,7 @@
     color: #785ef7;
   }
 
-  .hotel-form-box{
+  .hotel-form-box {
     padding: 5px 9px 7px 7px;
     background: #fff none repeat scroll 0 0;
     border: 1px solid #e3e3e3;
@@ -90,7 +90,8 @@
     box-shadow: none;
     padding-left: 12px;
     height: 50px;
-  }
+    width: 110%;
+}
   .card-container{
     padding-bottom: 50px;
     padding-top: 10px;
@@ -296,4 +297,11 @@ ul {
 .active_tabs {
 
 border-color: #785ef7;
+}
+.margin_City{
+  margin-top: -0.75rem !important;
+}
+.loader_size{
+  height: 130px;
+  width: 130px;
 }

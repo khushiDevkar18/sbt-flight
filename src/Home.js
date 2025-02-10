@@ -863,7 +863,7 @@ function Home() {
       setIsOpen(false); // Close the div
     }
   };
-
+  const [loader, setLoader]= useState(false);
   // const [formActual, setformActual] = useState(null);
   // console.log('form', formActual);
   const [activeForm, setActiveForm] = useState("flight"); // Default form is shown initially
@@ -880,76 +880,75 @@ function Home() {
   const [hotelcityList, setHotelCityList] = useState([]);
   const [hotelCodes, setHotelCodes] = useState([]);
 
- useLayoutEffect(() => {
-    const storedCities = sessionStorage.getItem("cityList");
+  useLayoutEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const response = await fetch(
+          "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtCityLists",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ CountryCode: "IN" }),
+          }
+        );
 
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("API Response:", data);
+
+        if (data.Status.Code === 200) {
+          const cityList = data.CityList || [];
+          setCityList(cityList);
+          setFilteredCities(cityList);
+          sessionStorage.setItem("cityList", JSON.stringify(cityList));
+        } else {
+          console.error("Error fetching cities:", data.Status.Description);
+        }
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+      }
+    };
+    
+    
+    const storedCities = sessionStorage.getItem("cityList");
     if (storedCities) {
-      // Use stored data if available
       const parsedCities = JSON.parse(storedCities);
       setCityList(parsedCities);
       setFilteredCities(parsedCities);
     } else {
-      // Fetch API data only if not available in sessionStorage
-      const fetchCities = async () => {
-        try {
-          const response = await fetch(
-            "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtCityLists",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ CountryCode: "IN" }),
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-          if (data.success === "1" && data.response.Status.Code === 200) {
-            const cityList = data.response.CityList || [];
-            setCityList(cityList);
-            setFilteredCities(cityList);
-
-            // Store in sessionStorage
-            sessionStorage.setItem("cityList", JSON.stringify(cityList));
-          } else {
-            console.error(
-              "Error fetching cities:",
-              data.response.Status.Description
-            );
-          }
-        } catch (error) {
-          console.error("Error fetching cities:", error);
-        }
-      };
-
       fetchCities();
     }
-  }, []); // Only runs once when the component mounts
-
+  }, []);
 
   // Handle city search and filter
   const handleInputChange = (e) => {
     const searchValue = e.target.value.toLowerCase();
     setSelectedCity(searchValue);
 
+    if (searchValue.length === 0) {
+      setFilteredCities(cityList);
+      setShowDropdown(false);
+      return;
+    }
+
     const filtered = cityList.filter((city) =>
       city.Name.toLowerCase().includes(searchValue)
     );
     setFilteredCities(filtered);
-
-    // Show dropdown only when input has a value
-    setShowDropdown(searchValue.length > 0);
+    setShowDropdown(filtered.length > 0);
   };
 
   // Handle city selection
   const handleCitySelect = (cityName) => {
     setSelectedCity(cityName);
-    setShowDropdown(false); // Hide the dropdown after selection
+    setShowDropdown(false);
   };
+
   useLayoutEffect(() => {
     const fetchCity = async () => {
       if (filteredCities.length === 0) return; // Ensure filteredCities has data
@@ -1106,6 +1105,7 @@ function Home() {
     // console.log("Authorization Header:", `Basic ${btoa("Bai:Bai@12345")}`);
 
     try {
+      setLoader(true);
       const response = await fetch(
         "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
         {
@@ -1123,7 +1123,7 @@ function Home() {
       }
 
       const data = await response.json();
-      // console.log("Hotel data:", data);
+      console.log("Hotel data:", data);
       if (data.success === "1" && data.response.Status.Code === 200) {
         setHotelCityList(data.response.HotelResult || []);
         // console.log("asd");
@@ -1152,6 +1152,7 @@ function Home() {
         navigate("/SearchHotel", {
           state: searchData,
         });
+        setLoader(false);
       
         // navigate("/SearchHotel", { state: { hotelList: data.HotelResult } });
       } else {
@@ -1160,9 +1161,11 @@ function Home() {
           title: "Error",
           text: data.response.Status.Description || "Something went wrong!",
         });
+        setLoader(false);
       }
     } catch (error) {
       console.error("Error fetching hotels:", error);
+      setLoader(false);
 
       // Swal.fire({
       //   icon: "error",
@@ -2128,37 +2131,35 @@ function Home() {
                               <div className="hotel-container flex flex-cols ">
                                 {/* Input for City, Property, or Location */}
                                 <div className="from-hotel-group">
-                                  <div className="location-headers">
-                                    City, Property Name or Location
-                                  </div>
-                                  <div className="location-details">
-                                    <input
-                                      type="text"
-                                      className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
-                                      placeholder="Enter City"
-                                      value={selectedCity}
-                                      onChange={handleInputChange}
-                                      onClick={() => setShowDropdown(true)} // Show dropdown on click
-                                    />
-
-                                    {showDropdown &&
-                                      filteredCities.length > 0 && (
-                                        <div className="absolute w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-y-auto z-10 dropdown-size">
-                                          {filteredCities.map((city) => (
-                                            <div
-                                              key={city.Code}
-                                              className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                                              onClick={() =>
-                                                handleCitySelect(city.Name)
-                                              }
-                                            >
-                                              {city.Name}
-                                            </div>
-                                          ))}
-                                        </div>
-                                      )}
-                                  </div>
-                                </div>
+        <div className="location-headers">
+          City, Property Name or Location
+        </div>
+        <div className="location-details relative">
+          <input
+            type="text"
+            className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+            placeholder="Enter City"
+            value={selectedCity}
+            onChange={handleInputChange}
+            onFocus={() => setShowDropdown(true)} // Show dropdown when input is focused
+            onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // Delay hiding to allow click
+          />
+          
+          {showDropdown && filteredCities.length > 0 && (
+            <div className="absolute w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-y-auto z-10 dropdown-size">
+              {filteredCities.map((city) => (
+                <div
+                  key={city.Code}
+                  className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                  onMouseDown={() => handleCitySelect(city.Name)} // Use onMouseDown to prevent blur issue
+                >
+                  {city.Name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
                                 {/* Check-In Date */}
                                 <div className="from-hotel-group">

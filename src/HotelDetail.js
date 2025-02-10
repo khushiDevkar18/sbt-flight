@@ -1,5 +1,7 @@
-import { useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import {
   GoogleMap,
   InfoWindow,
@@ -10,6 +12,51 @@ import {
 const HotelDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [showHeader, setShowHeader] = useState(false);
+  const [activeSection, setActiveSection] = useState("overview");
+
+  // References for sections
+  const overviewRef = useRef(null);
+  const roomsRef = useRef(null);
+  const locationRef = useRef(null);
+  const rulesRef = useRef(null);
+
+  // Handle scroll event
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+
+      // Show header when scrolled past 200px
+      setShowHeader(scrollY > 200);
+
+      // Determine active section based on scroll position
+      const sectionOffsets = {
+        overview: overviewRef.current?.offsetTop || 0,
+        rooms: roomsRef.current?.offsetTop || 0,
+        location: locationRef.current?.offsetTop || 0,
+        rules: rulesRef.current?.offsetTop || 0,
+      };
+
+      const scrollPosition = scrollY + 100; // Adjust for header height
+      let currentSection = "overview";
+
+      for (const section in sectionOffsets) {
+        if (scrollPosition >= sectionOffsets[section]) {
+          currentSection = section;
+        }
+      }
+
+      setActiveSection(currentSection);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Smooth scrolling function
+  const scrollToSection = (sectionRef) => {
+    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const images = [
@@ -17,6 +64,7 @@ const HotelDetails = () => {
     "../img/hotelroom2.jpg",
     "../img/hotelroom3.jpg",
   ];
+
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -44,6 +92,47 @@ const HotelDetails = () => {
 
     return match ? match[1].trim() : "No Location Available";
   };
+  dayjs.extend(customParseFormat); // Enable custom date parsing
+
+//   const cancellationDate = hotel.CancelPolicies?.[0]?.FromDate || null;
+//   const mealType = hotel.Rooms?.[0]?.MealType || "";
+//   const isRefundable = hotel.Rooms?.[0]?.IsRefundable || false;
+  
+//   // Debugging: Log the raw cancellation date
+//   console.log("Raw Cancellation Date:", cancellationDate);
+  
+//   // Ensure cancellationDate is a valid string before parsing
+//   const parsedCancellationDate = cancellationDate
+//       ? dayjs(String(cancellationDate), "DD-MM-YYYY HH:mm:ss", true)
+//       : null;
+  
+//   // Check if date parsing was successful
+//   const isValidDate = parsedCancellationDate?.isValid() || false;
+//   const isFutureDate = isValidDate ? parsedCancellationDate.isAfter(dayjs()) : false;
+  
+//   // Debugging: Log parsed date and validation
+//   console.log("Parsed Cancellation Date:", isValidDate ? parsedCancellationDate.format("YYYY-MM-DD HH:mm:ss") : "Invalid Date");
+//   console.log("Is Future Date:", isFutureDate);
+//   console.log("Meal Type:", mealType);
+  
+//   let cancellationText = "";
+  
+//   // Handle cancellation conditions
+//   if (!isValidDate) {
+//       cancellationText = "Invalid cancellation date provided";
+//   } else if (!isFutureDate && mealType === "Room_Only") {
+//       cancellationText = "Rooms cancellation not available";
+//   } else if (!isFutureDate && mealType === "BreakFast") {
+//       cancellationText = "Breakfast only";
+//   } else if (isFutureDate && mealType === "Room_Only") {
+//       cancellationText = "Rooms with cancellation";
+//   } else if (isFutureDate && mealType === "BreakFast") {
+//       cancellationText = "Rooms with cancellation | Breakfast Only";
+//   } else {
+//       cancellationText = "Room Cancellation";
+//   }
+  
+//   console.log("Final Cancellation Text:", cancellationText);
   const formatCancelPolicies = (CancelPolicies) => {
     if (!Array.isArray(CancelPolicies) || CancelPolicies.length === 0) {
       return ["No cancellation policies available."];
@@ -63,13 +152,32 @@ const HotelDetails = () => {
       if (policy.ChargeType === "Fixed" && policy.CancellationCharge === 0) {
         return `Free Cancellation till check-in`;
       } else if (policy.ChargeType === "Fixed") {
-        return `Booking will be canceled from ${formattedDate} with a charge of ${policy.CancellationCharge}`;
+        return `Booking will be cancelled from ${formattedDate} with a charge of ${policy.CancellationCharge}`;
       } else if (policy.ChargeType === "Percentage") {
         return `From ${formattedDate}, the cancellation charge is ${policy.CancellationCharge}%`;
       }
       return `Policy starts from ${formattedDate}`;
     });
   };
+  const cancellationPolicies = formatCancelPolicies(hotel.CancelPolicies);
+console.log("Formatted Cancellation Policies:", cancellationPolicies);
+
+const mealType = hotel.Rooms?.[0]?.MealType || "";
+const isRefundable = hotel.Rooms?.[0]?.IsRefundable || false;
+
+let cancellationText = "";
+
+if (cancellationPolicies.includes("No cancellation policies available.")) {
+  cancellationText = "Invalid cancellation date provided";
+} else if (mealType === "Room_Only") {
+  cancellationText = isRefundable ? "Rooms with cancellation" : "Rooms cancellation not available";
+} else if (mealType === "BreakFast") {
+  cancellationText = isRefundable ? "Rooms with cancellation | Breakfast Only" : "Breakfast only";
+} else {
+  cancellationText = "Room Cancellation";
+}
+
+console.log("Final Cancellation Text:", cancellationText);
   const mapSectionRef = useRef(null);
   const [showInfo, setShowInfo] = useState(true);
 
@@ -90,9 +198,42 @@ const HotelDetails = () => {
   });
 
   if (!isLoaded) return <p>Loading Map...</p>;
-
+ 
   return (
-    <div>
+    <div className="">
+      {/* Sticky Header */}
+      {showHeader && (
+  <div
+    className="fixed  w-full bg-white shadow-md  z-50 flex  h-10 " 
+    style={{ top: "80px" }} // Adjust '64px' based on your main header height
+  >
+    <div className="flex gap-5">
+      {["overview", "rooms", "location", "rules"].map((section) => (
+        <button
+          key={section}
+          onClick={() =>
+            scrollToSection(
+              section === "overview"
+                ? overviewRef
+                : section === "rooms"
+                ? roomsRef
+                : section === "location"
+                ? locationRef
+                : rulesRef
+            )
+          }
+          className={`  ${
+            activeSection === section ? "font-bold text-blue-500" : "text-gray-600"
+          }` }style={{ marginLeft: "17%" }}
+        >
+          {section.charAt(0).toUpperCase() + section.slice(1)}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
+
+
       {hotel && (
         <div className="hoteldetail-conatiner">
           <nav className="text-sm text-gray-600 flex gap-2 py-3 px-5">
@@ -114,7 +255,7 @@ const HotelDetails = () => {
               {hotel.HotelName}
             </span>
           </nav>
-          <div className="flex items-center justify-center py-2">
+          <div className="flex items-center justify-center py-2"> <section ref={overviewRef} id="overview">
             <div className="max-w-[75rem] w-full bg-white shadow-[4px_6px_10px_-3px_#bfc9d4]  border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none hotel-border">
               <div className="py-3 px-3 ">
                 <h5 className="text-[#3b3f5c] text-xl mb-3 font-semibold dark:text-white-light">
@@ -288,7 +429,7 @@ const HotelDetails = () => {
                               onMouseEnter={() => setShowRates(true)}
                               onMouseLeave={() => setShowRates(false)}
                             >
-                              <h5 className="text-[#3b3f5c] text-2xl font-semibold dark:text-white-light">
+                              <h5 className=" text-2xl font-semibold  hotel-form-text-color">
                                 ₹ {hotel.Rooms[0].TotalFare}
                               </h5>
                               <span className="text-xs text-gray-500 font-semibold ">
@@ -317,7 +458,7 @@ const HotelDetails = () => {
                                 </div>
                               )}
                             </div>
-                            <button className="bg-[#785ef7] w-30 h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]">
+                            <button className="bg-[#785ef7] w-30 h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]" onClick={() => navigate("/HotelBooking", { state: { hotel } })}>
                               BOOK THIS NOW
                             </button>
                           </div>
@@ -365,8 +506,10 @@ const HotelDetails = () => {
                 </div>
               </div>
             </div>
+            </section>
           </div>
           <div className="flex items-center justify-center py-2">
+          <section ref={roomsRef} id="overview">
             <div className="max-w-[75rem] w-full bg-white shadow-[4px_6px_10px_-3px_#bfc9d4]  border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none hotel-border">
               <div className="py-3 px-3 ">
                 {/* <h5 className="text-[#3b3f5c] text-xl mb-3 font-semibold dark:text-white-light">
@@ -375,9 +518,8 @@ const HotelDetails = () => {
                 <div className="border w-full h-full hotel-border">
                   <div className="border-b   w-full ">
                     {" "}
-                    <h6 className="text-sm py-2 px-3 ">
-                      Enjoy Free Breakfast throughout your stay for just ₹155
-                      more!
+                    <h6 className="text-sm py-2 px-3 font-semibold ">
+                   Rooms
                     </h6>
                   </div>
                   <div className="grid grid-cols-3 flex space-y-2 ">
@@ -427,16 +569,12 @@ const HotelDetails = () => {
                       </div>
                     </div>
                     <div className="py-2 px-3 space-y-1">
-                      <button className="border-2 w-ful h-5 mb-2 border-[#785ef7] text-[#785ef7] bg-transparent px-2  hotel-border text-xs transition duration-300 hover:bg-[#785ef7] hover:text-white">
+                      {/* <button className="border-2 w-ful h-5 mb-2 border-[#785ef7] text-[#785ef7] bg-transparent px-2  hotel-border text-xs transition duration-300 hover:bg-[#785ef7] hover:text-white">
                         RECOMMEDED
-                      </button>
-                      <h5 className="text-[#3b3f5c] text-lg font-semibold dark:text-white-light">
-                        {hotel.Rooms[0].IsRefundable
-                          ? hotel.Rooms[0].MealType === "BreakFast"
-                            ? "Room With Free Cancellation | Breakfast only"
-                            : "Room With Free Cancellation | Breakfast Not Included"
-                          : "Room Cancellation "}
-                      </h5>
+                      </button> */}
+                     <h5 className="text-[#3b3f5c] text-lg font-semibold dark:text-white-light">
+    {cancellationText}
+  </h5>
 
                       <ul className="list-disc text-black space-y-1">
                         {hotel?.Rooms?.[0]?.Inclusion && (
@@ -481,7 +619,7 @@ const HotelDetails = () => {
                         onMouseLeave={() => setShowRates(false)}
                       >
                         <div>
-                          <h5 className="text-[#3b3f5c] text-xl font-semibold dark:text-white-light">
+                          <h5 className="hotel-form-text-color text-xl font-semibold dark:text-white-light">
                             ₹ {hotel.Rooms[0].TotalFare}
                           </h5>
                           <h5 className="text-[#3b3f5c] text-sm dark:text-white-light">
@@ -520,21 +658,24 @@ const HotelDetails = () => {
                 </div>
               </div>
             </div>
+            </section>
           </div>
 
           <div
             ref={mapSectionRef}
             className="flex items-center justify-center py-2"
           >
-            <div className="max-w-[75rem] w-full bg-white shadow-md border border-white-light">
+          
+            <div className="max-w-[75rem] w-full bg-white shadow-md border border-white-light hotel-border">
+            <section ref={locationRef} id="Location">
               <div className="py-3 px-3">
-                <div className="border w-full">
+                <div className="border w-full hotel-border">
                   <div className="border-b w-full">
                     <h6 className="text-sm py-2 px-3 font-semibold">
                       Location
                     </h6>
                   </div>
-                  <div className="w-full h-[400px]">
+                  <div className="w-full h-[400px] ">
                     <GoogleMap
                       mapContainerStyle={containerStyle}
                       center={center}
@@ -557,10 +698,14 @@ const HotelDetails = () => {
                   </div>
                 </div>
               </div>
+              </section>
             </div>
+    
           </div>
           <div className="flex items-center justify-center py-2">
+         
             <div className="max-w-[75rem] w-full bg-white shadow-[4px_6px_10px_-3px_#bfc9d4]  border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none hotel-border">
+            <section ref={rulesRef} id="Rules">
               <div className="py-3 px-3 ">
                 <div className="border w-full h-full hotel-border">
                   {" "}
@@ -577,7 +722,9 @@ const HotelDetails = () => {
                   </dv>
                 </div>
               </div>
+              </section>
             </div>
+           
           </div>
         </div>
       )}
