@@ -377,7 +377,7 @@ console.log("Final Cancellation Text:", cancellationText);
                   </div>
 
                   <div className="lg:col-span-2 xl:col-span-1  relative">
-                    <div className="sticky top-5 space-y-5">
+                    <div className="sticky top-5 space-y-1">
                       <div className="flex items-center justify-center">
                         <div className="max-w-[25rem] w-full border border-white-light dark:border-[#1b2e4b] hotel-border ">
                           <div className="py-3 px-3">
