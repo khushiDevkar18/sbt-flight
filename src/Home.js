@@ -46,6 +46,7 @@ function Home() {
     const [apiairports, setAirports] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const [isseaarchresponse, setSearchresponse] = useState(false);
 
     useEffect(() => {
         
@@ -519,6 +520,7 @@ function Home() {
     //   getAccessToken();
 
     const handleSubmit = async (event) => {
+        setSearchresponse(true);
         event.preventDefault();
         console.time("make api request");
         let searchfrom = event.target.searchfrom.value.trim();
@@ -742,6 +744,7 @@ function Home() {
             );
                 console.log("searchresponse", response);
                 console.timeEnd("API Call");
+            
 
             const requestBody = {
                 "CatalogProductOfferingsQueryRequest": {
@@ -775,12 +778,12 @@ function Home() {
                 },
               };
             //   console.log('requestbody', requestBody);
-            const endpoint = `${baseURL}/${version}/air/catalog/search/catalogproductofferings`; 
+            // const endpoint = `${baseURL}/${version}/air/catalog/search/catalogproductofferings`; 
             
-                const requestBdy = {
-                request: requestBody,
-                endpoint: endpoint
-              };
+            //     const requestBdy = {
+            //     request: requestBody,
+            //     endpoint: endpoint
+            //   };
       
                 //   console.log('requestbody', requestBody);
             let token;
@@ -857,9 +860,11 @@ return (
                             <div className="big-loader flex items-center justify-center">
                         {/* <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" /> */}
                         <img className="loader-gif" src="/img/cotravloader.gif" alt="Loader" />
-                                <p className="text-center ml-4 text-gray-600 text-lg">
-                                
-                                </p>
+                        {isseaarchresponse && (
+    <p className="text-center ml-4 text-gray-600 text-lg">
+        Retrieving flight details. Please wait a moment.
+    </p>
+)}
                             </div>
                         </div>
                     }

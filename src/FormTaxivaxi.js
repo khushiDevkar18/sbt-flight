@@ -126,6 +126,7 @@ const navigate = useNavigate();
               const response = await axios.get('https://selfbooking.taxivaxi.com/api/airports');
               apiairportData = response.data;
               // setAirports(response.data);
+            //   console.log('airports',apiairportData);
               } catch (error) {
               console.error('Error fetching data:', error);
               }

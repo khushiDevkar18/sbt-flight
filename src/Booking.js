@@ -92,6 +92,8 @@ const Booking = () => {
     const [pnr_no, setPnrCode] = useState([]);
     const noOfSeats = formtaxivaxi['no_of_seats'];
     const [value, setValue] = useState('');
+    const [isseatloading, setSeatloading] = useState(false);
+    const [isreservation, setReservation] = useState(false);
   
     const handleChange = (value) => {
         setValue(value);
@@ -539,6 +541,8 @@ const Booking = () => {
         return true;
     };
     const handleCompleteBooking = async (event) => {
+        setSeatloading(false);
+        setReservation(true);
         event.preventDefault();
 
         let isValidpassenger = true;
@@ -738,6 +742,7 @@ const Booking = () => {
             let total_price = 0;
             let base_price = 0;
             let total_tax = 0;
+            let fare_type = '';
             if (packageSelected['air:AirPricingInfo']) {
                 if (packageSelected['air:AirPricingInfo']['$']['TotalPrice']) {
                     total_price = packageSelected['air:AirPricingInfo']['$']['TotalPrice'].replace(/[^0-9]/g, '');
@@ -747,6 +752,9 @@ const Booking = () => {
                 }
                 if (packageSelected['air:AirPricingInfo']['$']['BasePrice']) {
                     base_price = packageSelected['air:AirPricingInfo']['$']['BasePrice'].replace(/[^0-9]/g, '');
+                }
+                if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
+                    fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable']== 'true'? 'Refundable':'Non Refundable';
                 }
             }
             previousSelections.forEach(seatselect => {
@@ -1241,43 +1249,43 @@ const Booking = () => {
                                     ticketresponse = await makeTicketRequest();
 
                                     // if (hasNonEmptyProperties(emptaxivaxi)) {
-                                    // const sessiondata = async () => {    
-                                    const formtaxivaxiData = {
-                                        // ...formtaxivaxi,
-                                        access_token: access_token,
-                                        booking_id: bookingid,
-                                        trip_type: tripType,
-                                        // fare_type:fare_type,
-                                        is_extra_baggage_included: 0,
-                                        flight_type: flightType,
-                                        total_ex_tax_fees: 0,
-                                        total_price: total_price,
-                                        tax_and_fees: tax_and_fees,
-                                        // gst_k3: tax_k3,
-                                        gst_k3: parseFloat(total_tax),
-                                        mark_up_price: 0,
-                                        no_of_stops: stopCounts,
-                                        no_of_stops_return: returnstopCounts,
-                                        no_of_seats: noOfSeats,
-                                        people_id: 'NULL',
-                                        date_change_charges: 0,
-                                        seat_charges: 0,
-                                        meal_charges: 0,
-                                        extra_baggage_charges: 0,
-                                        fast_forward_charges: 0,
-                                        vip_service_charges: 0,
-                                        pnrcode: pnrCode,
-                                        // flightDetails: segmenttaxivaxis,
-                                        ...flightDetails,
-                                        extrabaggage: 'NA',
-                                        // seatdetails: formseat,
-                                        checkedInBaggage: checkedInBaggage,
-                                        cabinBaggage: cabinBaggage,
-                                        returns: returns,
-                                        // passengerdetails: mergedData
-                                        ...passengerDetailsFormatted,
-                                        ...seatDetailsFormatted
-                                    };
+                                    // const sessiondata = async () => {   
+                                        const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3); 
+                                        const formtaxivaxiData = {
+                                            // ...formtaxivaxi,
+                                            access_token: access_token,
+                                            booking_id: bookingid,
+                                            trip_type: tripType,
+                                            fare_type:fare_type,
+                                            is_extra_baggage_included: 0,
+                                            flight_type: flightType,
+                                            total_ex_tax_fees:base_price,
+                                            total_price: total_price,
+                                            tax_and_fees: tax_excluding_k3,
+                                            gst_k3: tax_k3,
+                                            mark_up_price: 0,
+                                            no_of_stops: stopCounts,
+                                            no_of_stops_return: returnstopCounts,
+                                            no_of_seats: noOfSeats,
+                                            people_id: 'NULL',
+                                            date_change_charges: 0,
+                                            seat_charges: 0,
+                                            meal_charges: 0,
+                                            extra_baggage_charges: 0,
+                                            fast_forward_charges: 0,
+                                            vip_service_charges: 0,
+                                            pnrcode: pnrCode,
+                                            // flightDetails: segmenttaxivaxis,
+                                            ...flightDetails,
+                                            extrabaggage: 'NA',
+                                            // seatdetails: formseat,
+                                            checkedInBaggage: checkedInBaggage,
+                                            cabinBaggage: cabinBaggage,
+                                            returns: returns,
+                                            // passengerdetails: mergedData
+                                            ...passengerDetailsFormatted,
+                                            ...seatDetailsFormatted
+                                        };
 
                                     console.log("ticketresponse.data", ticketresponse)
 
@@ -1549,16 +1557,18 @@ const Booking = () => {
                     navigate('/tryagainlater');
                 }
                 finally {
-                    // setLoading(false);
+                    setLoading(false);
                 }
             };
             makeReservationRequest();
+            // setLoading(false);
         }
     }
 
     const navigate = useNavigate();
 
     const handlePassengerSubmit = async (event) => {
+        setSeatloading(true);
         event.preventDefault();
         const email = event.target.email.value.trim();
         const contactDetails = event.target.contact_details.value.trim();
@@ -2715,9 +2725,30 @@ const Booking = () => {
                     <div className="big-loader flex items-center justify-center">
                         {/* <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" /> */}
                         <img className="loader-gif" src="/img/cotravloader.gif" alt="Loader" />
-                        <p className="text-center ml-4 text-gray-600 text-lg">
+                        {(() => {
+        switch (true) {
+            case isseatloading:
+                return (
+                    <p className="text-center ml-4 text-gray-600 text-lg">
+                        Retrieving Seat details. Please wait a moment.
+                    </p>
+                );
+            case isreservation:
+                return (
+                    <p className="text-center ml-4 text-gray-600" style={{ marginTop: '65px' }}>
+                    Processing your reservation. Please wait...
+                    </p>
+                );
+            
+            default:
+                return (
+                    <p className="text-center ml-4 text-gray-600 text-lg">
                             Retrieving flight details. Please wait a moment.
                         </p>
+                )
+        }
+    })()}
+                        
                     </div>
                 </div>
             }
@@ -4459,7 +4490,7 @@ const Booking = () => {
                                                                                         name="adult_first_name[]"
                                                                                         onKeyPress={handleKeyPress}
                                                                                         data-index={passengerindex}
-                                                                                        readOnly={bookingid}
+                                                                                        // readOnly={bookingid}
                                                                                         defaultValue={
                                                                                             emptaxivaxi?.[passengerindex]?.people_name
                                                                                                 ? emptaxivaxi[passengerindex].people_name.trim().split(' ').slice(0, -1).join(' ').trim()
@@ -4527,10 +4558,10 @@ const Booking = () => {
                                                                                 <div className="booking-field booking-mobile">
                                                                                     <label>Mobile Number</label>
                                                                                     <div className="mobile-input-wrapper">
-                                                                                        <PhoneInput
+                                                                                    <PhoneInput
                                                                                         international
-                                                                                        defaultCountry="IN" // Set default country to India
-                                                                                        value={value}
+                                                                                        defaultCountry="IN" // Default country set to India
+                                                                                        value={value || (emptaxivaxi?.[0]?.people_contact ? `+91${emptaxivaxi[0].people_contact}` : '')} // Ensure +91 prefix
                                                                                         data-index={passengerindex} 
                                                                                         onChange={handleChange}
                                                                                         className="phone-input"

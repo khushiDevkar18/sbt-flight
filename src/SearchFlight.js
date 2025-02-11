@@ -147,6 +147,7 @@ const SearchFlight = () => {
   const [loadingIndex, setLoadingIndex] = useState(null);
   const [fareInfoRefsState, setFareInfoRefsState] = useState([]);
   const [allSegmentKeys, setAllSegmentKeys] = useState([]);
+  const [isbookingpage, setBookingpage] = useState(false);
 
   const handleSegmentKeyMatch = (segmentKey) => {
     setFareInfoRefsState([]);
@@ -158,6 +159,7 @@ const SearchFlight = () => {
 
   const handleach = (fareInfoRefKey) => {
     setLoading(true);
+    setBookingpage(true);
     const bookingCode = fareInfoRefKey['BookingCode'];
 
     const matchedData = flightairoption.filter(
@@ -731,11 +733,14 @@ const SearchFlight = () => {
   }
 
   const [selectedAirlines, setSelectedAirlines] = useState([]);
+  // console.log('selectedairline', selectedAirlines);
   const [selectedreturnAirlines, setreturnSelectedAirlines] = useState([]);
   const [selectedStops, setSelectedStops] = useState([]);
   const [selectedreturnStops, setreturnSelectedStops] = useState([]);
   const [selectedTimeRange, setSelectedTimeRange] = useState([]);
+  // console.log('selectedTimeRange', selectedTimeRange);
   const [selectedTimeRanges, setSelectedTimeRanges] = useState([]);
+  // console.log('selectedTimeRanges', selectedTimeRanges);
 
 
   const handleTimeRangeClick = (timeRange) => {
@@ -1196,7 +1201,7 @@ const SearchFlight = () => {
               pricepointXML, { headers: { 'Content-Type': 'text/xml' } }
             );
             const priceResponse = priceresponse.data;
-            // console.log('priceResponse', priceResponse);
+            console.log('priceResponse', priceResponse);
 
             parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
               if (err) {
@@ -1304,6 +1309,7 @@ const SearchFlight = () => {
 
   const handleselectedContinue = (selectedprice) => {
     setLoading(true);
+    setBookingpage(true);
 
     const Priceinginfoselected = priceParse[selectedprice];
     sessionStorage.setItem('packageselectedPrice', Priceinginfoselected['$']['TotalPrice']);
@@ -2503,6 +2509,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
           confirmButtonText: "Retry",
         });
       });
+      setIsMinimized(true); 
+      setIsModalOpen(false);
   };
 
   const [selectedPriceIndex, setSelectedPriceIndex] = useState(null);
@@ -2563,7 +2571,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
   }, [flightOptions]);
 
 
-
+  let flightsMatched = false; 
 
   return (
     <div className="yield-content" style={{ background: '#e8e4ff' }}>
@@ -3593,9 +3601,10 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                               Price {sortingCriterion === '1' && (sortDirection === 'asc' ? '↓' : '↑')}
                             </div>
                           </div>
+                          
 
-                          {filteredFlights.length > 0 ? (
-                            filteredFlights.map(pricepoint => {
+                          
+                            {filteredFlights.map(pricepoint => {
                               pricepoint.price = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
                               let result = {};
                               pricepoint['air:AirPricingInfo'] && (
@@ -4846,6 +4855,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                 const stopsreturnCheck = selectedreturnStops.length === 0 || selectedreturnStops.includes(result['returnstop']);
                                 if (airlineCheck && airlinereturnCheck && stopsCheck && stopsreturnCheck && arrivaltimeCheck && departuretimeCheck) {
                                   if (totalPrice >= priceRange[0] && totalPrice <= priceRange[1]) {
+                                    flightsMatched = true;
                                     return (
                                       <React.Fragment key={priceindex}>
                                         <form onSubmit={(e) => handlePriceSubmit(e, priceindex)}>
@@ -9686,18 +9696,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
 
                                                                   <div className="flight-details" style={{ display: visibleFlightIndex === priceindex ? 'block' : 'none' }}>
                                                                     <Nav justify variant="tabs" className="flight_nav" defaultActiveKey={`Flight_Details${priceindex}`} activeKey={activeTab} onSelect={setActiveTab} style={{ border: 'none' }}>
-                                                                      {/* <Nav.Item>
-                                                                            <Nav.Link eventKey={`Flight_Detail${priceindex}`} className={activeTab.includes(`Flight_Detail${priceindex}`) ? 'active' : ''}>Flight Detail</Nav.Link>
-                                                                          </Nav.Item> */}
-                                                                      {/* <Nav.Item>
-                                                                            <Nav.Link eventKey={`Fare_Summary${priceindex}`}>Fare Summary</Nav.Link>
-                                                                          </Nav.Item>
-                                                                          <Nav.Item>
-                                                                            <Nav.Link eventKey={`Date_Change${priceindex}`}>Date Change</Nav.Link>
-                                                                          </Nav.Item>
-                                                                          <Nav.Item>
-                                                                            <Nav.Link eventKey={`Cancellation${priceindex}`}>Cancellation</Nav.Link>
-                                                                          </Nav.Item> */}
+                                                                      
                                                                     </Nav>
                                                                     {pricepoint['air:AirPricingInfo'] && (
                                                                       Array.isArray(pricepoint['air:AirPricingInfo'])
@@ -15335,10 +15334,17 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                     {isDropdownVisible && selectedPriceIndex === priceindex && (
                                                       <div className="row selectcontainer">
                                                         {loading ? (
-                                                          <div className="loader custom-loader item-center justify-center flex items-center">
-                                                            <img className="loader-giff" style={{ width: '5rem', height: '5rem' }} src="/img/cotravloader.gif" alt="Loader" />
-                                                            <p className="text-center ml-4 text-gray-600">
-                                                            </p>
+                                                          <div className="loader custom-loader item-center justify-center flex flex-col items-center">
+                                                              <img className="loader-giff" style={{ width: '5rem', height: '5rem' }} src="/img/cotravloader.gif" alt="Loader" />
+                                                              {isbookingpage ? (
+        <p className="text-center ml-4 text-gray-600 " style={{ marginTop: '65px' }}>
+            Redirecting to Booking Page. Please wait.
+        </p>
+    ) : (
+        <p className="text-center ml-4 text-gray-600" style={{ marginTop: '65px' }}>
+            Retrieving Price details. Please wait a moment.
+        </p>
+    )}
                                                           </div>
                                                         ) : (
                                                           (fareInfoRefsState && fareInfoRefsState.length > 0 ? (
@@ -15386,10 +15392,10 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         </div>
                                                                       </div>
                                                                     </div>
-                                                                    {is_approved === '1'  && (
+                                                                    {/* {is_approved === '1'  && ( */}
                                                                     
                                                                       <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleach(fareInfoRefKey)}>Book Now</button></div>
-                                                                    )}
+                                                                    {/* )} */}
                                                                     <button
                                                                       className="add-btn"
                                                                       type="button"
@@ -16199,9 +16205,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                   )}
                                                                 </div>
 
-                                                                {is_approved === '1'  && (
+                                                                {/* {is_approved === '1'  && ( */}
                                                                   <div className='buttonbook' style={{ width: "37%" }}><button type='button' className="continuebutton" style={{ marginTop: "7px", color: "white", backgroundColor: "#785eff", border: "none", padding: "5px 5px 5px 5px", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
-                                                                )}
+                                                                {/* )} */}
                                                                 <button
                                                                   className="add-btn"
                                                                   type="button"
@@ -16292,11 +16298,16 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                       </React.Fragment>
                                     )
                                   }
+                                  
                                 }
+                                
                               })
+                            }
 
-                          ) : (
+                          
+                            {!flightsMatched && (
                             <div key="not-found">
+                            
                               <div style={{ textAlign: 'center', background: 'white', padding: '10px' }}>
                                 <p style={{ fontWeight: '600' }} className='datanotfound'>
                                   No Data is found for applied filter.
@@ -16306,8 +16317,10 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                   Back to Home
                                 </a>
                               </div>
+                             
                             </div>
-                          )}
+                            )}
+                          
                         </>
                       ) : (
                         <>
