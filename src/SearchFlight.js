@@ -68,6 +68,8 @@ const SearchFlight = () => {
   const [SegmentList, setSegment] = useState([]);
   const [HostList, setHostlist] = useState([]);
   const [FareList, setFarelist] = useState([]);
+  // console.log('farelist', FareList);
+
   const [Airlines, setAirlineOptions] = useState([]);
   const [Airports, setAirportOptions] = useState([]);
 
@@ -2516,6 +2518,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
   const [selectedPriceIndex, setSelectedPriceIndex] = useState(null);
   const [visibleDetails, setVisibleDetails] = useState(false);
   const [visibleDetailsByName, setVisibleDetailsByName] = useState({}); // For name-specific toggle
+  const [fareInfoDetails, setFareInfoDetails] = useState({}); 
+  console.log('fareInfoDetails', fareInfoDetails);
+  const [fareinfovisible, setFareInfoVisible] = useState(false);
 
   const toggleDetails = async (name) => {
     if (visibleDetails) {
@@ -2526,6 +2531,72 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       setVisibleDetailsByName(name);
     }
 
+  };
+  const handleFareInfoClick = async (fareInfoRefKey) => {
+    try {
+      // Reset fare info before making the API call
+      setFareInfoDetails(null);
+      // setFareInfoVisible(false);
+  
+      console.log("Fetching Fare Info for Key:", fareInfoRefKey);
+      const matchingFareRule = FareList.find(
+        entry => entry["air:FareRuleKey"]["$"]['FareInfoRef'] === fareInfoRefKey
+      )?.["air:FareRuleKey"];
+      console.log('farerule', matchingFareRule);
+  
+      // Construct the SOAP envelope dynamically
+      const soapEnvelope = `
+        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Body xmlns:air="http://www.travelport.com/schema/air_v52_0"
+                xmlns:com="http://www.travelport.com/schema/common_v52_0">
+                <air:AirFareRulesReq xmlns="http://www.travelport.com/schema/air_v52_0" TraceId="8eaceda4-2f16-4421-807d-67f3fd9738a2" TargetBranch="P7206253">
+                    <com:BillingPointOfSaleInfo xmlns="http://www.travelport.com/schema/common_v52_0" OriginApplication="uAPI" />
+                    <air:FareRuleKey FareInfoRef="${fareInfoRefKey["$"].FareInfoRef}" ProviderCode="${fareInfoRefKey["$"].ProviderCode}">
+                    ${fareInfoRefKey["_"]}
+                  </air:FareRuleKey>
+                </air:AirFareRulesReq>
+            </soap:Body>
+        </soap:Envelope>
+      `;
+      console.log('soapEnvelope', soapEnvelope);
+  
+      const response = await axios.post(
+        "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest",
+        soapEnvelope,
+        { headers: { "Content-Type": "text/xml" } }
+      );
+      
+      console.log("API Response:", response.data);
+      
+      // Function to extract text from the XML response
+      const extractFareRuleText = (xmlString) => {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+      
+        // Select all <air:FareRuleLong> elements
+        const fareRuleNodes = xmlDoc.getElementsByTagName("air:FareRuleLong");
+        let extractedTexts = [];
+      
+        for (let node of fareRuleNodes) {
+          let cdataSection = node.childNodes[0]; // CDATA section is the first child
+          if (cdataSection && cdataSection.nodeType === Node.CDATA_SECTION_NODE) {
+            extractedTexts.push(cdataSection.nodeValue.trim());
+          }
+        }
+      
+        return extractedTexts; // Join multiple rules with spacing
+      };
+      
+      // Extract text and update state
+      const fareRuleText = extractFareRuleText(response.data);
+      
+      setFareInfoDetails(fareRuleText);
+  
+      // setFareInfoVisible(true);
+      setVisibleDetails(true);
+    } catch (error) {
+      console.error("Error fetching fare info:", error);
+    }
   };
 
   // const renderedSegmentRefs = new Set();
@@ -15330,6 +15401,25 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                       </div>
                                                       <br className="clear" />
                                                     </div>
+                                                    {visibleDetails && (
+  <div>
+    <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+    <div className="selectdetail">
+      <button className="selectdetail-close" style={{ marginTop: "-2%", marginRight: "-1%" }} onClick={() => setVisibleDetails(false)}>
+        &times;
+      </button>
+      {fareInfoDetails ? (
+        <ul>
+        <p>{fareInfoDetails}</p> 
+        </ul>
+      ) : (
+        <p>No details are available at present. Please check back later.</p>
+      )}
+    </div>
+  </div>
+)}
+
+
 
                                                     {isDropdownVisible && selectedPriceIndex === priceindex && (
                                                       <div className="row selectcontainer">
@@ -15337,14 +15427,14 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                           <div className="loader custom-loader item-center justify-center flex flex-col items-center">
                                                               <img className="loader-giff" style={{ width: '5rem', height: '5rem' }} src="/img/cotravloader.gif" alt="Loader" />
                                                               {isbookingpage ? (
-        <p className="text-center ml-4 text-gray-600 " style={{ marginTop: '65px' }}>
-            Redirecting to Booking Page. Please wait.
-        </p>
-    ) : (
-        <p className="text-center ml-4 text-gray-600" style={{ marginTop: '65px' }}>
-            Retrieving Price details. Please wait a moment.
-        </p>
-    )}
+                                                                  <p className="text-center ml-4 text-gray-600 " style={{ marginTop: '65px' }}>
+                                                                      Redirecting to Booking Page. Please wait.
+                                                                  </p>
+                                                              ) : (
+                                                                  <p className="text-center ml-4 text-gray-600" style={{ marginTop: '65px' }}>
+                                                                      Retrieving Price details. Please wait a moment.
+                                                                  </p>
+                                                              )}
                                                           </div>
                                                         ) : (
                                                           (fareInfoRefsState && fareInfoRefsState.length > 0 ? (
@@ -15365,6 +15455,20 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         {/* Display FareFamily as the Header */}
                                                                         <div className="seelctheader">
                                                                           {matchingFareInfo['$']['FareFamily']}
+                                                                          <button
+                                                                                        type="button"
+                                                                                        onClick={() => handleFareInfoClick(extractedFareInfoRef)}
+                                                                                        style={{
+                                                                                          border: "none", 
+                                                                                          background: "none",
+                                                                                          cursor: "pointer",
+                                                                                          fontSize: "16px",
+                                                                                          color: "#785eff",
+                                                                                        }}
+                                                                                        aria-label="Toggle Details"
+                                                                                      >
+                                                                                        <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft: '5px', fontSize: '12px', cursor: 'pointer' }}></i>
+                                                                                      </button>
                                                                         </div>
                                                                         <div className="selectprice">
                                                                           {(() => {
@@ -15438,7 +15542,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                         <button
                                                                                           type="button"
-                                                                                          onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'])}
+                                                                                          onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:FareRuleKey'])}
 
                                                                                           style={{
                                                                                             border: "none",
@@ -15472,32 +15576,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                           );
                                                                                         })()}
                                                                                       </div>
-                                                                                      {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
-                                                                                        priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['air:Text'].map((textinfor, textindex) => {
-                                                                                          if (
-                                                                                            textinfor['$'] &&
-                                                                                            textinfor['$']['Type'] === "MarketingConsumer"
-                                                                                          ) {
-
-                                                                                            const infoArray = textinfor['_'].split('\n').filter(item => item.trim() !== '');
-
-                                                                                            return (
-                                                                                              <>
-                                                                                                <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                                <div key={textindex} className="selectdetail">
-                                                                                                  <button className="selectdetail-close" style={{ marginTop: "-3.5%", marginRight: "-3.5%" }} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                                  <ul>
-                                                                                                    {infoArray.map((item, index) => (
-                                                                                                      <li key={index}>{item.trim()}</li>
-                                                                                                    ))}
-                                                                                                  </ul>
-                                                                                                </div>
-                                                                                              </>
-                                                                                            );
-                                                                                          }
-
-                                                                                        })
-                                                                                      )}
+                                                                                      
                                                                                     </div>
                                                                                   ) : (
                                                                                     <>
@@ -15505,7 +15584,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                         <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                           <button
                                                                                             type="button"
-                                                                                            onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'])}
+                                                                                            onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:FareRuleKey'])}
+                                                                                            // onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'])}
 
                                                                                             style={{
                                                                                               border: "none",
@@ -15539,20 +15619,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                             );
                                                                                           })()}
                                                                                         </div>
-                                                                                        {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
-                                                                                          <>
-                                                                                            <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                            <div className="selectdetail">
-                                                                                              <button className="selectdetail-close" style={{ marginTop: "-3.5%", marginRight: "-3.5%" }} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                              <ul><li>
-                                                                                                {priceParseData['air:AirPricingInfo'][0]['air:FareInfo'] && priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0] &&
-                                                                                                  priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement'] &&
-                                                                                                  priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement']['$'] &&
-                                                                                                  priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement']['$']['Value']}
-                                                                                              </li></ul>
-                                                                                            </div>
-                                                                                          </>
-                                                                                        )}
+                                                                                        
                                                                                       </div>
                                                                                     </>
                                                                                   )
@@ -15562,7 +15629,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                     <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'])}
+                                                                                        onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:FareRuleKey'])}
+                                                                                        // onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'])}
 
                                                                                         style={{
                                                                                           border: "none",
@@ -15597,20 +15665,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                         );
                                                                                       })()}
                                                                                     </div>
-                                                                                    {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
-                                                                                      <>
-                                                                                        <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                        <div className="selectdetail">
-                                                                                          <button className="selectdetail-close" style={{ marginTop: "-3.5%", marginRight: "-3.5%" }} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                          <ul><li>
-                                                                                            {priceParseData['air:AirPricingInfo'][0]['air:FareInfo'] && priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0] &&
-                                                                                              priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement'] &&
-                                                                                              priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement']['$'] &&
-                                                                                              priceParseData['air:AirPricingInfo'][0]['air:FareInfo'][0]['common_v52_0:Endorsement']['$']['Value']}
-                                                                                          </li></ul>
-                                                                                        </div>
-                                                                                      </>
-                                                                                    )}
+                                                                                    
                                                                                   </div>
                                                                                 </>
                                                                               )
@@ -15623,7 +15678,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                         <button
                                                                                           type="button"
-                                                                                          onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'])}
+                                                                                          onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:FareRuleKey'])}
+                                                                                          // onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'])}
 
                                                                                           style={{
                                                                                             border: "none",
@@ -15658,32 +15714,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                           );
                                                                                         })()}
                                                                                       </div>
-                                                                                      {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] && (
-                                                                                        priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['air:Text'].map((textinfor, textindex) => {
-                                                                                          if (
-                                                                                            textinfor['$'] &&
-                                                                                            textinfor['$']['Type'] === "MarketingConsumer"
-                                                                                          ) {
-
-                                                                                            const infoArray = textinfor['_'].split('\n').filter(item => item.trim() !== '');
-
-                                                                                            return (
-                                                                                              <>
-                                                                                                <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                                <div key={textindex} className="selectdetail">
-                                                                                                  <button className="selectdetail-close" style={{ marginTop: "-3.5%", marginRight: "-3.5%" }} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                                  <ul>
-                                                                                                    {infoArray.map((item, index) => (
-                                                                                                      <li key={index}>{item.trim()}</li>
-                                                                                                    ))}
-                                                                                                  </ul>
-                                                                                                </div>
-                                                                                              </>
-                                                                                            );
-                                                                                          }
-
-                                                                                        })
-                                                                                      )}
+                                                                                      
                                                                                     </div>
                                                                                   ) : (
                                                                                     <>
@@ -15691,7 +15722,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                         <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                           <button
                                                                                             type="button"
-                                                                                            onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'])}
+                                                                                            onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:FareRuleKey'])}
+                                                                                            // onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'])}
 
                                                                                             style={{
                                                                                               border: "none",
@@ -15726,20 +15758,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                             );
                                                                                           })()}
                                                                                         </div>
-                                                                                        {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] && (
-                                                                                          <>
-                                                                                            <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                            <div className="selectdetail">
-                                                                                              <button className="selectdetail-close" style={{ marginTop: "-3.5%", marginRight: "-3.5%" }} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                              <ul><li>
-                                                                                                {priceParseData['air:AirPricingInfo'][0]['air:FareInfo'] &&
-                                                                                                  priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement'] &&
-                                                                                                  priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement']['$'] &&
-                                                                                                  priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement']['$']['Value']}
-                                                                                              </li></ul>
-                                                                                            </div>
-                                                                                          </>
-                                                                                        )}
+                                                                                        
                                                                                       </div>
                                                                                     </>
                                                                                   )
@@ -15749,7 +15768,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                     <div className="seelctheader">{priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'])}
+                                                                                        onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:FareRuleKey'])}
+                                                                                        // onClick={() => toggleDetails(priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'])}
 
                                                                                         style={{
                                                                                           border: "none",
@@ -15784,20 +15804,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                         );
                                                                                       })()}
                                                                                     </div>
-                                                                                    {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['$']['Name'] && (
-                                                                                      <>
-                                                                                        <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                        <div className="selectdetail">
-                                                                                          <button className="selectdetail-close" style={{ marginTop: "-3.5%", marginRight: "-3.5%" }} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                          <ul><li>
-                                                                                            {priceParseData['air:AirPricingInfo'][0]['air:FareInfo'] &&
-                                                                                              priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement'] &&
-                                                                                              priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement']['$'] &&
-                                                                                              priceParseData['air:AirPricingInfo'][0]['air:FareInfo']['common_v52_0:Endorsement']['$']['Value']}
-                                                                                          </li></ul>
-                                                                                        </div>
-                                                                                      </>
-                                                                                    )}
+                                                                                    
                                                                                   </div>
                                                                                 </>
                                                                               )
@@ -15816,7 +15823,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                         <button
                                                                                           type="button"
-                                                                                          onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'])}
+                                                                                          onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:FareRuleKey'])}
+                                                                                          // onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'])}
 
                                                                                           style={{
                                                                                             border: "none",
@@ -15850,32 +15858,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                           );
                                                                                         })()}
                                                                                       </div>
-                                                                                      {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
-                                                                                        priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['air:Text'].map((textinfor, textindex) => {
-                                                                                          if (
-                                                                                            textinfor['$'] &&
-                                                                                            textinfor['$']['Type'] === "MarketingConsumer"
-                                                                                          ) {
-
-                                                                                            const infoArray = textinfor['_'].split('\n').filter(item => item.trim() !== '');
-
-                                                                                            return (
-                                                                                              <>
-                                                                                                <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                                <div key={textindex} className="selectdetail">
-                                                                                                  <button className="selectdetail-close" style={{ marginTop: "-3.5%", marginRight: "-3.5%" }} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                                  <ul>
-                                                                                                    {infoArray.map((item, index) => (
-                                                                                                      <li key={index}>{item.trim()}</li>
-                                                                                                    ))}
-                                                                                                  </ul>
-                                                                                                </div>
-                                                                                              </>
-                                                                                            );
-                                                                                          }
-
-                                                                                        })
-                                                                                      )}
+                                                                                      
                                                                                     </div>
                                                                                   ) : (
                                                                                     <>
@@ -15883,7 +15866,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                         <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                           <button
                                                                                             type="button"
-                                                                                            onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'])}
+                                                                                            onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:FareRuleKey'])}
+                                                                                            // onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'])}
 
                                                                                             style={{
                                                                                               border: "none",
@@ -15917,20 +15901,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                             );
                                                                                           })()}
                                                                                         </div>
-                                                                                        {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
-                                                                                          <>
-                                                                                            <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                            <div className="selectdetail">
-                                                                                              <button className="selectdetail-close" style={{ marginTop: "-3.5%", marginRight: "-3.5%" }} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                              <ul><li>
-                                                                                                {priceParseData['air:AirPricingInfo']['air:FareInfo'] && priceParseData['air:AirPricingInfo']['air:FareInfo'][0] &&
-                                                                                                  priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement'] &&
-                                                                                                  priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement']['$'] &&
-                                                                                                  priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement']['$']['Value']}
-                                                                                              </li></ul>
-                                                                                            </div>
-                                                                                          </>
-                                                                                        )}
+                                                                                        
                                                                                       </div>
                                                                                     </>
                                                                                   )
@@ -15940,7 +15911,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                     <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'])}
+                                                                                        onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:FareRuleKey'])}
+                                                                                        // onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'])}
 
                                                                                         style={{
                                                                                           border: "none",
@@ -15974,20 +15946,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                         );
                                                                                       })()}
                                                                                     </div>
-                                                                                    {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['air:Brand']['$']['Name'] && (
-                                                                                      <>
-                                                                                        <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                        <div className="selectdetail">
-                                                                                          <button className="selectdetail-close" style={{ marginTop: "-3.5%", marginRight: "-3.5%" }} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                          <ul><li>
-                                                                                            {priceParseData && priceParseData['air:AirPricingInfo'] && priceParseData['air:AirPricingInfo']['air:FareInfo'] && priceParseData['air:AirPricingInfo']['air:FareInfo'][0] &&
-                                                                                              priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement'] &&
-                                                                                              priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement']['$'] &&
-                                                                                              priceParseData['air:AirPricingInfo']['air:FareInfo'][0]['common_v52_0:Endorsement']['$']['Value']}
-                                                                                          </li></ul>
-                                                                                        </div>
-                                                                                      </>
-                                                                                    )}
+                                                                                    
                                                                                   </div>
                                                                                 </>
                                                                               )
@@ -16003,7 +15962,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                       <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                         <button
                                                                                           type="button"
-                                                                                          onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'])}
+                                                                                          onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:FareRuleKey'])}
+                                                                                          // onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'])}
 
                                                                                           style={{
                                                                                             border: "none",
@@ -16041,47 +16001,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                       </div>
 
 
-                                                                                      {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (() => {
-                                                                                        const validDetails = priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['air:Text'].filter(
-                                                                                          (textinfor) => textinfor['$']?.Type === "MarketingConsumer"
-                                                                                        );
-
-                                                                                        const closeButton = (
-                                                                                          <button className="selectdetail-close" style={{ marginTop: "-3%", marginRight: "-3%" }} onClick={() => setVisibleDetails(false)} >
-                                                                                            &times;
-                                                                                          </button>
-                                                                                        );
-
-                                                                                        return validDetails.length > 0 ? (
-                                                                                          validDetails.map((textinfor, textindex) => {
-                                                                                            const infoArray = textinfor['_']
-                                                                                              .split('\n')
-                                                                                              .filter((item) => item.trim() !== '');
-
-                                                                                            return (
-                                                                                              <div key={textindex}>
-                                                                                                <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                                <div className="selectdetail">
-                                                                                                  {closeButton}
-                                                                                                  <ul>
-                                                                                                    {infoArray.map((item, index) => (
-                                                                                                      <li key={index}>{item.trim()}</li>
-                                                                                                    ))}
-                                                                                                  </ul>
-                                                                                                </div>
-                                                                                              </div>
-                                                                                            );
-                                                                                          })
-                                                                                        ) : (
-                                                                                          <div>
-                                                                                            <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                            <div className="selectdetail">
-                                                                                              {closeButton}
-                                                                                              <p>No details are available at present. Please check back later.</p>
-                                                                                            </div>
-                                                                                          </div>
-                                                                                        );
-                                                                                      })()}
+                                                                                      
                                                                                     </div>
                                                                                   ) : (
                                                                                     <>
@@ -16089,7 +16009,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                         <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                           <button
                                                                                             type="button"
-                                                                                            onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'])}
+                                                                                            onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:FareRuleKey'])}
+                                                                                            // onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'])}
 
                                                                                             style={{
                                                                                               border: "none",
@@ -16124,20 +16045,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                             );
                                                                                           })()}
                                                                                         </div>
-                                                                                        {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
-                                                                                          <>
-                                                                                            <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                            <div className="selectdetail">
-                                                                                              <button className="selectdetail-close" style={{ marginTop: "-3.5%", marginRight: "-3.5%" }} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                              <ul><li>
-                                                                                                {priceParseData['air:AirPricingInfo'] && priceParseData['air:AirPricingInfo']['air:FareInfo'] &&
-                                                                                                  priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement'] &&
-                                                                                                  priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement']['$'] &&
-                                                                                                  priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement']['$']['Value']}
-                                                                                              </li></ul>
-                                                                                            </div>
-                                                                                          </>
-                                                                                        )}
+                                                                                        
                                                                                       </div>
                                                                                     </>
                                                                                   )
@@ -16147,7 +16055,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                     <div className="seelctheader">{priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name']}
                                                                                       <button
                                                                                         type="button"
-                                                                                        onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'])}
+                                                                                        onClick={() => handleFareInfoClick(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:FareRuleKey'])}
+                                                                                        // onClick={() => toggleDetails(priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'])}
 
                                                                                         style={{
                                                                                           border: "none",
@@ -16181,20 +16090,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                         );
                                                                                       })()}
                                                                                     </div>
-                                                                                    {visibleDetails && visibleDetailsByName === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] && (
-                                                                                      <>
-                                                                                        <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-                                                                                        <div className="selectdetail">
-                                                                                          <button className="selectdetail-close" style={{ marginTop: "-3.5%", marginRight: "-3.5%" }} onClick={() => setVisibleDetails(false)}>&times;</button>
-                                                                                          <ul><li>
-                                                                                            {priceParseData['air:AirPricingInfo'] && priceParseData['air:AirPricingInfo']['air:FareInfo'] &&
-                                                                                              priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement'] &&
-                                                                                              priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement']['$'] &&
-                                                                                              priceParseData['air:AirPricingInfo']['air:FareInfo']['common_v52_0:Endorsement']['$']['Value']}
-                                                                                          </li></ul>
-                                                                                        </div>
-                                                                                      </>
-                                                                                    )}
+                                                                                   
                                                                                   </div>
                                                                                 </>
                                                                               )

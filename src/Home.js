@@ -417,15 +417,15 @@ function Home() {
         const tokenTimestamp = localStorage.getItem('authTokenTimestamp');
         const currentDate = new Date();
     
-        console.log('storedToken:', storedToken);
-        console.log('tokenTimestamp:', tokenTimestamp);
+        // console.log('storedToken:', storedToken);
+        // console.log('tokenTimestamp:', tokenTimestamp);
     
         // Check if both storedToken and tokenTimestamp are available and valid
         if (storedToken && storedToken !== 'null') {
-            console.log('Token exists.');
+            // console.log('Token exists.');
             
             if (tokenTimestamp) {
-                console.log('Timestamp exists.');
+                // console.log('Timestamp exists.');
                 
                 // Check if the stored token's timestamp matches today's date
                 if (new Date(tokenTimestamp).toDateString() === currentDate.toDateString()) {
@@ -459,7 +459,7 @@ function Home() {
                     }
                 }
             );
-            console.log('authResponse',authResponse.data);
+            // console.log('authResponse',authResponse.data);
     
             const newToken = authResponse.data.TokenId;
             localStorage.setItem('authToken', newToken);
@@ -736,13 +736,13 @@ function Home() {
                 console.timeEnd("make api request");
 
             sessionStorage.setItem('searchdata', soapEnvelope);
-            console.log('search data', soapEnvelope);
+            // console.log('search data', soapEnvelope);
             console.time("API Call");
             const response = await axios.post(
                 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
                 soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
             );
-                console.log("searchresponse", response);
+                // console.log("searchresponse", response);
                 console.timeEnd("API Call");
             
 
@@ -828,7 +828,7 @@ function Home() {
                 fromcotrav: '1',
                 };
                 console.timeEnd("redirect");
-            console.log('searchresponse', response);
+            // console.log('searchresponse', response);
             navigate('/SearchFlight', { state: { responseData } });
             } catch (error) {
                 // ErrorLogger.logError('search_api',soapEnvelope,error);
