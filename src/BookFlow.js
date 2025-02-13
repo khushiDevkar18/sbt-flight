@@ -24,7 +24,7 @@ const BookFlow = () => {
     const [HostList, setHostlist] = useState([]);
     const [FareList, setFarelist] = useState([]);
     const [flightairoption, setFlightAirOptions] = useState([]);
-    console.log('flightairoption', flightairoption);
+    // console.log('FareList', FareList);
     
     useEffect(() => {
         // console.log('hi')
@@ -137,6 +137,7 @@ const BookFlow = () => {
                     const dateObj = new Date(departureDateTime);
                     const departureDate = dateObj.toISOString().split('T')[0]; 
                     const departureTime = dateObj.toISOString().split('T')[1].slice(0, 5); 
+                    const fare_type = formtaxivaxiData['fare_type'];
                     const spoc_email = formtaxivaxiData['email'];
                     const additional_emails = formtaxivaxiData['additional_emails'];
                     const ccmail = formtaxivaxiData['cc_email'];
@@ -330,7 +331,7 @@ const BookFlow = () => {
 
 
                     });
-                    console.log('helkasdjfi');
+                    // console.log('helkasdjfi');
 
                     if (providercode.includes("AI")) {
                         console.log("Matched 6E");
@@ -341,16 +342,131 @@ const BookFlow = () => {
                             const segmentData = segment['$'];
                             return segmentData.FlightNumber === flightNumber &&
                                    segmentData.DepartureTime === departureDateTime;
-                                //    segmentData.ArrivalTime === arrivalDateTime;
-                        });
-                    
-                        if (matchedSegment) {
-                            // Store the matched segment in a variable
-                            console.log("Matched Segment:", matchedSegment);
-                            // You can use matchedSegment as needed here, for example, to assign to another variable
-                        } else {
-                            console.log("No match found");
-                        }
+                        })?.['$'].Key || null;
+                        
+                        const matchingBookingInfo = flightairoption.filter(entry => entry.SegmentRef === matchedSegment);
+                        // console.log('matchingBookingInfo',matchingBookingInfo);
+                        
+                        const { fareKey, fareBasisCode } = matchingBookingInfo.map(booking => {
+                            const fareEntry = FareList.find(fare => fare['$'].Key === booking.FareInfoRef);
+                            const fareFamily = fareEntry?.['$']?.FareFamily; 
+                            if (fareEntry && fare_type.includes(fareFamily)) {
+                                const fareKey = fareEntry['$'].Key || null;
+                                const fareBasisCode = fareEntry['$'].FareBasis || null;
+                                return { fareKey, fareBasisCode };
+                            }
+                        
+                            return null; 
+                        }).filter(Boolean)[0] || { fareKey: null, fareBasisCode: null };
+                        
+                            const airPricingCommand = {
+                              'air:AirSegmentPricingModifiers': {
+                                $: {
+                                  AirSegmentRef: matchedSegment,  
+                                  FareBasisCode: fareBasisCode,  
+                                }
+                              }
+                            };
+
+                            const hostTokenRef = matchingBookingInfo
+                            .find(entry => entry.SegmentRef === matchedSegment && entry.FareInfoRef === fareKey)?.HostTokenRef || null;  // Match both SegmentRef and FareInfoRef, return HostTokenRef
+
+                            const BookingCode = matchingBookingInfo
+                            .find(entry => entry.SegmentRef === matchedSegment && entry.FareInfoRef === fareKey)?.BookingCode || null;
+                            // console.log('BookingCode',BookingCode);
+
+                            const comHostTokens = HostList
+                            .filter(hostToken => hostToken['$'] && hostToken['$']['Key'] === hostTokenRef) // Match the hostkey
+                            .map(hostToken => ({
+                              $: { Key: hostToken['$'].Key }, // Use the Key
+                              _: hostToken._ // Add the token value
+                            })); 
+                            // console.log('comHostTokens', comHostTokens);
+                            const segmentArray = 
+                                SegmentList
+                                    ?.filter((segment) => segment?.['$']?.['Key'] === matchedSegment) // Ensure segment exists
+                                    .map((segment) => {
+                                    if (!segment || !segment.$) return null; // Skip undefined segments
+                            
+                                    // Clone the segment to avoid modifying the original object
+                                    let updatedSegment = { ...segment, $: { ...segment.$ } };
+                            
+                                    // Update ProviderCode if available
+                                    if (segment['air:AirAvailInfo']?.$?.ProviderCode) {
+                                        updatedSegment.$.ProviderCode = segment['air:AirAvailInfo'].$.ProviderCode;
+                                    }
+                            
+                                    // Add additional properties
+                                    updatedSegment.$.HostTokenRef = hostTokenRef;
+                                    updatedSegment.$.ClassOfService = BookingCode;
+                            
+                                    // Remove unnecessary properties
+                                    delete updatedSegment['air:FlightDetailsRef'];
+                            
+                                return updatedSegment;
+                                });
+                                    // console.log('segmentArray', segmentArray)
+                                const builder = require('xml2js').Builder;
+                                var pricepointXMLpc = new builder().buildObject({
+                                'soap:Envelope': {
+                                    '$': {
+                                    'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
+                                    },
+                                    'soap:Body': {
+                                    'air:AirPriceReq': {
+                                        '$': {
+                                        'AuthorizedBy': 'TAXIVAXI',
+                                        'TargetBranch': 'P7206253',
+                                        'FareRuleType': 'short',
+                                        'TraceId': 'TVSBP001',
+                                        'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
+                                        'xmlns:com': 'http://www.travelport.com/schema/common_v52_0'
+                                        },
+                                        'BillingPointOfSaleInfo': {
+                                        '$': {
+                                            'OriginApplication': 'UAPI',
+                                            'xmlns': 'http://www.travelport.com/schema/common_v52_0'
+                                        },
+                                        },
+                                        'air:AirItinerary': {
+                                        'air:AirSegment': segmentArray,
+                                        'com:HostToken': comHostTokens,
+                                        },
+                                        'air:AirPricingModifiers': {
+                                        '$': {
+                                            'InventoryRequestType': 'DirectAccess',
+                                            'ETicketability': 'Yes',
+                                            'FaresIndicator': "AllFares"
+                                        },
+                                        'air:PermittedCabins': {
+                                            'com:CabinClass': {
+                                            '$': {
+                                                'Type': dynamicCabinType,
+                                            },
+                                            },
+                                        },
+                                        'air:BrandModifiers': {
+                                            'air:FareFamilyDisplay': {
+                                            '$': {
+                                                'ModifierType': 'FareFamily',
+                                            },
+                                            },
+                                        },
+                                        },
+                                        'com:SearchPassenger': PassengerCodeADT,
+                                        'air:AirPricingCommand': airPricingCommand
+                                    }
+                                    }
+                                }
+                                });
+                                console.log('pricepointXMLpc', pricepointXMLpc);
+    
+                        
+                          
+                            
+                          
+                        
+
                     }
                     
                     // navigate('/SearchFlight', { state: { responseData } });
