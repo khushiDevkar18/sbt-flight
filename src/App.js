@@ -5,6 +5,7 @@ import SearchFlight from './SearchFlight';
 import FormTaxivaxi from './FormTaxivaxi';
 import Booking from './Booking';
 import BookingComplete from './BookingComplete';
+import BookFlow from './BookFlow';
 import Home from './Home';
 import PageNotFound from './PageNotFound';
 import TryAgainLater from './TryAgainLater';
@@ -22,6 +23,7 @@ const App = () => {
           <Route path="/FormTaxivaxi" element={<FormTaxivaxi />}/>
           <Route path="/bookingProcess" element={<Booking />}/>
           <Route path="/bookingCompleted" element={<BookingComplete />}/>
+          <Route path="/BookFlow" element={<BookFlow />}/>
           <Route path="/pagenotfound" element={<PageNotFound />}/>
           <Route path="/tryagainlater" element={<TryAgainLater />}/>
           <Route path="*" element={<PageNotFound />} />

@@ -43,6 +43,9 @@ const navigate = useNavigate();
     let airlineResponseData;
     let airportResponseData;
     let apiairportData;
+    // console.log('airlineResponseData', airlineResponseData);
+    // console.log('airportResponseData', airportResponseData);
+    // console.log('apiairportData', apiairportData);
     
 
       const makeAirlineRequest = async () => {
@@ -271,7 +274,6 @@ const navigate = useNavigate();
                   const username = 'Universal API/uAPI6514598558-21259b0c';
                   const password = 'tN=54gT+%Y'; 
                   const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
-
                   sessionStorage.setItem('searchdata', soapEnvelope);
                 //   console.log('soapenv', soapEnvelope); 
 
@@ -367,8 +369,8 @@ const navigate = useNavigate();
                                 </p>
                             </div>
                         </div>
-       )}
-        </div >
+         )}
+      </div >
     
   );
 }

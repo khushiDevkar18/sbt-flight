@@ -1917,7 +1917,7 @@ const SearchFlight = () => {
           const lowFareSearchRsp = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp'];
           if (lowFareSearchRsp !== null && lowFareSearchRsp !== undefined) {
             const pricepointlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirPricePointList']['air:AirPricePoint'];
-            console.log("pricepointlist", pricepointlist)
+            // console.log("pricepointlist", pricepointlist)
             const Segmentlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirSegmentList']['air:AirSegment'];
             const flightdetailist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FlightDetailsList']['air:FlightDetails'];
             const hosttokenlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:HostTokenList']['common_v52_0:HostToken'];
@@ -15402,22 +15402,22 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                       <br className="clear" />
                                                     </div>
                                                     {visibleDetails && (
-  <div>
-    <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
-    <div className="selectdetail">
-      <button className="selectdetail-close" style={{ marginTop: "-2%", marginRight: "-1%" }} onClick={() => setVisibleDetails(false)}>
-        &times;
-      </button>
-      {fareInfoDetails ? (
-        <ul>
-        <p>{fareInfoDetails}</p> 
-        </ul>
-      ) : (
-        <p>No details are available at present. Please check back later.</p>
-      )}
-    </div>
-  </div>
-)}
+                                                      <div>
+                                                        <div className="popup-overlay" onClick={() => setVisibleDetails(false)}></div>
+                                                        <div className="selectdetail">
+                                                          <button className="selectdetail-close" style={{ marginTop: "-2%", marginRight: "-1%" }} onClick={() => setVisibleDetails(false)}>
+                                                            &times;
+                                                          </button>
+                                                          {fareInfoDetails ? (
+                                                            <ul>
+                                                            <p>{fareInfoDetails}</p> 
+                                                            </ul>
+                                                          ) : (
+                                                            <p>No details are available at present. Please check back later.</p>
+                                                          )}
+                                                        </div>
+                                                      </div>
+                                                    )}
 
 
 
