@@ -121,8 +121,10 @@ const Booking = () => {
         });
     }
     // console.log(mergedData);
-    const employees = Object.keys(formtaxivaxi)
-        .filter(key => key.startsWith("passengerDetailsArray") && key.endsWith("[id]")) // Find all "[id]" keys
+    const employees = Array.isArray(formtaxivaxi.passengerDetailsArray) 
+    ? formtaxivaxi.passengerDetailsArray.map(passenger => passenger.id) 
+    : Object.keys(formtaxivaxi)
+        .filter(key => key.startsWith("passengerDetailsArray") && key.endsWith("[id]"))
         .map(key => formtaxivaxi[key]);
 
     const hasNonEmptyProperties = (obj) => {
@@ -960,7 +962,7 @@ const Booking = () => {
                     }
                 });
             }
-            console.log('packageSelected', packageSelected);
+            // console.log('packageSelected', packageSelected);
 
             const passengerAges = Passengers.ageNames.map(calculateAge);
             const makeReservationRequest = async () => {

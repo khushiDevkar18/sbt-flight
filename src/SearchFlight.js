@@ -68,6 +68,9 @@ const SearchFlight = () => {
   const [SegmentList, setSegment] = useState([]);
   const [HostList, setHostlist] = useState([]);
   const [FareList, setFarelist] = useState([]);
+  const [htmlContent, setHtmlContent] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [newpayload, setPayload] = useState("");
   // console.log('farelist', FareList);
 
   const [Airlines, setAirlineOptions] = useState([]);
@@ -158,6 +161,7 @@ const SearchFlight = () => {
     );
     setFareInfoRefsState([...matchedBookingInfo]);
   };
+  // console.log('hello');
 
   const handleach = (fareInfoRefKey) => {
     setLoading(true);
@@ -2474,9 +2478,12 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       remark: remark,
       client_name: clientName,
       spoc_name: spocName,
+      flag:'',
     };
+    setPayload(payload);
     console.log('payload', payload);
     const apiLink = 'https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking';
+    
 
     axios.post(apiLink, JSON.stringify(payload), {
       headers: {
@@ -2484,14 +2491,17 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       },
     })
       .then((response) => {
+        console.log('data.data', response.data.data);
         // Check if the response contains success = "1"
         if (response.data.success === "1") {
-          Swal.fire({
-            title: "Success!",
-            text: "Flight options have been sent successfully.",
-            icon: "success",
-            confirmButtonText: "OK",
-          });
+          setHtmlContent(response.data.data);
+          setShowModal(true);
+          // Swal.fire({
+          //   title: "Success!",
+          //   text: "Flight options have been sent successfully.",
+          //   icon: "success",
+          //   confirmButtonText: "OK",
+          // });
         } else {
           // If success is "0", show the error message from the response
           Swal.fire({
@@ -2514,6 +2524,31 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       setIsMinimized(true); 
       setIsModalOpen(false);
   };
+
+  const confirmAndCloseModal = () => {
+    const updatedPayload = { ...newpayload, flag: "send" };
+    console.log('updatedPayload', updatedPayload);
+    const apiLink = 'https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking';
+    
+
+    axios.post(apiLink, JSON.stringify(updatedPayload), {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    })
+
+    setShowModal(false);
+    Swal.fire({
+      title: "Success!",
+      text: "Flight options have been sent successfully.",
+      icon: "success",
+      confirmButtonText: "OK",
+    });
+  };
+  
+
+  
+    
 
   const [selectedPriceIndex, setSelectedPriceIndex] = useState(null);
   const [visibleDetails, setVisibleDetails] = useState(false);
@@ -2832,7 +2867,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                 <label className="lbl_input latoBold font12 blueText appendBottom5">
                   DEPART
                 </label>
-                <div className="input-a" onClick={() => setdepIsOpen(true)} style={{ width: '120px', height: '39px', backgroundColor: bookingid ? "#e0e0e0" : "white" }} >
+                <div className="input-a" onClick={() => setdepIsOpen(true)} style={{ width: '120px', height: '40.5px', backgroundColor: bookingid ? "#e0e0e0" : "white" }} >
                   <div style={{ fontSize: '14px', fontWeight: '600' }}>
                     <DatePicker className="custom-datepicker"
                       name="searchdeparture"
@@ -15428,11 +15463,11 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                               <img className="loader-giff" style={{ width: '5rem', height: '5rem' }} src="/img/cotravloader.gif" alt="Loader" />
                                                               {isbookingpage ? (
                                                                   <p className="text-center ml-4 text-gray-600 " style={{ marginTop: '65px' }}>
-                                                                      Redirecting to Booking Page. Please wait.
+                                                                      {/* Redirecting to Booking Page. Please wait. */}
                                                                   </p>
                                                               ) : (
                                                                   <p className="text-center ml-4 text-gray-600" style={{ marginTop: '65px' }}>
-                                                                      Retrieving Price details. Please wait a moment.
+                                                                      {/* Retrieving Price details. Please wait a moment. */}
                                                                   </p>
                                                               )}
                                                           </div>
@@ -16466,6 +16501,19 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
         </Modal.Body>
         <Modal.Footer className="custom-modal-footer">
           <button className="send-button" onClick={handleSend}>SEND</button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>HTML Preview</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+        </Modal.Body>
+        <Modal.Footer>
+          <button className="send-button" onClick={confirmAndCloseModal}>
+            Confirm & Proceed
+          </button>
         </Modal.Footer>
       </Modal>
 
