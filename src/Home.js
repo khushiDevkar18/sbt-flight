@@ -47,6 +47,10 @@ function Home() {
     const navigate = useNavigate();
     const location = useLocation();
     const [isseaarchresponse, setSearchresponse] = useState(false);
+    const [companies, setCompanies] = useState([]);
+    const [inputCompany, setInputCompany] = useState(""); // Display selected company name
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [ClientMarkupDetails, setClientMarkupDetails] = useState("");
 
     useEffect(() => {
         
@@ -229,6 +233,47 @@ function Home() {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+    useEffect(() => {
+        axios
+          .get("https://demo.taxivaxi.com/api/getIDNameAllCompanies")
+          .then((response) => {
+            if (response.data.success === "1") {
+              setCompanies(response.data.response.Companies); // Store company data
+            } else {
+              console.error("Failed to fetch company data");
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching companies:", error);
+          });
+      }, []);
+    
+      const handleCompanySelect = (company) => {
+        setInputCompany(company.corporate_name); // Show selected name
+        
+        setShowDropdown(false); // Hide dropdown after selection
+        console.log('idforcomp', company.id)
+        const payload = {
+            admin_id: company.id,
+            flight_type: "Domestic",
+        }
+        axios.post('https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/flights/getClientMarkupDetails', JSON.stringify(payload), {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          })
+        
+        
+            .then((response) => {
+            console.log("Client Markup Details:", response);
+            setClientMarkupDetails(response.data);
+            // Handle response if needed (e.g., store in state)
+            })
+            .catch((error) => {
+            console.error("Error fetching client markup details:", error);
+            });
+
+      };
 
   const openCity = (cityName) => {
     setActiveTab(cityName);
@@ -812,6 +857,8 @@ function Home() {
             const responseData = {
                 responsedata :response.data,
                 // ndcresponse :ndcresponse.data, 
+                clientname:inputCompany,
+                markupdata:ClientMarkupDetails,
                 searchfromcity :searchfrom,
                 searchtocity :searchto,
                 searchdeparture:searchdeparture,
@@ -861,10 +908,10 @@ return (
                         {/* <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" /> */}
                         <img className="loader-gif" src="/img/cotravloader.gif" alt="Loader" />
                         {isseaarchresponse && (
-    <p className="text-center ml-4 text-gray-600 text-lg">
-        Retrieving flight details. Please wait a moment.
-    </p>
-)}
+                            <p className="text-center ml-4 text-gray-600 text-lg">
+                                Retrieving flight details. Please wait a moment.
+                            </p>
+                        )}
                             </div>
                         </div>
                     }
@@ -937,9 +984,51 @@ return (
                                 </div>
 
                             <div className="form-roww page-search-p" >
+                            <div className="form-groupp">
+      <div className="location-header" style={{ paddingLeft: "12px", paddingTop: "6px" }}>
+        Company
+      </div>
+
+      <div className="location-info">
+        <div className="input-a" style={{ border: "none", boxShadow: "none" }}>
+          <div className="location-details" style={{ position: "relative" }}>
+            <input
+              type="text"
+              className="city-name-input"
+              value={inputCompany}
+              onChange={(e) => {
+                setInputCompany(e.target.value);
+                setShowDropdown(true); // Show dropdown while typing
+              }}
+              placeholder="Select company"
+              onFocus={() => setShowDropdown(true)}
+              onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // Delay hiding for clicks
+            />
+
+            {showDropdown && (
+              <ul className="dropdown">
+                {companies
+                  .filter((company) =>
+                    company.corporate_name.toLowerCase().includes(inputCompany.toLowerCase())
+                  )
+                  .map((company) => (
+                    <li
+                      key={company.id}
+                      className="dropdown-item"
+                      onMouseDown={() => handleCompanySelect(company)}
+                    >
+                      {company.corporate_name}
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
 
                                 <div className="form-groupp">
-                                {/* <label htmlFor="from">From</label> */}
+                                
                                 <div className="location-info">
                                     <div className="input-a" style={{ border: 'none', boxShadow: 'none' }}>
                                         <div className="location-header">FROM</div>
@@ -1105,15 +1194,7 @@ return (
                                 <div className="form-groupp srch-tab-left">
                                 {/* <label htmlFor="departureDate">Departure</label> */}
                                 <div className="location-header" style={{ paddingLeft:'12px', paddingTop:'6px'}}>Departure</div>
-                                {/* <div className="react-datepicker__month-container">
-                                    <input
-                                    type="date"
-                                    id="departureDate"
-                                    //   value={departureDate}
-                                    //   onChange={(e) => setDepartureDate(e.target.value)}
-                                    />
-
-                                </div> */}
+                                
                                 <div className="input-a" style={{ border:'none', boxShadow:'none', paddingLeft:'12px'}} onClick={() => setdepIsOpen(true)}>
                                     <DatePicker
                                         name="searchdeparture"

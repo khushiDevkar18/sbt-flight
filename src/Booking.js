@@ -5953,12 +5953,12 @@ const Booking = () => {
                                                     )
                                             )}
                                             
-                                            <div className="chk-line">
+                                            {/* <div className="chk-line">
                                                 {Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])
                                                     ? packageSelected["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
                                                         <div key={index} className="chk-line-item">
                                                         <div className="chk-l">
-                                                            {tax["$"]["Category"]} {/* Tax Category */}
+                                                            {tax["$"]["Category"]} 
                                                         </div>
                                                         <div className="chk-r">
                                                             {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
@@ -5969,7 +5969,7 @@ const Booking = () => {
                                                     : packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"] && (
                                                         <div className="chk-line-item">
                                                         <div className="chk-l">
-                                                            {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"]} {/* Tax Category */}
+                                                            {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"]} 
                                                         </div>
                                                         <div className="chk-r">
                                                             {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
@@ -5977,7 +5977,7 @@ const Booking = () => {
                                                         </div>
                                                         </div>
                                                     )}
-                                                </div>
+                                                </div> */}
                                                 <div className="chk-line">
                                                 <span className="chk-l">Total Taxes</span>
                                                 <span className="chk-r">

@@ -17879,10 +17879,10 @@ color: #fff;
 .seatprevbutton{
   margin-top: 35%;
   margin-left: 5%;
-  border: 2px solid #bd8100;
+  border: 2px solid #785eff;
   border-radius: 60%;
   float: left;
-  background: #bd8100;
+  background: #785eff;
   text-transform: capitalize;
   font-family: 'Raleway';
   font-size: 17px;
@@ -17893,10 +17893,10 @@ color: #fff;
 .seatnextbutton{
   margin-top: 35%;
     margin-right: -15%;
-    border: 2px solid #bd8100;
+    border: 2px solid #785eff;
     border-radius: 60%;
     float: right;
-    background: #bd8100;
+    background: #785eff;
     text-transform: capitalize;
     font-family: 'Raleway';
     font-size: 17px;
@@ -19561,7 +19561,7 @@ button#search-button:hover {
   position: absolute; /* Position the button absolutely */
   top: 42%; /* Center vertically */
   transform: translateY(-50%); /* Adjust for vertical centering */
-  left: 20%;
+  left: 32.8%;
   background: white; /* Make the button background transparent */
   border: none; /* Remove button border */
   z-index: 1;
@@ -19637,22 +19637,26 @@ button#search-button:hover {
   left: 0;
   background-color: #fff;
   border: 1px solid #e3e3e3;
-  /* border-radius: 4px; */
-  width: 180px;
+  width: 135px;
   z-index: 9999;
   max-height: 150px;
   overflow-y: auto;
   margin-top: 5px;
   padding: 0;
   list-style: none;
+  scrollbar-width: none;
+}
+.dropdown::-webkit-scrollbar {
+  display: none; 
 }
 
 .dropdown-item {
-  /* padding: 10px; */
+  /* padding: 50px; */
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   font-family: 'Montserrat', sans-serif;
   color: #4c4c4c;
+  margin-bottom: 5px;
   /* border-bottom: 1px solid #e3e3e3; */
 }
 

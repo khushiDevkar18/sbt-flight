@@ -15531,10 +15531,10 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         </div>
                                                                       </div>
                                                                     </div>
-                                                                    {/* {is_approved === '1'  && ( */}
+                                                                    {is_approved === '1'  && (
                                                                     
                                                                       <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleach(fareInfoRefKey)}>Book Now</button></div>
-                                                                    {/* )} */}
+                                                                    )}
                                                                     <button
                                                                       className="add-btn"
                                                                       type="button"
@@ -16136,9 +16136,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                   )}
                                                                 </div>
 
-                                                                {/* {is_approved === '1'  && ( */}
+                                                                {is_approved === '1'  && (
                                                                   <div className='buttonbook' style={{ width: "37%" }}><button type='button' className="continuebutton" style={{ marginTop: "7px", color: "white", backgroundColor: "#785eff", border: "none", padding: "5px 5px 5px 5px", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
-                                                                {/* )} */}
+                                                                )}
                                                                 <button
                                                                   className="add-btn"
                                                                   type="button"

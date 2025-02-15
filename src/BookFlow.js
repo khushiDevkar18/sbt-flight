@@ -284,7 +284,7 @@ const BookFlow = () => {
                     const password = 'tN=54gT+%Y'; 
                     const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
                     // sessionStorage.setItem('searchdata', soapEnvelope);
-                    //   console.log('soapenv', soapEnvelope); 
+                      console.log('soapenv', soapEnvelope); 
 
                     const response = await axios.post(
                         'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
