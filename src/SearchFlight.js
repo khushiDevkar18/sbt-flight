@@ -71,6 +71,7 @@ const SearchFlight = () => {
   const [htmlContent, setHtmlContent] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [newpayload, setPayload] = useState("");
+  const contentRef = useRef(null);
   // console.log('farelist', FareList);
 
   const [Airlines, setAirlineOptions] = useState([]);
@@ -2492,8 +2493,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       },
     })
       .then((response) => {
-        console.log('data.data', response.data.data);
-        // Check if the response contains success = "1"
+        // console.log('data.data', response.data.data);
         if (response.data.success === "1") {
           setHtmlContent(response.data.data);
           setShowModal(true);
@@ -2527,24 +2527,43 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
   };
 
   const confirmAndCloseModal = () => {
-    const updatedPayload = { ...newpayload, flag: "send" };
-    console.log('updatedPayload', updatedPayload);
-    const apiLink = 'https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking';
-    
-
-    axios.post(apiLink, JSON.stringify(updatedPayload), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    })
-
-    setShowModal(false);
-    Swal.fire({
-      title: "Success!",
-      text: "Flight options have been sent successfully.",
-      icon: "success",
-      confirmButtonText: "OK",
-    });
+    if (contentRef.current) {
+      const updatedHtml = contentRef.current.innerHTML; // Get edited HTML content
+  
+      const updatedPayload = { 
+        ...newpayload, 
+        flag: "send", 
+        htmlContent: updatedHtml // Include updated HTML in API payload
+      };
+      console.log('updatedPayload', updatedPayload);
+  
+      const apiLink = "https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking";
+  
+      axios
+        .post(apiLink, JSON.stringify(updatedPayload), {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        })
+        .then(() => {
+          Swal.fire({
+            title: "Success!",
+            text: "Flight options have been sent successfully.",
+            icon: "success",
+            confirmButtonText: "OK",
+          });
+          setShowModal(false);
+        })
+        .catch((error) => {
+          console.error("Error sending HTML content:", error);
+          Swal.fire({
+            title: "Error!",
+            text: "Failed to send flight options.",
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        });
+    }
   };
   
 
@@ -2556,7 +2575,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
   const [visibleDetailsByName, setVisibleDetailsByName] = useState({}); // For name-specific toggle
   const [fareInfoDetails, setFareInfoDetails] = useState({}); 
   // console.log('fareInfoDetails', fareInfoDetails);
-  const [fareinfovisible, setFareInfoVisible] = useState(false);
+
 
   const toggleDetails = async (name) => {
     if (visibleDetails) {
@@ -2574,7 +2593,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       setFareInfoDetails(null);
       // setFareInfoVisible(false);
   
-      console.log("Fetching Fare Info for Key:", fareInfoRefKey);
+      // console.log("Fetching Fare Info for Key:", fareInfoRefKey);
       const matchingFareRule = FareList.find(
         entry => entry["air:FareRuleKey"]["$"]['FareInfoRef'] === fareInfoRefKey
       )?.["air:FareRuleKey"];
@@ -2594,7 +2613,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
             </soap:Body>
         </soap:Envelope>
       `;
-      console.log('soapEnvelope', soapEnvelope);
+      // console.log('soapEnvelope', soapEnvelope);
   
       const response = await axios.post(
         "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest",
@@ -2602,7 +2621,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
         { headers: { "Content-Type": "text/xml" } }
       );
       
-      console.log("API Response:", response.data);
+      // console.log("API Response:", response.data);
       
       // Function to extract text from the XML response
       const extractFareRuleText = (xmlString) => {
@@ -2627,6 +2646,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       const fareRuleText = extractFareRuleText(response.data);
       
       setFareInfoDetails(fareRuleText);
+      
   
       // setFareInfoVisible(true);
       setVisibleDetails(true);
@@ -2634,8 +2654,6 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       console.error("Error fetching fare info:", error);
     }
   };
-
-  // const renderedSegmentRefs = new Set();
 
   // const [dataFound, setDataFound] = useState(false);
   const renderedSegmentRefs = useRef(new Set()); // Track already rendered segments
@@ -4963,6 +4981,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                 if (airlineCheck && airlinereturnCheck && stopsCheck && stopsreturnCheck && arrivaltimeCheck && departuretimeCheck) {
                                   if (totalPrice >= priceRange[0] && totalPrice <= priceRange[1]) {
                                     flightsMatched = true;
+                                    console.log('pricepoint', pricepoint);
                                     return (
                                       <React.Fragment key={priceindex}>
                                         <form onSubmit={(e) => handlePriceSubmit(e, priceindex)}>
@@ -15445,9 +15464,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                             &times;
                                                           </button>
                                                           {fareInfoDetails ? (
-                                                            <ul>
-                                                            <p>{fareInfoDetails}</p> 
-                                                            </ul>
+                                                            <pre style={{ fontSize:'13px'}}>{fareInfoDetails}</pre> 
                                                           ) : (
                                                             <p>No details are available at present. Please check back later.</p>
                                                           )}
@@ -16505,18 +16522,27 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
         </Modal.Footer>
       </Modal>
       <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>HTML Preview</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
-        </Modal.Body>
-        <Modal.Footer>
-          <button className="send-button" onClick={confirmAndCloseModal}>
-            Confirm & Proceed
-          </button>
-        </Modal.Footer>
-      </Modal>
+      <Modal.Header closeButton>
+        <Modal.Title>HTML Preview (Editable)</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <div
+          ref={contentRef} // Reference to editable content
+          contentEditable="true" // Allows user to edit
+          dangerouslySetInnerHTML={{ __html: htmlContent }} // Show HTML
+          style={{
+            minHeight: "200px",
+            border: "1px solid #ddd",
+            padding: "10px",
+          }}
+        />
+      </Modal.Body>
+      <Modal.Footer>
+        <button className="send-button" onClick={confirmAndCloseModal}>
+          Confirm & Proceed
+        </button>
+      </Modal.Footer>
+    </Modal>
 
 
 

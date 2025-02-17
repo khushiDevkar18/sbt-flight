@@ -859,44 +859,44 @@ const Booking = () => {
                             'EmailID': Passengers.email,
                         }
                     },
-                    // 'com:SSR': [
-                    //     {
-                    //         '$': {
-                    //             'Carrier': carrier,
-                    //             'FreeText': "IND/" + clientFormGst.GSTIN + "/" + clientFormGst.company_gst_name,
-                    //             'Key': generateUniqueKey(),
-                    //             'Status': "HK",
-                    //             'Type': "GSTN"
-                    //         }
-                    //     },
-                    //     {
-                    //         '$': {
-                    //             'Carrier': carrier,
-                    //             'FreeText': "IND/corporate//taxivaxi.com",
-                    //             'Key': generateUniqueKey(),
-                    //             'Status': "HK",
-                    //             'Type': "GSTE"
-                    //         }
-                    //     },
-                    //     {
-                    //         '$': {
-                    //             'Carrier': carrier,
-                    //             'FreeText': "IND/" + clientFormGst.company_gst_contact,
-                    //             'Key': generateUniqueKey(),
-                    //             'Status': "HK",
-                    //             'Type': "GSTP"
-                    //         }
-                    //     },
-                    //     {
-                    //         '$': {
-                    //             'Carrier': carrier,
-                    //             'FreeText': "IND/" + clientFormGst.company_gst_address,
-                    //             'Key': generateUniqueKey(),
-                    //             'Status': "HK",
-                    //             'Type': "GSTA"
-                    //         }
-                    //     }
-                    // ],
+                    'com:SSR': [
+                        {
+                            '$': {
+                                'Carrier': carrier,
+                                'FreeText': "/IND/" + clientFormGst.GSTIN + "/" + clientFormGst.company_gst_name,
+                                'Key': generateUniqueKey(),
+                                'Status': "HK",
+                                'Type': "GSTN"
+                            }
+                        },
+                        {
+                            '$': {
+                                'Carrier': carrier,
+                                'FreeText': "/IND/corporate//taxivaxi.com",
+                                'Key': generateUniqueKey(),
+                                'Status': "HK",
+                                'Type': "GSTE"
+                            }
+                        },
+                        {
+                            '$': {
+                                'Carrier': carrier,
+                                'FreeText': "/IND/" + clientFormGst.company_gst_contact,
+                                'Key': generateUniqueKey(),
+                                'Status': "HK",
+                                'Type': "GSTP"
+                            }
+                        },
+                        {
+                            '$': {
+                                'Carrier': carrier,
+                                'FreeText': "/IND/" + clientFormGst.company_gst_address,
+                                'Key': generateUniqueKey(),
+                                'Status': "HK",
+                                'Type': "GSTA"
+                            }
+                        }
+                    ],
                     ...(Passengers.codes[index] === 'CNN' || Passengers.codes[index] === 'INF' ? {
                         'com:NameRemark': {
                             'com:RemarkData': Passengers.codes[index] === 'CNN' ? `PC-${calculateAge(Passengers.ageNames[index])} ${formatDate(Passengers.ageNames[index])}` : formatDate(Passengers.ageNames[index])
@@ -962,7 +962,7 @@ const Booking = () => {
                     }
                 });
             }
-            // console.log('packageSelected', packageSelected);
+            console.log('packageSelected', packageSelected);
 
             const passengerAges = Passengers.ageNames.map(calculateAge);
             const makeReservationRequest = async () => {
@@ -1080,6 +1080,10 @@ const Booking = () => {
                         let segmentKey = newElement.getAttribute("Key");
 
                         let bookingInfoArray = packageSelected['air:AirPricingInfo']['air:BookingInfo'];
+
+                        if (!Array.isArray(bookingInfoArray)) {
+                            bookingInfoArray = [bookingInfoArray]; 
+                        }
                         let matchingBookingInfo = bookingInfoArray.find(info => info["$"]["SegmentRef"] === segmentKey);
 
                         if (matchingBookingInfo) {
@@ -4487,7 +4491,7 @@ const Booking = () => {
                                                                                     <label>Prefix</label>
                                                                                     <div className="form-calendar1">
                                                                                         <select
-                                                                                            className="custom-select"
+                                                                                           
                                                                                             name="adult_prefix[]"
                                                                                             data-index={passengerindex}
                                                                                             readOnly={bookingid}
@@ -4594,7 +4598,6 @@ const Booking = () => {
                                                                                     <label>Gender</label>
                                                                                     <div className="form-calendar1">
                                                                                         <select
-                                                                                            className="custom-select"
                                                                                             name="adult_gender[]"
                                                                                             data-index={passengerindex}
                                                                                             readOnly={bookingid}

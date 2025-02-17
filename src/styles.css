@@ -17625,7 +17625,7 @@ input:checked+.slider:before {
   font-weight: 450;
   padding: 15px;
   width: 80%; 
-  max-width: 650px; 
+  max-width: 500px; 
   border-radius: 4px; 
   border: 2px solid black;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
@@ -19754,4 +19754,9 @@ button#search-button:hover {
   color: red;
   margin-top: 4px;
   display: none; /* Initially hidden */
+}
+
+.highlightpolicy {
+  color: red; /* You can change this color */
+  font-weight: bold; /* Optional: add bold */
 }
