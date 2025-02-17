@@ -2178,6 +2178,7 @@ function Home() {
                                   >
                                     <DatePicker
                                       name="searchCheckIn"
+                                        autoComplete="off"
                                       selected={formData.checkInDate} // Separate variable for Check-In date
                                       dateFormat="dd/MM/yyyy"
                                       placeholderText="Add Check-In Date"
@@ -2228,6 +2229,7 @@ function Home() {
                                   >
                                     <DatePicker
                                       name="searchCheckOut"
+                                        autoComplete="off"
                                       selected={formData.checkOutDate}
                                       onChange={(date) => {
                                         handleCheckOutDateChange(date);

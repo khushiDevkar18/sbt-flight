@@ -30,6 +30,7 @@
     "react-datepicker": "^6.1.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.4.0",
+    "react-perfect-scrollbar": "^1.5.8",
     "react-router-dom": "^6.23.0",
     "react-scripts": "^5.0.1",
     "react-xml-parser": "^1.1.8",
@@ -42,7 +43,7 @@
     "web-vitals": "^2.1.4",
     "xml2js": "^0.6.2"
   },
-  "proxy": "https://apac.universal-api.travelport.com",
+  "proxy": "http://api.tbotechnology.in",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

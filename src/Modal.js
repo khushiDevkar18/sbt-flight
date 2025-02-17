@@ -5,7 +5,7 @@ const Modal = ({ title, children, onClose }) => {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-600 dark:text-white hover:text-gray-800 dark:hover:text-gray-300"
+          className="absolute top-3 close_icon bg-white text-gray-600 rounded-full dark:text-white hover:text-gray-800 dark:hover:text-gray-300"
         >
           ✖
         </button>
@@ -14,7 +14,7 @@ const Modal = ({ title, children, onClose }) => {
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">{title}</h3>
 
         {/* Modal Content (Scrollable) */}
-        <div className="max-h-[50vh] h-auto overflow-y-auto">
+        <div className="max-h-[70vh] h-auto overflow-y-auto">
           {children}
         </div>
       </div>

@@ -126,6 +126,10 @@
     border-radius: 4px; /* Optional: Rounds the corners */
   box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Adds a shadow */
 }
+.button_width{
+  
+    width: 20%;
+}
 
 .hotel-photos {
   width: 100px;
@@ -233,14 +237,17 @@
   transition: all 0.3s ease-in-out;
 }
 
-.btn-outline-color:hover {
+.btn-outline-color:hover,.rating-color {
   background-color: #785ef7;
   color: white;
 }
-
-.rating-color {
+.close_icon{
+  right: -2.25rem;
+}
+.btn-color_h1 {
   color: white;
   background-color: #785ef7;
+  width: 7.5rem;
   /* padding: 8px 16px;
   border-radius: 6px;
   font-weight: bold;
@@ -273,10 +280,32 @@
   /* color: gray; */
 }
 .hoteldetail-conatiner{
-  background-color: #f2f2f2;
+  background: linear-gradient(135deg,#d1d1d1, #f2f2f2);
+}
+.text_hotel_address{
+  /* font-size: 12px; */
+  font-weight:400;
+  font-family: sans-serif;
+
 }
 .hotel-border{
   border-radius: 16px;
+}
+.hotel-border2{
+  border-radius: 8px;
+
+}
+.hotelPhotos_Payment{
+  position: relative;
+   max-height: 135px;
+   border-radius: 8px 8px 0px 0px;
+   border: none;
+   width: 100%;
+  /* width: 50%;
+  height: 20%; */
+}
+.payment_width_box {
+  width: 41.333333%;
 }
 ul {
   padding-left: 1rem !important;
@@ -305,11 +334,14 @@ border-color: #785ef7;
   height: 130px;
   width: 130px;
 }
-
+.add_gusts_box{
+  width: 157%;
+}
 
 /******* Hotel Booking *********/
 .search-bar3{
-  background-color:white;
+  background-color: #f2f2f2;
+
   /* padding: 15px; */
   margin: 0 auto;
   max-width: 1325px;
@@ -339,4 +371,179 @@ border-color: #785ef7;
 }
 .card_background{
   background-color: #f2f2f2;
+}
+.box-color{
+  background-color: #ebebff;
+}
+
+/* ADD GUST FORM DESIGN*/
+
+.guestDtls__addBtn {
+  font-size: 16px;
+  font-weight: 900;
+}
+.guestsInfo__row {
+  margin-bottom: 27px;
+}
+.makeFlex {
+  display: flex
+;
+}
+.guestDtls__col {
+  display: flex
+;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+html[dir=ltr] .appendRight10 {
+  margin-right: 10px;
+}
+
+.guestDtls__col.width70 {
+  width: 70px;
+}
+.appendBottom10 {
+  margin-bottom: 10px;
+}
+
+.btn-color{
+  background-color: white;
+  color: #785ef7;
+  width: 189px;
+  height: 35px;
+  font-size: 13px;
+}
+.capText {
+  text-transform: uppercase;
+}
+
+.appendBottom10 {
+  margin-bottom: 10px;
+}
+.font11 {
+  font-size: calc(var(--font-scale, 1)* 11px);
+  line-height: 11px;
+}
+.frmSelect {
+  -webkit-appearance: none;
+  border: 1px solid #bebebe;
+  border-radius: 4px;
+  font-family: lato, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  height: 40px;
+  outline: 0;
+  padding: 0 20px 0 10px;
+  width: 100%;
+}
+.makeFlex.column {
+  flex-direction: column;
+}
+
+.makeFlex .flexOne {
+  flex: 1;
+}
+html[dir=ltr] .appendRight10 {
+  margin-right: 10px;
+}
+.guestDtls__col.width247 {
+  width: 247px;
+}
+
+.appendRight10 {
+  margin-right: 10px;
+}
+.guestDtls__col {
+  display: flex
+;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.guestDtlsTextLbl {
+  min-height: 11px;
+}
+.capText {
+  text-transform: uppercase;
+}
+.frmTextInput {
+  border: 1px solid #bebebe;
+  border-radius: 4px;
+  font-family: lato, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  height: 40px;
+  outline: 0;
+  padding: 0 10px;
+  width: 100%;
+}
+.frmTextInputs {
+  border: 1px solid #bebebe;
+  border-radius: 5px;
+  font-family: lato, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  height: 37px;
+  outline: 0;
+  padding: 0 10px;
+  width: 100%;
+
+}
+
+.selectedCode {
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #bebebe;
+  border-radius: 4px 0 0 4px;
+  color: #000;
+  display: inline-flex
+;
+  font-size: 14px;
+  height: 40px;
+  max-width: 90px;
+  min-width: 70px;
+  overflow: hidden;
+  padding: 0 25px 0 10px;
+  pointer-events: auto;
+  transition: all .3s linear;
+}
+.makeFlex.spaceBetween {
+  justify-content: space-between;
+}
+
+.makeFlex.hrtlCenter {
+  align-items: center;
+}
+.appendBottom15 {
+  margin-bottom: 15px;
+}
+.checkmarkOuter {
+  display: inline-flex
+;
+  flex-shrink: 0;
+  align-items: center;
+  /* min-height: 18px; */
+  position: relative;
+}
+.grayText {
+  color: #9b9b9b;
+}
+.appendLeft3 {
+  margin-left: 3px;
+}
+.font14 {
+  font-size: calc(var(--font-scale, 1)* 14px);
+  line-height: 14px;
+}
+.guestDtls__add {
+  align-items: center;
+  display: flex
+;
+}
+html[dir=ltr] .appendRight5 {
+  margin-right: 5px;
+}
+
+
+.appendRight5 {
+  margin-right: 5px;
 }

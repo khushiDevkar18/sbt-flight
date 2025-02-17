@@ -9,6 +9,7 @@ import Home from './Home';
 import SearchHotel from './SearchHotel';
 import HotelDetail from './HotelDetail';
 import HotelBooking from './HotelBooking';
+import HotelPayment from './HotelPayment';
 import PageNotFound from './PageNotFound';
 import TryAgainLater from './TryAgainLater';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -30,13 +31,14 @@ const App = () => {
           <Route path="/SearchHotel" element={<SearchHotel />}/>
           <Route path="/HotelDetail" element={<HotelDetail />}/>
           <Route path="/HotelBooking" element={<HotelBooking />}/>
+          <Route path="/HotelPayment" element={<HotelPayment />}/>
           <Route path="*" element={<PageNotFound />} />
         </Routes>
         </div>
         <Footer />
       </div>
     </Router>
-
+    
   );
 };
 

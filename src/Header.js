@@ -7,12 +7,12 @@ const Header = () => {
   const location = useLocation();
   const [loader, setLoader]= useState(false);
   const searchData = JSON.parse(sessionStorage.getItem("hotelData"));
-  // console.log(searchData);
+  // // console.log(searchData);
 
   const [hotelcityList, setHotelCityList] = useState([]);
   const searchParams = searchData || {};
   // const datew = searchParams.checkIn;
-  // console.log(searchParams);
+  // // console.log(searchParams);
   const navigate = useNavigate();
   const parseDate = (dateStr) => {
     if (!dateStr) return null;
@@ -20,7 +20,7 @@ const Header = () => {
     if (!year || !month || !day) return null; // Ensure valid numbers
     return new Date(year, month - 1, day); // JS months are 0-based
   };
-
+  const SESSION_TIMEOUT = 60 * 60 * 1000; // 1 hour in milliseconds
   // Function to format date as DD-MM-YYYY
   const formatDate = (date) => {
     if (!(date instanceof Date) || isNaN(date)) return ""; // Check if valid date
@@ -33,23 +33,38 @@ const Header = () => {
   // State initialization with parsed dates from searchParams
   const [checkInDate, setCheckInDate] = useState(() => {
     const parsedDate = parseDate(searchParams.checkIn);
-    return parsedDate instanceof Date && !isNaN(parsedDate)
-      ? parsedDate
-      : new Date();
+    return parsedDate instanceof Date && !isNaN(parsedDate) ? parsedDate : new Date();
   });
 
   const [checkOutDate, setCheckOutDate] = useState(() => {
     const parsedDate = parseDate(searchParams.checkOut);
-    return parsedDate instanceof Date && !isNaN(parsedDate)
-      ? parsedDate
-      : new Date();
+    return parsedDate instanceof Date && !isNaN(parsedDate) ? parsedDate : new Date();
   });
+
+  useEffect(() => {
+    // Set a timeout to clear session and reset check-in & check-out dates
+    const timeout = setTimeout(() => {
+      // console.log("Session expired. Resetting dates...");
+      sessionStorage.clear(); // Clear session storage
+      setCheckInDate(new Date()); // Reset check-in date
+      setCheckOutDate(new Date()); // Reset check-out date
+    }, SESSION_TIMEOUT);
+
+    return () => clearTimeout(timeout); // Cleanup on unmount
+  }, []);
+
+  // const [checkOutDate, setCheckOutDate] = useState(() => {
+  //   const parsedDate = parseDate(searchParams.checkOut);
+  //   return parsedDate instanceof Date && !isNaN(parsedDate)
+  //     ? parsedDate
+  //     : new Date();
+  // });
 
   const [isCheckInOpen, setCheckInIsOpen] = useState(false);
   const [isCheckOutOpen, setCheckOutIsOpen] = useState(false);
-  // // console.log( 'previous date ',searchParams.checkIn);
-  // // console.log('Displayed date ',parseDate(searchParams.checkIn));
-  // // console.log('actual date displayed',formatDate(checkInDate))
+  // // // console.log( 'previous date ',searchParams.checkIn);
+  // // // console.log('Displayed date ',parseDate(searchParams.checkIn));
+  // // // console.log('actual date displayed',formatDate(checkInDate))
   // Handle date changes
   const handleCheckInDateChange = (date) => {
     setCheckInDate(date);
@@ -95,13 +110,23 @@ const Header = () => {
   const [cityList, setCityList] = useState([]); // List of cities
   const [filteredCities, setFilteredCities] = useState([]); // Filtered list
   const [showDropdown, setShowDropdown] = useState(false); // Controls dropdown visibility
-  const [cityName, setCityName] = useState(
-    searchParams.filteredCities && searchParams.filteredCities.length > 0
-      ? searchParams.filteredCities[0].Name
-      : ""
-  );
+ 
 
-  // console.log(cityName);
+const [cityName, setCityName] = useState("");
+
+useEffect(() => {
+  const timeout = setTimeout(() => {
+    setCityName(
+      searchParams.filteredCities && searchParams.filteredCities.length > 0
+        ? searchParams.filteredCities[0].Name
+        : ""
+    );
+  }, 1000); // Delay of 1 second (1000 ms)
+
+  return () => clearTimeout(timeout); // Cleanup function to avoid memory leaks
+}, [searchParams.filteredCities]); // Runs when `filteredCities` changes
+// console.log(searchParams);
+  // // console.log(cityName);
   const [isTyping, setIsTyping] = useState(false);
   useLayoutEffect(() => {
     const storedCities = sessionStorage.getItem("cityList");
@@ -131,7 +156,7 @@ const Header = () => {
           }
 
           const data = await response.json();
-          console.log(data);
+          // console.log(data);
           if (data.Status.Code === 200) {
             const cityList = data.CityList || [];
             setCityList(cityList);
@@ -171,9 +196,9 @@ const Header = () => {
   };
  const showHeader2 = location.pathname === "/SearchHotel" || location.pathname === "/HotelDetail";
   //  const hotelList = location.state?.hotelList || [];
-  // console.log(hotelList);
+  // // console.log(hotelList);
   const [hotelCodes, setHotelCodes] = useState([]);
-  // // console.log(hotelCodes);
+  // // // console.log(hotelCodes);
   useLayoutEffect(() => {
     const fetchCity = async () => {
       if (filteredCities.length === 0) return; // Ensure filteredCities has data
@@ -181,9 +206,9 @@ const Header = () => {
       const cityCode = filteredCities[0]?.Code; // Get the first city's code
       // if (!cityCode) return; // Avoid API call if cityCode is null
 
-      // console.log("Fetching hotels for City Code:", cityCode);
+      // // console.log("Fetching hotels for City Code:", cityCode);
 
-      // // console.log('TB Hotel Code List')
+      // // // console.log('TB Hotel Code List')
 
       try {
         const response = await fetch(
@@ -206,14 +231,14 @@ const Header = () => {
         }
 
         const data = await response.json();
-        // // console.log("Hotel :", data);
+        // // // console.log("Hotel :", data);
 
         if (data.success === "1" && data.response.Status.Code === 200) {
           const hotels = data.response.Hotels || []; // Fix: Access Hotels from data.response
 
           if (hotels.length > 0) {
             const codes = hotels.map((hotel) => hotel.HotelCode);
-            // // console.log(codes);
+            // // // console.log(codes);
             setHotelCodes(codes);
           } else {
             console.warn("No hotels found in response.");
@@ -248,14 +273,14 @@ const Header = () => {
     const Children = roomchildCount;
     const ChildAge = childrenAges;
     const CityCode = hotelCodes.toString();
-    // // console.log(CityCode);
-    // console.log("Check-In Date:", checkIn);
-    // console.log("Check-Out Date:", checkOut);
-    // console.log("Rooms:", Rooms);
-    // console.log("Adults:", Adults);
-    // console.log("Children:", Children);
-    // console.log("Children Ages:", ChildAge);
-    // console.log("City Code:", CityCode);
+    // // // console.log(CityCode);
+    // // console.log("Check-In Date:", checkIn);
+    // // console.log("Check-Out Date:", checkOut);
+    // // console.log("Rooms:", Rooms);
+    // // console.log("Adults:", Adults);
+    // // console.log("Children:", Children);
+    // // console.log("Children Ages:", ChildAge);
+    // // console.log("City Code:", CityCode);
     const requestBody = {
       CheckIn: checkIn,
       CheckOut: checkOut,
@@ -280,9 +305,9 @@ const Header = () => {
       },
     };
     const hotel = hotelcityList;
-    console.log(hotel);
+    // console.log(hotel);
 
-    // console.log(requestBody);
+    // // console.log(requestBody);
 
     try {
       setLoader(true);
@@ -303,10 +328,10 @@ const Header = () => {
       }
 
       const data = await response.json();
-      // console.log("Hotel data:", data);
+      // // console.log("Hotel data:", data);
       if (data.success === "1" && data.response.Status.Code === 200) {
         setHotelCityList(data.response.HotelResult || []);
-        // console.log("asd");
+        // // console.log("asd");
 
         // Prepare the data to store in sessionStorage
         const searchData = {

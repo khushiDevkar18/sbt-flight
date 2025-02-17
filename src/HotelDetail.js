@@ -80,7 +80,7 @@ const HotelDetails = () => {
   const [showRates, setShowRates] = useState(false);
 
   const hotel = location.state?.hotel;
-  console.log(hotel);
+  // console.log(hotel);
   const searchParams = JSON.parse(sessionStorage.getItem("hotelData")) || {};
   const extractAttraction = (Description) => {
     if (!Description || typeof Description !== "string") {
@@ -99,7 +99,7 @@ const HotelDetails = () => {
 //   const isRefundable = hotel.Rooms?.[0]?.IsRefundable || false;
   
 //   // Debugging: Log the raw cancellation date
-//   console.log("Raw Cancellation Date:", cancellationDate);
+//   // console.log("Raw Cancellation Date:", cancellationDate);
   
 //   // Ensure cancellationDate is a valid string before parsing
 //   const parsedCancellationDate = cancellationDate
@@ -111,9 +111,9 @@ const HotelDetails = () => {
 //   const isFutureDate = isValidDate ? parsedCancellationDate.isAfter(dayjs()) : false;
   
 //   // Debugging: Log parsed date and validation
-//   console.log("Parsed Cancellation Date:", isValidDate ? parsedCancellationDate.format("YYYY-MM-DD HH:mm:ss") : "Invalid Date");
-//   console.log("Is Future Date:", isFutureDate);
-//   console.log("Meal Type:", mealType);
+//   // console.log("Parsed Cancellation Date:", isValidDate ? parsedCancellationDate.format("YYYY-MM-DD HH:mm:ss") : "Invalid Date");
+//   // console.log("Is Future Date:", isFutureDate);
+//   // console.log("Meal Type:", mealType);
   
 //   let cancellationText = "";
   
@@ -132,7 +132,7 @@ const HotelDetails = () => {
 //       cancellationText = "Room Cancellation";
 //   }
   
-//   console.log("Final Cancellation Text:", cancellationText);
+//   // console.log("Final Cancellation Text:", cancellationText);
   const formatCancelPolicies = (CancelPolicies) => {
     if (!Array.isArray(CancelPolicies) || CancelPolicies.length === 0) {
       return ["No cancellation policies available."];
@@ -160,7 +160,7 @@ const HotelDetails = () => {
     });
   };
   const cancellationPolicies = formatCancelPolicies(hotel.CancelPolicies);
-console.log("Formatted Cancellation Policies:", cancellationPolicies);
+// console.log("Formatted Cancellation Policies:", cancellationPolicies);
 
 const mealType = hotel.Rooms?.[0]?.MealType || "";
 const isRefundable = hotel.Rooms?.[0]?.IsRefundable || false;
@@ -177,7 +177,7 @@ if (cancellationPolicies.includes("No cancellation policies available.")) {
   cancellationText = "Room Cancellation";
 }
 
-console.log("Final Cancellation Text:", cancellationText);
+// console.log("Final Cancellation Text:", cancellationText);
   const mapSectionRef = useRef(null);
   const [showInfo, setShowInfo] = useState(true);
 
@@ -255,7 +255,7 @@ console.log("Final Cancellation Text:", cancellationText);
               {hotel.HotelName}
             </span>
           </nav>
-          <div className="flex items-center justify-center py-2"> <section ref={overviewRef} id="overview">
+          <div className="flex items-center justify-center py-2"> <section ref={overviewRef} >
             <div className="max-w-[75rem] w-full bg-white shadow-[4px_6px_10px_-3px_#bfc9d4]  border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none hotel-border">
               <div className="py-3 px-3 ">
                 <h5 className="text-[#3b3f5c] text-xl mb-3 font-semibold dark:text-white-light">
