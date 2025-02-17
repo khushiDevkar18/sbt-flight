@@ -104,6 +104,7 @@ const SearchFlight = () => {
   const clientname = location.state && location.state.responseData?.clientname;
   const spocname = location.state && location.state.responseData?.spocname;
   const markupdata = location.state && location.state.responseData?.markupdata;
+  // console.log('markupdata',markupdata);
   const bookingid = location.state && location.state.responseData?.bookingid;
   const is_approved = location.state && location.state.responseData?.isapproved;
   const searchdeparturedate = location.state && location.state.responseData?.searchdeparturedate;
@@ -2554,7 +2555,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
   const [visibleDetails, setVisibleDetails] = useState(false);
   const [visibleDetailsByName, setVisibleDetailsByName] = useState({}); // For name-specific toggle
   const [fareInfoDetails, setFareInfoDetails] = useState({}); 
-  console.log('fareInfoDetails', fareInfoDetails);
+  // console.log('fareInfoDetails', fareInfoDetails);
   const [fareinfovisible, setFareInfoVisible] = useState(false);
 
   const toggleDetails = async (name) => {
@@ -15531,10 +15532,10 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         </div>
                                                                       </div>
                                                                     </div>
-                                                                    {is_approved === '1'  && (
+                                                                    {/* {is_approved === '1'  && ( */}
                                                                     
                                                                       <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleach(fareInfoRefKey)}>Book Now</button></div>
-                                                                    )}
+                                                                    {/* )} */}
                                                                     <button
                                                                       className="add-btn"
                                                                       type="button"
@@ -16136,9 +16137,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                   )}
                                                                 </div>
 
-                                                                {is_approved === '1'  && (
+                                                                {/* {is_approved === '1'  && ( */}
                                                                   <div className='buttonbook' style={{ width: "37%" }}><button type='button' className="continuebutton" style={{ marginTop: "7px", color: "white", backgroundColor: "#785eff", border: "none", padding: "5px 5px 5px 5px", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
-                                                                )}
+                                                                {/* )} */}
                                                                 <button
                                                                   className="add-btn"
                                                                   type="button"

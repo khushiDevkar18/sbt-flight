@@ -51,6 +51,7 @@ function Home() {
     const [inputCompany, setInputCompany] = useState(""); // Display selected company name
     const [showDropdown, setShowDropdown] = useState(false);
     const [ClientMarkupDetails, setClientMarkupDetails] = useState("");
+    // console.log('ClientMarkupDetails', ClientMarkupDetails);
 
     useEffect(() => {
         
@@ -252,21 +253,24 @@ function Home() {
         setInputCompany(company.corporate_name); // Show selected name
         
         setShowDropdown(false); // Hide dropdown after selection
-        console.log('idforcomp', company.id)
+        const adminid = company.id;
+        // console.log('adminid', adminid)
         const payload = {
-            admin_id: company.id,
-            flight_type: "Domestic",
-        }
-        axios.post('https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/flights/getClientMarkupDetails', JSON.stringify(payload), {
+            admin_id: adminid,
+            flight_type: 'Domestic',
+        };
+        // console.log('payload', payload);
+        
+        axios.post('https://demo.taxivaxi.com/api/flights/getClientMarkupDetails', payload, {
             headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-          })
+                'Content-Type': 'application/x-www-form-urlencoded', // Correct content type
+            }
+        })
         
         
             .then((response) => {
-            console.log("Client Markup Details:", response);
-            setClientMarkupDetails(response.data);
+            console.log("Client Markup Details:", response.data.data);
+            setClientMarkupDetails(response.data.data);
             // Handle response if needed (e.g., store in state)
             })
             .catch((error) => {

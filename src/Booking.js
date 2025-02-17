@@ -56,7 +56,7 @@ const Booking = () => {
     const request = location.state?.serviceData || {};
 
     const packageSelected = location.state && location.state.serviceData.packageselected;
-    console.log('packageSelected', packageSelected);
+    // console.log('packageSelected', packageSelected);
 
     const Airports = location.state && location.state.serviceData.Airports;
 
@@ -859,44 +859,44 @@ const Booking = () => {
                             'EmailID': Passengers.email,
                         }
                     },
-                    'com:SSR': [
-                        {
-                            '$': {
-                                'Carrier': carrier,
-                                'FreeText': "IND/" + clientFormGst.GSTIN + "/" + clientFormGst.company_gst_name,
-                                'Key': generateUniqueKey(),
-                                'Status': "HK",
-                                'Type': "GSTN"
-                            }
-                        },
-                        {
-                            '$': {
-                                'Carrier': carrier,
-                                'FreeText': "IND/corporate//taxivaxi.com",
-                                'Key': generateUniqueKey(),
-                                'Status': "HK",
-                                'Type': "GSTE"
-                            }
-                        },
-                        {
-                            '$': {
-                                'Carrier': carrier,
-                                'FreeText': "IND/" + clientFormGst.company_gst_contact,
-                                'Key': generateUniqueKey(),
-                                'Status': "HK",
-                                'Type': "GSTP"
-                            }
-                        },
-                        {
-                            '$': {
-                                'Carrier': carrier,
-                                'FreeText': "IND/" + clientFormGst.company_gst_address,
-                                'Key': generateUniqueKey(),
-                                'Status': "HK",
-                                'Type': "GSTA"
-                            }
-                        }
-                    ],
+                    // 'com:SSR': [
+                    //     {
+                    //         '$': {
+                    //             'Carrier': carrier,
+                    //             'FreeText': "IND/" + clientFormGst.GSTIN + "/" + clientFormGst.company_gst_name,
+                    //             'Key': generateUniqueKey(),
+                    //             'Status': "HK",
+                    //             'Type': "GSTN"
+                    //         }
+                    //     },
+                    //     {
+                    //         '$': {
+                    //             'Carrier': carrier,
+                    //             'FreeText': "IND/corporate//taxivaxi.com",
+                    //             'Key': generateUniqueKey(),
+                    //             'Status': "HK",
+                    //             'Type': "GSTE"
+                    //         }
+                    //     },
+                    //     {
+                    //         '$': {
+                    //             'Carrier': carrier,
+                    //             'FreeText': "IND/" + clientFormGst.company_gst_contact,
+                    //             'Key': generateUniqueKey(),
+                    //             'Status': "HK",
+                    //             'Type': "GSTP"
+                    //         }
+                    //     },
+                    //     {
+                    //         '$': {
+                    //             'Carrier': carrier,
+                    //             'FreeText': "IND/" + clientFormGst.company_gst_address,
+                    //             'Key': generateUniqueKey(),
+                    //             'Status': "HK",
+                    //             'Type': "GSTA"
+                    //         }
+                    //     }
+                    // ],
                     ...(Passengers.codes[index] === 'CNN' || Passengers.codes[index] === 'INF' ? {
                         'com:NameRemark': {
                             'com:RemarkData': Passengers.codes[index] === 'CNN' ? `PC-${calculateAge(Passengers.ageNames[index])} ${formatDate(Passengers.ageNames[index])}` : formatDate(Passengers.ageNames[index])
@@ -1070,16 +1070,29 @@ const Booking = () => {
                     var element = allElements[i];
                     if (element.tagName === 'air:AirSegmentRef') {
                         var newElement = xmlDoc.createElement('air:AirSegment');
+                    
+                        // Copy all attributes from the original element
                         for (let j = 0; j < element.attributes.length; j++) {
                             var attr = element.attributes[j];
                             newElement.setAttribute(attr.nodeName, attr.nodeValue);
                         }
 
+                        let segmentKey = newElement.getAttribute("Key");
+
+                        let bookingInfoArray = packageSelected['air:AirPricingInfo']['air:BookingInfo'];
+                        let matchingBookingInfo = bookingInfoArray.find(info => info["$"]["SegmentRef"] === segmentKey);
+
+                        if (matchingBookingInfo) {
+                            let hostTokenRef = matchingBookingInfo["$"]["HostTokenRef"];
+                            newElement.setAttribute("HostTokenRef", hostTokenRef); 
+                        }
+                       
+                    
                         for (let j = 0; j < element.childNodes.length; j++) {
                             var childNode = element.childNodes[j].cloneNode(true);
                             newElement.appendChild(childNode);
                         }
-
+                    
                         element.parentNode.replaceChild(newElement, element);
                     }
                 }
