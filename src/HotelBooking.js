@@ -199,40 +199,47 @@ const HotelBooking = () => {
   const [guests, setGuests] = useState([]); // Store all added guests
   const [selectedGuests, setSelectedGuests] = useState([]); // Store only selected guests
   const [error, setError] = useState("");
+
   const MAX_ADULTS = searchParams.Adults; // 2 (1 prefilled + 1 selectable)
   const MAX_CHILDREN = searchParams.Children; // 2
   const handleCheckboxChange = (index) => {
     setGuests((prevGuests) => {
       const updatedGuests = [...prevGuests];
       const currentGuest = updatedGuests[index];
-
-      // Count adults and children excluding the current guest
-      const newAdultsCount =
-        updatedGuests.filter((g, i) => i !== index && !g.isBelow12).length +
-        (!currentGuest.isBelow12 ? 0 : 1);
-
-      const newChildrenCount =
-        updatedGuests.filter((g, i) => i !== index && g.isBelow12).length +
-        (currentGuest.isBelow12 ? 0 : 1);
-
-      if (!currentGuest.isBelow12 && newAdultsCount > MAX_ADULTS) {
-        alert("Maximum adults selected.");
-        return prevGuests; // Prevent state update
-      }
-
-      if (currentGuest.isBelow12 && newChildrenCount > MAX_CHILDREN) {
-        alert("Maximum children selected.");
-        return prevGuests; // Prevent state update
-      }
-
-      // Toggle isBelow12 for the selected guest
+  
+      // Toggle isBelow12 value
+      const newIsBelow12 = !currentGuest.isBelow12;
+  
+      // Update guest object
       updatedGuests[index] = {
         ...currentGuest,
-        isBelow12: !currentGuest.isBelow12,
+        isBelow12: newIsBelow12,
       };
+  
+      // Recalculate adults and children count
+      const newAdultsCount = updatedGuests.filter((g) => !g.isBelow12).length;
+      const newChildrenCount = updatedGuests.filter((g) => g.isBelow12).length;
+  
+      console.log("Adults:", newAdultsCount, "Children:", newChildrenCount);
+  
+      // Restrict max adults
+      if (!newIsBelow12 && newAdultsCount > MAX_ADULTS) {
+        alert(`You can only add up to ${MAX_ADULTS} adults.`);
+        return prevGuests;
+      }
+  
+      // Restrict max children
+      if (newIsBelow12 && newChildrenCount > MAX_CHILDREN) {
+        alert(`You can only add up to ${MAX_CHILDREN} children.`);
+        return prevGuests;
+      }
+  
       return updatedGuests;
     });
   };
+  
+  
+
   const handleAddNewGuest = () => {
     setShowForm(true);
     setIsEditing(false);
@@ -763,18 +770,17 @@ const HotelBooking = () => {
                                 </div>
 
                                 <div className="mb-2">
-                                  <label className="inline-flex gap-2">
-                                    <input
-                                      type="checkbox"
-                                      name="isBelow12"
-                                      className="form-checkbox w-3 h-auto"
-                                      checked={guestDetails.isBelow12 || false} // Prevents undefined issues
-                                      onChange={handleChange}
-                                    />
-                                    <span className="text-xs">
-                                      Below 12 years of age
-                                    </span>
-                                  </label>
+                                <label className="inline-flex gap-2">
+  <input
+    type="checkbox"
+    name="isBelow12"
+    className="form-checkbox w-3 h-auto"
+    checked={guests[index]?.isBelow12 || false} // Ensure correct value
+    onChange={() => handleCheckboxChange(index)} // Ensure correct handler
+  />
+  <span className="text-xs">Below 12 years of age</span>
+</label>
+
                                 </div>
 
                                 <div className="flex justify-between mb-2">
@@ -803,24 +809,10 @@ const HotelBooking = () => {
                                           type="checkbox"
                                           name="isBelow12"
                                           className="form-checkbox w-3 h-auto"
-                                          checked={
-                                            guestDetails.isBelow12 || false
-                                          } // Prevents undefined issues
+                                          checked={guest.isBelow12} // ✅ This correctly reflects the state
                                           onChange={() =>
                                             handleCheckboxChange(index)
                                           }
-                                          // onChange={() =>
-                                          //   setGuests((prev) =>
-                                          //     prev.map((g, i) =>
-                                          //       i === index
-                                          //         ? {
-                                          //             ...g,
-                                          //             isBelow12: !g.isBelow12,
-                                          //           }
-                                          //         : g
-                                          //     )
-                                          //   )
-                                          // }
                                         />
                                         <span className="text-sm">
                                           {guest.firstName} {guest.lastName}
@@ -839,7 +831,7 @@ const HotelBooking = () => {
                                     <button
                                       type="button"
                                       className="rounded-full btn-color_h1 h-8 px-4"
-                                      onClick={handleDone}
+                                      onClick={handleDone} // ✅ Saves state after clicking "Done"
                                     >
                                       Done
                                     </button>
@@ -849,41 +841,49 @@ const HotelBooking = () => {
                             </>
                           ) : (
                             <div className="h-full flex flex-col gap-4">
-                              {guests.length > 0 ? (
-                                guests.map((guest, index) => (
-                                  <div
-                                    key={index}
-                                    className="border-b pb-2 flex justify-between items-center"
-                                  >
-                                    <label className="inline-flex gap-2 items-center">
-                                      <input
-                                        type="checkbox"
-                                        name="isBelow12"
-                                        className="form-checkbox w-3 h-auto"
-                                        checked={guest.isAdult}
-                                        onChange={() =>
-                                          handleCheckboxChange(index)
-                                        }
+                              {guests.length > 0 && (
+                                <div className="h-full flex flex-col gap-4 mt-2">
+                                  {guests.map((guest, index) => (
+                                    <div
+                                      key={index}
+                                      className="border-b pb-2 flex justify-between items-center"
+                                    >
+                                      <label className="inline-flex gap-2 items-center">
+                                        <input
+                                          type="checkbox"
+                                          name="isBelow12"
+                                          className="form-checkbox w-3 h-auto"
+                                          checked={guest.isBelow12} // ✅ This correctly reflects the state
+                                          onChange={() =>
+                                            handleCheckboxChange(index)
+                                          }
+                                        />
+                                        <span className="text-sm">
+                                          {guest.firstName} {guest.lastName}
+                                        </span>
+                                      </label>
+                                      <img
+                                        src="./img/Edit-01.svg"
+                                        alt="edit"
+                                        className="w-5 h-5 cursor-pointer"
+                                        onClick={() => handleEditGuest(guest)}
                                       />
-                                      <span className="text-sm">
-                                        {guest.firstName} {guest.lastName}
-                                      </span>
-                                    </label>
-                                    <img
-                                      src="./img/Edit-01.svg"
-                                      alt="edit"
-                                      className="w-5 h-5 cursor-pointer"
-                                      onClick={() => handleEditGuest(guest)}
-                                    />
+                                    </div>
+                                  ))}
+
+                                  <div className="flex justify-center mt-4">
+                                    <button
+                                      type="button"
+                                      className="rounded-full btn-color_h1 h-8 px-4"
+                                      onClick={handleDone} // ✅ Saves state after clicking "Done"
+                                    >
+                                      Done
+                                    </button>
                                   </div>
-                                ))
-                              ) : (
-                                <p className="text-center text-sm">
-                                  No guests added.
-                                </p>
+                                </div>
                               )}
 
-                              <div className="flex justify-center mt-4">
+                              {/* <div className="flex justify-center mt-4">
                                 <button
                                   type="button"
                                   className="rounded-full btn-color_h1 h-8 px-4"
@@ -891,7 +891,7 @@ const HotelBooking = () => {
                                 >
                                   Done
                                 </button>
-                              </div>
+                              </div> */}
                             </div>
                           )}
                         </Modal>
@@ -933,8 +933,12 @@ const HotelBooking = () => {
                     <div>
                       <button
                         type="button"
-                        className="bg-[#785ef7] button_width h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]" 
-                        onClick={() => navigate("/HotelPayment", { state: { combinedHotels } })}
+                        className="bg-[#785ef7] button_width h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]"
+                        onClick={() =>
+                          navigate("/HotelPayment", {
+                            state: { combinedHotels },
+                          })
+                        }
                       >
                         Pay Now
                       </button>

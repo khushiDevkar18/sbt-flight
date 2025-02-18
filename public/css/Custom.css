@@ -280,8 +280,9 @@
   /* color: gray; */
 }
 .hoteldetail-conatiner{
-  background: linear-gradient(135deg,#d1d1d1, #f2f2f2);
+  background-color: #f2f2f2;
 }
+
 .text_hotel_address{
   /* font-size: 12px; */
   font-weight:400;
