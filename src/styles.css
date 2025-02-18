@@ -19755,8 +19755,3 @@ button#search-button:hover {
   margin-top: 4px;
   display: none; /* Initially hidden */
 }
-
-.highlightpolicy {
-  color: red; /* You can change this color */
-  font-weight: bold; /* Optional: add bold */
-}

@@ -1320,6 +1320,7 @@ const SearchFlight = () => {
     setBookingpage(true);
 
     const Priceinginfoselected = priceParse[selectedprice];
+    const fareInfoRefKey = Priceinginfoselected['air:AirPricingInfo']['air:FareInfo']['air:FareRuleKey']
     sessionStorage.setItem('packageselectedPrice', Priceinginfoselected['$']['TotalPrice']);
     sessionStorage.setItem('formdata_bookingtype', formData.bookingType);
     const airPricingInfo = priceParse[selectedprice]['air:AirPricingInfo'];
@@ -1476,7 +1477,8 @@ const SearchFlight = () => {
           booking_id: bookingid,
           client_id: clientid,
           is_gst_benefit: is_gst_benefit,
-          accesstoken: access_token
+          accesstoken: access_token,
+          fareInfoRefKey: fareInfoRefKey
 
         };
         setLoading(false);
@@ -2493,7 +2495,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       },
     })
       .then((response) => {
-        // console.log('data.data', response.data.data);
+        console.log('data.data', response.data.data);
         if (response.data.success === "1") {
           setHtmlContent(response.data.data);
           setShowModal(true);
@@ -4981,7 +4983,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                 if (airlineCheck && airlinereturnCheck && stopsCheck && stopsreturnCheck && arrivaltimeCheck && departuretimeCheck) {
                                   if (totalPrice >= priceRange[0] && totalPrice <= priceRange[1]) {
                                     flightsMatched = true;
-                                    console.log('pricepoint', pricepoint);
+                                    {/* console.log('pricepoint', pricepoint); */}
                                     return (
                                       <React.Fragment key={priceindex}>
                                         <form onSubmit={(e) => handlePriceSubmit(e, priceindex)}>
@@ -16527,13 +16529,21 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       </Modal.Header>
       <Modal.Body>
         <div
-          ref={contentRef} // Reference to editable content
-          contentEditable="true" // Allows user to edit
-          dangerouslySetInnerHTML={{ __html: htmlContent }} // Show HTML
+          ref={contentRef}
+          contentEditable="true" // The main container remains editable
+          dangerouslySetInnerHTML={{ __html: htmlContent }}
           style={{
             minHeight: "200px",
             border: "1px solid #ddd",
             padding: "10px",
+          }}
+          onInput={(e) => {
+            // Prevent editing if the user tries to modify a non-editable div
+            const selection = window.getSelection();
+            if (selection.anchorNode?.parentElement?.closest('[contenteditable="false"]')) {
+              e.preventDefault();
+              document.execCommand("undo"); // Undo the last attempted edit
+            }
           }}
         />
       </Modal.Body>

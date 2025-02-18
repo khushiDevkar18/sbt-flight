@@ -37,6 +37,8 @@ const Booking = () => {
     const bookingid = location.state && location.state.serviceData.booking_id;
     const clientid = location.state && location.state.serviceData?.client_id;
     const is_gst_benefit = location.state && location.state.serviceData?.is_gst_benefit;
+    const fareInfoRefKey = location.state && location.state.serviceData?.fareInfoRefKey;
+    // console.log('fareInfoRefKey', fareInfoRefKey);
     
     const tripType = formtaxivaxi['trip_type'];
     const flightType = formtaxivaxi['flight_type'];
@@ -95,6 +97,8 @@ const Booking = () => {
     const [value, setValue] = useState('');
     const [isseatloading, setSeatloading] = useState(false);
     const [isreservation, setReservation] = useState(false);
+    const [fareRuleText, setFareRuleText] = useState(null);
+    // console.log('fareRuleText', fareRuleText)
   
     const handleChange = (value) => {
         setValue(value);
@@ -139,6 +143,58 @@ const Booking = () => {
         clearedData();
         fetchGstData();
     }, []);
+
+    // useEffect(() => {
+    //     const fetchFareRules = async () => {
+    //         if (fareRuleText) return; 
+
+    //         const soapRequest = `
+    //             <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    //                 <soap:Body xmlns:air="http://www.travelport.com/schema/air_v52_0"
+    //                     xmlns:com="http://www.travelport.com/schema/common_v52_0">
+    //                     <air:AirFareRulesReq xmlns="http://www.travelport.com/schema/air_v52_0" TraceId="8eaceda4-2f16-4421-807d-67f3fd9738a2" TargetBranch="P7206253">
+    //                         <com:BillingPointOfSaleInfo xmlns="http://www.travelport.com/schema/common_v52_0" OriginApplication="uAPI" />
+    //                         <air:FareRuleKey FareInfoRef="${fareInfoRefKey["$"].FareInfoRef}" ProviderCode="${fareInfoRefKey["$"].ProviderCode}">
+    //                             ${fareInfoRefKey["_"]}
+    //                         </air:FareRuleKey>
+    //                     </air:AirFareRulesReq>
+    //                 </soap:Body>
+    //             </soap:Envelope>`;
+
+    //         try {
+    //             const response = await axios.post(
+    //                 "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest",
+    //                 soapRequest,
+    //                 { headers: { "Content-Type": "text/xml" } }
+    //             );
+
+    //             const extractFareRuleText = (xmlString) => {
+    //                 const parser = new DOMParser();
+    //                 const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+
+    //                 const fareRuleNodes = xmlDoc.getElementsByTagName("air:FareRuleLong");
+    //                 let extractedTexts = [];
+
+    //                 for (let node of fareRuleNodes) {
+    //                     let cdataSection = node.childNodes[0];
+    //                     if (cdataSection && cdataSection.nodeType === Node.CDATA_SECTION_NODE) {
+    //                         extractedTexts.push(cdataSection.nodeValue.trim());
+    //                     }
+    //                 }
+
+    //                 return extractedTexts;
+    //             };
+
+    //             const extractedText = extractFareRuleText(response.data);
+    //             setFareRuleText(extractedText); // Store response in state to prevent re-fetching
+    //             console.log('fareRuleText', extractedText);
+    //         } catch (error) {
+    //             console.error("Error fetching fare rules:", error);
+    //         }
+    //     };
+
+    //     fetchFareRules();
+    // }, []);
 
     const clearedData = async () => {
         const empIdsArray = Array.isArray(employees) ? employees : [employees]; // Ensure empIdsArray is always an array
@@ -1078,17 +1134,20 @@ const Booking = () => {
                         }
 
                         let segmentKey = newElement.getAttribute("Key");
+                        let providerCode = newElement.getAttribute("ProviderCode"); // Get ProviderCode from newElement
 
                         let bookingInfoArray = packageSelected['air:AirPricingInfo']['air:BookingInfo'];
 
                         if (!Array.isArray(bookingInfoArray)) {
                             bookingInfoArray = [bookingInfoArray]; 
                         }
+
                         let matchingBookingInfo = bookingInfoArray.find(info => info["$"]["SegmentRef"] === segmentKey);
 
-                        if (matchingBookingInfo) {
+                        if (matchingBookingInfo && providerCode === "ACH") { 
+                            // Add HostTokenRef only if ProviderCode is "ACH"
                             let hostTokenRef = matchingBookingInfo["$"]["HostTokenRef"];
-                            newElement.setAttribute("HostTokenRef", hostTokenRef); 
+                            newElement.setAttribute("HostTokenRef", hostTokenRef);
                         }
                        
                     
@@ -1261,11 +1320,12 @@ const Booking = () => {
                             };
 
                             const executeCodeTicketSequentially = async () => {
-                                // let getUnversalCoderesponse, ticketresponse;
-                                let ticketresponse;
+                                let getUnversalCoderesponse, ticketresponse;
+                                // let ticketresponse;
 
                                 try {
-                                    // getUnversalCoderesponse = await makeGetUnversalCodeRequest();
+                                    getUnversalCoderesponse = await makeGetUnversalCodeRequest();
+                                    // shall i apply condition for provider code only call for 1G not for ACH
                                     ticketresponse = await makeTicketRequest();
 
                                     // if (hasNonEmptyProperties(emptaxivaxi)) {
@@ -1344,12 +1404,28 @@ const Booking = () => {
                                                 confirmButtonText: "Retry",
                                             });
                                         });
+                                        const bookingCompleteData = {
+                                            reservationdata: reservationresponse.data,
+                                            segmentParse: segmentParse,
+                                            Passengers:Passengers,
+                                            PackageSelected:packageSelected,
+                                            Airports:Airports,
+                                            Airlines:Airlines,
+                                            adult:request.adult,
+                                            child:request.child,
+                                            infant:request.infant,
+                                            apiairportsdata:apiairports,
+                                            // ticketdata: ticketresponse.data
+                                        };
+                                        console.log('bookingCompleteData', bookingCompleteData);
+                                        navigate('/bookingCompleted', { state: { bookingCompleteData } });
 
                                     // const bookingCompleteData = {
                                     //     reservationdata: reservationresponse.data,
                                     //     getuniversaldata: getUnversalCoderesponse.data,
                                     //     ticketdata: ticketresponse.data
                                     // };
+                                    // console.log('bookingCompleteData', bookingCompleteData);
                                     // navigate('/bookingCompleted', { state: { bookingCompleteData } });
                                 } catch (error) {
                                     console.error('Error executing requests:', error);
@@ -1463,13 +1539,13 @@ const Booking = () => {
                                                             'xmlns:common_v52_0': 'http://www.travelport.com/schema/common_v52_0'
                                                         },
                                                         'air:OptionalServicesTotal': '',
-                                                        // 'air:OptionalService': mergedArray
+                                                        'air:OptionalService': mergedArray
                                                     }
                                                 }
                                             }
                                         }
                                     });
-                                    // console.log(MerchandisingrequestXML1);
+                                    console.log('1', MerchandisingrequestXML1);
                                     try {
                                         const Merchandisingresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', MerchandisingrequestXML1, {
                                             headers: {
@@ -1535,14 +1611,14 @@ const Booking = () => {
                                                             'xmlns:common_v52_0': 'http://www.travelport.com/schema/common_v52_0'
                                                         },
                                                         'air:OptionalServicesTotal': '',
-                                                        // 'air:OptionalService': mergedArray
+                                                        'air:OptionalService': mergedArray
                                                     }
                                                 }
                                             }
                                         }
                                     });
 
-                                    // console.log(MerchandisingrequestXML2);
+                                    console.log('2', MerchandisingrequestXML2);
 
 
                                     try {
