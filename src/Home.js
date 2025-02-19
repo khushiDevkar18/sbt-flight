@@ -938,7 +938,7 @@ return (
                             <div className="wrapper-a-holder">
                                 <div className="wrapper-a">
                                     <div className="page-search full-width-search search-type-b">
-                                        <div className="search-type-padding" style={{ marginTop: '-160px' }}>
+                                        <div className="search-type-padding" style={{ marginTop: '30px' }}>
                                             <nav className="page-search-tabs">
 
                                                 <div className="clear"></div>
@@ -1312,7 +1312,7 @@ return (
                             <div id="error-message2" style={{ color: 'red', marginleft: '2%', fontfamily: 'Raleway', fontsize: '13px' }}></div>
 
                             {/* <button className="search-buttonn">SEARCH</button> */}
-                            <button type="submit" className="search-buttonn" style={{ position:'absolute', bottom:'-121px', left:'41.5%'}} id="btnSearch">SEARCH</button>
+                            <button type="submit" className="search-buttonn" style={{ position:'absolute', bottom:'-312px', left:'41.5%'}} id="btnSearch">SEARCH</button>
                             </div>
                             <div ref={searchRef} className="search-asvanced" style={{ display: isOpen ? 'block' : 'none' }}>
                                 <div className="search-large-i">

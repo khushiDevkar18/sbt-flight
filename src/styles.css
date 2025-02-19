@@ -858,7 +858,7 @@ textarea {
 
 .swiper-container {
   /* position: relative; */
-  background: url(../public/img/sider-01.png) center bottom;
+  /* background: url(../public/img/sider-01.png) center bottom; */
 }
 
 .swiper-preloader-bg {
@@ -885,7 +885,7 @@ textarea {
 .swiper-container,
 .swiper-slide {
   width: 1925px;
-  height: 750px;
+  height: 350px;
   
 }
 
@@ -7890,8 +7890,8 @@ preferences-list-alt li {
   width: 184px;
   display: block;
   margin-left: auto;
-  border: 1px solid #bd8100;
-  background-color: #bd8100;
+  border: 1px solid #785eff;
+  background-color: #785eff;
   margin-right: auto;
   color: #fff;
   font-weight: 600;
@@ -9569,7 +9569,7 @@ preferences-list-alt li {
 .complete-txt-link a {
   font-size: 13px;
   text-decoration: none;
-  color: #bd8100;
+  color: #785eff;
   font-family: 'Open Sans'
 }
 
@@ -18350,7 +18350,7 @@ margin-right: 5%;
 .complete-txt .reservehead{
   font-family: 'Montserrat';
   font-size: 14px;
-  color: #bd8100;
+  color: #785eff;
   font-weight: 600;
 }
 .complete-txt .service_details{
@@ -18381,7 +18381,7 @@ margin-right: 5%;
   padding: 1.5%;
   font-family: 'Montserrat';
   font-size: 15px;
-  color: #bd8100;
+  color: #785eff;
   text-transform: uppercase;
   font-weight: 600;
   box-shadow: 1px 1px 1px 1px #e3e3e3;
@@ -19754,4 +19754,175 @@ button#search-button:hover {
   color: red;
   margin-top: 4px;
   display: none; /* Initially hidden */
+}
+
+.flight-route {
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+}
+
+.route {
+  color: #000;
+}
+
+.status-chip {
+  background-color: #e6f9ea; /* Light green background */
+  color: #128c3c; /* Dark green text */
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Optional: If you want to add an icon */
+.status-chip::before {
+  content: "✔";
+  font-size: 12px;
+}
+
+.flight-details-containerr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 15px;
+  /* border-radius: 10px;
+  border: 1px solid #ddd; */
+  width: 95%;
+}
+
+/* Left Section - Airline Info */
+.flight-details-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.airline-logo {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+}
+
+.airline-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.airline-name {
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+}
+
+.equipmentno {
+  font-size: 12px;
+  color: #666;
+  max-width: 42px;
+}
+
+/* Right Section - Departure & Arrival */
+.flight-details-right {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 75%;
+}
+
+/* Departure and Arrival Details */
+.flight-time-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 200px;
+}
+
+.flight-time {
+  font-size: 18px;
+  font-weight: bold;
+  color: #222;
+}
+
+.flight-date {
+  font-size: 14px;
+  color: #555;
+}
+
+.flight-location {
+  font-size: 16px;
+  font-weight: bold;
+  color: #222;
+}
+
+.flight-terminal {
+  font-size: 11px;
+  color: #777;
+}
+
+/* Flight Duration */
+.flight-duration {
+  text-align: center;
+  width: 120px;
+}
+
+.duration-text {
+  font-size: 14px;
+  color: #444;
+}
+
+.duration-line hr {
+  border: none;
+  height: 2px;
+  background-color: #785eff;
+  margin: 5px 0;
+}
+.passenger-details-container {
+  width: 100%;
+  background: #fff;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.passenger-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.passenger-table thead {
+  background: #f5f5f5;
+  font-weight: bold;
+}
+.passenger-table tbody {
+  background: #f5f5f5;
+  /* font-weight: bold; */
+}
+
+
+.passenger-table th, 
+.passenger-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.traveller-info {
+  display: flex;
+  align-items: center;
+}
+
+.traveller-icon {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+.traveller-name {
+  font-size: 14px;
 }

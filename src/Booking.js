@@ -98,7 +98,8 @@ const Booking = () => {
     const [isseatloading, setSeatloading] = useState(false);
     const [isreservation, setReservation] = useState(false);
     const [fareRuleText, setFareRuleText] = useState(null);
-    // console.log('fareRuleText', fareRuleText)
+    // const providerCodeRef = useRef(null);
+    // console.log('providerCodeRef', providerCodeRef);
   
     const handleChange = (value) => {
         setValue(value);
@@ -1135,6 +1136,7 @@ const Booking = () => {
 
                         let segmentKey = newElement.getAttribute("Key");
                         let providerCode = newElement.getAttribute("ProviderCode"); // Get ProviderCode from newElement
+                        // providerCodeRef.current = providerCode;
 
                         let bookingInfoArray = packageSelected['air:AirPricingInfo']['air:BookingInfo'];
 
@@ -1159,6 +1161,8 @@ const Booking = () => {
                         element.parentNode.replaceChild(newElement, element);
                     }
                 }
+                const providerCodeValue = providerCode;
+                // console.log('providerCodeValue', providerCodeValue);
 
                 var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
                 console.log('modifiedXmlString', modifiedXmlString);
@@ -1169,11 +1173,32 @@ const Booking = () => {
                     const reservationResponse = reservationresponse.data;
                     console.log('reservationResponse', reservationResponse);
                     // alert("resp", reservationResponse);
+                    
                     parseString(reservationResponse, { explicitArray: false }, (err, reservationresult) => {
                         if (err) {
                             console.error('Error parsing XML:', err);
                             return;
                         }
+                        if (providerCodeValue?.trim() === "ACH") {
+                            console.log("Condition met, navigating...");
+                            const bookingCompleteData = {
+                                reservationdata: reservationresponse.data,
+                                segmentParse: segmentParse,
+                                Passengers:Passengers,
+                                PackageSelected:packageSelected,
+                                Airports:Airports,
+                                Airlines:Airlines,
+                                adult:request.adult,
+                                child:request.child,
+                                infant:request.infant,
+                                apiairportsdata:apiairports,
+                                // ticketdata: ticketresponse.data
+                            };
+                            console.log('bookingCompleteData', bookingCompleteData);
+                            navigate('/bookingCompleted', { state: { bookingCompleteData } });
+                            return; 
+                        }
+                        console.log('condition not met');
                         const ReservationRsp = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp'];
                         if (ReservationRsp !== null && ReservationRsp !== undefined) {
                             const locatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['universal:ProviderReservationInfo']['$']['LocatorCode'];
@@ -1330,80 +1355,80 @@ const Booking = () => {
 
                                     // if (hasNonEmptyProperties(emptaxivaxi)) {
                                     // const sessiondata = async () => {   
-                                        const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3); 
-                                        const formtaxivaxiData = {
-                                            // ...formtaxivaxi,
-                                            access_token: access_token,
-                                            booking_id: bookingid,
-                                            trip_type: tripType,
-                                            fare_type:fare_type,
-                                            is_extra_baggage_included: 0,
-                                            flight_type: flightType,
-                                            total_ex_tax_fees:base_price,
-                                            total_price: total_price,
-                                            tax_and_fees: tax_excluding_k3,
-                                            gst_k3: tax_k3,
-                                            mark_up_price: 0,
-                                            no_of_stops: stopCounts,
-                                            no_of_stops_return: returnstopCounts,
-                                            no_of_seats: noOfSeats,
-                                            people_id: 'NULL',
-                                            date_change_charges: 0,
-                                            seat_charges: 0,
-                                            meal_charges: 0,
-                                            extra_baggage_charges: 0,
-                                            fast_forward_charges: 0,
-                                            vip_service_charges: 0,
-                                            pnrcode: pnrCode,
-                                            // flightDetails: segmenttaxivaxis,
-                                            ...flightDetails,
-                                            extrabaggage: 'NA',
-                                            // seatdetails: formseat,
-                                            checkedInBaggage: checkedInBaggage,
-                                            cabinBaggage: cabinBaggage,
-                                            returns: returns,
-                                            // passengerdetails: mergedData
-                                            ...passengerDetailsFormatted,
-                                            ...seatDetailsFormatted
-                                        };
+                                        // const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3); 
+                                        // const formtaxivaxiData = {
+                                        //     // ...formtaxivaxi,
+                                        //     access_token: access_token,
+                                        //     booking_id: bookingid,
+                                        //     trip_type: tripType,
+                                        //     fare_type:fare_type,
+                                        //     is_extra_baggage_included: 0,
+                                        //     flight_type: flightType,
+                                        //     total_ex_tax_fees:base_price,
+                                        //     total_price: total_price,
+                                        //     tax_and_fees: tax_excluding_k3,
+                                        //     gst_k3: tax_k3,
+                                        //     mark_up_price: 0,
+                                        //     no_of_stops: stopCounts,
+                                        //     no_of_stops_return: returnstopCounts,
+                                        //     no_of_seats: noOfSeats,
+                                        //     people_id: 'NULL',
+                                        //     date_change_charges: 0,
+                                        //     seat_charges: 0,
+                                        //     meal_charges: 0,
+                                        //     extra_baggage_charges: 0,
+                                        //     fast_forward_charges: 0,
+                                        //     vip_service_charges: 0,
+                                        //     pnrcode: pnrCode,
+                                        //     // flightDetails: segmenttaxivaxis,
+                                        //     ...flightDetails,
+                                        //     extrabaggage: 'NA',
+                                        //     // seatdetails: formseat,
+                                        //     checkedInBaggage: checkedInBaggage,
+                                        //     cabinBaggage: cabinBaggage,
+                                        //     returns: returns,
+                                        //     // passengerdetails: mergedData
+                                        //     ...passengerDetailsFormatted,
+                                        //     ...seatDetailsFormatted
+                                        // };
 
-                                    console.log("ticketresponse.data", ticketresponse)
+                                    // console.log("ticketresponse.data", ticketresponse)
 
-                                    console.log('formtaxivaxiData', JSON.stringify(formtaxivaxiData));
+                                    // console.log('formtaxivaxiData', JSON.stringify(formtaxivaxiData));
 
-                                    const apiLink = 'https://demo.taxivaxi.com/api/flights/assignSbtCotravFlightBooking';
+                                    // const apiLink = 'https://demo.taxivaxi.com/api/flights/assignSbtCotravFlightBooking';
 
-                                    axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
-                                        headers: {
-                                            'Content-Type': 'application/x-www-form-urlencoded',
-                                        },
-                                    })
-                                        .then((response) => {
-                                            console.log("responseData", response)
-                                            if (response.data.success === "1") {
-                                                Swal.fire({
-                                                    title: "Success!",
-                                                    text: "Booking Confirmed.",
-                                                    icon: "success",
-                                                    confirmButtonText: "OK",
-                                                });
-                                            } else {
-                                                Swal.fire({
-                                                    title: "Error!",
-                                                    text: response.data.error || "Something went wrong.",
-                                                    icon: "error",
-                                                    confirmButtonText: "Retry",
-                                                });
-                                            }
-                                        })
-                                        .catch((error) => {
-                                            Swal.fire({
-                                                title: "Error!",
-                                                text: "Something went wrong while creating the booking.",
-                                                icon: "error",
-                                                confirmButtonText: "Retry",
-                                            });
-                                        });
+                                    // axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
+                                    //     headers: {
+                                    //         'Content-Type': 'application/x-www-form-urlencoded',
+                                    //     },
+                                    // })
+                                    //     .then((response) => {
+                                    //         console.log("responseData", response)
+                                    //         if (response.data.success === "1") {
+                                    //             Swal.fire({
+                                    //                 title: "Success!",
+                                    //                 text: "Booking Confirmed.",
+                                    //                 icon: "success",
+                                    //                 confirmButtonText: "OK",
+                                    //             });
+                                    //         } else {
+                                    //             Swal.fire({
+                                    //                 title: "Error!",
+                                    //                 text: response.data.error || "Something went wrong.",
+                                    //                 icon: "error",
+                                    //                 confirmButtonText: "Retry",
+                                    //             });
+                                    //         }
+                                    //     })
+                                    //     .catch((error) => {
+                                    //         Swal.fire({
+                                    //             title: "Error!",
+                                    //             text: "Something went wrong while creating the booking.",
+                                    //             icon: "error",
+                                    //             confirmButtonText: "Retry",
+                                    //         });
+                                    //     });
                                         const bookingCompleteData = {
                                             reservationdata: reservationresponse.data,
                                             segmentParse: segmentParse,
@@ -2854,12 +2879,7 @@ const Booking = () => {
                 
                     <div className="wrapper-padding">
                     <span class="bgGradient"></span>
-                    <p style={{ color: 'white'}}>Complete Your Booking</p>
-                        {/* <div className="page-head">
-                            <div className="page-title" />
-                            <div className="breadcrumbs"></div>
-                            <div className="clear" />
-                        </div> */}
+                    
                         <div className="sp-page">
                             <div className="sp-page-a">
                                 <div className="sp-page-l">

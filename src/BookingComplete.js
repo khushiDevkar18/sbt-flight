@@ -139,13 +139,19 @@ const BookingContinue = () => {
                 <div className="main-cont" id="main_cont">
                     <div className="body-wrapper">
                         <div className="wrapper-padding">
-                            <div className="sp-page">
-                                <div className="sp-page-a">
+                        <span class="bgGradient">
+                            <p style={{ color: 'white', marginTop: '33px', marginLeft: '10px', fontSize: '19px' }}>
+                                Your Flight Booking is confirmed!
+                                <div style={{fontSize:'12px'}}>PNR No. {pnr}</div>
+                            </p>                        
+                        </span>
+                            <div className="sp-page" >
+                                <div className="sp-page-a" style={{ marginTop:'36px'}}>
                                     <div className="sp-page-l">
                                         <div className="sp-page-lb">
                                             <div className="sp-page-p">
                                                 <div className="booking-left">
-                                                    <div className="comlete-alert">
+                                                    {/* <div className="comlete-alert">
                                                         <div className="booked">
                                                             <form
                                                                 id="submit-form1"
@@ -163,7 +169,7 @@ const BookingContinue = () => {
                                                                     src="https://selfbooking.taxivaxi.com/img/taxivaxi/bookingconfirmedicon/animation_lkari8vv_small.gif"
                                                                     style={{
                                                                         verticalAlign:
-                                                                            "middle" /* textAlign: 'center', */,
+                                                                            "middle",
                                                                         display: "block",
                                                                         width: 68,
                                                                         padding: 8,
@@ -215,7 +221,7 @@ const BookingContinue = () => {
                                                                 </button>
                                                             </form>
                                                         </div>
-                                                    </div>
+                                                    </div> */}
                                                     <div className="complete-info">
                                                         <div className="complete-info-table">
                                                             <div className="complete-info-i">
@@ -224,125 +230,93 @@ const BookingContinue = () => {
                                                                     return (
                                                                         <div key={segmentindex}>
                                                                             <div id="Flight Details" className="tabcontent">
-                                                                                    <div className="flight-details-a">
-                                                                                        <img
-                                                                                            src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
-                                                                                            width="20px"
-                                                                                        />
-                                                                                        || {handleAirport(segmentinfo['$']['Origin'])} to {handleAirport(segmentinfo['$']['Destination'])} , &nbsp;
-                                                                                                    {segmentinfo['$'] && 
-                                                                                                      (() => {
-                                                                                                        const arrivalTime = new Date(segmentinfo['$']['DepartureTime']);
-                                                                                                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                                                            <div className="flight-route">
+                                                                                <span className="route">
+                                                                                    {handleAirport(segmentinfo['$']['Origin'])} → {handleAirport(segmentinfo['$']['Destination'])}
+                                                                                </span>
+                                                                                <span className="status-chip">
+                                                                                    Confirmed
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="clear" />
+                                                                            
 
-                                                                                                        const day = arrivalTime.getDate();
-                                                                                                        const month = months[arrivalTime.getMonth()];
-                                                                                                        const formattedDateString = `${day} ${month}`;
-
-                                                                                                        return formattedDateString;
-                                                                                                      })()
-                                                                                                    } . {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
-                                                                                                    <span className='equipmentno'>{segmentinfo['$']['Equipment']}</span>
+                                                                            <div className="flight-details-containerr">
+                                                                                {/* Left Section - Airline Logo, Name, Flight Number */}
+                                                                                <div className="flight-details-left">
+                                                                                    <img 
+                                                                                        src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`} 
+                                                                                        alt="Airline Logo" 
+                                                                                        className="airline-logo" 
+                                                                                    />
+                                                                                    <div className="airline-info">
+                                                                                        <div className="airline-name">
+                                                                                            {handleAirline(segmentinfo['$']['Carrier'])}
+                                                                                        </div>
+                                                                                        <div className="airline-details">
+                                                                                            {segmentinfo['$']['Carrier']}-{segmentinfo['$']['FlightNumber']}
+                                                                                        </div>
+                                                                                        <span className="equipmentno">
+                                                                                            {segmentinfo['$']['Equipment']}
+                                                                                        </span>
                                                                                     </div>
-                                                                                    <br className="clear" />
-                                                                                    <div className="clear" />
-                                                                                    <div
-                                                                                        className="flight-details-l"
-                                                                                        style={{ width: 290 }}
-                                                                                    >
-                                                                                        <div className="flight-details-b">{/*21:55*/}
-                                                                                        {new Date(segmentinfo['$']['DepartureTime']).toLocaleTimeString('en-US', {
-                                                                                            hour: 'numeric',
-                                                                                            minute: 'numeric',
-                                                                                            hour12: false,
-                                                                                        })}
-                                                                                        </div>
-                                                                                        <div className="flight-details-b">
-                                                                                                    {segmentinfo['$'] && 
-                                                                                                      (() => {
-                                                                                                        const arrivalTime = new Date(segmentinfo['$']['DepartureTime']);
-                                                                                                        const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                                                                                                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                                                                </div>
 
-                                                                                                        const weekday = weekdays[arrivalTime.getDay()];
-                                                                                                        const day = arrivalTime.getDate();
-                                                                                                        const month = months[arrivalTime.getMonth()];
-                                                                                                        const year = arrivalTime.getFullYear();
-
-                                                                                                        // Construct the final formatted date string
-                                                                                                        const formattedDateString = `${weekday}, ${day} ${month} ${year}`;
-
-                                                                                                        return formattedDateString;
-                                                                                                      })()
-                                                                                                    }
+                                                                                {/* Right Section - Departure & Arrival */}
+                                                                                <div className="flight-details-right">
+                                                                                    {/* Departure Details */}
+                                                                                    <div className="flight-time-details">
+                                                                                        <div className="flight-time">{new Date(segmentinfo['$']['DepartureTime']).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+                                                                                        <div className="flight-date">
+                                                                                            {(() => {
+                                                                                                const departureDate = new Date(segmentinfo['$']['DepartureTime']);
+                                                                                                const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                                                                                                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                                                                                return `${weekdays[departureDate.getDay()]}, ${departureDate.getDate()} ${months[departureDate.getMonth()]} ${departureDate.getFullYear()}`;
+                                                                                            })()}
                                                                                         </div>
-                                                                                        <div className="flight-details-c">{handleAirport(segmentinfo['$'] && segmentinfo['$']['Origin'])} </div>
-                                                                                        <div className="flight-details-c1">{handleApiAirport(segmentinfo['$'] && segmentinfo['$']['Origin'])} {segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['OriginTerminal'] ? `. T-${segmentinfo['air:FlightDetails']['$']['OriginTerminal']}` : ''}</div>
-                                                                                    </div>
-                                                                                    <div className="flight-details-m">
-                                                                                        <div
-                                                                                            className="flight-details-b"
-                                                                                            style={{ textAlign: "center" }}
-                                                                                        >
-                                                                                            {segmentinfo['$'] 
-                                                                                                    && (() => {
-                                                                                                      const flightTimeInMinutes = parseInt(segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['FlightTime']);
-                                                                                                      const hours = Math.floor(flightTimeInMinutes / 60);
-                                                                                                      const minutes = flightTimeInMinutes % 60;
-                                                                                                      const formattedHours = String(hours).padStart(2, '0');
-                                                                                                      const formattedMinutes = String(minutes).padStart(2, '0');
-                                                                                                      const formattedFlightTime = `${formattedHours}h ${formattedMinutes}m`;
-                                                                                                      return formattedFlightTime;
-                                                                                                    })
-                                                                                                  ()}
-                                                                                            {/* 2h 20m */}
-                                                                                        </div>
-                                                                                        <div className="flight-details-b">
-                                                                                            <hr
-                                                                                                style={{
-                                                                                                    padding: 2,
-                                                                                                    backgroundColor: "#bd8100",
-                                                                                                    color: "#bd8100",
-                                                                                                    margin: 2
-                                                                                                }}
-                                                                                            />
-                                                                                        </div>
-                                                                                        <div className="flight-details-c" />
-                                                                                    </div>
-                                                                                    <div className="flight-details-r">
-                                                                                        <div className="flight-details-b">{/*00:15*/}
-                                                                                        {new Date(segmentinfo['$']['ArrivalTime']).toLocaleTimeString('en-US', {
-                                                                                            hour: 'numeric',
-                                                                                            minute: 'numeric',
-                                                                                            hour12: false,
-                                                                                        })}
-                                                                                        </div>
-                                                                                        <div className="flight-details-b">
-                                                                                            {/* Thu,25 Jan 24 */}
-                                                                                            {segmentinfo['$'] && 
-                                                                                                      (() => {
-                                                                                                        const arrivalTime = new Date(segmentinfo['$']['ArrivalTime']);
-                                                                                                        const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                                                                                                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-                                                                                                        const weekday = weekdays[arrivalTime.getDay()];
-                                                                                                        const day = arrivalTime.getDate();
-                                                                                                        const month = months[arrivalTime.getMonth()];
-                                                                                                        const year = arrivalTime.getFullYear();
-
-                                                                                                        // Construct the final formatted date string
-                                                                                                        const formattedDateString = `${weekday}, ${day} ${month} ${year}`;
-
-                                                                                                        return formattedDateString;
-                                                                                                      })()
-                                                                                                    }
-                                                                                           
-                                                                                        </div>
-                                                                                        <div className="flight-details-c">{handleAirport(segmentinfo['$']['Destination'])}</div>
-                                                                                        <div className="flight-details-c1">
-                                                                                        {handleApiAirport(segmentinfo['$']['Destination'])} {segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['DestinationTerminal'] ? `. T-${segmentinfo['air:FlightDetails'] && segmentinfo['air:FlightDetails']['$'] && segmentinfo['air:FlightDetails']['$']['DestinationTerminal']}` : ''}
+                                                                                        <div className="flight-location">{handleAirport(segmentinfo['$']['Origin'])}</div>
+                                                                                        <div className="flight-terminal">
+                                                                                            {handleApiAirport(segmentinfo['$']['Origin'])} 
+                                                                                            {segmentinfo['air:FlightDetails']?.['$']?.['OriginTerminal'] ? `. T-${segmentinfo['air:FlightDetails']['$']['OriginTerminal']}` : ''}
                                                                                         </div>
                                                                                     </div>
+
+                                                                                    {/* Flight Duration */}
+                                                                                    <div className="flight-duration">
+                                                                                        <div className="duration-text">
+                                                                                            {(() => {
+                                                                                                {/* console.log('TravelTime',segmentinfo['$']['TravelTime']); */}
+                                                                                                const flightTimeInMinutes = parseInt(segmentinfo['$']['TravelTime'] || "0");
+                                                                                                const hours = Math.floor(flightTimeInMinutes / 60);
+                                                                                                const minutes = flightTimeInMinutes % 60;
+                                                                                                return `${hours}h ${minutes}m`;
+                                                                                            })()}
+                                                                                        </div>
+                                                                                        <div className="duration-line">
+                                                                                            <hr />
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                    {/* Arrival Details */}
+                                                                                    <div className="flight-time-details">
+                                                                                        <div className="flight-time">{new Date(segmentinfo['$']['ArrivalTime']).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+                                                                                        <div className="flight-date">
+                                                                                            {(() => {
+                                                                                                const arrivalDate = new Date(segmentinfo['$']['ArrivalTime']);
+                                                                                                const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                                                                                                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                                                                                return `${weekdays[arrivalDate.getDay()]}, ${arrivalDate.getDate()} ${months[arrivalDate.getMonth()]} ${arrivalDate.getFullYear()}`;
+                                                                                            })()}
+                                                                                        </div>
+                                                                                        <div className="flight-location">{handleAirport(segmentinfo['$']['Destination'])}</div>
+                                                                                        <div className="flight-terminal">
+                                                                                            {handleApiAirport(segmentinfo['$']['Destination'])} 
+                                                                                            {segmentinfo['air:FlightDetails']?.['$']?.['DestinationTerminal'] ? `. T-${segmentinfo['air:FlightDetails']['$']['DestinationTerminal']}` : ''}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
                                                                                     <div className="clear" />
                                                                             </div>
                                                                             <br className="clear" />
@@ -485,7 +459,7 @@ const BookingContinue = () => {
                                                             </div>
                                                         </div>
                                                         <div className="complete-devider" />
-                                                        <div className="complete-txt">
+                                                        {/* <div className="complete-txt">
                                                             <div className='serviceinfo'>
                                                            
                                                                 <div className='servicess'>Passenger Details</div>
@@ -562,7 +536,46 @@ const BookingContinue = () => {
                                                                     </div>
                                                                 </div></div>
                                                             </div>
-                                                        </div>
+                                                        </div> */}
+                                                        <div className="passenger-details-container">
+    <table className="passenger-table">
+        <thead>
+            <tr>
+                <th>TRAVELLER</th>
+                <th>PNR/E-TICKET NUMBER</th>
+                <th>SEAT</th>
+                <th>MEAL</th>
+                <th>EXCESS BAGGAGE</th>
+            </tr>
+        </thead>
+        <tbody>
+            {Passengers && Passengers.keys && Passengers.keys.length > 0 &&
+                Passengers.keys.map((key, index) => (
+                    <tr key={index}>
+                        <td className="traveller-info">
+                            <span className="traveller-icon">👤</span>
+                            <span className="traveller-name">
+                                <strong>{Passengers.namesWithPrefix[index]} {Passengers.firstNames[index]} {Passengers.lastNames[index]}</strong>
+                                &nbsp;{Passengers.codes[index] === 'ADT' ? 'Adult' :
+                                    Passengers.codes[index] === 'CNN' ? 'Child' :
+                                        Passengers.codes[index] === 'INF' ? 'Infant' : 'Unknown'}, {Passengers.genderNames[index] === 'M' ? 'Male' : 'Female'}
+                            </span>
+                        </td>
+                        <td>
+                            <strong>{pnr}</strong>
+                            <br />
+                            
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td>-</td>
+                    </tr>
+                ))
+            }
+        </tbody>
+    </table>
+</div>
+<div className="complete-devider" />
                                                         <div className='complete-txt'>
                                                         
                                                             {respricings && 
@@ -740,14 +753,14 @@ const BookingContinue = () => {
                                         <div className="clear" />
                                     </div>
                                 </div>
-                                <div className="sp-page-r">
+                                <div className="sp-page-r" style={{ marginTop: '83px'}}>
                                     <div className="h-help">
-                                        <div className="h-help-lbl">Need Taxivaxi Help?</div>
+                                        <div className="h-help-lbl">Need CoTrav Help?</div>
                                         <div className="h-help-lbl-a">
                                             We would be happy to help you!
                                         </div>
                                         <div className="h-help-phone">0124-423-4958</div>
-                                        <div className="h-help-email">info@taxivaxi.com</div>
+                                        <div className="h-help-email">info@cotrav.com</div>
                                     </div>
                                     <div className="h-reasons">
                                         <div className="h-liked-lbl">Ticket Price Information</div>
