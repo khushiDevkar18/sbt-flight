@@ -59,6 +59,9 @@ const Booking = () => {
 
     const packageSelected = location.state && location.state.serviceData.packageselected;
     // console.log('packageSelected', packageSelected);
+    const fareFamily = packageSelected?.["air:AirPricingInfo"]?.["air:FareInfo"]?.["$"]?.FareFamily;
+
+// console.log("Fare Family:", fareFamily);
 
     const Airports = location.state && location.state.serviceData.Airports;
 
@@ -98,6 +101,8 @@ const Booking = () => {
     const [isseatloading, setSeatloading] = useState(false);
     const [isreservation, setReservation] = useState(false);
     const [fareRuleText, setFareRuleText] = useState(null);
+    const [cancellationPolicy, setCancellationPolicy] = useState(null);
+    // console.log('cancellationPolicy', cancellationPolicy);
     // const providerCodeRef = useRef(null);
     // console.log('providerCodeRef', providerCodeRef);
   
@@ -196,6 +201,21 @@ const Booking = () => {
 
     //     fetchFareRules();
     // }, []);
+
+    useEffect(() => {
+        const fetchCancellationPolicy = async () => {
+            if (cancellationPolicy) return; 
+    
+            try {
+                const response = await axios.get("https://demo.taxivaxi.com/api/flights/getCancellationDateChangePolicy");
+                setCancellationPolicy(response.data.data); 
+            } catch (error) {
+                console.error("Error fetching cancellation policy:", error);
+            }
+        };
+    
+        fetchCancellationPolicy();
+    }, [cancellationPolicy]);
 
     const clearedData = async () => {
         const empIdsArray = Array.isArray(employees) ? employees : [employees]; // Ensure empIdsArray is always an array
@@ -1192,7 +1212,7 @@ const Booking = () => {
                                 child:request.child,
                                 infant:request.infant,
                                 apiairportsdata:apiairports,
-                                // ticketdata: ticketresponse.data
+                                // ticketdata: ticketresponse.data 
                             };
                             console.log('bookingCompleteData', bookingCompleteData);
                             navigate('/bookingCompleted', { state: { bookingCompleteData } });
@@ -1332,15 +1352,17 @@ const Booking = () => {
                                         }
                                     }
                                 });
-
+                            
                                 console.log(TicketXML);
+                                
                                 try {
                                     const ticketresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', TicketXML);
                                     const TicketResponse = ticketresponse.data;
-                                    console.log("ticketresponse", ticketresponse);
+                                    console.log("ticketresponse1", TicketResponse);
+                                    return TicketResponse; // ✅ Returning the response
                                 } catch (error) {
                                     console.error(error);
-                                    // ErrorLogger.logError('ticket_api',TicketXML,error);
+                                    return null; // ✅ Return null in case of error
                                 }
                             };
 
@@ -1352,6 +1374,7 @@ const Booking = () => {
                                     getUnversalCoderesponse = await makeGetUnversalCodeRequest();
                                     // shall i apply condition for provider code only call for 1G not for ACH
                                     ticketresponse = await makeTicketRequest();
+                                    console.log('ticketresponse2', ticketresponse);
 
                                     // if (hasNonEmptyProperties(emptaxivaxi)) {
                                     // const sessiondata = async () => {   
@@ -1440,7 +1463,7 @@ const Booking = () => {
                                             child:request.child,
                                             infant:request.infant,
                                             apiairportsdata:apiairports,
-                                            // ticketdata: ticketresponse.data
+                                            ticketdata: ticketresponse
                                         };
                                         console.log('bookingCompleteData', bookingCompleteData);
                                         navigate('/bookingCompleted', { state: { bookingCompleteData } });
@@ -1454,7 +1477,7 @@ const Booking = () => {
                                     // navigate('/bookingCompleted', { state: { bookingCompleteData } });
                                 } catch (error) {
                                     console.error('Error executing requests:', error);
-                                }
+                                } 
                             };
                             executeCodeTicketSequentially();
 
@@ -4393,8 +4416,37 @@ const Booking = () => {
                                                             )
                                                         )
                                                 )}
-                                                {/* <span className='apicircle'>◯</span> */}
                                                 <div className="table-container">
+                                                    <h1>Cancellation / Date Change Charges</h1>
+                                                    <table className="styled-table">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>
+                                                            Cancellation <br />
+                                                            {/* <span className="sub-header">(From Scheduled flight departure)</span> */}
+                                                            </th>
+                                                            <th>
+                                                            Date Change <br />
+                                                            {/* <span className="sub-header">(Per passenger)</span> */}
+                                                            </th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr>
+        <td>
+            {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"}
+        </td>
+        <td>
+            {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"}
+        </td>
+    </tr>
+                                                        
+                                                        </tbody>
+                                                    </table>
+                                                    <p className="note">* From the Time of Departure</p>
+                                                </div>
+                                                
+                                                {/* <div className="table-container">
                                                     <h1>Cancellation Charges</h1>
                                                     <table className="styled-table">
                                                         <thead>
@@ -4464,7 +4516,7 @@ const Booking = () => {
                                                         </tbody>
                                                     </table>
                                                     <p className="note">* From the Time of Departure</p>
-                                                </div>
+                                                </div> */}
                                                 <p className="highlighted-note">
                                                 <strong>*Important:</strong> The airline fee is indicative. Cotrav does not guarantee the accuracy of this information.
                                                     All fees mentioned are per passenger. All Refunds are airline approval.

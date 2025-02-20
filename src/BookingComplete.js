@@ -14,6 +14,8 @@ const BookingContinue = () => {
     const [respricings, setrespricings] = useState([]);
     const reservationData = location.state && location.state.bookingCompleteData.reservationdata;
     const apiairports = location.state && location.state.bookingCompleteData.apiairportsdata;
+    const ticketdata = location.state && location.state.bookingCompleteData.ticketdata;
+    console.log('ticketdata', ticketdata);
     const segments = location.state && location.state.bookingCompleteData.segmentParse;
     const Passengers = location.state && location.state.bookingCompleteData.Passengers;
     const packageSelected = location.state && location.state.bookingCompleteData.PackageSelected;
@@ -86,7 +88,6 @@ const BookingContinue = () => {
           }
           const ReservationRsp = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp'];
           if (ReservationRsp !== null && ReservationRsp !== undefined) {
-
             const passnegrinfo = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['common_v52_0:BookingTraveler'];
             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode'];
             const ressegmentinfo = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
@@ -247,7 +248,7 @@ const BookingContinue = () => {
                                                                                     <img 
                                                                                         src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`} 
                                                                                         alt="Airline Logo" 
-                                                                                        className="airline-logo" 
+                                                                                        className="airline-logoo" 
                                                                                     />
                                                                                     <div className="airline-info">
                                                                                         <div className="airline-name">
@@ -265,8 +266,8 @@ const BookingContinue = () => {
                                                                                 {/* Right Section - Departure & Arrival */}
                                                                                 <div className="flight-details-right">
                                                                                     {/* Departure Details */}
-                                                                                    <div className="flight-time-details">
-                                                                                        <div className="flight-time">{new Date(segmentinfo['$']['DepartureTime']).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+                                                                                    <div className="flight-timee-details">
+                                                                                        <div className="flight-timee">{new Date(segmentinfo['$']['DepartureTime']).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
                                                                                         <div className="flight-date">
                                                                                             {(() => {
                                                                                                 const departureDate = new Date(segmentinfo['$']['DepartureTime']);
@@ -299,8 +300,8 @@ const BookingContinue = () => {
                                                                                     </div>
 
                                                                                     {/* Arrival Details */}
-                                                                                    <div className="flight-time-details">
-                                                                                        <div className="flight-time">{new Date(segmentinfo['$']['ArrivalTime']).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+                                                                                    <div className="flight-timee-details">
+                                                                                        <div className="flight-timee">{new Date(segmentinfo['$']['ArrivalTime']).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
                                                                                         <div className="flight-date">
                                                                                             {(() => {
                                                                                                 const arrivalDate = new Date(segmentinfo['$']['ArrivalTime']);

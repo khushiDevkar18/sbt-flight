@@ -49,6 +49,7 @@ function Home() {
     const [isseaarchresponse, setSearchresponse] = useState(false);
     const [companies, setCompanies] = useState([]);
     const [inputCompany, setInputCompany] = useState(""); // Display selected company name
+    const [adminid, setAdminid] = useState(""); 
     const [showDropdown, setShowDropdown] = useState(false);
     const [ClientMarkupDetails, setClientMarkupDetails] = useState("");
     // console.log('ClientMarkupDetails', ClientMarkupDetails);
@@ -249,11 +250,12 @@ function Home() {
           });
       }, []);
     
-      const handleCompanySelect = (company) => {
+      const handleCompanySelect = (company) => { 
         setInputCompany(company.corporate_name); // Show selected name
         
         setShowDropdown(false); // Hide dropdown after selection
         const adminid = company.id;
+        setAdminid(adminid);
         // console.log('adminid', adminid)
         const payload = {
             admin_id: adminid,
@@ -567,6 +569,10 @@ function Home() {
       }
       
     //   getAccessToken();
+    const queryParams = new URLSearchParams(window.location.search);
+    const agentId = queryParams.get("agent_id");
+
+    // console.log(agentId);
 
     const handleSubmit = async (event) => {
         setSearchresponse(true);
@@ -877,9 +883,12 @@ function Home() {
                 apiairportsdata:apiairports,
                 requesttype: 'book',
                 fromcotrav: '1',
+                agent_id: agentId,
+                admin_id: adminid,
+                global: agentId ? 1: 0
                 };
                 console.timeEnd("redirect");
-            // console.log('searchresponse', response);
+            console.log('searchresponse', responseData);
             navigate('/SearchFlight', { state: { responseData } });
             } catch (error) {
                 // ErrorLogger.logError('search_api',soapEnvelope,error);

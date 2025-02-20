@@ -103,8 +103,12 @@ const SearchFlight = () => {
   const additionalemail = location.state && location.state.responseData?.additionalemail;
   const ccmail = location.state && location.state.responseData?.ccmail;
   const clientname = location.state && location.state.responseData?.clientname;
+  const admin_id = location.state && location.state.responseData?.admin_id;
   const spocname = location.state && location.state.responseData?.spocname;
   const markupdata = location.state && location.state.responseData?.markupdata;
+  const agent_id = location.state && location.state.responseData?.agent_id;
+  const global = location.state && location.state.responseData?.global;
+
   // console.log('markupdata',markupdata);
   const bookingid = location.state && location.state.responseData?.bookingid;
   const is_approved = location.state && location.state.responseData?.isapproved;
@@ -2266,8 +2270,8 @@ const SearchFlight = () => {
   // };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [clientName, setClientName] = useState(clientname);
-  const [spocName, setSpocName] = useState(spocname);
+  // const [clientName, setClientName] = useState(clientname);
+  // const [spocName, setSpocName] = useState(spocname);
   // const [spocEmail, setSpocEmail] = useState(spocemail.split(',')); // Prefill and allow editing
   const normalizedAdditionalEmails = Array.isArray(additionalemail) ? additionalemail : [additionalemail];
   const normalizedCCEmails = Array.isArray(ccmail) 
@@ -2480,8 +2484,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       additional_emails: additionalEmails,
       cc_email: ccEmails,
       remark: remark,
-      client_name: clientName,
-      spoc_name: spocName,
+      client_name: clientname,
+      admin_id: admin_id,
+      spoc_name: spocname,
       flag:'',
     };
     setPayload(payload);
@@ -2535,7 +2540,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       const updatedPayload = { 
         ...newpayload, 
         flag: "send", 
-        htmlContent: updatedHtml // Include updated HTML in API payload
+        htmlContent: updatedHtml, // Include updated HTML in API payload
+        is_search_query: global === 1 ? 1 : 0
       };
       console.log('updatedPayload', updatedPayload);
   
@@ -11368,7 +11374,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                           /* Actual Content */
                                                           priceParse && priceParse.map((priceParseData, priceParseindex) => (
                                                             <div key={priceParseindex} className='col-md-3 optionsflights' style={{ display: "flex" }}>
-                                                              <div className='optionsflight' style={{ width: "63%" }}>
+                                                              <div className='optionsflight' >
                                                                 {priceParseData['air:AirPricingInfo'] && (
                                                                   Array.isArray(priceParseData['air:AirPricingInfo'])
                                                                     ? (
@@ -12144,8 +12150,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                     )
                                                                 )}
                                                               </div>
-                                                              {is_approved === '1' && (
-                                                                <div className='buttonbook' style={{ width: "37%" }}><button type='button' className="continuebutton" style={{ marginTop: "11px", color: "white", backgroundColor: "#785eff", border: "none", padding: "3%", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
+                                                              {agent_id && (
+                                                                <div className='buttonbook'><button type='button' className="continuebutton" style={{ marginTop: "11px", color: "white", backgroundColor: "#785eff", border: "none", padding: "3%", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
                                                               )}
                                                             </div>
                                                           )
@@ -15503,7 +15509,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                   <div
                                                                     key={fareInfoIndex}
                                                                     className="col-md-3 optionsflights"
-                                                                    style={{ display: "flex", width: '27%' }}
+                                                                    style={{ display: "flex" }}
                                                                   >
                                                                     <div className="optionsflight">
                                                                       <div className="modal-data">
@@ -15551,10 +15557,10 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         </div>
                                                                       </div>
                                                                     </div>
-                                                                    {/* {is_approved === '1'  && ( */}
+                                                                    {agent_id  && (
                                                                     
                                                                       <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleach(fareInfoRefKey)}>Book Now</button></div>
-                                                                    {/* )} */}
+                                                                    )}
                                                                     <button
                                                                       className="add-btn"
                                                                       type="button"
@@ -15583,7 +15589,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                             priceParse && priceParse.map((priceParseData, priceParseindex) => (
 
                                                               <div key={priceParseindex} className='col-md-3 optionsflights' style={{ display: "flex" }}>
-                                                                <div className='optionsflight' style={{ width: "63%" }}>
+                                                                <div className='optionsflight' >
                                                                   {priceParseData['air:AirPricingInfo'] && (
                                                                     Array.isArray(priceParseData['air:AirPricingInfo'])
                                                                       ? (
@@ -16156,9 +16162,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                   )}
                                                                 </div>
 
-                                                                {/* {is_approved === '1'  && ( */}
-                                                                  <div className='buttonbook' style={{ width: "37%" }}><button type='button' className="continuebutton" style={{ marginTop: "7px", color: "white", backgroundColor: "#785eff", border: "none", padding: "5px 5px 5px 5px", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
-                                                                {/* )} */}
+                                                                {agent_id && (
+                                                                  <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
+                                                                )}
                                                                 <button
                                                                   className="add-btn"
                                                                   type="button"
@@ -16416,8 +16422,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                 <label>Client Name</label>
                 <input
                   type="text"
-                  value={clientName}
-                  onChange={(e) => setClientName(e.target.value)}
+                  value={clientname}
+                  // onChange={(e) => setClientName(e.target.value)}
                   disabled
                 />
               </div>
@@ -16425,8 +16431,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                 <label>SPOC Name</label>
                 <input
                   type="text"
-                  value={spocName}
-                  onChange={(e) => setSpocName(e.target.value)}
+                  value={spocname}
+                  // onChange={(e) => setSpocName(e.target.value)}
                   disabled
                 />
               </div>
