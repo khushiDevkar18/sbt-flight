@@ -38,7 +38,14 @@ const Booking = () => {
     const clientid = location.state && location.state.serviceData?.client_id;
     const is_gst_benefit = location.state && location.state.serviceData?.is_gst_benefit;
     const fareInfoRefKey = location.state && location.state.serviceData?.fareInfoRefKey;
+    const pricepointXMLpc = location.state && location.state.serviceData?.pricepointXMLpc;
     // console.log('fareInfoRefKey', fareInfoRefKey);
+    const segmentParsee = location.state && location.state.serviceData.SegmentPricelist;
+    const packageSelectedd = location.state && location.state.serviceData.packageselected;
+    const [segmentParse, setSegmentParse] = useState(segmentParsee); 
+    
+    const [packageSelected, setPackageSelected] = useState(packageSelectedd);
+    // console.log('asdfasdfkjasdfasd', packageSelected);
     
     const tripType = formtaxivaxi['trip_type'];
     const flightType = formtaxivaxi['flight_type'];
@@ -47,7 +54,7 @@ const Booking = () => {
     if (formtaxivaxi) {
         returns = formtaxivaxi['trip_type'] === "Round Trip" ? 1 : 0;
     }
-    const segmentParse = location.state && location.state.serviceData.SegmentPricelist;
+    // const segmentParse = location.state && location.state.serviceData.SegmentPricelist;
     const segment=Array.isArray(segmentParse) ? segmentParse : [segmentParse];
     const providerCode = segment[0]['$']['ProviderCode'];
     const carrier = segment[0]['$']['SupplierCode'];
@@ -57,8 +64,8 @@ const Booking = () => {
     const serviceresponse = location.state && location.state.serviceData.servicedata;
     const request = location.state?.serviceData || {};
 
-    const packageSelected = location.state && location.state.serviceData.packageselected;
-    // console.log('packageSelected', packageSelected);
+    // const packageSelected = location.state && location.state.serviceData.packageselected;
+
     const fareFamily = packageSelected?.["air:AirPricingInfo"]?.["air:FareInfo"]?.["$"]?.FareFamily;
 
 // console.log("Fare Family:", fareFamily);
@@ -71,6 +78,7 @@ const Booking = () => {
     const [passengereventKeys, setPassengerkey] = useState(Passengerarray[0]['Key']);
     const classType = location.state && location.state.serviceData.classtype;
     const access_token = location.state && location.state.serviceData.accesstoken;
+    
 
     const [accordion1Expanded, setAccordion1Expanded] = useState(true);
     const [accordion5Expanded, setAccordion5Expanded] = useState(false);
@@ -103,7 +111,7 @@ const Booking = () => {
     const [fareRuleText, setFareRuleText] = useState(null);
     const [cancellationPolicy, setCancellationPolicy] = useState(null);
     // console.log('cancellationPolicy', cancellationPolicy);
-    // const providerCodeRef = useRef(null);
+    const providerCodeRef = useRef(null);
     // console.log('providerCodeRef', providerCodeRef);
   
     const handleChange = (value) => {
@@ -150,58 +158,6 @@ const Booking = () => {
         fetchGstData();
     }, []);
 
-    // useEffect(() => {
-    //     const fetchFareRules = async () => {
-    //         if (fareRuleText) return; 
-
-    //         const soapRequest = `
-    //             <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-    //                 <soap:Body xmlns:air="http://www.travelport.com/schema/air_v52_0"
-    //                     xmlns:com="http://www.travelport.com/schema/common_v52_0">
-    //                     <air:AirFareRulesReq xmlns="http://www.travelport.com/schema/air_v52_0" TraceId="8eaceda4-2f16-4421-807d-67f3fd9738a2" TargetBranch="P7206253">
-    //                         <com:BillingPointOfSaleInfo xmlns="http://www.travelport.com/schema/common_v52_0" OriginApplication="uAPI" />
-    //                         <air:FareRuleKey FareInfoRef="${fareInfoRefKey["$"].FareInfoRef}" ProviderCode="${fareInfoRefKey["$"].ProviderCode}">
-    //                             ${fareInfoRefKey["_"]}
-    //                         </air:FareRuleKey>
-    //                     </air:AirFareRulesReq>
-    //                 </soap:Body>
-    //             </soap:Envelope>`;
-
-    //         try {
-    //             const response = await axios.post(
-    //                 "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest",
-    //                 soapRequest,
-    //                 { headers: { "Content-Type": "text/xml" } }
-    //             );
-
-    //             const extractFareRuleText = (xmlString) => {
-    //                 const parser = new DOMParser();
-    //                 const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-
-    //                 const fareRuleNodes = xmlDoc.getElementsByTagName("air:FareRuleLong");
-    //                 let extractedTexts = [];
-
-    //                 for (let node of fareRuleNodes) {
-    //                     let cdataSection = node.childNodes[0];
-    //                     if (cdataSection && cdataSection.nodeType === Node.CDATA_SECTION_NODE) {
-    //                         extractedTexts.push(cdataSection.nodeValue.trim());
-    //                     }
-    //                 }
-
-    //                 return extractedTexts;
-    //             };
-
-    //             const extractedText = extractFareRuleText(response.data);
-    //             setFareRuleText(extractedText); // Store response in state to prevent re-fetching
-    //             console.log('fareRuleText', extractedText);
-    //         } catch (error) {
-    //             console.error("Error fetching fare rules:", error);
-    //         }
-    //     };
-
-    //     fetchFareRules();
-    // }, []);
-
     useEffect(() => {
         const fetchCancellationPolicy = async () => {
             if (cancellationPolicy) return; 
@@ -240,7 +196,7 @@ const Booking = () => {
 
             const responseData = await response.json();
             const data = responseData.result;
-            console.log("data",data)
+            // console.log("data",data)
             const organizedData = {};
 
             // Organize the response data
@@ -620,6 +576,42 @@ const Booking = () => {
 
         return true;
     };
+    
+
+    const fetchPriceData = async () => {
+        // try {
+            console.log('fetchprice');
+            // const response = await axios.post(
+            //     "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest",
+            //     pricepointXMLpc
+            // );
+            // // console.log('response for data', response.data)
+    
+            // parseString(response.data, { explicitArray: false }, (err, priceresult) => {
+            //     if (err) {
+            //         console.error("Error parsing XML:", err);
+            //         return;
+            //     }
+    
+            //     const AirPriceRsp = priceresult["SOAP:Envelope"]["SOAP:Body"]["air:AirPriceRsp"];
+    
+            //     if (AirPriceRsp) {
+            //         const packageSelected1 = AirPriceRsp["air:AirPriceResult"]["air:AirPricingSolution"];
+            //         const segmentParse1 = AirPriceRsp["air:AirItinerary"]["air:AirSegment"];
+    
+                    setPackageSelected('testpackage');
+                    setSegmentParse('testsegment');
+        //             return true;
+        //         }
+        //     });
+        // } catch (error) {
+        //     console.error("Error fetching price data:", error);
+        // }
+    };
+    // if (pricepointXMLpc) {
+        // fetchPriceData();
+    // }
+
     const handleCompleteBooking = async (event) => {
         setSeatloading(false);
         setReservation(true);
@@ -760,9 +752,16 @@ const Booking = () => {
             });
         }
 
-        function handleconfirmedbooked() {
+        async function handleconfirmedbooked() {
             console.log("in func");
             setLoading(true)
+
+            // if (pricepointXMLpc) {
+                // await fetchPriceData();
+            // }
+            // fetchPriceData();
+            console.log('packageSelected', packageSelected);
+            console.log('segmentParse', segmentParse);
 
             const formatDate = (dateString) => {
                 const date = new Date(dateString);
@@ -1039,7 +1038,7 @@ const Booking = () => {
                     }
                 });
             }
-            console.log('packageSelected', packageSelected);
+            // console.log('packageSelected', packageSelected);
 
             const passengerAges = Passengers.ageNames.map(calculateAge);
             const makeReservationRequest = async () => {
@@ -1156,7 +1155,7 @@ const Booking = () => {
 
                         let segmentKey = newElement.getAttribute("Key");
                         let providerCode = newElement.getAttribute("ProviderCode"); // Get ProviderCode from newElement
-                        // providerCodeRef.current = providerCode;
+                        providerCodeRef.current = providerCode;
 
                         let bookingInfoArray = packageSelected['air:AirPricingInfo']['air:BookingInfo'];
 
@@ -1822,6 +1821,36 @@ const Booking = () => {
                 postalCode: passengerPostalCode,
                 country: passengerCountry
             };
+            // console.log('passengerDetails',passengerDetails);
+            const passenger_details = passengerDetails.firstNames.map((firstName, index) => ({
+                name: firstName,
+                contact: passengerDetails.contactNo, // Assuming the same contact applies to all
+                email: passengerDetails.email, // Assuming the same email applies to all
+            }));
+            const requestData = {
+                access_token,
+                clientid,
+                search_query_id : "52",
+                // search_query_id,
+                passenger_details
+            };
+            console.log('requestData', requestData);
+            const addSearchQueryAsBooking = async () => {
+                try {
+                    const response = await axios.post(
+                        "https://demo.taxivaxi.com/api/flights/addSearchQueryAsBooking",
+                        requestData
+                    );
+                    console.log("API Response:", response.data);
+                } catch (error) {
+                    console.error("Error calling API:", error);
+                }
+            };
+            
+            // Call the function
+            addSearchQueryAsBooking();
+
+
             setPassengers(passengerDetails);
             const passengerDetailss = {
                 keys: [],
@@ -1934,6 +1963,7 @@ const Booking = () => {
                         console.log('seatMapRequestXML', seatMapRequestXML);
 
                         try {
+
                             const seatresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', seatMapRequestXML, {
                                 headers: {
                                     'Content-Type': 'text/xml',
@@ -5749,162 +5779,7 @@ const Booking = () => {
                                                         <AccordionActions>
                                                         </AccordionActions>
                                                     </Accordion>
-                                                    {/* <div className="booking-devider" />
-                                                    <div className="baggagae_policy">
-                                                        <span className='headingpolicies' style={{ display: 'flex' }}>
-                                                            <img src="img\taxivaxi\meal_seats\cancellation.svg"
-                                                                width="20px"
-                                                            />&nbsp;
-                                                            Cancellation Policy
-                                                            <button
-                                                                type="button"
-                                                                className="farerules"
-                                                                data-toggle="modal"
-                                                                data-target=".bd-example-modal-sm">View Fare Rules &nbsp;<img src="img/info_icon.svg" width='15px' /></button>
-                                                            <div className="modal fade bd-example-modal-sm multipleflight"
-                                                                tabIndex={-1}
-                                                                role="dialog"
-                                                                aria-labelledby="myLargeModalLabel"
-                                                                aria-hidden="true">
-                                                                <div className="modal-dialog modal-lg">
-                                                                    <div className="modal-content">
-                                                                        <div className="modal-header">
-                                                                            <h5 className="modal-title" id="exampleModalLabel">
-                                                                                Fare Rules
-                                                                            </h5>
-                                                                            <button
-                                                                                type="button"
-                                                                                className="close"
-                                                                                data-dismiss="modal"
-                                                                                aria-label="Close"
-                                                                            >
-                                                                                <span style={{ width: '9px', height: '10px', display: 'block' }}
-                                                                                    aria-hidden="true">×</span>
-                                                                            </button>
-                                                                        </div>
-                                                                        <div className="modal-body">
-                                                                            <div className="booking-form-i booking-form-i4">
-                                                                                <h1>
-                                                                                    <img
-                                                                                        src="img\taxivaxi\meal_seats\cancellation_policy.svg"
-                                                                                        width="20px"
-                                                                                    />
-                                                                                    &nbsp;Cancellation Policy
-                                                                                </h1>
-                                                                                <div className="booking-form-i booking-form-i6" style={{ color: "red", padding: "0px 0px 10px 0px", opacity: "0.6" }}>
-                                                                                    {Array.isArray(packageSelected['air:AirPricingInfo']) ? (
-                                                                                        Array.isArray(packageSelected['air:AirPricingInfo'][0]['air:CancelPenalty']) ? (
-                                                                                            packageSelected['air:AirPricingInfo'][0]['air:CancelPenalty'].map((cancelpolicy, cancelindex) => (
-                                                                                                <>
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.includes('INR') ? '₹ ' : ''}
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.replace('INR', '')}
-                                                                                                </>
-                                                                                            ))
-                                                                                        ) : (
-                                                                                            <>
-                                                                                                {(packageSelected['air:AirPricingInfo']?.[0]?.['air:CancelPenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-                                                                                                {(packageSelected['air:AirPricingInfo']?.[0]?.['air:CancelPenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
-                                                                                            </>
-                                                                                        )
-                                                                                    ) : (
-                                                                                        Array.isArray(packageSelected['air:AirPricingInfo']['air:CancelPenalty']) ? (
-                                                                                            packageSelected['air:AirPricingInfo']['air:CancelPenalty'].map((cancelpolicy, cancelindex) => (
-                                                                                                <>
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.includes('INR') ? '₹ ' : ''}
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.replace('INR', '')}
-                                                                                                </>
-                                                                                            ))
-                                                                                        ) : (
-                                                                                            <>
-                                                                                                {(packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-                                                                                                {(packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
-                                                                                            </>
-                                                                                        )
-                                                                                    )}
-                                                                                </div>
-
-                                                                                <div
-                                                                                    className="booking-form-i booking-form-i5"
-                                                                                    style={{
-                                                                                        padding: "0px 0px 10px 25px",
-                                                                                        float: "left"
-                                                                                    }}
-                                                                                >
-                                                                                    {packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['$']?.['PenaltyApplies'] || packageSelected['air:AirPricingInfo']?.[0]?.['air:CancelPenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
-                                                                                </div>
-                                                                            </div>
-
-                                                                            <div className="booking-form-i booking-form-i4">
-                                                                                <h1>
-                                                                                    <img
-                                                                                        src="img\taxivaxi\meal_seats\date_change.svg"
-                                                                                        width="20px"
-                                                                                    />
-                                                                                    &nbsp;Date Change Policy
-                                                                                </h1>
-                                                                                <div className="booking-form-i booking-form-i6" style={{ color: "red", padding: "0px 0px 10px 0px", opacity: "0.6" }}>
-                                                                                    {Array.isArray(packageSelected['air:AirPricingInfo']) ? (
-                                                                                        Array.isArray(packageSelected['air:AirPricingInfo'][0]['air:ChangePenalty']) ? (
-                                                                                            packageSelected['air:AirPricingInfo'][0]['air:ChangePenalty'].map((cancelpolicy, cancelindex) => (
-                                                                                                <>
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.includes('INR') ? '₹ ' : ''}
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.replace('INR', '')}
-                                                                                                </>
-                                                                                            ))
-                                                                                        ) : (
-                                                                                            <>
-                                                                                                {(packageSelected['air:AirPricingInfo']?.[0]?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-                                                                                                {(packageSelected['air:AirPricingInfo']?.[0]?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
-                                                                                            </>
-                                                                                        )
-                                                                                    ) : (
-                                                                                        Array.isArray(packageSelected['air:AirPricingInfo']['air:ChangePenalty']) ? (
-                                                                                            packageSelected['air:AirPricingInfo']['air:ChangePenalty'].map((cancelpolicy, cancelindex) => (
-                                                                                                <>
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.includes('INR') ? '₹ ' : ''}
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.replace('INR', '')}
-                                                                                                </>
-                                                                                            ))
-                                                                                        ) : (
-                                                                                            <>
-                                                                                                {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-                                                                                                {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
-                                                                                            </>
-                                                                                        )
-                                                                                    )}
-                                                                                </div>
-
-                                                                                <div
-                                                                                    className="booking-form-i booking-form-i5"
-                                                                                    style={{
-                                                                                        padding: "0px 0px 10px 25px",
-                                                                                        float: "left"
-                                                                                    }}
-                                                                                >
-                                                                                    {packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || packageSelected['air:AirPricingInfo']?.[0]?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-
-                                                        </span>
-
-                                                        <div
-                                                            className="booking-form policydetails2"
-                                                            style={{ padding: '1%', marginTop: '0% !important', marginBottom: 0, width: '100%', border: '1px solid #e3e3e3', display: 'inline-block' }}>
-                                                            <div className="booking-form-i booking-form-i4">
-                                                                <div id="grad1">
-                                                                    <div className="price-item-container" id="price-items">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                        </div>
-                                                    </div> */}
+                                                    
                                                     <div className="booking-devider" />
                                                     <div>
                                                         <input type='checkbox' /><label className='confirmtocontinue'>I confirm that I have read and I accept the <a href="#">Fare Rules</a> , the <a href="#">Privacy Policy</a> , the <a href="#">User Agreement</a> and <a href="#">Terms of Service</a> of Taxivaxi</label>

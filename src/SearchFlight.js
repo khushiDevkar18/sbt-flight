@@ -311,6 +311,7 @@ const SearchFlight = () => {
       }
     });
 
+
     const makeSoapRequest = async () => {
       var pricepointXML = pricepointXMLpc;
       console.log('main_prc', pricepointXML); 
@@ -494,7 +495,8 @@ const SearchFlight = () => {
               booking_id: bookingid,
               client_id: clientid,
               is_gst_benefit: is_gst_benefit,
-              accesstoken: access_token
+              accesstoken: access_token,
+              pricepointXMLpc: pricepointXMLpc
 
             };
             setLoading(false);
@@ -2406,7 +2408,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
               flight_no: `${matchingSegment["$"]["Carrier"]}${matchingSegment["$"]["FlightNumber"] || "Unknown"}`,
               airline_name: handleAirline(matchingSegment["$"]["Carrier"] || "Unknown"),
               from_city: handleApiAirport(matchingSegment["$"]["Origin"] || "Unknown"),
+              from_city_code: matchingSegment["$"]["Origin"],
               to_city: handleApiAirport(matchingSegment["$"]["Destination"] || "Unknown"),
+              to_city_code: matchingSegment["$"]["Destination"],
               departure_datetime: matchingSegment["$"]["DepartureTime"] || "Unknown",
               arrival_datetime: matchingSegment["$"]["ArrivalTime"] || "Unknown",
               origin_airline_city: handleAirport(matchingSegment['$']['Origin']) || "Unknown",
@@ -2424,7 +2428,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
             flight_no: flightDetails.map((detail) => detail.flight_no).join(", "),
             airline_name: flightDetails.map((detail) => detail.airline_name).join(", "),
             from_city: flightDetails[0]?.from_city || "Unknown",
+            from_city_code: flightDetails[0]?.from_city_code || "Unknown",
             to_city: flightDetails[flightDetails.length - 1]?.to_city || "Unknown",
+            to_city_code: flightDetails[flightDetails.length - 1]?.to_city_code || "Unknown",
             departure_datetime: flightDetails[0]?.departure_datetime || "Unknown",
             arrival_datetime: flightDetails[flightDetails.length - 1]?.arrival_datetime || "Unknown",
             price: parseInt(flight["$"].TotalPrice.replace("INR", "").trim(), 10),
@@ -15557,10 +15563,10 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         </div>
                                                                       </div>
                                                                     </div>
-                                                                    {agent_id  && (
+                                                                    {/* {agent_id  && ( */}
                                                                     
                                                                       <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleach(fareInfoRefKey)}>Book Now</button></div>
-                                                                    )}
+                                                                    {/* )} */}
                                                                     <button
                                                                       className="add-btn"
                                                                       type="button"
@@ -16162,9 +16168,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                   )}
                                                                 </div>
 
-                                                                {agent_id && (
+                                                                {/* {agent_id && ( */}
                                                                   <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
-                                                                )}
+                                                                {/* )} */}
                                                                 <button
                                                                   className="add-btn"
                                                                   type="button"
