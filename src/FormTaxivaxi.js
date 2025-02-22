@@ -48,81 +48,81 @@ const navigate = useNavigate();
     // console.log('apiairportData', apiairportData);
     
 
-      const makeAirlineRequest = async () => {
-      try {
-          const username = 'Universal API/uAPI6514598558-21259b0c';
-          const password = 'tN=54gT+%Y';
-          const authHeader = `Basic ${btoa(`${username}:${password}`)}`; 
-          const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
-          <soapenv:Header/>
-          <soapenv:Body>
-              <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
-                  <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
-                  <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
-              </util:ReferenceDataRetrieveReq>
-          </soapenv:Body>
-          </soapenv:Envelope>`;
+      // const makeAirlineRequest = async () => {
+      // try {
+      //     const username = 'Universal API/uAPI6514598558-21259b0c';
+      //     const password = 'tN=54gT+%Y';
+      //     const authHeader = `Basic ${btoa(`${username}:${password}`)}`; 
+      //     const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
+      //     <soapenv:Header/>
+      //     <soapenv:Body>
+      //         <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+      //             <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
+      //             <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
+      //         </util:ReferenceDataRetrieveReq>
+      //     </soapenv:Body>
+      //     </soapenv:Envelope>`;
           
-          const airlineresponse = await axios.post(
-            'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
-            airlineRequest, { headers: { 'Content-Type': 'text/xml'  }}
-          );
-          airlineResponseData = airlineresponse.data;
-          // setAirlineResponse(airlineresponse);
+      //     const airlineresponse = await axios.post(
+      //       'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
+      //       airlineRequest, { headers: { 'Content-Type': 'text/xml'  }}
+      //     );
+      //     airlineResponseData = airlineresponse.data;
+      //     // setAirlineResponse(airlineresponse);
           
-      } catch (error) {
-          console.error(error);
-          // navigate('/tryagainlater');
-          }
+      // } catch (error) {
+      //     console.error(error);
+      //     // navigate('/tryagainlater');
+      //     }
           
-      };
+      // };
 
-      const makeAirportRequest = async () => {
-      try {
-          const username1 = 'Universal API/uAPI6514598558-21259b0c';
-          const password1 = 'tN=54gT+%Y';
-          const authHeader1 = `Basic ${btoa(`${username1}:${password1}`)}`;
-          const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
-          <soapenv:Header/>
-          <soapenv:Body>
-          <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AV145ER" TypeCode="CityAirport">
-              <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
-              <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
-          </util:ReferenceDataRetrieveReq>
-          </soapenv:Body>
-      </soapenv:Envelope>`;
-      const airportResponse = await axios.post(
-        'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
-        airportRequest, { headers: { 'Content-Type': 'text/xml'  }}
-      );
-          airportResponseData = airportResponse.data;
-          // setAirportResponse(airportResponse);
+      // const makeAirportRequest = async () => {
+      // try {
+      //     const username1 = 'Universal API/uAPI6514598558-21259b0c';
+      //     const password1 = 'tN=54gT+%Y';
+      //     const authHeader1 = `Basic ${btoa(`${username1}:${password1}`)}`;
+      //     const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
+      //     <soapenv:Header/>
+      //     <soapenv:Body>
+      //     <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AV145ER" TypeCode="CityAirport">
+      //         <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
+      //         <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
+      //     </util:ReferenceDataRetrieveReq>
+      //     </soapenv:Body>
+      // </soapenv:Envelope>`;
+      // const airportResponse = await axios.post(
+      //   'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
+      //   airportRequest, { headers: { 'Content-Type': 'text/xml'  }}
+      // );
+      //     airportResponseData = airportResponse.data;
+      //     // setAirportResponse(airportResponse);
           
-          parseString(airportResponse.data, { explicitArray: false }, (errs, airportresult) => {
-              if (errs) {
-              console.error('Error parsing XML:', errs);
-              return;
-              }
-              const airportlist = airportresult['SOAP:Envelope']['SOAP:Body']['util:ReferenceDataRetrieveRsp']['util:ReferenceDataItem'];
-              setAirportOptions(airportlist);
-              const tempAirportCodes = {};
-              airportlist.forEach((airport) => {
-                      tempAirportCodes[airport.$.Code] = airport.$.Name;
-                  });
+      //     parseString(airportResponse.data, { explicitArray: false }, (errs, airportresult) => {
+      //         if (errs) {
+      //         console.error('Error parsing XML:', errs);
+      //         return;
+      //         }
+      //         const airportlist = airportresult['SOAP:Envelope']['SOAP:Body']['util:ReferenceDataRetrieveRsp']['util:ReferenceDataItem'];
+      //         setAirportOptions(airportlist);
+      //         const tempAirportCodes = {};
+      //         airportlist.forEach((airport) => {
+      //                 tempAirportCodes[airport.$.Code] = airport.$.Name;
+      //             });
               
-              setAirportOriginCodes(tempAirportCodes);
-              setAllAirportsOrigin(airportlist);
+      //         setAirportOriginCodes(tempAirportCodes);
+      //         setAllAirportsOrigin(airportlist);
 
-              setAirportDestinationCodes(tempAirportCodes);
-              setAllAirportsDestination(airportlist);
-          });
+      //         setAirportDestinationCodes(tempAirportCodes);
+      //         setAllAirportsDestination(airportlist);
+      //     });
           
-      } catch (error) {
-          console.error(error);
-              // navigate('/tryagainlater');
-              }
+      // } catch (error) {
+      //     console.error(error);
+      //         // navigate('/tryagainlater');
+      //         }
               
-      };
+      // };
 
       const apiairportss = async () => {
               try {
@@ -289,8 +289,8 @@ const navigate = useNavigate();
                       searchtocity: searchto,
                       searchdeparture: searchdeparture,
                       searchreturnd: searchreturnDate,
-                      airlinedata: airlineResponseData,
-                      airportData: airportResponseData,
+                      // airlinedata: airlineResponseData,
+                      // airportData: airportResponseData,
                       selectadult: adult,
                       selectchild: child,
                       selectinfant: infant,
@@ -313,7 +313,7 @@ const navigate = useNavigate();
                       flighttype: flight_type,
                       accessToken:access_token
                   };
-                  console.log('resp', responseData);
+                  // console.log('resp', responseData);
  
                   
                   navigate('/SearchFlight', { state: { responseData } });
@@ -330,8 +330,8 @@ const navigate = useNavigate();
       const executeRequestsSequentially = async () => {
         try {
             setLoading(true); 
-            await makeAirlineRequest();
-            await makeAirportRequest();
+            // await makeAirlineRequest();
+            // await makeAirportRequest();
             await apiairportss();
             await fetchData();
         } catch (error) {

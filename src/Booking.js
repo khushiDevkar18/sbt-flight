@@ -645,33 +645,6 @@ const Booking = () => {
                 lastNameError.style.display = 'none';
             }
 
-            // if (passengerinfo.Code === 'ADT' && !(age >= 12)) {
-            //     isValidpassenger = false;
-            //     const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
-            //     ageError1.style.display = 'block';
-            // } else if (passengerinfo.Code === 'CNN' && !(age >= 2 && age <= 12)) {
-            //     isValidpassenger = false;
-            //     const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
-            //     ageError2.style.display = 'block';
-            // } else if (passengerinfo.Code === 'INF' && !(age >= 0 && age <= 2)) {
-            //     isValidpassenger = false;
-            //     const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
-            //     ageError3.style.display = 'block';
-            // } else if (birthdate.trim() === '') {
-            //     isValidpassenger = false;
-            //     const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
-            //     ageError.style.display = 'block';
-            // } else {
-            //     const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
-            //     const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
-            //     const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
-            //     const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
-            //     ageError.style.display = 'none';
-            //     ageError1.style.display = 'none';
-            //     ageError2.style.display = 'none';
-            //     ageError3.style.display = 'none';
-            // }
-
             if (isValidpassenger) {
                 return {
                     ...passengerinfo,
@@ -1827,28 +1800,32 @@ const Booking = () => {
                 contact: passengerDetails.contactNo, // Assuming the same contact applies to all
                 email: passengerDetails.email, // Assuming the same email applies to all
             }));
-            const requestData = {
-                access_token,
-                clientid,
-                search_query_id : "52",
-                // search_query_id,
-                passenger_details
-            };
-            console.log('requestData', requestData);
-            const addSearchQueryAsBooking = async () => {
-                try {
-                    const response = await axios.post(
-                        "https://demo.taxivaxi.com/api/flights/addSearchQueryAsBooking",
-                        requestData
-                    );
-                    console.log("API Response:", response.data);
-                } catch (error) {
-                    console.error("Error calling API:", error);
-                }
-            };
+            if (formtaxivaxi['search_query_id']) {
+                const requestData = {
+                    access_token,
+                    clientid, // Ensure this variable is defined somewhere
+                    search_query_id: formtaxivaxi['search_query_id'],
+                    passenger_details,
+                };
             
-            // Call the function
-            addSearchQueryAsBooking();
+                console.log("requestData", requestData);
+            
+                // Define the async function
+                const addSearchQueryAsBooking = async () => {
+                    try {
+                        const response = await axios.post(
+                            "https://demo.taxivaxi.com/api/flights/addSearchQueryAsBooking",
+                            requestData
+                        );
+                        console.log("API Response:", response.data);
+                    } catch (error) {
+                        console.error("Error calling API:", error);
+                    }
+                };
+            
+                // Call the async function
+                addSearchQueryAsBooking();
+            }
 
 
             setPassengers(passengerDetails);

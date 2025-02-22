@@ -89,10 +89,122 @@ const SearchFlight = () => {
     setflightDepartureDate(newDepartureDate);
   };
   // let dataFound = false;
+  
 
-  const airlines = location.state && location.state.responseData.airlinedata;
+  const [airlines, setAirlines] = useState(location.state?.responseData?.airlinedata || null);
+  // console.log('airlines', airlines);
+  useEffect(() => {
+    if (!airlines) {
+      const fetchAirlines = async () => {
+        setLoading(true);
+
+        try {
+          const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
+              <soapenv:Header/>
+              <soapenv:Body>
+                  <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+                      <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
+                      <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
+                  </util:ReferenceDataRetrieveReq>
+              </soapenv:Body>
+          </soapenv:Envelope>`;
+
+          const response = await axios.post(
+            "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest",
+            airlineRequest,
+            { headers: { "Content-Type": "text/xml" } }
+          );
+
+          setAirlines(response.data); // Update airlines after API response
+        } catch (error) {
+          console.error("Error fetching airlines:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchAirlines();
+    }
+  }, []); // ✅ Runs only on mount
+
+  // Wait for airlines data and parse it
+  useEffect(() => {
+    if (airlines) {
+      parseString(airlines, { explicitArray: false }, (errs, airlineresult) => {
+        if (errs) {
+          console.error("Error parsing XML:", errs);
+          return;
+        }
+        const airlinelist = airlineresult["SOAP:Envelope"]["SOAP:Body"]["util:ReferenceDataRetrieveRsp"]["util:ReferenceDataItem"];
+        setAirlineOptions(airlinelist);
+      });
+    }
+  }, [airlines]);
+
+  const [airports, setAirports] = useState(location.state?.responseData?.airportData || null);
+  useEffect(() => {
+    if (!airports) {
+      const fetchAirports = async () => {
+        setLoading(true);
+        try {
+          const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
+            <soapenv:Header/>
+            <soapenv:Body>
+              <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AV145ER" TypeCode="CityAirport">
+                <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
+                <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
+              </util:ReferenceDataRetrieveReq>
+            </soapenv:Body>
+          </soapenv:Envelope>`;
+  
+          const response = await axios.post(
+            'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
+            airportRequest, 
+            { headers: { 'Content-Type': 'text/xml' } }
+          );
+  
+          setAirports(response.data);
+        } catch (error) {
+          console.error("Error fetching airports:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchAirports();
+    }
+  }, [airports]);
+
+  useEffect(() => {
+    if (airports) {
+      parseString(airports, { explicitArray: false }, (errs, airportresult) => {
+        if (errs) {
+          console.error('Error parsing XML:', errs);
+          return;
+        }
+        const airportlist = airportresult['SOAP:Envelope']['SOAP:Body']['util:ReferenceDataRetrieveRsp']['util:ReferenceDataItem'];
+        setAirportOptions(airportlist);
+        
+        const tempAirportCodes = {};
+        airportlist.forEach((airport) => {
+          tempAirportCodes[airport.$.Code] = airport.$.Name;
+        });
+  
+        setAirportOriginCodes(tempAirportCodes);
+        setAllAirportsOrigin(airportlist);
+        setAirportDestinationCodes(tempAirportCodes);
+        setAllAirportsDestination(airportlist);
+      });
+    }
+  }, [airports]);
+
+ 
+
+
+
+  // const airlines = location.state && location.state.responseData.airlinedata;
   const apiairports = location.state && location.state.responseData.apiairportsdata;
-  const airports = location.state && location.state.responseData.airportData;
+  // const airports = location.state && location.state.responseData.airportData;
   const response = location.state && location.state.responseData.responsedata;
   const adult = location.state && location.state.responseData.selectadult;
   const child = location.state && location.state.responseData.selectchild;
@@ -911,40 +1023,28 @@ const SearchFlight = () => {
     setActiveTab(updatedTabs);
   }, [flightOptions]);
 
-  useEffect(() => {
-    if (airlines) {
-      parseString(airlines, { explicitArray: false }, (errs, airlineresult) => {
-        if (errs) {
-          console.error('Error parsing XML:', errs);
-          return;
-        }
-        const airlinelist = airlineresult['SOAP:Envelope']['SOAP:Body']['util:ReferenceDataRetrieveRsp']['util:ReferenceDataItem'];
-        setAirlineOptions(airlinelist);
-      });
-    }
-  }, []);
 
-  useEffect(() => {
-    if (airports) {
-      parseString(airports, { explicitArray: false }, (errs, airportresult) => {
-        if (errs) {
-          console.error('Error parsing XML:', errs);
-          return;
-        }
-        const airportlist = airportresult['SOAP:Envelope']['SOAP:Body']['util:ReferenceDataRetrieveRsp']['util:ReferenceDataItem'];
-        setAirportOptions(airportlist);
-        const tempAirportCodes = {};
-        airportlist.forEach((airport) => {
-          tempAirportCodes[airport.$.Code] = airport.$.Name;
-        });
-        setAirportOriginCodes(tempAirportCodes);
-        setAllAirportsOrigin(airportlist);
+  // useEffect(() => {
+  //   if (airports) {
+  //     parseString(airports, { explicitArray: false }, (errs, airportresult) => {
+  //       if (errs) {
+  //         console.error('Error parsing XML:', errs);
+  //         return;
+  //       }
+  //       const airportlist = airportresult['SOAP:Envelope']['SOAP:Body']['util:ReferenceDataRetrieveRsp']['util:ReferenceDataItem'];
+  //       setAirportOptions(airportlist);
+  //       const tempAirportCodes = {};
+  //       airportlist.forEach((airport) => {
+  //         tempAirportCodes[airport.$.Code] = airport.$.Name;
+  //       });
+  //       setAirportOriginCodes(tempAirportCodes);
+  //       setAllAirportsOrigin(airportlist);
 
-        setAirportDestinationCodes(tempAirportCodes);
-        setAllAirportsDestination(airportlist);
-      });
-    }
-  }, []);
+  //       setAirportDestinationCodes(tempAirportCodes);
+  //       setAllAirportsDestination(airportlist);
+  //     });
+  //   }
+  // }, []);
 
   const handleAirline = (carrier) => {
     const airline = Airlines.find((airlineInfo) => {
@@ -2398,6 +2498,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
             const matchingSegment = SegmentList.find(
               (segment) => segment["$"]["Key"] === segmentRef
             );
+            console.log('matchingseg', matchingSegment);
 
             if (!segmentRef || !matchingSegment) {
               console.warn("Invalid SegmentRef or missing matching segment:", { segmentRef, info });
@@ -2506,7 +2607,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       },
     })
       .then((response) => {
-        console.log('data.data', response.data.data);
+        // console.log('data.data', response.data.data);
         if (response.data.success === "1") {
           setHtmlContent(response.data.data);
           setShowModal(true);

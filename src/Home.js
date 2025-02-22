@@ -108,9 +108,6 @@ function Home() {
             // test TargetBranch: P7206253
             // live TargetBranch: P4451438
         try {
-            const username = 'Universal API/uAPI6514598558-21259b0c';
-            const password = 'tN=54gT+%Y';
-            const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
             const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
@@ -139,12 +136,7 @@ function Home() {
         };
 
         const makeAirportRequest = async () => {
-            // setLoading(true);
         try {
-            
-            const username1 = 'Universal API/uAPI6514598558-21259b0c';
-            const password1 = 'tN=54gT+%Y';
-            const authHeader1 = `Basic ${btoa(`${username1}:${password1}`)}`;
             const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
@@ -788,11 +780,11 @@ function Home() {
                 PassengerCodeCNN,
                 PassengerCodeINF,
                 );
-                console.timeEnd("make api request");
+                // console.timeEnd("make api request");
 
             sessionStorage.setItem('searchdata', soapEnvelope);
             // console.log('search data', soapEnvelope);
-            console.time("API Call");
+            // console.time("API Call");
             const response = await axios.post(
                 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
                 soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
