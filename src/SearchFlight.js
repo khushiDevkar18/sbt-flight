@@ -198,6 +198,12 @@ const SearchFlight = () => {
     }
   }, [airports]);
 
+  function convertDateFormat(dateStr) {
+    const [day, month, year] = dateStr.split("/").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day)); // Create date in UTC
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}T00:00:00.000+05:30`;
+  }
+
  
 
 
@@ -224,7 +230,7 @@ const SearchFlight = () => {
   // console.log('markupdata',markupdata);
   const bookingid = location.state && location.state.responseData?.bookingid;
   const is_approved = location.state && location.state.responseData?.isapproved;
-  const searchdeparturedate = location.state && location.state.responseData?.searchdeparturedate;
+  const searchdeparturedate = convertDateFormat(location.state && location.state.responseData?.searchdeparture);
   // alert(searchdeparturedate);
   const searchreturnd = location.state && location.state.responseData?.searchreturnd;
   let no_of_seats = location.state && location.state.responseData?.no_of_seats;
@@ -2516,6 +2522,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
               arrival_datetime: matchingSegment["$"]["ArrivalTime"] || "Unknown",
               origin_airline_city: handleAirport(matchingSegment['$']['Origin']) || "Unknown",
               destination_airline_city: handleAirport(matchingSegment['$']['Destination']) || "Unknown",
+              provider_code: matchingSegment["air:AirAvailInfo"]?.["$"]?.["ProviderCode"] || "Unknown"
             };
           }).filter(Boolean); // Remove null entries
 
@@ -2538,6 +2545,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
             is_return: flight?.isReturn ? 1 : 0,
             no_of_stops: no_of_stops,
             carrier: flightDetails.map((detail) => detail.flight_no.slice(0, 2)).join(", "),
+            provider_code: flightDetails[0]?.provider_code || "Unknown",
             duration: formatISODuration(
               singleOption?.["$"]?.["TravelTime"] || "00:00:00"
             ),

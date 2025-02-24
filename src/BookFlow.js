@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { parseString } from 'xml2js';
@@ -20,13 +20,18 @@ const BookFlow = () => {
     const taxivaxidata = searchParams.get('taxivaxidata');
     const navigate = useNavigate();
     const [SegmentList, setSegment] = useState([]);
-    // console.log('SegmentList', SegmentList);
+    console.log('SegmentList', SegmentList);
     const [HostList, setHostlist] = useState([]);
     const [FareList, setFarelist] = useState([]);
+    const [priceParse, setpriceparse] = useState(null);
+    const [segmentpriceParse, setsegmentpriceparse] = useState(null);
+    // console.log('priceParse', priceParse);
+    // console.log('segmentpriceParse',segmentpriceParse);
     const [flightairoption, setFlightAirOptions] = useState([]);
     const [Airlines, setAirlineOptions] = useState([]);
       const [Airports, setAirportOptions] = useState([]);
-    // console.log('FareList', FareList);
+      const isFlightServiceCalled = useRef(false);
+    // console.log('flightairoption', flightairoption);
     
     useEffect(() => {
         // console.log('hi')
@@ -128,6 +133,7 @@ const BookFlow = () => {
         };
         
         const fetchData = async () => {
+          // console.log('mayank');
 
                 try {
                     setLoading(true);
@@ -148,8 +154,7 @@ const BookFlow = () => {
                     const searchto = formtaxivaxiData['to_city']; 
                     const searchtoMatch = searchto.match(/\((\w+)\)/);
                     const searchtoCode = searchtoMatch[1];
-                    // console.log('searchtoCode', searchtoCode);
-                    // const searchdeparture = formtaxivaxiData['departure_date'];       
+                         
                     const departureDateTime = formtaxivaxiData['departure_time']; 
                     const arrivalDateTime = formtaxivaxiData['arrival_time'];
                     // console.log('departureDateTime', departureDateTime);
@@ -159,23 +164,18 @@ const BookFlow = () => {
                     // console.log('departureDate', departureDate);
                     const departureTime = dateObj.toISOString().split('T')[1].slice(0, 5); 
                     const fare_type = formtaxivaxiData['fare_type'];
-                    const spoc_email = formtaxivaxiData['email'];
-                    const additional_emails = formtaxivaxiData['additional_emails'];
-                    const ccmail = formtaxivaxiData['cc_email'];
-                    const client_name = formtaxivaxiData['client_name'];
-                    const spoc_name = formtaxivaxiData['spoc_name'];
-                    const markup = formtaxivaxiData['markup_details'];
                     const booking_id = formtaxivaxiData['booking_id'];
-                    const is_approved  = formtaxivaxiData['is_approved'];    
                     const no_of_seats = formtaxivaxiData['no_of_seats'];
-                    const request_id = formtaxivaxiData['request_id'];
-                    const request_type = formtaxivaxiData['request_type'];
+                    // console.log('asdfasd');
                     const client_id = formtaxivaxiData['client_id'];
                     const is_gst_benefit = formtaxivaxiData['is_gst_benefit'];
-                    const flight_type = formtaxivaxiData['flight_type'];
+                    // console.log('log1');
                     const access_token = formtaxivaxiData['access_token'];
-                    const providercode = formtaxivaxiData['provider_code'].split(',')[0].trim();  // Get the first provider code and trim any extra spaces
-                    const flightNumber = formtaxivaxiData['flight_no'].split(',')[0].replace(new RegExp(`^${providercode}`, 'i'), '').trim();  // Remove the provider code from the flight number
+                    const providercode = formtaxivaxiData['provider_code'];
+                    const no_of_stops = formtaxivaxiData['no_of_stops'];    
+                    const carrier = formtaxivaxiData['Carrier']; // Get the first provider code and trim any extra spaces
+                    // console.log('carrier', carrier);
+                    const flightNumber = formtaxivaxiData['flight_no'].split(',')[0].replace(new RegExp(`^${carrier}`, 'i'), '').trim();  // Remove the provider code from the flight number
                     // console.log('helo', flightNumber);
                     const adult = no_of_seats;
                     const child = 0;
@@ -209,7 +209,7 @@ const BookFlow = () => {
                     const PassengerCodeADT = adult; 
                     const PassengerCodeCNN = child; 
                     const PassengerCodeINF = infant; 
-                    //   console.log('helo');
+                      // console.log('helo');
                     const createSoapEnvelope = (
                         cityCode,
                         destinationCode,
@@ -227,7 +227,7 @@ const BookFlow = () => {
                         const searchPassengerADT = generatePassengerElements('', passengerCodeADT,'ADT');
                         const searchPassengerCNN = generatePassengerElements('10', passengerCodeCNN,'CNN');
                         const searchPassengerINF = generatePassengerElements('01', passengerCodeINF,'INF');
-                        
+                        // console.log('heloq1');
                         const returnLegSection = returnDepTime
                         ? `<air:SearchAirLeg>
                             <air:SearchOrigin>
@@ -256,12 +256,12 @@ const BookFlow = () => {
                             ${returnLegSection}
                             <air:AirSearchModifiers ETicketability="Yes" FaresIndicator="AllFares">
                                 <air:PreferredProviders>
-                                    <com:Provider Code="1G"/>
-                                    <com:Provider Code="ACH"/>
+                                    <com:Provider Code="${providercode}"/>
                                 </air:PreferredProviders>
                                 <air:PermittedCabins>
                                     <com:CabinClass Type="${cabinType}"/>
                                 </air:PermittedCabins>
+                                <air:FlightType MaxStops="${no_of_stops}"/>
                             </air:AirSearchModifiers>
                             ${searchPassengerADT}
                             ${searchPassengerCNN}
@@ -280,11 +280,9 @@ const BookFlow = () => {
                         PassengerCodeCNN,
                         PassengerCodeINF,
                     );
-                    const username = 'Universal API/uAPI6514598558-21259b0c';
-                    const password = 'tN=54gT+%Y'; 
-                    const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
-                    // sessionStorage.setItem('searchdata', soapEnvelope);
-                      console.log('soapenv', soapEnvelope); 
+                   
+                      // console.log('soapenv', soapEnvelope); 
+                    if(FareList.length <= 0){
 
                     const response = await axios.post(
                         'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
@@ -298,14 +296,23 @@ const BookFlow = () => {
                             console.error("XML Parsing Error:", err);
                             return;
                         }
+                        
                         const Segmentlist = result?.["SOAP:Envelope"]?.["SOAP:Body"]?.["air:LowFareSearchRsp"]?.["air:AirSegmentList"]?.["air:AirSegment"];
+                        // console.log('seg',Segmentlist);
+                        if(carrier.includes("6E")){
                         const hosttokenlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:HostTokenList']['common_v52_0:HostToken'];
+                        // console.log('hosttokenlist',hosttokenlist);
+                        setHostlist(Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist]);
+                        }
                         const fareinfolist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FareInfoList']['air:FareInfo'];
+                        // console.log('fareinfolist',fareinfolist);
                         const pricepointlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirPricePointList']['air:AirPricePoint'];
+                        // console.log('pricepointlist',pricepointlist);
 
                         const pricepointlistArray = Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist];
                         const extractedBookingInfo = [];
                         // Iterate through the AirPricePoint list
+                        
                         pricepointlistArray.forEach((airPricePoint) => {
                             const airPricingInfo = airPricePoint['air:AirPricingInfo'];
                             if (!airPricingInfo) return; // Skip if no AirPricingInfo is found
@@ -342,21 +349,166 @@ const BookFlow = () => {
                             });
                         });
                         setFlightAirOptions(Array.isArray(extractedBookingInfo) ? extractedBookingInfo : [extractedBookingInfo]);
-
                         setSegment(Array.isArray(Segmentlist) ? Segmentlist : [Segmentlist]);
-                        setHostlist(Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist]);
                         setFarelist(Array.isArray(fareinfolist) ? fareinfolist : [fareinfolist]);
+                    });
+                  }
+                    // console.log('helkasdjfi');
+                    const generateRandomKey = () => {
+                      const randomBytes = CryptoJS.lib.WordArray.random(16);
+                      const base64Key = CryptoJS.enc.Base64.stringify(randomBytes);
+                      return base64Key;
+                    };
+                    const generatePassengerKeys = (adultCount) => {
+                        const keys = [];
+              
+                        for (let i = 0; i < adultCount; i++) {
+                          keys.push({
+                            Key: generateRandomKey(),
+                            Code: 'ADT'
+                          });
+                        }
+                        return keys;
+                      };
+                      const passengerKeys = generatePassengerKeys(PassengerCodeADT);
+                      const passengerKeysXml = passengerKeys.map(passenger => ({
+                        '$': {
+                          'Key': passenger.Key,
+                          'Code': passenger.Code,
+                          'Age': passenger.Age
+                        }
+                      }));
+
+                    if (carrier.includes("AI")) {
+                      if (!SegmentList || !flightNumber || !departureDateTime) {
+                        console.error("Missing required flight data.");
+                        return;
+                    }
+                
+                    console.log("Matched 1G");
+                    console.log("SegmentList:", SegmentList);
+                    const matchedSegment = SegmentList.find(segment => {
+                      const segmentData = segment['$'];
+                      return segmentData.FlightNumber === flightNumber &&
+                             segmentData.DepartureTime === departureDateTime;
+                  }) || null;
+              
+                  if (matchedSegment) {
+                      delete matchedSegment["air:FlightDetailsRef"];
+                      matchedSegment["$"].ProviderCode = "1G";
+                  }
+                      console.log('matched',matchedSegment);
+
+                      const builder = require('xml2js').Builder;
+                      var pricepointXMLpc = new builder().buildObject({
+                        'soap:Envelope': {
+                          '$': {
+                            'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
+                          },
+                          'soap:Body': {
+                            'air:AirPriceReq': {
+                              '$': {
+                                'AuthorizedBy': 'TAXIVAXI',
+                                'TargetBranch': 'P7206253',
+                                'FareRuleType': 'short',
+                                'TraceId': 'TVSBP001',
+                                'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
+                                'xmlns:com': 'http://www.travelport.com/schema/common_v52_0'
+                              },
+                              'BillingPointOfSaleInfo': {
+                                '$': {
+                                  'OriginApplication': 'UAPI',
+                                  'xmlns': 'http://www.travelport.com/schema/common_v52_0'
+                                },
+                              },
+                              'air:AirItinerary': {
+                                'air:AirSegment': matchedSegment
+                              },
+                              'air:AirPricingModifiers': {
+                                '$': {
+                                  'InventoryRequestType': 'DirectAccess',
+                                  'ETicketability': 'Yes',
+                                  'FaresIndicator': "AllFares"
+                                },
+                                'air:PermittedCabins': {
+                                  'com:CabinClass': {
+                                    '$': {
+                                      'Type': dynamicCabinType,
+                                    },
+                                  },
+                                },
+                                'air:BrandModifiers': {
+                                  'air:FareFamilyDisplay': {
+                                    '$': {
+                                      'ModifierType': 'FareFamily',
+                                    },
+                                  },
+                                },
+                              },
+                              'com:SearchPassenger': passengerKeysXml,
+                              'air:AirPricingCommand': ''
+                            }
+                          }
+                        }
+                      });
+                      // console.log('prc_1g',pricepointXMLpc); 
+                      
+                        var pricepointXML = pricepointXMLpc;
+                        // console.log("in api2")
+                        // console.log('main_prc', pricepointXML);
+                        
+                        const response = await axios.post(
+                          'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest',
+                          pricepointXMLpc,
+                          { headers: { 'Content-Type': 'text/xml' } }
+                      );
+              
+                      const priceResponse = response.data;
+                      console.log('priceResponse', priceResponse);
+              
+                      parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
+                          if (err) {
+                              console.error('Error parsing XML:', err);
+                              return;
+                          }
+              
+                          const AirPriceRsp = priceresult?.['SOAP:Envelope']?.['SOAP:Body']?.['air:AirPriceRsp'];
+                          if (!AirPriceRsp) {
+                              Swal.fire({
+                                  title: 'Something Went Wrong!',
+                                  text: 'Please try again later',
+                                  confirmButtonText: 'OK'
+                              });
+                              return;
+                          }
+              
+                          const priceData = AirPriceRsp?.['air:AirPriceResult']?.['air:AirPricingSolution'];
+                          const segmentData = AirPriceRsp?.['air:AirItinerary']?.['air:AirSegment'];
+              
+                          setpriceparse(Array.isArray(priceData) ? priceData : [priceData]);
+                          setsegmentpriceparse(Array.isArray(segmentData) ? segmentData : [segmentData]);
+              
+                          console.log('Updated price data:', priceData);
+                          console.log('Updated segment data:', segmentData);
+                      });
+              
+                      // Ensure priceParse has data before searching for fare type
+                      if (!priceParse.length) {
+                          console.error("priceParse is empty. Cannot find selectedPriceIndex.");
+                          return;
+                      }
+              
+                      const selectedPriceIndex = priceParse.findIndex(price => {
+                          const name = price?.["air:AirPricingInfo"]?.["air:FareInfo"]?.["air:Brand"]?.["$"]?.["Name"];
+                          console.log("Found Name:", name);
+                          return name === fare_type;
+                      });
+              
+                      console.log('selectedPriceIndex:', selectedPriceIndex);
 
                         
-
-
-                    });
-                    // console.log('helkasdjfi');
-
-                    if (providercode.includes("AI")) {
-                        console.log("Matched 6E");
                     }
-                    else if (providercode.includes("6E")) {
+                    else if (carrier.includes("6E")) {
                         // Iterate over the segment list and check for the match
                         const matchedSegment = SegmentList.find(segment => {
                             const segmentData = segment['$'];
@@ -427,35 +579,9 @@ const BookFlow = () => {
                             
                                 return updatedSegment;
                                 });
-                                const generateRandomKey = () => {
-                                          const randomBytes = CryptoJS.lib.WordArray.random(16);
-                                          const base64Key = CryptoJS.enc.Base64.stringify(randomBytes);
-                                          return base64Key;
-                                        };
-                                const generatePassengerKeys = (adultCount) => {
-                                    const keys = [];
+                                
                           
-                                    for (let i = 0; i < adultCount; i++) {
-                                      keys.push({
-                                        Key: generateRandomKey(),
-                                        Code: 'ADT'
-                                      });
-                                    }
-                          
-                                    
-                          
-                                    return keys;
-                                  };
-                          
-                                  const passengerKeys = generatePassengerKeys(PassengerCodeADT);
-                                  const passengerKeysXml = passengerKeys.map(passenger => ({
-                                    '$': {
-                                      'Key': passenger.Key,
-                                      'Code': passenger.Code,
-                                      'Age': passenger.Age
-                          
-                                    }
-                                  }));
+                                  
                                     // console.log('passengerKeys', passengerKeys)
                                 const builder = require('xml2js').Builder;
                                 var pricepointXMLpc = new builder().buildObject({
@@ -675,21 +801,10 @@ const BookFlow = () => {
                                             searchdeparture: finaldeparturedate,
                                             searchreturn: finalreturndate,
                                             searcharrivaldate: finalarrivaldate,
-                                            // origin: formData.flightOrigin,
-                                            // destination: formData.flightDestination,
                                             finalorigin: searchfrom,
                                             finaldestination: searchto,
-                                            // bookingtype: formData.bookingType,
                                             Airports: Airports,
                                             Airlines: Airlines,
-                                            // finalairlines: airlines,
-                                            // finalairports: airports,
-                                            // searchfinaldeparture: formData.departureDate,
-                                            // searchfinalreturn: formData.returnDate,
-                                            // adult: formData.adult,
-                                            // child: formData.child,
-                                            // infant: formData.infant,
-                                            // FinalResponse: SearchFinalResponse,
                                             formtaxivaxi: formtaxivaxiData,
                                             booking_id: booking_id,
                                             client_id: client_id,
@@ -744,6 +859,22 @@ const BookFlow = () => {
                 }
                 
         };
+        // const makeFlightAirServiceRequest = async () => {
+        //   if (!isFlightServiceCalled.current) {
+        //     try {
+        //       const response = await fetchFlightServiceData(); // Your API call function
+        //       setFareList(response.fareDetails);
+        //       setSegmentList(response.segments);
+        //       isFlightServiceCalled.current = true; // Prevents future calls
+        //     } catch (error) {
+        //       console.error("Error fetching flight data:", error);
+        //     }
+        //   }
+        // };
+        
+        // useEffect(() => {
+        //   makeFlightAirServiceRequest();
+        // }, []);
         const executeRequestsSequentially = async () => {
             try {
                 setLoading(true); 
