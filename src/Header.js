@@ -48,7 +48,7 @@ const Header = () => {
       sessionStorage.clear(); // Clear session storage
       setCheckInDate(new Date()); // Reset check-in date
       setCheckOutDate(new Date()); // Reset check-out date
-    }, SESSION_TIMEOUT);
+    }, 1000);
 
     return () => clearTimeout(timeout); // Cleanup on unmount
   }, []);
@@ -141,11 +141,13 @@ useEffect(() => {
       const fetchCities = async () => {
         try {
           const response = await fetch(
-            "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtCityLists",
+            "https://demo.taxivaxi.com/api/hotels/sbtCityList",
             {
               method: "POST",
               headers: {
-                "Content-Type": "application/json",
+                'Origin': 'http://localhost:3000', // Change to your React app's origin
+                'Access-Control-Request-Method': 'POST', // The method you're going to use
+                // "Content-Type": "application/json",
               },
               body: JSON.stringify({ CountryCode: "IN" }),
             }
@@ -212,11 +214,13 @@ useEffect(() => {
 
       try {
         const response = await fetch(
-          "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelCodesList",
+          "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesList",
           {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
+              'Origin': 'http://localhost:3000', // Change to your React app's origin
+              'Access-Control-Request-Method': 'POST', // The method you're going to use
+              // "Content-Type": "application/json",
               //  Authorization: `Basic ${btoa("TBOStaticAPITest:Tbo@11530818")}`,
             },
             body: JSON.stringify({
@@ -231,10 +235,10 @@ useEffect(() => {
         }
 
         const data = await response.json();
-        // // // console.log("Hotel :", data);
+        // console.log("Hotel :", data);
 
-        if (data.success === "1" && data.response.Status.Code === 200) {
-          const hotels = data.response.Hotels || []; // Fix: Access Hotels from data.response
+        if (data.Status.Code === 200) {
+          const hotels = data.Hotels || []; // Fix: Access Hotels from data.response
 
           if (hotels.length > 0) {
             const codes = hotels.map((hotel) => hotel.HotelCode);
@@ -246,7 +250,7 @@ useEffect(() => {
         } else {
           console.error(
             "Error fetching hotels:",
-            data.response.Status.Description
+            data.Status.Description
           );
         }
       } catch (error) {
@@ -312,11 +316,13 @@ useEffect(() => {
     try {
       setLoader(true);
       const response = await fetch(
-        "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
+        "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            'Origin': 'http://localhost:3000', // Change to your React app's origin
+            'Access-Control-Request-Method': 'POST', // The method you're going to use
+            // "Content-Type": "application/json",
             // Authorization: `Basic ${btoa("Bai:Bai@12345")}`,
           },
           body: JSON.stringify(requestBody),

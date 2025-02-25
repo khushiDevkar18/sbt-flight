@@ -13,7 +13,7 @@ const HotelBooking = () => {
   console.log(searchParams); // This prevents errors if Rooms is undefined or empty
 
   const [hotelBooking, setHotelBooking] = useState([]);
-  console.log(hotelBooking);
+  // console.log(hotelBooking);
   useLayoutEffect(() => {
     if (!hotel || !hotel.Rooms || hotel.Rooms.length === 0) {
       console.error("Hotel or Rooms data is missing!");
@@ -24,21 +24,21 @@ const HotelBooking = () => {
       try {
         const BookingCode_1 = hotel.Rooms[0];
         const BookingCode = BookingCode_1?.BookingCode; // Ensure BookingCode exists
-        console.log(BookingCode);
+        // console.log(BookingCode);
         if (!BookingCode) {
           console.error("BookingCode is missing!");
           return;
         }
 
-        console.log(BookingCode);
+        // console.log(BookingCode);
 
         const response = await fetch(
-          "https://cors-anywhere.herokuapp.com/https://affiliate.tektravels.com/HotelAPI/PreBook",
+          "https://demo.taxivaxi.com/api/hotels/sbtHotelPreBook",
           {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
-              Authorization: `Basic ${btoa("Bai:Bai@12345")}`,
+              'Origin': 'http://localhost:3000', // Change to your React app's origin
+            'Access-Control-Request-Method': 'POST',
             },
             body: JSON.stringify({
               BookingCode: BookingCode,
@@ -52,7 +52,7 @@ const HotelBooking = () => {
         }
 
         const data = await response.json();
-        console.log("Hotel data:", data);
+        // console.log("Hotel data:", data);
 
         if (data.Status?.Code === 200) {
           setHotelBooking(data.HotelResult || []);
@@ -104,7 +104,17 @@ const HotelBooking = () => {
   const [showModal3, setShowModal3] = useState(false);
   const [showModal2, setShowModal2] = useState(false);
   console.log("Final Combined Hotels:", combinedHotels);
-
+  const decodeHtmlEntities = (text) => {
+    const textarea = document.createElement("textarea");
+    textarea.innerHTML = text;
+    return textarea.value;
+  };
+  
+  const stripHtmlTags = (html) => {
+    const decodedHtml = decodeHtmlEntities(html);
+    return decodedHtml.replace(/<\/?[^>]+(>|$)/g, "");
+  };
+  
   const formatCancelPolicies = (CancelPolicies) => {
     if (!Array.isArray(CancelPolicies) || CancelPolicies.length === 0) {
       return ["No cancellation policies available."];
@@ -131,12 +141,7 @@ const HotelBooking = () => {
       return `Policy starts from ${formattedDate}`;
     });
   };
-  const decodeHtmlEntities = (str) => {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = str;
-    return txt.value;
-  };
-
+  
   const cleanRateConditions = (conditions) => {
     return conditions.map(
       (condition) =>
@@ -188,6 +193,7 @@ const HotelBooking = () => {
       </>
     );
   };
+
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [guestDetails, setGuestDetails] = useState({
@@ -206,40 +212,145 @@ const HotelBooking = () => {
     setGuests((prevGuests) => {
       const updatedGuests = [...prevGuests];
       const currentGuest = updatedGuests[index];
-  
+
       // Toggle isBelow12 value
       const newIsBelow12 = !currentGuest.isBelow12;
-  
+
       // Update guest object
       updatedGuests[index] = {
         ...currentGuest,
         isBelow12: newIsBelow12,
       };
-  
+
       // Recalculate adults and children count
-      const newAdultsCount = updatedGuests.filter((g) => !g.isBelow12).length;
+      const newAdultsCount = updatedGuests.filter((g) => g.isAdults).length;
       const newChildrenCount = updatedGuests.filter((g) => g.isBelow12).length;
-  
-      console.log("Adults:", newAdultsCount, "Children:", newChildrenCount);
-  
+
+      // console.log("Adults:", newAdultsCount, "Children:", newChildrenCount);
+
       // Restrict max adults
       if (!newIsBelow12 && newAdultsCount > MAX_ADULTS) {
         alert(`You can only add up to ${MAX_ADULTS} adults.`);
         return prevGuests;
       }
-  
+
       // Restrict max children
       if (newIsBelow12 && newChildrenCount > MAX_CHILDREN) {
         alert(`You can only add up to ${MAX_CHILDREN} children.`);
         return prevGuests;
       }
-  
+
       return updatedGuests;
     });
   };
+  const [person, setPerson] = useState({
+    title: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    contact_no: "",
+  });
   
+  const [errors, setErrors] = useState({});
   
+  // Validation function
+  const validateForm = () => {
+    const newErrors = {};
+    // if (!person.title) newErrors.title = "required.";
+    if (!person.firstName) newErrors.firstName = "First name is required.";
+    if (!person.lastName) newErrors.lastName = "Last name is required.";
+    if (!person.email) {
+      newErrors.email = "Email is required.";
+    } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(person.email)) {
+      newErrors.email = "Invalid email format.";
+    }
+    if (!person.contact_no) {
+      newErrors.contact_no = "Contact number is required.";
+    } else if (!/^\d{10}$/.test(person.contact_no)) {
+      newErrors.contact_no = "Contact number must be 10 digits.";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
+  // Handle input change
+  const handleChange2 = (e) => {
+    const { name, value } = e.target;
+  
+    // Check for contact number field and allow only digits
+    if (name === "contact_no") {
+      // Allow only numbers
+      const onlyDigits = value.replace(/\D/g, "");
+      setPerson((prev) => ({
+        ...prev,
+        [name]: onlyDigits,
+      }));
+  
+      // Clear error if valid contact number
+      setErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
+  
+        if (onlyDigits.length === 10) {
+          delete newErrors.contact_no;
+        }
+  
+        return newErrors;
+      });
+    } else {
+      setPerson((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+  
+      // Clear errors for other fields
+      setErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
+  
+        if (name === "title" && value) {
+          delete newErrors.title;
+        }
+  
+        if (name === "firstName" && value) {
+          delete newErrors.firstName;
+        }
+  
+        if (name === "lastName" && value) {
+          delete newErrors.lastName;
+        }
+  
+        if (name === "email") {
+          if (value && /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value)) {
+            delete newErrors.email;
+          }
+        }
+  
+        return newErrors;
+      });
+    }
+  };
+  
+ 
+  // const handleSubmit2 = (e) => {
+  //   console.log('hello');
+  //   e.preventDefault();
+  //   if (validateForm()) {
+  //     setPersonDetails(person);
+  //     // alert("Form submitted successfully!");
+  //     // console.log("Person Data:", person);
 
+  //     // You can call an API or perform further actions here
+  //   }
+  // };
+  const handleNavigate =() =>{
+    if (validateForm()) {
+      // setPersonDetails(person);
+        console.log("Person Data:", person);
+    navigate('/HotelPayment', {
+      state: { combinedHotels, person }
+      
+    });
+  }
+  }
   const handleAddNewGuest = () => {
     setShowForm(true);
     setIsEditing(false);
@@ -266,6 +377,11 @@ const HotelBooking = () => {
     ) {
       setError("Please enter guest's first and last name");
       return;
+    }
+    if (guestDetails.isBelow12) {
+      // console.log("This guest is a child.");
+    } else {
+      // console.log("This guest is an adult.");
     }
 
     setGuests((prevGuests) => [...prevGuests, guestDetails]); // Add updated guest back
@@ -314,7 +430,7 @@ const HotelBooking = () => {
           {combinedHotels.map((hotelItem, index) => (
             <div key={index} className="mb-5 flex h-full floating-bookings">
               <div className="w-full space-y-5">
-                <div className="max-w-[53rem] shadow-[4px_6px_10px_-3px_#bfc9d4] w-full bg-white border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none">
+                <div className=" hotel_booking_cards max-w-[53rem] shadow-[4px_6px_10px_-3px_#bfc9d4] w-full bg-white border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none">
                   <div className="py-7 px-6 space-y-2">
                     <h5 className="text-[#3b3f5c] text-xl font-semibold dark:text-white-light">
                       {hotelItem.HotelName}
@@ -357,9 +473,9 @@ const HotelBooking = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="max-w-[25rem] w-full border border-white-light dark:border-[#1b2e4b] text-center box-color">
-                        <div className="py-2 px-6 flex justify-center">
-                          <h5 className="text-sm">
+                      <div className="max-w-[25rem] w-full border border-white-light dark:border-[#1b2e4b]  box-color">
+                        <div className="py-2 px-6 flex justify-center items-center text-center">
+                          <h5 className="text-sm py-6">
                             <span className="font-bold">{nights}</span>{" "}
                             {nights === 1 ? "Night" : "Nights"} |
                             <span className="font-bold">
@@ -444,7 +560,7 @@ const HotelBooking = () => {
                     </div>
                   </div>
                 </div>
-                <div className="max-w-[53rem] shadow-[4px_6px_10px_-3px_#bfc9d4] w-full bg-white border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none">
+                <div className="max-w-[53rem] hotel_booking_cards shadow-[4px_6px_10px_-3px_#bfc9d4] w-full bg-white border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none">
                   <div className="py-7 px-6 space-y-2">
                     <h5 className="text-[#3b3f5c] text-xl font-semibold dark:text-white-light">
                       Important Information
@@ -452,79 +568,93 @@ const HotelBooking = () => {
 
                     {/* Display First 4 RateConditions */}
                     <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-white-light">
-                      {hotelItem?.RateConditions?.slice(0, 4).map(
-                        (condition, index) => (
-                          <li
-                            key={index}
-                            dangerouslySetInnerHTML={{ __html: condition }}
-                          />
-                        )
-                      )}
-                      <button
-                        className="text-[#785ef7] text-sm font-semibold mt-2 cursor-pointer"
-                        onClick={() => setShowModal(true)}
-                      >
-                        View More
-                      </button>
-                    </ul>
+  {hotelItem?.RateConditions?.slice(0, 4).map((condition, index) => (
+    <li key={index}>{stripHtmlTags(condition)}</li>
+  ))}
+  <button
+    className="text-[#785ef7] text-sm font-semibold mt-2 cursor-pointer"
+    onClick={() => setShowModal(true)}
+  >
+    View More
+  </button>
+</ul>
+
 
                     {/* View More Button */}
                   </div>
                 </div>
-                <div className="max-w-[53rem] shadow-[4px_6px_10px_-3px_#bfc9d4] w-full bg-white border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none">
+                <div className="max-w-[53rem] hotel_booking_cards shadow-[4px_6px_10px_-3px_#bfc9d4] w-full bg-white border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none">
                   <div className="py-7 px-6 space-y-2">
                     <h5 className="text-[#3b3f5c] text-xl font-semibold dark:text-white-light">
                       Guest Details
                     </h5>
 
-                    <form>
-                      <div className="guestsInfo__row mb-4">
-                        <div className="makeFlex">
-                          <div className=" guestDtls__col width70 appendRight10">
-                            <p className="font11 capText appendBottom10">
-                              Title
-                            </p>
-                            <div className="frmSelectCont">
-                              <select id="title" className="frmSelect">
-                                <option value="Mr">Mr</option>
-                                <option value="Mrs">Mrs</option>
-                                <option value="Ms">Ms</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div className="makeFlex column flexOne">
-                            <div className="makeFlex">
-                              <div className="guestDtls__col width247 appendRight10">
-                                <div className="textFieldCol ">
-                                  <p className="font11 appendBottom10 guestDtlsTextLbl">
-                                    <span className="capText">FULL NAME</span>
-                                  </p>
-                                  <input
-                                    type="text"
-                                    id="fName"
-                                    name="fName"
-                                    className="frmTextInput "
-                                    placeholder="First Name"
-                                  />
-                                </div>
-                              </div>
-                              <div className="guestDtls__col width247">
-                                <div className="textFieldCol ">
-                                  <p className="font11 appendBottom10 guestDtlsTextLbl">
-                                    <span className="capText"></span>
-                                  </p>
-                                  <input
-                                    type="text"
-                                    id="lName"
-                                    name="lName"
-                                    className="frmTextInput "
-                                    placeholder="Last Name"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                    <form >
+                     <div className="guestsInfo__row mb-4">
+  <div className="makeFlex">
+    <div className=" guestDtls__col width70 appendRight10">
+      <p className="font11 capText appendBottom10">Title</p>
+      <div className="frmSelectCont">
+        <select
+          id="title"
+          name="title" // Use the correct name here
+          className="form-select"
+          value={person.title}
+          onChange={handleChange2}
+        >
+          
+          <option value="Mr">Mr</option>
+          <option value="Mrs">Mrs</option>
+          <option value="Ms">Ms</option>
+        </select>
+        {errors.title && <span className="error text-xs">{errors.title}</span>}
+      </div>
+    </div>
+    <div className="makeFlex column flexOne">
+      <div className="makeFlex">
+        <div className="guestDtls__col width247 appendRight10">
+          <div className="textFieldCol ">
+            <p className="font11 appendBottom10 guestDtlsTextLbl">
+              <span className="capText">FIRST NAME</span>
+            </p>
+            <input
+              type="text"
+              id="fName"
+              name="firstName" // Changed from fName to firstName
+              className="frmTextInput"
+              placeholder="First Name"
+              value={person.firstName} // Corrected value binding
+              onChange={handleChange2}
+            />
+            {errors.firstName && (
+              <span className="error text-xs">{errors.firstName}</span>
+            )}
+          </div>
+        </div>
+        <div className="guestDtls__col width247">
+          <div className="textFieldCol ">
+            <p className="font11 appendBottom10 guestDtlsTextLbl">
+              <span className="capText">LAST NAME</span>
+            </p>
+            <input
+              type="text"
+              id="lName"
+              name="lastName" // Changed from lName to lastName
+              className="frmTextInput"
+              placeholder="Last Name"
+              value={person.lastName} // Added value binding
+              onChange={handleChange2}
+            />
+            {errors.lastName && (
+              <span className="error text-xs">{errors.lastName}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
                       </div>
                       <div className="guestDtls__row mb-4">
                         <div className="makeFlex">
@@ -543,7 +673,12 @@ const HotelBooking = () => {
                                 name="email"
                                 className="frmTextInput "
                                 placeholder="Email ID"
+                                value={person.email}
+                                onChange={handleChange2}
                               />
+                              {errors.email && (
+                                <span className="error text-xs">{errors.email}</span>
+                              )}
                             </div>
                           </div>
                           <div className="guestDtls__col width327">
@@ -562,12 +697,19 @@ const HotelBooking = () => {
                               <div className="flexOne">
                                 <div className="textFieldCol ">
                                   <input
-                                    type="number"
+                                    type="text"
                                     id="mNo"
-                                    name="mNo"
+                                    name="contact_no"
                                     className="frmTextInput noLeftBorder"
                                     placeholder="Contact Number"
+                                    value={person.contact_no}
+                                    onChange={handleChange2}
                                   />
+                                  {errors.contact_no && (
+                                    <span className="error text-xs">
+                                      {errors.contact_no}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -683,15 +825,25 @@ const HotelBooking = () => {
                           </div>
                         </div>
                       )}
-
-                      <div className="guestDtls__add">
-                        <p
-                          className="text-[#785ef7] cursor-pointer guestDtls__addBtn font-semibold "
-                          onClick={() => setShowModal3(true)}
-                        >
-                          + Add Guest
-                        </p>
+                      <div className="flex w-full items-center">
+                        <div className="guestDtls__add">
+                          <p
+                            className="text-[#785ef7] cursor-pointer guestDtls__addBtn font-semibold"
+                            onClick={() => setShowModal3(true)}
+                          >
+                            + Add Guest
+                          </p>
+                        </div>
+                        {/* <div className="ml-auto">
+                          <button onClick={handleSubmit2}
+                            type="button"
+                            className="bg-[#785ef7] w-full h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]"
+                          >
+                            Submit
+                          </button>
+                        </div> */}
                       </div>
+
                       {showModal3 && (
                         <Modal
                           title={
@@ -770,17 +922,23 @@ const HotelBooking = () => {
                                 </div>
 
                                 <div className="mb-2">
-                                <label className="inline-flex gap-2">
-  <input
-    type="checkbox"
-    name="isBelow12"
-    className="form-checkbox w-3 h-auto"
-    checked={guests[index]?.isBelow12 || false} // Ensure correct value
-    onChange={() => handleCheckboxChange(index)} // Ensure correct handler
-  />
-  <span className="text-xs">Below 12 years of age</span>
-</label>
-
+                                  <label className="inline-flex gap-2">
+                                    <input
+                                      type="checkbox"
+                                      name="isBelow12"
+                                      className="form-checkbox w-3 h-auto"
+                                      checked={guestDetails.isBelow12}
+                                      onChange={(e) =>
+                                        setGuestDetails((prev) => ({
+                                          ...prev,
+                                          isBelow12: e.target.checked,
+                                        }))
+                                      }
+                                    />
+                                    <span className="text-xs">
+                                      Below 12 years of age
+                                    </span>
+                                  </label>
                                 </div>
 
                                 <div className="flex justify-between mb-2">
@@ -809,10 +967,6 @@ const HotelBooking = () => {
                                           type="checkbox"
                                           name="isBelow12"
                                           className="form-checkbox w-3 h-auto"
-                                          checked={guest.isBelow12} // ✅ This correctly reflects the state
-                                          onChange={() =>
-                                            handleCheckboxChange(index)
-                                          }
                                         />
                                         <span className="text-sm">
                                           {guest.firstName} {guest.lastName}
@@ -853,7 +1007,7 @@ const HotelBooking = () => {
                                           type="checkbox"
                                           name="isBelow12"
                                           className="form-checkbox w-3 h-auto"
-                                          checked={guest.isBelow12} // ✅ This correctly reflects the state
+                                          checked={guest.isAdults} // ✅ This correctly reflects the state
                                           onChange={() =>
                                             handleCheckboxChange(index)
                                           }
@@ -905,7 +1059,7 @@ const HotelBooking = () => {
                     title="All Hotel Rules"
                     onClose={() => setShowModal(false)}
                   >
-                    <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-white-light">
+                    <ul className="list-disc pl-5 text-xs text-gray-700 dark:text-white-light">
                       {cleanRateConditions(hotelItem?.RateConditions || []).map(
                         (condition, index) => (
                           <li key={index}>{condition}</li>
@@ -914,7 +1068,7 @@ const HotelBooking = () => {
                     </ul>
                   </Modal>
                 )}
-                <div className="max-w-[53rem] shadow-[4px_6px_10px_-3px_#bfc9d4] w-full bg-white border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none">
+                <div className="max-w-[53rem] hotel_booking_cards  shadow-[4px_6px_10px_-3px_#bfc9d4] w-full bg-white border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none">
                   <div className="py-7 px-6 space-y-2">
                     <label className="inline-flex gap-2">
                       <input
@@ -925,7 +1079,7 @@ const HotelBooking = () => {
                         // onChange={handleChange}
                       />
                       <span className="text-xs">
-                        By proceeding, I agree to MakeMyTrip’s User Agreement,
+                        By proceeding, I agree to Cotrav's User Agreement,
                         Terms of Service and Cancellation & Property Booking
                         Policies.
                       </span>
@@ -934,38 +1088,40 @@ const HotelBooking = () => {
                       <button
                         type="button"
                         className="bg-[#785ef7] button_width h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]"
-                        onClick={() =>
-                          navigate("/HotelPayment", {
-                            state: { combinedHotels },
-                          })
-                        }
+                      onClick={handleNavigate}
                       >
-                        Pay Now
+                        Pay To Proceed
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="w-1/3 sticky top-0">
-                <div className="max-w-[19rem] w-full bg-white border border-gray-300 dark:border-[#1b2e4b] dark:bg-[#191e3a] sticky top-5 shadow-[4px_6px_10px_-3px_#bfc9d4]">
-                  <div className="py-7 px-6">
-                    <h5 className="text-[#785ef7] text-lg font-semibold mb-4 dark:text-white-light">
+              <div className="w-1/3 ">
+              <div className="sticky top-0">
+                <div className="max-w-[19rem] hotel_booking_cards w-full bg-white border border-gray-300 dark:border-[#1b2e4b] dark:bg-[#191e3a] sticky top-5 shadow-[4px_6px_10px_-3px_#bfc9d4]">
+                  <div className="py-2 px-6">
+                    <h5 className="text-[#785ef7] text-lg font-semibold  dark:text-white-light">
                       Price Breakup
                     </h5>
                     {hotelItem?.Rooms?.[0]?.PriceBreakUp?.length > 0 ? (
                       <div className="dark:border-[#1b2e4b]">
                         {/* Room Rate */}
-                        <div className="flex justify-between items-center border-b border-gray-300 dark:border-[#1b2e4b] py-2 relative">
-                          <p className="text-sm text-gray-700 dark:text-white-light flex items-center gap-2">
-                            <strong>1 Room x {nights} Nights</strong>
+                        <div className="flex justify-between items-center border-b border-gray-300 dark:border-[#1b2e4b] py-1 relative">
+                          <div className="text-sm text-gray-700 dark:text-white-light flex items-center gap-2">
+                            <div>
+                              <strong>1 Room x {nights} Nights</strong>
+                              <br />
+                              <span className="text-xs">Base price </span>
+                            </div>
+
                             <img
                               src="../img/i_icon.svg"
-                              className="w-5 h-5 cursor-pointer"
+                              className="w-4 h-5 cursor-pointer mb-3"
                               onMouseEnter={() => setShowDetails(true)}
                               onMouseLeave={() => setShowDetails(false)}
                             />
-                          </p>
+                          </div>
                           <p className="text-sm text-gray-700 dark:text-white-light font-semibold">
                             ₹
                             {hotelItem?.Rooms?.[0]?.PriceBreakUp?.[0]?.RoomRate?.toFixed(
@@ -997,7 +1153,7 @@ const HotelBooking = () => {
                         </div>
 
                         {/* Agent Commission */}
-                        <div className="border-b border-gray-300 dark:border-[#1b2e4b] py-2 flex justify-between">
+                        {/* <div className="border-b border-gray-300 dark:border-[#1b2e4b] py-1 flex justify-between">
                           <p className="text-sm text-gray-700 dark:text-white-light">
                             <strong>Management Fees:</strong>
                           </p>
@@ -1007,17 +1163,17 @@ const HotelBooking = () => {
                               2
                             )}
                           </p>
-                        </div>
+                        </div> */}
 
                         {/* Tax Amount */}
-                        <div className="border-b border-gray-300 dark:border-[#1b2e4b] py-2 flex justify-between items-center relative">
+                        <div className="border-b border-gray-300 dark:border-[#1b2e4b]  flex justify-between py-1 items-center relative">
                           <div className="flex  gap-1">
                             <p className="text-sm text-gray-700 dark:text-white-light flex items-center gap-2">
-                              <strong>Tax Amount:</strong>
+                              <strong>Tax Amount</strong>
                             </p>
                             <img
                               src="../img/i_icon.svg"
-                              className="w-5 h-5 cursor-pointer"
+                              className="w-4 h-5 cursor-pointer"
                               onMouseEnter={() => setShowTaxDetails(true)}
                               onMouseLeave={() => setShowTaxDetails(false)}
                             />
@@ -1039,7 +1195,8 @@ const HotelBooking = () => {
                                     className="flex justify-between text-xs text-gray-700 dark:text-white-light"
                                   >
                                     <p>
-                                      {tax.TaxType} ({tax.TaxPercentage}%):
+                                      {tax.TaxType.replace("Tax_", "")} (
+                                      {tax.TaxPercentage}%)
                                     </p>
                                     <p className="font-semibold">
                                       ₹{tax.TaxableAmount.toFixed(2)}
@@ -1052,7 +1209,7 @@ const HotelBooking = () => {
                         </div>
 
                         {/* Total Amount */}
-                        <div className="py-2 flex justify-between">
+                        <div className="py-1 flex justify-between ">
                           <p className="text-sm text-gray-700 dark:text-white-light">
                             <strong>Total Amount:</strong>
                           </p>
@@ -1067,6 +1224,7 @@ const HotelBooking = () => {
                       </p>
                     )}
                   </div>
+                </div>
                 </div>
               </div>
             </div>

@@ -884,11 +884,13 @@ function Home() {
     const fetchCities = async () => {
       try {
         const response = await fetch(
-          "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtCityLists",
+          "https://demo.taxivaxi.com/api/hotels/sbtCityList",
           {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
+              // "Content-Type": "application/json",
+              'Origin': 'http://localhost:3000', // Change to your React app's origin
+              'Access-Control-Request-Method': 'POST', // The method you're going to use
             },
             body: JSON.stringify({ CountryCode: "IN" }),
           }
@@ -963,12 +965,12 @@ function Home() {
 
       try {
         const response = await fetch(
-          "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelCodesList",
+          "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesList",
           {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
-              Authorization: `Basic ${btoa("TBOStaticAPITest:Tbo@11530818")}`,
+              'Origin': '*', // Change to your React app's origin
+              'Access-Control-Request-Method': 'POST', // The method you're going to use
             },
             body: JSON.stringify({
               CityCode: cityCode,
@@ -984,8 +986,8 @@ function Home() {
         const data = await response.json();
         // console.log("Hotel :", data);
 
-        if (data.success === "1" && data.response.Status.Code === 200) {
-          const hotels = data.response.Hotels || []; // Fix: Access Hotels from data.response
+        if (data.Status.Code === 200) {
+          const hotels = data.Hotels || []; // Fix: Access Hotels from data.response
           setHotelCityList(hotels);
 
           if (hotels.length > 0) {
@@ -1061,7 +1063,7 @@ function Home() {
 
   const handleHotelSearch = async (e) => {
     e.preventDefault();
-
+    setLoader(true);
     const checkIn = formData.checkInDate
       ? formatDate1(formData.checkInDate)
       : "";
@@ -1073,7 +1075,7 @@ function Home() {
     const Children = roomchildCount;
     const ChildAge = childrenAges;
     const CityCode = hotelCodes.toString();
-    // console.log(CityCode);
+    console.log(CityCode);
 
     const requestBody = {
       CheckIn: checkIn,
@@ -1105,13 +1107,15 @@ function Home() {
     // console.log("Authorization Header:", `Basic ${btoa("Bai:Bai@12345")}`);
 
     try {
-      setLoader(true);
+     
       const response = await fetch(
-        "https://cors-anywhere.herokuapp.com/https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
+        "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            // "Content-Type": "application/json",
+            'Origin': 'http://localhost:3000', // Change to your React app's origin
+            'Access-Control-Request-Method': 'POST', // The method you're going to use
             // Authorization: `Basic ${btoa("Bai:Bai@12345")}`,
           },
           body: JSON.stringify(requestBody),
@@ -1124,24 +1128,24 @@ function Home() {
 
       const data = await response.json();
       console.log("Hotel data:", data);
-      if (data.success === "1" && data.response.Status.Code === 200) {
-        setHotelCityList(data.response.HotelResult || []);
+      if (data.Status.Code === 200) {
+        setHotelCityList(data.HotelResult || []);
         // console.log("asd");
       
         // Prepare the data to store in sessionStorage
         const searchData = {
-          hotelList: data.response.HotelResult,
+          hotelList: data.HotelResult,
          
         };
        const searchParams = {
-          checkIn,
-          checkOut,
-          Rooms,
-          Adults,
-          Children,
-          ChildAge,
-          CityCode,
-          filteredCities,
+        "checkIn":checkIn,
+          "checkOut":checkOut,
+          "Rooms":Rooms,
+          "Adults":Adults,
+          "Children":Children,
+          "ChildAge":ChildAge,
+          "CityCode":CityCode,
+          "filteredCities":filteredCities,
         };
         // Store the data in sessionStorage
         sessionStorage.setItem('hotelData', JSON.stringify(searchParams));
@@ -1159,7 +1163,7 @@ function Home() {
         Swal.fire({
           // icon: "error",
           title: "Error",
-          text: data.response.Status.Description || "Something went wrong!",
+          text: data.Status.Description || "Something went wrong!",
         });
         setLoader(false);
       }

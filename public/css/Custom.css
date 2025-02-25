@@ -115,6 +115,9 @@
     z-index: 10;
 
   }
+  .error{
+    color: red;
+  }
   .heading-line{
     font-size: 26px;
     font-weight: bold;
@@ -129,6 +132,9 @@
 .button_width{
   
     width: 20%;
+}
+.hotel_booking_cards{
+  border-radius: 4px;
 }
 
 .hotel-photos {
@@ -198,7 +204,20 @@
 .hotel-photos:hover {
   filter: blur(1); /* Remove blur on hover */
 }
+.hotel_photos_container{
+  height: 90%;
+  overflow-y: scroll;
 
+}
+.hotel_images_container{
+  height: 50%;
+  width: 100%;
+}
+.hotel_photos_all{
+  height: 90%;
+  width: 100%;
+  border-radius: 8px;
+}
 /* Overlay for the "View All" button */
 .overlay {
   position: absolute;
@@ -296,17 +315,31 @@
   border-radius: 8px;
 
 }
+.light_color_cotrav{
+  background-color: #f0eeff;
+}
 .hotelPhotos_Payment{
   position: relative;
-   max-height: 135px;
-   border-radius: 8px 8px 0px 0px;
+   max-height: 175px;
+   border-radius: 8px 8px 8px 8px;
    border: none;
    width: 100%;
   /* width: 50%;
   height: 20%; */
 }
 .payment_width_box {
-  width: 41.333333%;
+  width: 34.333333%
+}
+.payment_width_boxs {
+  width: 63.333333%
+  
+
+}
+.font18{
+  font-size: 18px;
+}
+.font12{
+  font-size: 12px;
 }
 ul {
   padding-left: 1rem !important;
@@ -342,7 +375,7 @@ border-color: #785ef7;
 /******* Hotel Booking *********/
 .search-bar3{
   background-color: #f2f2f2;
-
+  overflow-y: auto;
   /* padding: 15px; */
   margin: 0 auto;
   max-width: 1325px;
