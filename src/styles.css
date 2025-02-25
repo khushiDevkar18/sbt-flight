@@ -19249,7 +19249,7 @@ button#search-button:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.8); /* Optional, for a subtle background */
+  background-color: rgba(255, 255, 255, 0.9); /* Optional, for a subtle background */
   z-index: 9999; /* Ensure it stays on top */
 }
 .page-center-loaderr {
