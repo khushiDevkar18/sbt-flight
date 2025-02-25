@@ -608,9 +608,7 @@ const Booking = () => {
         //     console.error("Error fetching price data:", error);
         // }
     };
-    // if (pricepointXMLpc) {
-        // fetchPriceData();
-    // }
+  
 
     const handleCompleteBooking = async (event) => {
         setSeatloading(false);
@@ -2132,7 +2130,7 @@ const Booking = () => {
     const [seatsegmentselected, setseatsegmentselected] = useState(null);
     const [seatoptionalkeyselected, setseatoptionalkeyselected] = useState(null);
     const [previousSelections, setPreviousSelections] = useState([]);
-    // console.log('previousSelections',previousSelections);
+    console.log('previousSelections',previousSelections);
 
     const handleseatSelectiondisplay = (seatpassenger, seatsegment, seatcode, optionalservicekey) => {
         // console.log('seat detail ', seatpassenger, seatsegment, seatcode, optionalservicekey);
