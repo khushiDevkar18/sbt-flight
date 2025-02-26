@@ -614,7 +614,11 @@ const SearchFlight = () => {
               client_id: clientid,
               is_gst_benefit: is_gst_benefit,
               accesstoken: access_token,
-              pricepointXMLpc: pricepointXMLpc
+              // pricepointXMLpc: pricepointXMLpc,
+              airPricingCommand: airPricingCommand,
+              Passengerxml: Passengerxml,
+              segmentArray: segmentArray,
+              comHostTokens: comHostTokens
 
             };
             setLoading(false);

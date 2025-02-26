@@ -38,11 +38,19 @@ const Booking = () => {
     const clientid = location.state && location.state.serviceData?.client_id;
     const is_gst_benefit = location.state && location.state.serviceData?.is_gst_benefit;
     const fareInfoRefKey = location.state && location.state.serviceData?.fareInfoRefKey;
-    const pricepointXMLpc = location.state && location.state.serviceData?.pricepointXMLpc;
-    // console.log('fareInfoRefKey', fareInfoRefKey);
+    // const pricepointXMLpc = location.state && location.state.serviceData?.pricepointXMLpc;
+    // console.log('pricepointXMLpc', pricepointXMLpc);
+    
     const segmentParsee = location.state && location.state.serviceData.SegmentPricelist;
     const packageSelectedd = location.state && location.state.serviceData.packageselected;
-    const [segmentParse, setSegmentParse] = useState(segmentParsee); 
+    const [segmentParse, setSegmentParse] = useState(() => segmentParsee); // Initialize only once
+    const hasUpdated = useRef(false);
+    useEffect(() => {
+        if (!hasUpdated.current && segmentParsee) {
+            setSegmentParse(segmentParsee);
+        }
+    }, [segmentParsee]);
+    console.log('segmentParse', segmentParse);
     
     const [packageSelected, setPackageSelected] = useState(packageSelectedd);
     // console.log('asdfasdfkjasdfasd', packageSelected);
@@ -78,6 +86,10 @@ const Booking = () => {
     const [passengereventKeys, setPassengerkey] = useState(Passengerarray[0]['Key']);
     const classType = location.state && location.state.serviceData.classtype;
     const access_token = location.state && location.state.serviceData.accesstoken;
+    const comHostTokens1 = location.state && location.state.serviceData.comHostTokens;
+    const segmentArray1 = location.state && location.state.serviceData.segmentArray;
+    const Passengerxml = location.state && location.state.serviceData.Passengerxml;
+    const airPricingCommand = location.state && location.state.serviceData.airPricingCommand;
     
 
     const [accordion1Expanded, setAccordion1Expanded] = useState(true);
@@ -89,6 +101,7 @@ const Booking = () => {
     const [passengerDetailsVisible, setPassengerDetailsVisible] = useState(true);
     const [seattravelerparse, setseattravelerparse] = useState(null);
     const [seatOptionalparse, setseatOptionalparse] = useState(null);
+    // console.log('seatOptionalparse', seatOptionalparse);
     const [checkedInBaggage, setCheckedIn] = useState(null);
     const [cabinBaggage, setCabin] = useState(null);
     const [Passengers, setPassengers] = useState(null);
@@ -580,30 +593,113 @@ const Booking = () => {
 
     const fetchPriceData = async () => {
         // try {
+            // setSegmentParse();
+            console.log('segmentParse', segmentParse);
             console.log('fetchprice');
-            // const response = await axios.post(
-            //     "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest",
-            //     pricepointXMLpc
-            // );
-            // // console.log('response for data', response.data)
+            const optionalServicesXML = {
+                "air:OptionalServices": {
+                    "air:OptionalService": seatOptionalparse
+                        .filter(service => previousSelections.some(selection => selection.optionalkey === service["$"].Key))
+                        .map(service => {
+                            const matchedSelection = previousSelections.find(selection => selection.optionalkey === service["$"].Key);
+                            delete service["air:BrandingInfo"]; // Remove air:BrandingInfo
+            
+                            return {
+                                "$": service["$"], // Retain existing attributes
+                                "com:ServiceData": {
+                                    "$": {
+                                        "BookingTravelerRef": service["common_v52_0:ServiceData"]["$"].BookingTravelerRef,
+                                        "AirSegmentRef": service["common_v52_0:ServiceData"]["$"].AirSegmentRef,
+                                        "Data": matchedSelection.code // Add Data="1-F"
+                                    }
+                                },
+                                "com:ServiceInfo": {
+                                    "com:Description": service["common_v52_0:ServiceInfo"]["common_v52_0:Description"] // Change common_v52_0 to com
+                                }
+                            };
+                        })
+                }
+            };
+            const builder = require('xml2js').Builder;
+            var pricepointXMLpc = new builder().buildObject({
+            'soap:Envelope': {
+                '$': {
+                'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
+                },
+                'soap:Body': {
+                'air:AirPriceReq': {
+                    '$': {
+                    'AuthorizedBy': 'TAXIVAXI',
+                    'TargetBranch': 'P7206253',
+                    'FareRuleType': 'short',
+                    'TraceId': 'TVSBP001',
+                    'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
+                    'xmlns:com': 'http://www.travelport.com/schema/common_v52_0'
+                    },
+                    'BillingPointOfSaleInfo': {
+                    '$': {
+                        'OriginApplication': 'UAPI',
+                        'xmlns': 'http://www.travelport.com/schema/common_v52_0'
+                    },
+                    },
+                    'air:AirItinerary': {
+                    'air:AirSegment': segmentArray1,
+                    'com:HostToken': comHostTokens1,
+                    },
+                    'air:AirPricingModifiers': {
+                    '$': {
+                        'InventoryRequestType': 'DirectAccess',
+                        'ETicketability': 'Yes',
+                        'FaresIndicator': "AllFares"
+                    },
+                    'air:PermittedCabins': {
+                        'com:CabinClass': {
+                        '$': {
+                            'Type': classType,
+                        },
+                        },
+                    },
+                    'air:BrandModifiers': {
+                        'air:FareFamilyDisplay': {
+                        '$': {
+                            'ModifierType': 'FareFamily',
+                        },
+                        },
+                    },
+                    },
+                    'com:SearchPassenger': Passengerxml,
+                    'air:AirPricingCommand': airPricingCommand,
+                    ...optionalServicesXML
+                }
+                }
+            }
+            });
+            console.log('pricepointXMLpc', pricepointXMLpc);
+            const response = await axios.post(
+                "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest",
+                pricepointXMLpc
+            );
+            console.log('response for data', response.data)
     
-            // parseString(response.data, { explicitArray: false }, (err, priceresult) => {
-            //     if (err) {
-            //         console.error("Error parsing XML:", err);
-            //         return;
-            //     }
+            parseString(response.data, { explicitArray: false }, (err, priceresult) => {
+                if (err) {
+                    console.error("Error parsing XML:", err);
+                    return;
+                }
     
-            //     const AirPriceRsp = priceresult["SOAP:Envelope"]["SOAP:Body"]["air:AirPriceRsp"];
+                const AirPriceRsp = priceresult["SOAP:Envelope"]["SOAP:Body"]["air:AirPriceRsp"];
     
-            //     if (AirPriceRsp) {
-            //         const packageSelected1 = AirPriceRsp["air:AirPriceResult"]["air:AirPricingSolution"];
-            //         const segmentParse1 = AirPriceRsp["air:AirItinerary"]["air:AirSegment"];
+                if (AirPriceRsp) {
+                    const packageSelected1 = AirPriceRsp["air:AirPriceResult"]["air:AirPricingSolution"];
+                    const segmentParse1 = AirPriceRsp["air:AirItinerary"]["air:AirSegment"];
+
+            hasUpdated.current = true;
     
-                    setPackageSelected('testpackage');
-                    setSegmentParse('testsegment');
-        //             return true;
-        //         }
-        //     });
+                    setPackageSelected(packageSelected1);
+                    setSegmentParse(segmentParse1);
+                    return true;
+                }
+            });
         // } catch (error) {
         //     console.error("Error fetching price data:", error);
         // }
@@ -727,9 +823,9 @@ const Booking = () => {
             console.log("in func");
             setLoading(true)
 
-            // if (pricepointXMLpc) {
-                // await fetchPriceData();
-            // }
+            if (airPricingCommand) {
+                await fetchPriceData(); 
+            }
             // fetchPriceData();
             console.log('packageSelected', packageSelected);
             console.log('segmentParse', segmentParse);
