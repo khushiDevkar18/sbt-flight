@@ -579,7 +579,7 @@ const BookingContinue = () => {
 <div className="complete-devider" />
                                                         <div className='complete-txt'>
                                                         
-                                                            {respricings && 
+                                                            {/* {respricings && 
                                                             respricings.map((respriceinginfo,respriceingindex)=>(
                                                                 <div key={respriceingindex} className='serviceinfo'>
                                                                     
@@ -744,7 +744,7 @@ const BookingContinue = () => {
                                                                     </div>
                                                                     </div>
                                                                 </div>
-                                                            ))}
+                                                            ))} */}
                                                         </div>
                                                         <div className="complete-devider" />
                                                     </div>

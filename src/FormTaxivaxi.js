@@ -173,6 +173,7 @@ const navigate = useNavigate();
                   const is_gst_benefit = formtaxivaxiData['is_gst_benefit'];
                   const flight_type = formtaxivaxiData['flight_type'];
                   const access_token = formtaxivaxiData['access_token'];
+                  const agent_id = formtaxivaxiData['agentId'];
                   
                   const adult = no_of_seats;
                   const child = 0;
@@ -311,7 +312,8 @@ const navigate = useNavigate();
                       clientid: client_id,
                       is_gst_benefit: is_gst_benefit,
                       flighttype: flight_type,
-                      accessToken:access_token
+                      accessToken:access_token,
+                      agent_id: agent_id
                   };
                   // console.log('resp', responseData);
  

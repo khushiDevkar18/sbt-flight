@@ -2288,98 +2288,7 @@ const SearchFlight = () => {
     return null;
   };
 
-  // const handleCheckboxChange = (airPricingInfo, isReturn = 0) => {
-  //   setIsDropdownVisible(false);
-  //   airPricingInfo.isReturn = isReturn;
-  //   const flightOptionsList = airPricingInfo["air:FlightOptionsList"];
-  //   const flightOption = flightOptionsList?.["air:FlightOption"];
-  //   const flightOptionArray = Array.isArray(flightOption) ? flightOption : [flightOption];
 
-  //   const flightDetailss = flightOptionArray.flatMap((option) => {
-  //     const options = option?.["air:Option"];
-  //     const optionsArray = Array.isArray(options) ? options : [options];
-
-  //     const selectedOptions = optionsArray.slice(0, 1);
-
-  //     return selectedOptions.map((singleOption) => {
-  //       const bookingInfo = singleOption?.["air:BookingInfo"];
-  //       const segmentRefArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
-
-  //       return segmentRefArray.map((info) => {
-  //         const segmentRef = info?.["$"]?.["SegmentRef"];
-
-  //         const matchingSegment = SegmentList.find(
-  //           (segment) => segment["$"]["Key"] === segmentRef
-  //         );
-
-  //         if (!matchingSegment) {
-  //           console.warn("No matching segment found for SegmentRef:", segmentRef);
-  //           return null;
-  //         }
-
-  //         const carrier =  matchingSegment["$"]["Carrier"];
-  //         const flightNumber = matchingSegment["$"]["FlightNumber"];
-  //         const totalPrice = airPricingInfo["$"]["TotalPrice"].replace("INR", "");
-  //         const departureTime = matchingSegment["$"]["DepartureTime"] || "Unknown";
-  //         const arrivalTime = matchingSegment["$"]["ArrivalTime"] || "Unknown";
-
-  //         return {
-  //           carrier: carrier || "Unknown",
-  //           flightNumber: flightNumber || "Unknown",
-  //           total_price: totalPrice || "Unknown",
-  //           departure_time: departureTime,
-  //           arrival_time: arrivalTime,
-  //         };
-  //       });
-  //     });
-  //   });
-
-  //   const selectedFlightDetails = flightDetailss.flat().filter(Boolean);
-  //   const fareDetails = selectedPriceParseIndices.length === 0
-  // ? [
-  //     {
-  //       fare_type: "Base Fare",
-  //       price: airPricingInfo["$"]["TotalPrice"].replace("INR", ""),
-  //     },
-  //   ]
-  // : selectedPriceParseIndices.map((index) => {
-  //     const fareName = priceParse[index]['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] || "Default Fare Name";
-  //     const farePricee = (priceParse[index]['$']['TotalPrice'] || "").replace("INR", "").trim();
-  //     const farePrice = calculateFinalPrice(farePricee, markupdata, cabinClass, fareName);
-  //     return {
-  //       fare_type: fareName,
-  //       price: farePrice,
-  //     };
-  //   });
-
-  //   setSelectedFlights((prev) => {
-  //     const isSelected = prev.some(
-  //       (flight) =>
-  //         flight["$"].Key === airPricingInfo["$"].Key &&
-  //         flight.isReturn === airPricingInfo.isReturn
-  //     );
-
-  //     if (isSelected) {
-  //       return prev.filter(
-  //         (flight) =>
-  //           flight["$"].Key !== airPricingInfo["$"].Key ||
-  //           flight.isReturn !== airPricingInfo.isReturn
-  //       );
-  //     } else {
-  //       // Add the new data with flight details to the selection
-  //       return [
-  //         ...prev,
-  //         {
-  //           ...airPricingInfo,
-  //           flightDetails: selectedFlightDetails, 
-  //           fare_details: fareDetails,
-  //         },
-  //       ];
-  //     }
-  //   });
-  //   setIsMinimized(false);
-  //   setSelectedPriceParseIndices([])
-  // };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   // const [clientName, setClientName] = useState(clientname);
@@ -2575,6 +2484,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       // console.log('Normalized:', normalize(inputOrigin));
       const normalizedInputOrigin = normalize(inputOrigin);
       const normalizedFromCity = normalize(flight.from_city);
+      console.log('normalizedInputOrigin', normalizedInputOrigin);
+      console.log('normalizedFromCity', normalizedFromCity);
 
       // Check if one string is part of the other
       if (
@@ -2676,7 +2587,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
           Swal.fire({
             title: "Success!",
             text: "Flight options have been sent successfully.",
-            icon: "success",
+            imageUrl: "https://cdn-icons-png.flaticon.com/512/845/845646.png", // Example right tick image
+            imageWidth: 75,
+            imageHeight: 75,
             confirmButtonText: "OK",
           });
           setShowModal(false);
@@ -5510,19 +5423,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                               )
                                                               }
 
-                                                              {/* <button
-                                                                      type="button"
-                                                                      style={{
-                                                                        fontSize: '12px',
-                                                                        color: 'blue',
-                                                                        marginTop: '10px',
-                                                                        marginLeft: '10%',
-                                                                      }}
-                                                                      className={`add-share-btn ${isFlightSelected ? "added" : ""}`}
-                                                                      onClick={() => handleCheckboxChange(pricepoint["air:AirPricingInfo"])}
-                                                                    >
-                                                                      {isFlightSelected ? "Added - " : "Add to Share + "}
-                                                                    </button> */}
+                                                              
 
                                                             </div>
                                                           </div>
@@ -12768,19 +12669,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                               )
                                                               }
 
-                                                              {/* <button
-                                                                      type="button"
-                                                                      style={{
-                                                                        fontSize: '12px',
-                                                                        color: 'blue',
-                                                                        marginTop: '10px',
-                                                                        marginLeft: '11%',
-                                                                      }}
-                                                                      className={`add-share-btn ${isFlightSelected ? "added" : ""}`}
-                                                                      onClick={() => handleCheckboxChange(pricepoint["air:AirPricingInfo"])}
-                                                                    >
-                                                                      {isFlightSelected ? "Added - " : "Add to Share + "}
-                                                                    </button> */}
+                                                             
 
                                                             </div>
                                                           </div>
@@ -15635,7 +15524,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         {/* Display FareFamily as the Header */}
                                                                         <div className="seelctheader">
                                                                           {matchingFareInfo['$']['FareFamily']}
-                                                                          <button
+                                                                          {/* <button
                                                                                         type="button"
                                                                                         onClick={() => handleFareInfoClick(extractedFareInfoRef)}
                                                                                         style={{
@@ -15648,7 +15537,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                         <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft: '5px', fontSize: '12px', cursor: 'pointer' }}></i>
-                                                                                      </button>
+                                                                                      </button> */}
                                                                         </div>
                                                                         <div className="selectprice">
                                                                           {(() => {
@@ -15678,13 +15567,34 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                     </div>
                                                                     {/* {agent_id  && ( */}
                                                                     
-                                                                      <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleach(fareInfoRefKey)}>Book Now</button></div>
+                                                                      <div className='buttonbook' >
+                                                                      
+                                                                        <button type='button' className="continuebutton" 
+                                                                        
+                                                                          style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} 
+                                                                          onClick={() => handleach(fareInfoRefKey)}>
+                                                                          Book Now
+                                                                        </button>
+                                                                      </div>
                                                                     {/* )} */}
+                                                                    
                                                                     <button
                                                                       className="add-btn"
                                                                       type="button"
                                                                       title="Share Flight Option"
-                                                                      onClick={() => handleCheckboxChange(pricepoint["air:AirPricingInfo"], matchingFareInfo["$"]["Amount"], matchingFareInfo["$"]["FareFamily"])}
+                                                                      // onClick={() => handleCheckboxChange(pricepoint["air:AirPricingInfo"], matchingFareInfo['$']['Amount'], matchingFareInfo["$"]["FareFamily"])}
+                                                                      onClick={() => handleCheckboxChange(
+                                                                        pricepoint["air:AirPricingInfo"],
+                                                                        calculateFinalPrice(
+                                                                          matchingFareInfo['$']['Amount'], 
+                                                                          markupdata, 
+                                                                          cabinClass, 
+                                                                          matchingFareInfo['$']['FareFamily'], 
+                                                                          inputOrigin, 
+                                                                          flight_type
+                                                                        ), // Ensure calculatedPrice is computed here
+                                                                        matchingFareInfo["$"]["FareFamily"]
+                                                                      )}
                                                                     >
                                                                       {
                                                                         selectedFlights.some((flight) => {
@@ -15693,7 +15603,14 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                             flight.fare_details.some(
                                                                               (fare) =>
                                                                                 fare.fare_type === matchingFareInfo["$"]["FareFamily"] &&
-                                                                                fare.price === matchingFareInfo["$"]["Amount"]
+                                                                                fare.price === calculateFinalPrice(
+                                                                          matchingFareInfo['$']['Amount'], 
+                                                                          markupdata, 
+                                                                          cabinClass, 
+                                                                          matchingFareInfo['$']['FareFamily'], 
+                                                                          inputOrigin, 
+                                                                          flight_type
+                                                                        )
                                                                             )
                                                                           );
                                                                         }) ? '-' : '+'
@@ -16282,17 +16199,35 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                 </div>
 
                                                                 {/* {agent_id && ( */}
-                                                                  <div className='buttonbook' ><button type='button' className="continuebutton" style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
+                                                                  <div className='buttonbook' >
+                                                                    <button type='button' className="continuebutton" 
+                                                                      style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} 
+                                                                      onClick={() => handleselectedContinue(priceParseindex)}>
+                                                                      Book Now
+                                                                    </button>
+                                                                  </div>
                                                                 {/* )} */}
                                                                 <button
                                                                   className="add-btn"
                                                                   type="button"
                                                                   title="Share Flight Option"
-                                                                  onClick={() => {
-                                                                    const fareName = extractFareName(priceParseData);
-                                                                    const farePrice = priceParseData['$']['TotalPrice']
-                                                                    handleCheckboxChange(pricepoint["air:AirPricingInfo"], farePrice, fareName)
-                                                                  }}
+                                                                  onClick={() => handleCheckboxChange(
+                                                                        pricepoint["air:AirPricingInfo"],
+                                                                        calculateFinalPrice(
+                                                                          priceParseData['$']['TotalPrice'], 
+                                                                          markupdata, 
+                                                                          cabinClass, 
+                                                                          extractFareName(priceParseData), 
+                                                                          inputOrigin, 
+                                                                          flight_type
+                                                                        ), // Ensure calculatedPrice is computed here
+                                                                        extractFareName(priceParseData)
+                                                                      )}
+                                                                  // onClick={() => {
+                                                                  //   const fareName = extractFareName(priceParseData);
+                                                                  //   const farePrice = priceParseData['$']['TotalPrice']
+                                                                  //   handleCheckboxChange(pricepoint["air:AirPricingInfo"], farePrice, fareName)
+                                                                  // }}
                                                                 >
                                                                   {
                                                                     selectedFlights.some((flight) => {
@@ -16301,7 +16236,14 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         flight.fare_details.some(
                                                                           (fare) =>
                                                                             fare.fare_type === extractFareName(priceParseData) &&
-                                                                            fare.price === priceParseData['$']['TotalPrice']
+                                                                            fare.price === calculateFinalPrice(
+                                                                          priceParseData['$']['TotalPrice'], 
+                                                                          markupdata, 
+                                                                          cabinClass, 
+                                                                          extractFareName(priceParseData), 
+                                                                          inputOrigin, 
+                                                                          flight_type
+                                                                        ),
                                                                         )
                                                                       );
                                                                     })
@@ -16483,7 +16425,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                 color: fareIndex === 0 ? '#000' : '#785eff',
                               }}
                             >
-                             ₹ {Math.floor(Number(fare.price.replace('INR', '').trim()))}
+                             ₹ {Math.floor(Number(fare.price))}
                             </span>
                             <span
                               style={{
@@ -16557,7 +16499,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
               </div>
             </div>
             <div className="form-group">
-              <label>Booking ID</label>
+              <label>Reference Number</label>
               <input
                 type="text"
                 value={bookingid}

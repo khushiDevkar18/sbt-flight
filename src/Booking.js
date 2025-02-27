@@ -123,7 +123,7 @@ const Booking = () => {
     const [isreservation, setReservation] = useState(false);
     const [fareRuleText, setFareRuleText] = useState(null);
     const [cancellationPolicy, setCancellationPolicy] = useState(null);
-    // console.log('cancellationPolicy', cancellationPolicy);
+    console.log('cancellationPolicy', cancellationPolicy);
     const providerCodeRef = useRef(null);
     // console.log('providerCodeRef', providerCodeRef);
   
@@ -823,9 +823,9 @@ const Booking = () => {
             console.log("in func");
             setLoading(true)
 
-            if (airPricingCommand) {
-                await fetchPriceData(); 
-            }
+            // if (airPricingCommand) {
+            //     await fetchPriceData(); 
+            // }
             // fetchPriceData();
             console.log('packageSelected', packageSelected);
             console.log('segmentParse', segmentParse);
@@ -2980,7 +2980,7 @@ const Booking = () => {
                 );
             case isreservation:
                 return (
-                    <p className="text-center ml-4 text-gray-600" style={{ marginTop: '65px' }}>
+                    <p className="text-center ml-4 text-gray-600" >
                     Processing your reservation. Please wait...
                     </p>
                 );
@@ -4622,7 +4622,7 @@ const Booking = () => {
                                                 <strong>*Important:</strong> The airline fee is indicative. Cotrav does not guarantee the accuracy of this information.
                                                     All fees mentioned are per passenger. All Refunds are airline approval.
                                                 </p>
-                                                <div className="table-container">
+                                                {/* <div className="table-container">
                                                     <h1>Date Change Charges</h1>
                                                     <table className="styled-table">
                                                         <thead>
@@ -4638,58 +4638,58 @@ const Booking = () => {
                                                         </tr>
                                                         </thead>
                                                         <tbody>
-  {Array.isArray(packageSelected['air:AirPricingInfo']) ? (
-    packageSelected['air:AirPricingInfo'].flatMap((pricingInfo) =>
-      Array.isArray(pricingInfo['air:ChangePenalty']) ? (
-        pricingInfo['air:ChangePenalty'].map((changepolicy, changeindex) => (
-          <tr key={changeindex}>
-            <td>
-              {changepolicy?.['$']?.['PenaltyApplies'] || 'NA'}
-            </td>
-            <td>
-              {(changepolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-              {(changepolicy?.['air:Amount'] || 'NA').replace('INR', '')}
-            </td>
-          </tr>
-        ))
-      ) : (
-        <tr key={'single-change'}>
-          <td>
-            {pricingInfo?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
-          </td>
-          <td>
-            {(pricingInfo?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-            {(pricingInfo?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
-          </td>
-        </tr>
-      )
-    )
-  ) : (
-    Array.isArray(packageSelected['air:AirPricingInfo']['air:ChangePenalty']) ? (
-      packageSelected['air:AirPricingInfo']['air:ChangePenalty'].map((changepolicy, changeindex) => (
-        <tr key={changeindex}>
-          <td>
-            {changepolicy?.['$']?.['PenaltyApplies'] || 'NA'}
-          </td>
-          <td>
-            {(changepolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-            {(changepolicy?.['air:Amount'] || 'NA').replace('INR', '')}
-          </td>
-        </tr>
-      ))
-    ) : (
-      <tr key={'single-change'}>
-        <td>
-          {packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
-        </td>
-        <td>
-          {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-          {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
-        </td>
-      </tr>
-    )
-  )}
-</tbody>
+                                                            {Array.isArray(packageSelected['air:AirPricingInfo']) ? (
+                                                                packageSelected['air:AirPricingInfo'].flatMap((pricingInfo) =>
+                                                                Array.isArray(pricingInfo['air:ChangePenalty']) ? (
+                                                                    pricingInfo['air:ChangePenalty'].map((changepolicy, changeindex) => (
+                                                                    <tr key={changeindex}>
+                                                                        <td>
+                                                                        {changepolicy?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                        </td>
+                                                                        <td>
+                                                                        {(changepolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                        {(changepolicy?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                        </td>
+                                                                    </tr>
+                                                                    ))
+                                                                ) : (
+                                                                    <tr key={'single-change'}>
+                                                                    <td>
+                                                                        {pricingInfo?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                    </td>
+                                                                    <td>
+                                                                        {(pricingInfo?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                        {(pricingInfo?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                    </td>
+                                                                    </tr>
+                                                                )
+                                                                )
+                                                            ) : (
+                                                                Array.isArray(packageSelected['air:AirPricingInfo']['air:ChangePenalty']) ? (
+                                                                packageSelected['air:AirPricingInfo']['air:ChangePenalty'].map((changepolicy, changeindex) => (
+                                                                    <tr key={changeindex}>
+                                                                    <td>
+                                                                        {changepolicy?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                    </td>
+                                                                    <td>
+                                                                        {(changepolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                        {(changepolicy?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                    </td>
+                                                                    </tr>
+                                                                ))
+                                                                ) : (
+                                                                <tr key={'single-change'}>
+                                                                    <td>
+                                                                    {packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                    </td>
+                                                                    <td>
+                                                                    {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                    {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                    </td>
+                                                                </tr>
+                                                                )
+                                                            )}
+                                                            </tbody>
 
                                                     </table>
                                                 </div>
@@ -4699,7 +4699,7 @@ const Booking = () => {
                                                     a new date. The difference in fares between the old & the new booking will also be payable by the user.
                                                     Please refer to the date change charges section above for details on the number of allowd free date changes
                                                     if applicable
-                                                </p>
+                                                </p> */}
                                                 {/* <div className="booking-devider" /> */}
                                                 <form ref={formRef} onSubmit={(e) => handlePassengerSubmit(e)} style={{ marginTop: '1%' }}>
                                                     <input
