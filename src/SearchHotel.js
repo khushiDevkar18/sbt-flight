@@ -33,9 +33,8 @@ const SearchHotel = () => {
   // const [hotelList, setHotelList] = useState(() => {
   //   return JSON.parse(sessionStorage.getItem("hotelSearchData")) || [];
   // });
-  const hotelList = JSON.parse(sessionStorage.getItem("hotelSearchData"))?.hotelList || [];
-
-
+  const hotelList =
+    JSON.parse(sessionStorage.getItem("hotelSearchData"))?.hotelList || [];
 
   // // Listen for changes in sessionStorage
   // useEffect(() => {
@@ -51,12 +50,12 @@ const SearchHotel = () => {
   //   };
   // }, []);
 
-
-
   useEffect(() => {
     const fetchCity = async () => {
-      const storedHotelList = sessionStorage.getItem('hotelSearchData');
-      const hotelList = storedHotelList ? JSON.parse(storedHotelList).hotelList : [];
+      const storedHotelList = sessionStorage.getItem("hotelSearchData");
+      const hotelList = storedHotelList
+        ? JSON.parse(storedHotelList).hotelList
+        : [];
 
       console.log("Parsed hotelList:", hotelList);
 
@@ -79,8 +78,8 @@ const SearchHotel = () => {
             method: "POST",
             headers: {
               // "Content-Type": "application/json",
-              'Origin': '*', // Change to your React app's origin
-              'Access-Control-Request-Method': 'POST', // The method you're going to use
+              Origin: "*", // Change to your React app's origin
+              "Access-Control-Request-Method": "POST", // The method you're going to use
             },
             body: JSON.stringify({
               Hotelcodes: hotelcodes,
@@ -114,9 +113,6 @@ const SearchHotel = () => {
 
     fetchCity();
   }, []);
-
-
-
 
   const combinedHotels = useMemo(() => {
     return hotelDetails.map((hotel) => {
@@ -224,12 +220,43 @@ const SearchHotel = () => {
       : ""
   );
   const [showModal2, setShowModal2] = useState(false);
+  const [selectedHotels, setSelectedHotels] = useState([]);
+  const [showModal1, setShowModal1] = useState(false);
+  const handleHotelSelect = (hotel) => {
+    const isSelected = selectedHotels.some((h) => h.name === hotel.HotelName);
+
+    if (isSelected) {
+      setSelectedHotels((prev) =>
+        prev.filter((h) => h.name !== hotel.HotelName)
+      );
+    } else {
+      setSelectedHotels((prev) => [
+        ...prev,
+        {
+          name: hotel.HotelName,
+          price: hotel.Rooms?.[0]?.TotalFare,
+          cityName: hotel.CityName,
+          Description: hotel.Description,
+        },
+      ]);
+    }
+  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Function to toggle modal visibility
+  const toggleModal = () => setIsModalOpen(!isModalOpen);
+  // Function to remove a hotel from the modal
+
   return (
     <>
       {loader ? (
         <>
           <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
-            <img src="../img/hotel_loader.gif" alt="Loading..." className="loader_size" />
+            <img
+              src="../img/hotel_loader.gif"
+              alt="Loading..."
+              className="loader_size"
+            />
           </div>
         </>
       ) : (
@@ -246,7 +273,11 @@ const SearchHotel = () => {
 
                 {/* Ensure the map loads correctly */}
                 {isLoaded && (
-                  <GoogleMap mapContainerStyle={mapContainerStyle} zoom={10} center={mapCenter}>
+                  <GoogleMap
+                    mapContainerStyle={mapContainerStyle}
+                    zoom={10}
+                    center={mapCenter}
+                  >
                     {hotelDetails.map((hotel) => {
                       if (!hotel.Map) return null;
 
@@ -255,7 +286,10 @@ const SearchHotel = () => {
                         return (
                           <Marker
                             key={hotel.HotelCode}
-                            position={{ lat: coordinates[0], lng: coordinates[1] }}
+                            position={{
+                              lat: coordinates[0],
+                              lng: coordinates[1],
+                            }}
                             label={{
                               text: hotel.HotelName || "Unnamed Hotel",
                               color: "white",
@@ -263,10 +297,17 @@ const SearchHotel = () => {
                               fontSize: "14px",
                             }}
                           >
-                            <InfoWindow position={{ lat: coordinates[0], lng: coordinates[1] }}>
+                            <InfoWindow
+                              position={{
+                                lat: coordinates[0],
+                                lng: coordinates[1],
+                              }}
+                            >
                               <div className="text-sm font-semibold text-gray-700">
                                 <div className="flex items-center justify-between">
-                                  <span>{hotel.HotelName || "Unnamed Hotel"}</span>
+                                  <span>
+                                    {hotel.HotelName || "Unnamed Hotel"}
+                                  </span>
                                 </div>
                               </div>
                             </InfoWindow>
@@ -280,31 +321,81 @@ const SearchHotel = () => {
               </div>
             </div>
           )}
- {showModal2 && (
-                                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
-                                <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-3xl p-5 relative hotel_photos_container">
-                                  <button
-                                    className="absolute top-2 right-2 text-gray-600"
-                                    onClick={() => setShowModal2(false)}
-                                  >
-                                    Close
-                                  </button>
-                                  <div className="grid grid-cols-3 gap-2 hotel_images_container " style={{pointerEvents:'none'}}>
-        {selectedHotel.map((img, index) => (
-          <img
-            key={index}
-            src={img}
-            alt={`Hotel Image ${index + 1}`}
-            className="hotel_photos_all"
-          />
-        ))}
+
+          {/* {showModal1 && (
+  <div className="fixed inset-0 z-50 flex items-end justify-end">
+  
+    <div 
+      className="fixed inset-0 bg-black opacity-25" 
+      onClick={() => setShowModal1(false)}
+    ></div>
+    
+  
+    <div className="bg-white shadow-md rounded-lg max-w-xs w-full relative h-auto mr-4 mb-4 z-50">
+      <div className="flex bg-black px-2 h-8 py-2 items-center justify-between">
+        <h3 className="text-sm font-semibold text-white">Selected Hotels</h3>
+        <button
+          onClick={() => setShowModal1(false)}
+          className="text-gray-300 hover:text-gray-300"
+        >
+          ✖
+        </button>
       </div>
-                                  </div>
-                                  </div>
-                                )}
+
+      {selectedHotels.length > 0 ? (
+        selectedHotels.map((hotel, index) => (
+          <div
+            key={index}
+            className="flex justify-between items-center mb-2 p-2 border-b border-gray-200"
+          >
+            <div>
+              <span className="text-sm">{hotel.name}</span>
+              <br />
+              <span className="text-xs text-gray-600">
+                ₹ {hotel.price}
+              </span>
+            </div>
+            <button
+              onClick={() => handleRemoveHotel(hotel.name)}
+              className="text-red-500 text-sm hover:text-red-700"
+            >
+              ✖
+            </button>
+          </div>
+        ))
+      ) : (
+        <p className="text-sm text-gray-500 p-2">No hotels selected.</p>
+      )}
+    </div>
+  </div>
+)} */}
+
+          {showModal2 && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
+              <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-3xl p-5 relative hotel_photos_container">
+                <button
+                  className="absolute top-2 right-2 text-gray-600"
+                  onClick={() => setShowModal2(false)}
+                >
+                  Close
+                </button>
+                <div
+                  className="grid grid-cols-3 gap-2 hotel_images_container "
+                  style={{ pointerEvents: "none" }}
+                >
+                  {selectedHotel.map((img, index) => (
+                    <img
+                      key={index}
+                      src={img}
+                      alt={`Hotel Image ${index + 1}`}
+                      className="hotel_photos_all"
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           <div className="yield-content" style={{ background: "#e8e4ff" }}>
-
-
             <div className="flex card-container ">
               <div className="w-1/3  items-center justify-center  p-4">
                 <div className="mb-5">
@@ -339,24 +430,27 @@ const SearchHotel = () => {
                 <p className="py-7 px-6 heading-line mb-0">
                   Showing Properties in {cityName}
                 </p>
+
                 {combinedHotels.length > 0 ? (
                   combinedHotels.map((hotel) => (
                     <div
                       key={hotel.HotelCode}
                       className="w-full py-2 px-3 transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
-                      onClick={() => navigate("/HotelDetail", { state: { hotel } })}
+                      onClick={() =>
+                        navigate("/HotelDetail", { state: { hotel } })
+                      }
                     >
-
                       <div className="max-w-[57rem] w-full flex flex-cols bg-white shadow-md rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none transition-shadow duration-300 hover:shadow-lg">
                         <div className="py-3 px-3 w-1/3">
                           <div className="photos-container">
                             {Array.isArray(hotel.Images) &&
-                              hotel.Images.length > 0 ? (
+                            hotel.Images.length > 0 ? (
                               <>
                                 <img
                                   src={hotel.Images[0]}
                                   alt="Hotel"
-                                  className="hotel-photo" />
+                                  className="hotel-photo"
+                                />
                                 <div className="grid grid-cols-4 gap-2 py-1">
                                   {hotel.Images.slice(1, 5).map(
                                     (image, index) => (
@@ -367,7 +461,10 @@ const SearchHotel = () => {
                                         <img
                                           src={image}
                                           alt={`Hotel ${index + 1}`}
-                                          className={`hotel-photos ${index === 3 ? "blur-sm" : ""}`} />
+                                          className={`hotel-photos ${
+                                            index === 3 ? "blur-sm" : ""
+                                          }`}
+                                        />
                                         {index === 3 && (
                                           <div className="absolute top-0 left-0 right-0 bottom-0 flex justify-center items-center">
                                             <span
@@ -384,39 +481,14 @@ const SearchHotel = () => {
                                         )}
                                       </div>
                                     )
-
                                   )}
-
-
-                                  {/* {isOpenImage && (
-  <div className="fixed inset-0  bg-black bg-opacity-70 flex justify-center items-center z-50">
-    <div className="bg-white p-4 rounded-lg max-w-4xl w-full hotel_photos_container">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Hotel Images</h2>
-        <button
-          className="text-red-500"
-          onClick={() => setIsOpenImage(false)}
-        >
-          Close
-        </button>
-      </div>
-      <div className="grid grid-cols-3 gap-2 hotel_images_container " style={{pointerEvents:'none'}}>
-        {selectedHotel.map((img, index) => (
-          <img
-            key={index}
-            src={img}
-            alt={`Hotel Image ${index + 1}`}
-            className="hotel_photos_all"
-          />
-        ))}
-      </div>
-    </div>
-  </div>
-)} */}
                                 </div>
                               </>
                             ) : (
-                              <img src="./img/image_NA05.png" className="h-full "></img>
+                              <img
+                                src="./img/image_NA05.png"
+                                className="h-full "
+                              ></img>
                             )}
                           </div>
                         </div>
@@ -457,8 +529,15 @@ const SearchHotel = () => {
                                     )
                                   )
                                   .map(({ icon, label }, index) => (
-                                    <span key={index} className="flex items-center gap-2">
-                                      <img src={icon} alt={label} className="w-5 h-5" />
+                                    <span
+                                      key={index}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <img
+                                        src={icon}
+                                        alt={label}
+                                        className="w-5 h-5"
+                                      />
                                       {label}
                                     </span>
                                   ))}
@@ -476,16 +555,23 @@ const SearchHotel = () => {
                                   },
                                 ].every(({ keyword }) =>
                                   hotel.HotelFacilities.every(
-                                    (facility) => !facility.toLowerCase().includes(keyword)
+                                    (facility) =>
+                                      !facility.toLowerCase().includes(keyword)
                                   )
                                 ) &&
-                                  hotel.HotelFacilities.slice(0, 3).map((facility, index) => (
-                                    <span key={index} className="flex items-center gap-2">
-                                      <span className="text-black-500" >&#8226;</span>
-                                      {facility}
-                                    </span>
-
-                                  ))}
+                                  hotel.HotelFacilities.slice(0, 3).map(
+                                    (facility, index) => (
+                                      <span
+                                        key={index}
+                                        className="flex items-center gap-2"
+                                      >
+                                        <span className="text-black-500">
+                                          &#8226;
+                                        </span>
+                                        {facility}
+                                      </span>
+                                    )
+                                  )}
                               </>
                             )}
                           </div>
@@ -493,12 +579,19 @@ const SearchHotel = () => {
                           <div className="mb-3">
                             {hotel?.Rooms?.[0]?.Inclusion && (
                               <div className="text-xs  mt-1 flex gap-2 ">
-                                {hotel.Rooms[0].Inclusion.split(',').map((item, index) => (
-                                  <div key={index} className="flex items-center">
-                                    <span className="text-black-500 mr-1">✓</span>
-                                    <span>{item.trim()}</span>
-                                  </div>
-                                ))}
+                                {hotel.Rooms[0].Inclusion.split(",").map(
+                                  (item, index) => (
+                                    <div
+                                      key={index}
+                                      className="flex items-center"
+                                    >
+                                      <span className="text-black-500 mr-1">
+                                        ✓
+                                      </span>
+                                      <span>{item.trim()}</span>
+                                    </div>
+                                  )
+                                )}
                               </div>
                             )}
                           </div>
@@ -511,13 +604,12 @@ const SearchHotel = () => {
                                 <img
                                   src="../img/tick.svg"
                                   className="w-3 h-5"
-                                  alt="✔" />{" "}
+                                  alt="✔"
+                                />{" "}
                                 {policy}
                               </div>
                             ))}
                           </div>
-
-
                         </div>
 
                         <div className="w-1/4 py-3 px-3 flex flex-col items-end border-l border-gray-300">
@@ -529,7 +621,7 @@ const SearchHotel = () => {
                               {hotel.HotelRating}
                             </div>
                           </div>
-                          <div className="flex items-center space-x-1 mb-3">
+                          <div className="flex items-center space-x-1 mb-4">
                             {renderStars(hotel.HotelRating)}
                           </div>
 
@@ -538,34 +630,205 @@ const SearchHotel = () => {
                           </span>
                           <span className="text-xs">
                             + ₹ {hotel.Rooms?.[0]?.TotalTax || "0"} taxes & fees
-
                           </span>
 
                           <div className="flex gap-3 mt-5 ">
-                            <button className="border-2 w-20 h-7 border-[#785ef7] text-[#785ef7] bg-transparent px-2 rounded-md text-xs transition duration-300 hover:bg-[#785ef7]">
+                            {/* <button className="border-2 w-20 h-7 border-[#785ef7] text-[#785ef7] bg-transparent px-2 rounded-md text-xs transition duration-300 hover:bg-[#785ef7]">
                               Add
-                            </button>
-                            <button className="bg-[#785ef7] w-20 h-7 text-white px-2 rounded-md font-semibold text-xs transition duration-300 hover:bg-[#5a3ec8]">
-                              Book Now
+                            </button> */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleHotelSelect(hotel);
+                              }}
+                              className={`bg-[#785ef7] w-full h-7 text-white px-2 rounded-md font-semibold text-xs transition duration-300 hover:bg-[#5a3ec8] ${selectedHotels.some(
+                                (h) => h.name === hotel.HotelName
+                              )}`}
+                              style={{ width: "124px" }}
+                            >
+                              {selectedHotels.some(
+                                (h) => h.name === hotel.HotelName
+                              ) ? (
+                                <span className="flex items-center gap-2">
+                                  Added{" "}
+                                  {/* <span className="text-lg cursor-pointer">
+                                    ✔
+                                  </span> */}
+                                  <img
+                                    src="../img/cros.png"
+                                    className="w-3 h-3 "
+                                  ></img>
+                                </span>
+                              ) : (
+                                "Add to Share"
+                              )}
                             </button>
                           </div>
                         </div>
-
                       </div>
                     </div>
                   ))
                 ) : (
                   <p>No hotels found</p>
                 )}
-              </div>
+              
+                {selectedHotels.length > 0 && (
+                  <div
+                    className="fixed bottom-0 right-0 mb-2 ml-2 bg-white  hotel_booking_cards shadow-md justify-end h-auto"
+                    style={{ width: "25%" }}
+                  >
+                    <div className="flex bg-black px-3 h-9  items-center justify-between rounded-t-md">
+                      <h3 className="text-sm font-semibold text-white  ">
+                        Selected Hotels
+                      </h3>
+                      <button
+                        className="text-gray-300 hover:text-gray-300"
+                        onClick={() => setSelectedHotels([])}
+                      >
+                        ✖
+                      </button>
+                    </div>
+                    <div className="px-3 py-1">
+                      {selectedHotels.map((hotel, index) => (
+                        <div
+                          key={index}
+                          className="flex justify-between items-center border-b  "
+                        >
+                          <div className="flex-1">
+                            <span className="text-xs font-semibold">
+                              {hotel.name}
+                            </span>
+                            <p className="text-xs font-semibold hotel-form-text-color">
+                              {hotel.cityName || "No City Available"} |{" "}
+                              <span className="text-xs text-gray-500">
+                                {extractAttraction(hotel.Description)}
+                              </span>
+                            </p>
+                          </div>
+                          <span className="text-xs font-semibold mr-2">
+                            ₹{hotel.price}
+                          </span>
+                          <button
+                            onClick={() =>
+                              setSelectedHotels((prev) =>
+                                prev.filter((h) => h.name !== hotel.name)
+                              )
+                            }
+                            className="w-5 h-5 flex items-center justify-center cursor-pointer"
+                          >
+                            <img
+                              src="../img/Close-01.svg"
+                              className="w-4 h-4"
+                              alt="Remove"
+                            />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex bg-black px-2 h-9 py-2 items-center justify-between rounded-b-md">
+                      <button
+                        type="button"
+                        className="bg-[#785ef7] h-6 text-white px-2 rounded-lg text-xs ml-auto"
+                        onClick={toggleModal}
+                      >
+                        Share hotel options
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {isModalOpen && (
+                  <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                    <div className="bg-white rounded-lg shadow-lg w-1/2">
+                      <div className="flex justify-between items-center  pb-2 modal2 px-4 py-3">
+                        <h2 className="text-xl font-semibold ">Share With</h2>
+                        <button
+                          onClick={toggleModal}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <img src="../img/cros.png" className="w-4 h-4"></img>
+                        </button>
+                      </div>
+                      <div className="py-3 px-4">
+                        <form className="space-y-5">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label htmlFor="gridEmail" className="text-sm">
+                                Client Name
+                              </label>
+                              <input
+                                id="gridEmail"
+                                type="text"
+                                placeholder="Enter Client Name"
+                                className="frmTextInput2"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="gridPassword" className="text-sm">
+                                SPOC Name
+                              </label>
+                              <input
+                                id="gridPassword"
+                                type="text"
+                                placeholder="spoc name"
+                                className="frmTextInput2"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label htmlFor="gridAddress1" className="text-sm">
+                              SPOC Email
+                            </label>
+                            <input
+                              id="gridAddress1"
+                              type="email"
+                              placeholder="Enter Email"
+                              className="frmTextInput2"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="gridAddress2" className="text-sm">
+                              {" "}
+                              Additional Email
+                            </label>
+                            <input
+                              id="gridAddress2"
+                              type="text"
+                              placeholder="Enter Mail"
+                              className="frmTextInput2"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="gridAddress2" className="text-sm">
+                              Remark
+                            </label>
+                            <input
+                              id="gridAddress2"
+                              type="text"
+                              className="frmTextAreaInput2"
+                            />
+                          </div>
 
+                          <div className="flex justify-end">
+                            <button
+                              onClick={toggleModal}
+                              className="bg-[#785ef7] text-white px-3 py-1 text-sm"
+                            >
+                              SEND
+                            </button>
+                          </div>
+                        </form>
+                        {/* Add share options here */}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-
         </>
       )}
     </>
-
   );
 };
 

@@ -1269,7 +1269,11 @@ function Home() {
                             style={{ cursor: "pointer" }}
                           >
                             <img
-                              src="../img/Flight-01.png"
+                              src={
+                                activeForm === "flight"
+                                  ? "../img/Flight_Hover.svg" // Image to show when activeForm is "flight"
+                                  : "../img/Flight-01.png"     // Default image
+                              }
                               alt="Flight Image"
                               className="w-8 h-8"
                               style={{
@@ -1300,14 +1304,19 @@ function Home() {
                             style={{ cursor: "pointer" }}
                           >
                             <img
-                              src="../img/Hotel-02.png"
+                              src={
+                                activeForm === "hotel"
+                                  ? "../img/Hotel_Hover.svg" // Image to show when activeForm is "flight"
+                                  : "../img/Hotel-02.png"     // Default image
+                              }
+                              // src="../img/Hotel-02.png"
                               alt="Hotel Image"
                               className="w-6 h-6"
                               style={{
-                                filter:
-                                  activeForm === "hotel"
-                                    ? "grayscale(0%)"
-                                    : "grayscale(100%)",
+                                // filter:
+                                //   activeForm === "hotel"
+                                //     ? "grayscale(0%)"
+                                //     : "grayscale(100%)",
                                 tintColor:
                                   activeForm === "hotel" ? "blue" : "black",
                               }}

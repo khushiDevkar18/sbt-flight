@@ -256,7 +256,7 @@
   transition: all 0.3s ease-in-out;
 }
 
-.btn-outline-color:hover,.rating-color {
+.btn-outline-color:hover,.rating-color ,.modal2 {
   background-color: #785ef7;
   color: white;
 }
@@ -522,7 +522,28 @@ html[dir=ltr] .appendRight10 {
   width: 100%;
 
 }
-
+.frmTextInput2 {
+  border: 1px solid #bebebe;
+  border-radius: 4px;
+  font-family: lato, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  height: 30px;
+  outline: 0;
+  padding: 0 10px;
+  width: 100%;
+}
+.frmTextAreaInput2{
+  border: 1px solid #bebebe;
+  border-radius: 4px;
+  font-family: lato, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  height: 50px;
+  outline: 0;
+  padding: 0 10px;
+  width: 100%;
+}
 .selectedCode {
   align-items: center;
   background-color: #fff;
@@ -580,4 +601,8 @@ html[dir=ltr] .appendRight5 {
 
 .appendRight5 {
   margin-right: 5px;
+}
+
+.form-input{
+  @apply w-full rounded-md border border-white-light bg-white px-4 py-2 text-sm font-semibold text-black !outline-none focus:border-primary focus:ring-transparent dark:border-[#17263c] dark:bg-[#121e32] dark:text-white-dark dark:focus:border-primary;
 }

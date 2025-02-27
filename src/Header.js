@@ -335,13 +335,13 @@ useEffect(() => {
 
       const data = await response.json();
       // // console.log("Hotel data:", data);
-      if (data.success === "1" && data.response.Status.Code === 200) {
-        setHotelCityList(data.response.HotelResult || []);
+      if (data.Status.Code === 200) {
+        setHotelCityList(data.HotelResult || []);
         // // console.log("asd");
 
         // Prepare the data to store in sessionStorage
         const searchData = {
-          hotelList: data.response.HotelResult,
+          hotelList: data.HotelResult,
         };
         const searchParams = {
           checkIn,
@@ -368,7 +368,7 @@ useEffect(() => {
         Swal.fire({
           // icon: "error",
           title: "Error",
-          text: data.response.Status.Description || "Something went wrong!",
+          text: data.Status.Description || "Something went wrong!",
         });
         setLoader(false);
       }
