@@ -459,29 +459,43 @@ const SearchFlight = () => {
             const Priceinginfoselected = pricereponse;
             // console.log('firtest', segmentpricereponse['$']['Key']);
             const airPricingInfo = pricereponse['air:AirPricingInfo'];
-            const airPricingCommand1 = matchedData.map((fareInfo) => {
-              const farekey = fareInfo['FareInfoRef'];
-              const segmentkey = segmentpricereponse['$']['Key'];
-        
-              return FareList
-                .filter(fareInfo => fareInfo['$'] && fareInfo['$']['Key'] === farekey) // Match the farekey
-                .map(fareInfo => {
-                  const fareBasisCode = fareInfo['$'].FareBasis;
-                  if (fareBasisCode) {
-                    return {
-                      'air:AirSegmentPricingModifiers': {
-                        $: {
-                          AirSegmentRef: segmentkey, // Use the already available segmentkey
-                          FareBasisCode: fareBasisCode,
-                        }
-                      }
-                    };
-                  }
-        
-                  return null; // Skip entries where FareBasisCode is missing
+            const seenSegmentKeys = new Set(); // Store unique segment keys
+
+const airPricingCommand1 = matchedData.map((fareInfo) => {
+    const farekey = fareInfo['FareInfoRef'];
+
+    return FareList
+        .filter(fareInfo => fareInfo['$'] && fareInfo['$']['Key'] === farekey) // Match the farekey
+        .map(fareInfo => {
+            const fareBasisCode = fareInfo['$'].FareBasis;
+
+            return segmentpricereponse
+                .map(segment => {
+                    const segmentkey = segment['$']['Key'];
+
+                    // Skip if segment key is already processed
+                    if (seenSegmentKeys.has(segmentkey)) return null;
+
+                    // Mark this segment key as seen
+                    seenSegmentKeys.add(segmentkey);
+
+                    return fareBasisCode
+                        ? {
+                              'air:AirSegmentPricingModifiers': {
+                                  $: {
+                                      AirSegmentRef: segmentkey, // Ensure correct mapping
+                                      FareBasisCode: fareBasisCode,
+                                  },
+                              },
+                          }
+                        : null;
                 })
                 .filter(Boolean); // Remove nulls
-            }).flat();
+        })
+        .flat(); // Flatten the final array
+}).flat();
+
+console.log('airPricingCommand1',airPricingCommand1);
             const combinedArray = [];
             if (Array.isArray(airPricingInfo)) {
               if (Array.isArray(airPricingInfo[0]['air:BookingInfo'])) {
