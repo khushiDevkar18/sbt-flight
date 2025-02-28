@@ -1140,7 +1140,7 @@ cursor: pointer;
 }
 
 .full-width-search .page-search-p {
-  padding: 1px 21px 1px 21px;
+  padding: 1px 2px 1px 2px;
 }
 
 .page-search-content label {
@@ -2227,6 +2227,7 @@ button.srch-btn {
   box-shadow: 0 1px 1px 0 rgba(50, 50, 50, 0.05);
   /* color: red; */
 min-height: 34px;
+max-height: 90px;
 }
 
 .custom-datepicker {
@@ -2241,7 +2242,7 @@ min-height: 34px;
   border: 0px;
   background: transparent;
   font-family: 'Open Sans';
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: bolder;
   text-transform: capitalize;
   color: black
@@ -7833,7 +7834,7 @@ preferences-list-alt li {
   margin-right: auto;
   background: #fff;
   padding: 22px 19px 19px 19px;
-  font-family: 'Raleway';
+  font-family: 'Montserrat';
   margin-top: 5%;
 }
 
@@ -17912,32 +17913,8 @@ color: #fff;
 .rc-slider{
   /* margin-left: 8px !important; */
 }
-.dropdown-content p {
-  padding: 7px 14px;
-    text-decoration: none;
-    display: inline;
-    margin-bottom: 2%;
-    font-weight: 500;
-    line-height: 18px;
-    margin-right: 1%;
-    width: 100px;
-    text-transform: uppercase;
-    text-align: center;
-    font-family: 'Open Sans';
-    background-color: #bd8100;
-    border: 1px solid #bd8100;
-    cursor: pointer;
-    font-weight: 600;
-    width: 100px;
-    text-transform: uppercase;
-    font-size: 11px;
-    border-radius: 50px;
-    color: #fff;
-}
-.dropdown-content p:hover {
-  background: #ffca27;
-  border-color: #ffca27;
-}
+
+
 
 .accordionfarecabinclass,
 .accordionfarecabinbag,
@@ -18758,41 +18735,8 @@ width: 100%;
     clear: both !important;
 }
 
-/* Dropdown Menu Styling */
-ul.dropdown-menu {
-  background-color: white !important; /* White background */
-  padding: 5px 5px;
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
-  border: 1px solid #ddd; /* Light border */
-  list-style-type: none; /* Remove default list styling */
-  margin: 0;
-  padding: 0;
-}
 
-ul.dropdown-menu li {
-  margin: 0;
-  padding: 2px 0; /* Spacing between items */
-  border-bottom: 1px solid #eee; /* Light separator line between each item */
-}
 
-ul.dropdown-menu li:last-child {
-  border-bottom: none; /* Remove border for the last item */
-}
-
-ul.dropdown-menu li a {
-  color: black; /* Text color */
-  font-weight: 500; /* Make text a little bold */
-  font-family: 'Nunito', sans-serif;
-  text-decoration: none;
-  display: block;
-  padding: 5px 0;
-}
-
-ul.dropdown-menu li a:hover {
-  color: #785eff !important; /* Text color on hover */
-  background-color: transparent !important;
-}
 .timeSlotsOuter {
   display: flex;
   justify-content: flex-start;
@@ -19303,7 +19247,7 @@ button#search-button:hover {
   color: #000;
   border: 1px solid #ccc;
   border-radius: 5px;
-  appearance: none; /* Remove default dropdown arrow */
+  appearance: none; 
   background-color: #fff;
   cursor: pointer;
   outline: none;
@@ -19330,7 +19274,7 @@ button#search-button:hover {
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  pointer-events: none; /* Prevent interference with the dropdown */
+  pointer-events: none; 
 }
 .custom-modal-header {
   color: white;
@@ -19540,6 +19484,7 @@ button#search-button:hover {
   flex: 1;
   border: 1px solid #D9DFC6;
   height: 93px;
+  max-width: 222px;
 }
 .search-buttonn {
   background-color: #785ef7;
@@ -19625,53 +19570,99 @@ button#search-button:hover {
   position: relative;
 }
 
-.airport-name {
-  font-size: 10px;
-  color: #383838;
-  /* margin-top: 5px; */
-}
-
+/* Dropdown styling */
 .dropdown {
   position: absolute;
   top: 100%;
-  left: 0;
-  background-color: #fff;
-  border: 1px solid #e3e3e3;
-  width: 135px;
+  left: -10%;
+  width: 120%; /* Matches the width of .form-groupp */
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   z-index: 9999;
-  max-height: 150px;
+  max-height: 280px;
   overflow-y: auto;
   margin-top: 5px;
-  padding: 0;
+  padding: 10px 0;
   list-style: none;
-  scrollbar-width: none;
+  border: 1px solid #ddd;
 }
+
+/* Hide scrollbar */
 .dropdown::-webkit-scrollbar {
-  display: none; 
+  width: 6px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
 }
 
 .dropdown-item {
-  /* padding: 50px; */
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  /* padding-left: 10px; */
   cursor: pointer;
   font-size: 13px;
   font-family: 'Montserrat', sans-serif;
-  color: #4c4c4c;
-  margin-bottom: 5px;
-  /* border-bottom: 1px solid #e3e3e3; */
+  color: #333;
+  transition: background 0.2s ease-in-out;
+  border-radius: 6px;
+  
 }
-
-.dropdown-item:last-child {
-  border-bottom: none;
-}
-
-.dropdown-item:hover {
-  background-color: #f1f1f1;
-}
-
-.dropdown-item .airport-name {
-  font-size: 10px;
+.dropdown-title {
+  font-size: 12px;
+  font-weight: 600;
   color: #7a7a7a;
+  padding: 8px 15px;
+  text-transform: uppercase;
 }
+
+/* Hover effect */
+.dropdown-item:hover {
+  background: #f8f9fa;
+}
+
+/* Top row: City name and IATA code */
+.dropdown-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 5px;
+}
+
+/* City Name */
+.city-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* IATA Code */
+.iata-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+/* Airport Name */
+.airport-name {
+  font-size: 11px;
+  color: #7a7a7a;
+  margin-top: 2px;
+  /* padding: 0px 5px; */
+  padding-bottom: 10px;
+}
+.airport-namee {
+  font-size: 11px;
+  color: #7a7a7a;
+  margin-top: 2px;
+  padding: 0px 5px;
+  padding-bottom: 10px;
+}
+
+
 
 .loader-gif {
   width: 130px;

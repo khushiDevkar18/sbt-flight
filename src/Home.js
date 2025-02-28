@@ -989,48 +989,51 @@ return (
                                 </div>
 
                             <div className="form-roww page-search-p" >
-                            <div className="form-groupp">
-      <div className="location-header" style={{ paddingLeft: "12px", paddingTop: "6px" }}>
-        Company
-      </div>
+                            <div className="form-groupp" style={{ maxWidth: '140px'}}>
+                                <div className="location-header" style={{ paddingLeft: "12px", paddingTop: "6px" }}>
+                                    Company
+                                </div>
 
-      <div className="location-info">
-        <div className="input-a" style={{ border: "none", boxShadow: "none" }}>
-          <div className="location-details" style={{ position: "relative" }}>
-            <input
-              type="text"
-              className="city-name-input"
-              value={inputCompany}
-              onChange={(e) => {
-                setInputCompany(e.target.value);
-                setShowDropdown(true); // Show dropdown while typing
-              }}
-              placeholder="Select company"
-              onFocus={() => setShowDropdown(true)}
-              onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // Delay hiding for clicks
-            />
+                                <div className="location-info">
+                                    <div className="input-a" style={{ border: "none", boxShadow: "none", paddingLeft: "0px" }}>
+                                    <div className="location-details" style={{ position: "relative" }}>
+                                        <input
+                                        type="text"
+                                        className="city-name-input"
+                                        value={inputCompany}
+                                        onChange={(e) => {
+                                            setInputCompany(e.target.value);
+                                            setShowDropdown(true); // Show dropdown while typing
+                                        }}
+                                        placeholder="Select company"
+                                        onFocus={() => setShowDropdown(true)}
+                                        onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // Delay hiding for clicks
+                                        />
 
-            {showDropdown && (
-              <ul className="dropdown">
-                {companies
-                  .filter((company) =>
-                    company.corporate_name.toLowerCase().includes(inputCompany.toLowerCase())
-                  )
-                  .map((company) => (
-                    <li
-                      key={company.id}
-                      className="dropdown-item"
-                      onMouseDown={() => handleCompanySelect(company)}
-                    >
-                      {company.corporate_name}
-                    </li>
-                  ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+                                        {showDropdown && (
+                                        <div className="dropdown-container">
+                                            <ul className="dropdown">
+                                            {companies
+                                                .filter((company) =>
+                                                company.corporate_name.toLowerCase().includes(inputCompany.toLowerCase())
+                                                )
+                                                .map((company) => (
+                                                <li
+                                                    key={company.id}
+                                                    className="dropdown-item"
+                                                    onMouseDown={() => handleCompanySelect(company)}
+                                                    style={{ marginBottom: "7px" }} // Added space between list items
+                                                >
+                                                    {company.corporate_name}
+                                                </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                        )}
+                                    </div>
+                                    </div>
+                                </div>
+                                </div>
 
                                 <div className="form-groupp">
                                 
@@ -1079,23 +1082,25 @@ return (
                                             </div>
                                             {showOriginDropdown && (
                                                 <ul className="dropdown">
+                                                <div className="dropdown-title">Popular Cities</div>
                                                     {origin.map((option) => (
                                                         <li
-                                                            // onClick={setformActual(option.value)}
-                                                            className="dropdown-item"
-                                                            key={option.value}
-                                                            onMouseDown={() => {
-                                                                handleOrigin(option.value, option.airportName);
-                                                                setShowOriginDropdown(false); // Hide dropdown after selecting an option
-                                                            }}
-                                                            
+                                                        className="dropdown-item"
+                                                        key={option.value}
+                                                        onMouseDown={() => {
+                                                            handleOrigin(option.value, option.airportName);
+                                                            setShowOriginDropdown(false);
+                                                        }}
                                                         >
-                                                            {option.label} ({option.value}) <br />
-                                                            <span className="airport-name">{option.airportName}</span>
+                                                        <div className="dropdown-top">
+                                                            <span className="city-name">{option.label}</span>
+                                                            <span className="iata-code">{option.value}</span>
+                                                        </div>
+                                                        <div className="airport-namee">{option.airportName}</div>
                                                         </li>
                                                     ))}
-                                                </ul>
-                                            )}
+                                                    </ul>
+                                                )}
                                         </div>
                                     </div>
                                 </div>
@@ -1163,21 +1168,29 @@ return (
                                                     {inputDestination.split(')').slice(1).join(')').trim()} {/* Display everything after the city */}
                                                 </div>
                                                 {showDestinationDropdown && (
-                                                    <ul className="dropdown">
-                                                        {destination.map((option) => (
-                                                            <li
-                                                                className="dropdown-item"
-                                                                key={option.value}
-                                                                onMouseDown={() => {
-                                                                    handleDestination(option.value, option.airportName);
-                                                                    setShowDestinationDropdown(false); // Hide dropdown after selecting an option
-                                                                }}
-                                                            >
-                                                                {option.label} ({option.value}) <br />
-                                                                <span className="airport-name">{option.airportName}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
+                                                <ul className="dropdown">
+                                                <div className="dropdown-title">Popular Cities</div>
+                                                    {destination.map((option) => (
+                                                    <li
+                                                        className="dropdown-item"
+                                                        key={option.value}
+                                                        onMouseDown={() => {
+                                                        handleDestination(option.value, option.airportName);
+                                                        setShowDestinationDropdown(false);
+                                                        }}
+                                                    >
+                                                        {/* City name and IATA code in the same line */}
+                                                        <div className="dropdown-top">
+                                                        <span className="city-name">{option.label}</span>
+                                                        <span className="iata-code">{option.value}</span>
+                                                        </div>
+                                                        {/* Airport name below */}
+                                                        <div className="airport-namee">{option.airportName}</div>
+                                                        {/* Divider between options */}
+                                                        {/* <div className="dropdown-divider"></div> */}
+                                                    </li>
+                                                    ))}
+                                                </ul>
                                                 )}
                                             </div>
                                         </div>
@@ -1196,7 +1209,7 @@ return (
                                
                                 </div>
 
-                                <div className="form-groupp srch-tab-left">
+                                <div className="form-groupp srch-tab-left" style={{ maxWidth: '130px'}}>
                                 {/* <label htmlFor="departureDate">Departure</label> */}
                                 <div className="location-header" style={{ paddingLeft:'12px', paddingTop:'6px'}}>Departure</div>
                                 
@@ -1214,7 +1227,7 @@ return (
         }}
                                         onClickOutside={() => setdepIsOpen(false)}
                                     />
-                                    <span className="date-icon" onClick={(e) => {e.stopPropagation(); setdepIsOpen(true)}}></span>
+                                    {/* <span className="date-icon" onClick={(e) => {e.stopPropagation(); setdepIsOpen(true)}}></span> */}
                                     </div>
                                     <span id="errorDate" style={{
                                         color: 'red',
@@ -1234,7 +1247,7 @@ return (
                                     }}>Please select valid Departure Date</div>                                                                           
                                 </div>
 
-                                <div className="form-groupp srch-tab-right" id="departurereturn">
+                                <div className="form-groupp srch-tab-right" id="departurereturn" style={{ maxWidth: '130px'}}>
                                 {/* <label htmlFor="returnDate">Return</label> */}
                                 <div className="location-header" style={{ paddingLeft:'12px', paddingTop:'6px'}}>Return</div>
                                 <div className="input-a" style={{ border:'none', boxShadow:'none', paddingLeft:'12px'}} onClick={formData.bookingType === "Return" ? () => setretIsOpen(true) : () => () => setretIsOpen(false)}>
@@ -1244,12 +1257,12 @@ return (
                                     onChange={handleReturnDateChange}
                                     dateFormat="dd/MM/yyyy"
                                     minDate={formData.departureDate || new Date()}
-                                    placeholderText="Add Return Date"
+                                    placeholderText="Return Date"
                                     disabled={!isReturnEnabled}
                                     open={isretOpen}
                                     onClickOutside={() => setretIsOpen(false)}
                                     />
-                                    <span
+                                    {/* <span
                                     className="date-icon"
                                     onClick={(e) => {
                                         if (formData.bookingType === "Return") {
@@ -1257,7 +1270,7 @@ return (
                                         setretIsOpen(true);
                                         }
                                     }}
-                                    ></span>
+                                    ></span> */}
                                     </div>
                                     <span id="errorDate1" style={{
                                     color: 'red',

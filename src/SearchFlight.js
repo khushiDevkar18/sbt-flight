@@ -447,12 +447,41 @@ const SearchFlight = () => {
             return;
           }
           const AirPriceRsp = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp'];
+          
 
           if (AirPriceRsp !== null && AirPriceRsp !== undefined) {
+            console.log('hello');
             const pricereponse = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp']['air:AirPriceResult']['air:AirPricingSolution'];
             const segmentpricereponse = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp']['air:AirItinerary']['air:AirSegment'];
+            console.log('segmentpricereponse', segmentpricereponse);
+            const comHostTokens1 = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp']['air:AirItinerary']['common_v52_0:HostToken'];
+            console.log('comHostTokens1', comHostTokens1);
             const Priceinginfoselected = pricereponse;
+            // console.log('firtest', segmentpricereponse['$']['Key']);
             const airPricingInfo = pricereponse['air:AirPricingInfo'];
+            const airPricingCommand1 = matchedData.map((fareInfo) => {
+              const farekey = fareInfo['FareInfoRef'];
+              const segmentkey = segmentpricereponse['$']['Key'];
+        
+              return FareList
+                .filter(fareInfo => fareInfo['$'] && fareInfo['$']['Key'] === farekey) // Match the farekey
+                .map(fareInfo => {
+                  const fareBasisCode = fareInfo['$'].FareBasis;
+                  if (fareBasisCode) {
+                    return {
+                      'air:AirSegmentPricingModifiers': {
+                        $: {
+                          AirSegmentRef: segmentkey, // Use the already available segmentkey
+                          FareBasisCode: fareBasisCode,
+                        }
+                      }
+                    };
+                  }
+        
+                  return null; // Skip entries where FareBasisCode is missing
+                })
+                .filter(Boolean); // Remove nulls
+            }).flat();
             const combinedArray = [];
             if (Array.isArray(airPricingInfo)) {
               if (Array.isArray(airPricingInfo[0]['air:BookingInfo'])) {
@@ -577,11 +606,11 @@ const SearchFlight = () => {
                 }
               }
             });
-            // console.log('servicerequestXML', servicerequestXML);
+            console.log('servicerequestXML', servicerequestXML);
             const serviceresponse = axios.post(
               'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', servicerequestXML);
             const serviceResponse = serviceresponse.data;
-            // console.log('serviceResponse', serviceresponse);
+            console.log('serviceResponse', serviceresponse);
 
             const serviceData = {
               apiairportsdata: apiairports,
@@ -615,10 +644,10 @@ const SearchFlight = () => {
               is_gst_benefit: is_gst_benefit,
               accesstoken: access_token,
               // pricepointXMLpc: pricepointXMLpc,
-              airPricingCommand: airPricingCommand,
+              airPricingCommand: airPricingCommand1,
               Passengerxml: Passengerxml,
               segmentArray: segmentArray,
-              comHostTokens: comHostTokens
+              comHostTokens1: comHostTokens1
 
             };
             setLoading(false);
