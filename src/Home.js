@@ -111,7 +111,7 @@ function Home() {
             const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
-                <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+                <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
                     <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                     <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
                 </util:ReferenceDataRetrieveReq>
@@ -140,7 +140,7 @@ function Home() {
             const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
-            <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AV145ER" TypeCode="CityAirport">
+            <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AV145ER" TypeCode="CityAirport">
                 <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                 <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
             </util:ReferenceDataRetrieveReq>
@@ -741,7 +741,7 @@ function Home() {
             
                 return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                     <soap:Body>
-                    <air:LowFareSearchReq TargetBranch="P7206253" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
+                    <air:LowFareSearchReq TargetBranch="P4451438" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
                         <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                         <air:SearchAirLeg>
                             <air:SearchOrigin>
@@ -1170,26 +1170,26 @@ return (
                                                 {showDestinationDropdown && (
                                                 <ul className="dropdown">
                                                 <div className="dropdown-title">Popular Cities</div>
-                                                    {destination.map((option) => (
-                                                    <li
-                                                        className="dropdown-item"
-                                                        key={option.value}
-                                                        onMouseDown={() => {
-                                                        handleDestination(option.value, option.airportName);
-                                                        setShowDestinationDropdown(false);
-                                                        }}
-                                                    >
-                                                        {/* City name and IATA code in the same line */}
-                                                        <div className="dropdown-top">
-                                                        <span className="city-name">{option.label}</span>
-                                                        <span className="iata-code">{option.value}</span>
-                                                        </div>
-                                                        {/* Airport name below */}
-                                                        <div className="airport-namee">{option.airportName}</div>
-                                                        {/* Divider between options */}
-                                                        {/* <div className="dropdown-divider"></div> */}
-                                                    </li>
-                                                    ))}
+                                                        {destination.map((option) => (
+                                                        <li
+                                                            className="dropdown-item"
+                                                            key={option.value}
+                                                            onMouseDown={() => {
+                                                            handleDestination(option.value, option.airportName);
+                                                            setShowDestinationDropdown(false);
+                                                            }}
+                                                        >
+                                                            {/* City name and IATA code in the same line */}
+                                                            <div className="dropdown-top">
+                                                            <span className="city-name">{option.label}</span>
+                                                            <span className="iata-code">{option.value}</span>
+                                                            </div>
+                                                            {/* Airport name below */}
+                                                            <div className="airport-namee">{option.airportName}</div>
+                                                            {/* Divider between options */}
+                                                            {/* <div className="dropdown-divider"></div> */}
+                                                        </li>
+                                                        ))}
                                                 </ul>
                                                 )}
                                             </div>
@@ -1223,8 +1223,8 @@ return (
                                         value={formData.departureDate}
                                         open={isdepOpen}
                                         onChange={(date) => {
-            handleDepartureDateChange(date); // Update date and close calendar
-        }}
+                                            handleDepartureDateChange(date); // Update date and close calendar
+                                        }}
                                         onClickOutside={() => setdepIsOpen(false)}
                                     />
                                     {/* <span className="date-icon" onClick={(e) => {e.stopPropagation(); setdepIsOpen(true)}}></span> */}
@@ -1440,15 +1440,15 @@ return (
                                 </div>
                             </form>
                             
-                                                    </div>
-                                                    
-                                                </div>
-                                                
+                                            </div>
+                                            
                                         </div>
-                                    </div>
-                                    <div className="clear"></div>
+                                        
                                 </div>
                             </div>
+                            <div className="clear"></div>
+                        </div>
+                    </div>
 
                             <div className="mp-offesr">
                                 <div className="wrapper-padding-a">

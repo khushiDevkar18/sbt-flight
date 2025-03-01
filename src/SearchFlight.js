@@ -102,7 +102,7 @@ const SearchFlight = () => {
           const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
               <soapenv:Header/>
               <soapenv:Body>
-                  <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+                  <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
                       <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                       <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
                   </util:ReferenceDataRetrieveReq>
@@ -150,7 +150,7 @@ const SearchFlight = () => {
           const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
-              <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AV145ER" TypeCode="CityAirport">
+              <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AV145ER" TypeCode="CityAirport">
                 <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                 <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
               </util:ReferenceDataRetrieveReq>
@@ -385,7 +385,7 @@ const SearchFlight = () => {
           'air:AirPriceReq': {
             '$': {
               'AuthorizedBy': 'TAXIVAXI',
-              'TargetBranch': 'P7206253',
+              'TargetBranch': 'P4451438',
               'FareRuleType': 'short',
               'TraceId': 'TVSBP001',
               'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -461,39 +461,44 @@ const SearchFlight = () => {
             const airPricingInfo = pricereponse['air:AirPricingInfo'];
             const seenSegmentKeys = new Set(); // Store unique segment keys
 
-const airPricingCommand1 = matchedData.map((fareInfo) => {
-    const farekey = fareInfo['FareInfoRef'];
-
-    return FareList
-        .filter(fareInfo => fareInfo['$'] && fareInfo['$']['Key'] === farekey) // Match the farekey
-        .map(fareInfo => {
-            const fareBasisCode = fareInfo['$'].FareBasis;
-
-            return segmentpricereponse
-                .map(segment => {
-                    const segmentkey = segment['$']['Key'];
-
-                    // Skip if segment key is already processed
-                    if (seenSegmentKeys.has(segmentkey)) return null;
-
-                    // Mark this segment key as seen
-                    seenSegmentKeys.add(segmentkey);
-
-                    return fareBasisCode
-                        ? {
+            const airPricingCommand1 = matchedData
+              .map((fareInfo) => {
+                const farekey = fareInfo['FareInfoRef'];
+            
+                return FareList
+                  .filter((fareInfo) => fareInfo['$'] && fareInfo['$']['Key'] === farekey) // Match the farekey
+                  .map((fareInfo) => {
+                    const fareBasisCode = fareInfo['$'].FareBasis;
+            
+                    return (Array.isArray(segmentpricereponse) ? segmentpricereponse : [segmentpricereponse]) // Ensure it's always an array
+                      .map((segment) => {
+                        const segmentkey = segment['$']['Key'];
+            
+                        // Skip if segment key is already processed
+                        if (seenSegmentKeys.has(segmentkey)) return null;
+            
+                        // Mark this segment key as seen
+                        seenSegmentKeys.add(segmentkey);
+            
+                        return fareBasisCode
+                          ? {
                               'air:AirSegmentPricingModifiers': {
-                                  $: {
-                                      AirSegmentRef: segmentkey, // Ensure correct mapping
-                                      FareBasisCode: fareBasisCode,
-                                  },
+                                $: {
+                                  AirSegmentRef: segmentkey, // Ensure correct mapping
+                                  FareBasisCode: fareBasisCode,
+                                },
                               },
-                          }
-                        : null;
-                })
-                .filter(Boolean); // Remove nulls
-        })
-        .flat(); // Flatten the final array
-}).flat();
+                            }
+                          : null;
+                      })
+                      .filter(Boolean); // Remove nulls
+                  })
+                  .flat(); // Flatten the final array
+              })
+              .flat();
+            
+            console.log(airPricingCommand1);
+            
 
 console.log('airPricingCommand1',airPricingCommand1);
             const combinedArray = [];
@@ -603,7 +608,7 @@ console.log('airPricingCommand1',airPricingCommand1);
                   },
                   'air:AirMerchandisingOfferAvailabilityReq': {
                     '$': {
-                      'TargetBranch': 'P7206253',
+                      'TargetBranch': 'P4451438',
                       'TraceId': 'ac191f0b9c0546659065f29389eae552'
                     },
                     'com:BillingPointOfSaleInfo': {
@@ -1301,7 +1306,7 @@ console.log('airPricingCommand1',airPricingCommand1);
                 'air:AirPriceReq': {
                   '$': {
                     'AuthorizedBy': 'TAXIVAXI',
-                    'TargetBranch': 'P7206253',
+                    'TargetBranch': 'P4451438',
                     'FareRuleType': 'short',
                     'TraceId': 'TVSBP001',
                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -1583,7 +1588,7 @@ console.log('airPricingCommand1',airPricingCommand1);
             },
             'air:AirMerchandisingOfferAvailabilityReq': {
               '$': {
-                'TargetBranch': 'P7206253',
+                'TargetBranch': 'P4451438',
                 'TraceId': 'ac191f0b9c0546659065f29389eae552'
               },
               'com:BillingPointOfSaleInfo': {
@@ -2025,7 +2030,7 @@ console.log('airPricingCommand1',airPricingCommand1);
 
           return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                   <soap:Body>
-                <air:LowFareSearchReq TargetBranch="P7206253" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
+                <air:LowFareSearchReq TargetBranch="P4451438" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
                     <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                     <air:SearchAirLeg>
                         <air:SearchOrigin>
@@ -2687,7 +2692,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
         <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             <soap:Body xmlns:air="http://www.travelport.com/schema/air_v52_0"
                 xmlns:com="http://www.travelport.com/schema/common_v52_0">
-                <air:AirFareRulesReq xmlns="http://www.travelport.com/schema/air_v52_0" TraceId="8eaceda4-2f16-4421-807d-67f3fd9738a2" TargetBranch="P7206253">
+                <air:AirFareRulesReq xmlns="http://www.travelport.com/schema/air_v52_0" TraceId="8eaceda4-2f16-4421-807d-67f3fd9738a2" TargetBranch="P4451438">
                     <com:BillingPointOfSaleInfo xmlns="http://www.travelport.com/schema/common_v52_0" OriginApplication="uAPI" />
                     <air:FareRuleKey FareInfoRef="${fareInfoRefKey["$"].FareInfoRef}" ProviderCode="${fareInfoRefKey["$"].ProviderCode}">
                     ${fareInfoRefKey["_"]}
@@ -16241,7 +16246,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                   )}
                                                                 </div>
 
-                                                                {/* {agent_id && ( */}
+                                                                {agent_id && (
                                                                   <div className='buttonbook' >
                                                                     <button type='button' className="continuebutton" 
                                                                       style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} 
@@ -16249,7 +16254,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                       Book Now
                                                                     </button>
                                                                   </div>
-                                                                {/* )} */}
+                                                                )}
                                                                 <button
                                                                   className="add-btn"
                                                                   type="button"
