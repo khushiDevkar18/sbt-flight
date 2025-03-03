@@ -1,7 +1,8 @@
 {
-  "name": "local.selfbooking.com",
+  "name": "demo.selfbooking.co",
   "version": "0.1.0",
   "private": true,
+  
   "dependencies": {
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
@@ -44,13 +45,18 @@
     "web-vitals": "^2.1.4",
     "xml2js": "^0.6.2"
   },
-  "proxy": "https://demo.taxivaxi.com",
+  
   "scripts": {
-    "start": "react-scripts start",
+"start": "react-scripts start",
+
+
+
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  
+  
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -69,6 +75,10 @@
       "last 1 safari version"
     ]
   },
+  "devServer": {
+  "allowedHosts": ["demo.selfbooking.co"]
+}
+,
   "devDependencies": {
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",

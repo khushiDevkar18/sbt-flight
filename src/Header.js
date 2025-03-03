@@ -6,66 +6,113 @@ import DatePicker from "react-datepicker";
 const Header = () => {
   const location = useLocation();
   const [loader, setLoader]= useState(false);
-  const searchData = JSON.parse(sessionStorage.getItem("hotelData"));
+  // const searchData = JSON.parse(sessionStorage.getItem("hotelData"));
   // // console.log(searchData);
 
   const [hotelcityList, setHotelCityList] = useState([]);
-  const searchParams = searchData || {};
+  
   // const datew = searchParams.checkIn;
   // // console.log(searchParams);
   const navigate = useNavigate();
-  const parseDate = (dateStr) => {
-    if (!dateStr) return null;
-    const [year, month, day] = dateStr.split("-").map(Number);
-    if (!year || !month || !day) return null; // Ensure valid numbers
-    return new Date(year, month - 1, day); // JS months are 0-based
+  const [checkInDate, setCheckInDate] = useState("");
+  const [checkOutDate, setCheckOutDate] = useState("");
+  const [searchData, setSearchData] = useState(null);
+  
+  const parseDate = (dateString) => {
+    if (!dateString) return null;
+  
+    // Split the date string to get year, month, and day
+    const [year, month, day] = dateString.split("-");
+    const parsedDate = new Date(year, month - 1, day); // Month is zero-based
+  
+    if (isNaN(parsedDate.getTime())) {
+      console.error("Invalid Date:", dateString);
+      return null;
+    }
+    
+    return parsedDate;
   };
-  const SESSION_TIMEOUT = 60 * 60 * 1000; // 1 hour in milliseconds
+  
   // Function to format date as DD-MM-YYYY
   const formatDate = (date) => {
-    if (!(date instanceof Date) || isNaN(date)) return ""; // Check if valid date
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      return "Invalid Date";
+    }
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
+    
     return `${day}-${month}-${year}`;
   };
-
-  // State initialization with parsed dates from searchParams
-  const [checkInDate, setCheckInDate] = useState(() => {
-    const parsedDate = parseDate(searchParams.checkIn);
-    return parsedDate instanceof Date && !isNaN(parsedDate) ? parsedDate : new Date();
-  });
-
-  const [checkOutDate, setCheckOutDate] = useState(() => {
-    const parsedDate = parseDate(searchParams.checkOut);
-    return parsedDate instanceof Date && !isNaN(parsedDate) ? parsedDate : new Date();
-  });
-
+  
+  
   useEffect(() => {
-    // Set a timeout to clear session and reset check-in & check-out dates
+    const updateDates = () => {
+      const storedData = JSON.parse(sessionStorage.getItem("hotelData"));
+      setSearchData(storedData);
+  
+      if (storedData) {
+        const parsedCheckIn = parseDate(storedData.checkIn);
+        const parsedCheckOut = parseDate(storedData.checkOut);
+  
+     
+        if (parsedCheckIn instanceof Date && !isNaN(parsedCheckIn)) {
+          setCheckInDate(parsedCheckIn);
+        }
+        if (parsedCheckOut instanceof Date && !isNaN(parsedCheckOut)) {
+          setCheckOutDate(parsedCheckOut);
+        }
+      }
+    };
+  
+ 
+    updateDates();
+  
+   
+    const interval = setTimeout(() => {
+      updateDates()
+    }, 5000);
+  
+  }, []); 
+  
+  // Display the formatted dates only after searchData is updated
+  useEffect(() => {
+    if (searchData) {
+      console.log("Check-In Date:", formatDate(checkInDate));
+      console.log("Check-Out Date:", formatDate(checkOutDate));
+    }
+  }, [searchData, checkInDate, checkOutDate]);
+  
+  const SESSION_TIMEOUT = 60 * 60 * 1000; // 1 hour in milliseconds
+  useEffect(() => {
     const timeout = setTimeout(() => {
-      // console.log("Session expired. Resetting dates...");
-      sessionStorage.clear(); // Clear session storage
-      setCheckInDate(new Date()); // Reset check-in date
-      setCheckOutDate(new Date()); // Reset check-out date
-    }, 1000);
-
-    return () => clearTimeout(timeout); // Cleanup on unmount
+      sessionStorage.clear();
+      setCheckInDate("");
+      setCheckOutDate("");
+    }, SESSION_TIMEOUT); // 1 hour
+    
+    return () => clearTimeout(timeout); // Cleanup on component unmount
   }, []);
-
-  // const [checkOutDate, setCheckOutDate] = useState(() => {
-  //   const parsedDate = parseDate(searchParams.checkOut);
-  //   return parsedDate instanceof Date && !isNaN(parsedDate)
-  //     ? parsedDate
-  //     : new Date();
-  // });
-
+  const searchParams = searchData || {};
+  
+  // const SESSION_TIMEOUT = 60 * 60 * 1000; // 1 hour in milliseconds
+  // useEffect(() => {
+  //   const timeout = setTimeout(() => {
+  //     sessionStorage.clear();
+  //     setCheckInDate("");
+  //     setCheckOutDate("");
+  //   }, SESSION_TIMEOUT); // 1 hour
+    
+  //   return () => clearTimeout(timeout); // Cleanup on component unmount
+  // }, []);
+  
   const [isCheckInOpen, setCheckInIsOpen] = useState(false);
   const [isCheckOutOpen, setCheckOutIsOpen] = useState(false);
   // // // console.log( 'previous date ',searchParams.checkIn);
   // // // console.log('Displayed date ',parseDate(searchParams.checkIn));
   // // // console.log('actual date displayed',formatDate(checkInDate))
   // Handle date changes
+
   const handleCheckInDateChange = (date) => {
     setCheckInDate(date);
   };

@@ -64,7 +64,7 @@ function Home() {
 
   useEffect(() => {
     const cookieData = Cookies.get("cookiesData");
-    // console.log(cookieData);
+    // // conaole.log(cookieData);
     if (cookieData) {
       const parsedCookieData = JSON.parse(cookieData);
       setInputOrigin(parsedCookieData.flightOrigin);
@@ -116,7 +116,7 @@ function Home() {
           airlineRequest,
           { headers: { "Content-Type": "text/xml" } }
         );
-        // console.log('airlineresponse', airlineresponse.data);
+        // // conaole.log('airlineresponse', airlineresponse.data);
         setAirlineResponse(airlineresponse);
       } catch (error) {
         console.error(error);
@@ -141,15 +141,15 @@ function Home() {
             </util:ReferenceDataRetrieveReq>
             </soapenv:Body>
         </soapenv:Envelope>`;
-        // console.log("start opo");
+        // // conaole.log("start opo");
         const airportResponse = await axios.post(
           "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest",
           airportRequest,
           { headers: { "Content-Type": "text/xml" } }
         );
-        // console.log("end opo");
+        // // conaole.log("end opo");
         setLoading(false);
-        // console.log('airportresp', airportResponse);
+        // // conaole.log('airportresp', airportResponse);
 
         setAirportResponse(airportResponse);
         parseString(
@@ -419,30 +419,30 @@ function Home() {
     const tokenTimestamp = localStorage.getItem("authTokenTimestamp");
     const currentDate = new Date();
 
-    // console.log("storedToken:", storedToken);
-    // console.log("tokenTimestamp:", tokenTimestamp);
+    // // conaole.log("storedToken:", storedToken);
+    // // conaole.log("tokenTimestamp:", tokenTimestamp);
 
     // Check if both storedToken and tokenTimestamp are available and valid
     if (storedToken && storedToken !== "null") {
-      // console.log("Token exists.");
+      // // conaole.log("Token exists.");
 
       if (tokenTimestamp) {
-        // console.log("Timestamp exists.");
+        // // conaole.log("Timestamp exists.");
 
         // Check if the stored token's timestamp matches today's date
         if (
           new Date(tokenTimestamp).toDateString() === currentDate.toDateString()
         ) {
-          console.log("Token is valid and current.");
+          // conaole.log("Token is valid and current.");
           return storedToken; // Return the stored token if valid
         } else {
-          console.log("Token is expired (date mismatch).");
+          // conaole.log("Token is expired (date mismatch).");
         }
       } else {
-        console.log("Timestamp is missing, fetching new token...");
+        // conaole.log("Timestamp is missing, fetching new token...");
       }
     } else {
-      console.log("Token is missing, fetching new token...");
+      // conaole.log("Token is missing, fetching new token...");
     }
 
     const authPayload = {
@@ -463,13 +463,13 @@ function Home() {
           },
         }
       );
-      // console.log("authResponse", authResponse.data);
+      // // conaole.log("authResponse", authResponse.data);
 
       const newToken = authResponse.data.TokenId;
       localStorage.setItem("authToken", newToken);
       localStorage.setItem("authTokenTimestamp", currentDate.toISOString());
 
-      // console.log("New token saved:", newToken);
+      // // conaole.log("New token saved:", newToken);
       return newToken;
     } catch (error) {
       console.error("Error fetching token:", error);
@@ -487,7 +487,7 @@ function Home() {
 
     // Use cached token if it's valid
     if (storedToken && storedExpiration && now < Number(storedExpiration)) {
-      //   console.log('Using cached token');
+      //   // conaole.log('Using cached token');
       return storedToken;
     }
 
@@ -514,7 +514,7 @@ function Home() {
       localStorage.setItem(tokenKey, token);
       localStorage.setItem(expirationKey, expirationTime.toString());
 
-      //   console.log('Access token fetched successfully:', token);
+      //   // conaole.log('Access token fetched successfully:', token);
       return token;
     } catch (error) {
       console.error("Failed to fetch access token:", error.message);
@@ -761,7 +761,7 @@ function Home() {
           soapEnvelope,
           { headers: { "Content-Type": "text/xml" } }
         );
-        // console.log("searchresponse", response);
+        // // conaole.log("searchresponse", response);
         // console.timeEnd("API Call");
 
         const requestBody = {
@@ -795,7 +795,7 @@ function Home() {
             },
           },
         };
-        //   console.log('requestbody', requestBody);
+        //   // conaole.log('requestbody', requestBody);
         const endpoint = `${baseURL}/${version}/air/catalog/search/catalogproductofferings`;
 
         const requestBdy = {
@@ -803,11 +803,11 @@ function Home() {
           endpoint: endpoint,
         };
 
-        //   console.log('requestbody', requestBody);
+        //   // conaole.log('requestbody', requestBody);
         let token;
         try {
           token = await getAccessToken(); // Call your token function
-          // console.log('token', token);
+          // // conaole.log('token', token);
         } catch (error) {
           console.error("Error fetching token:", error.message);
           return;
@@ -825,7 +825,7 @@ function Home() {
         //     "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeNDCApiRequest",
         //     formBody
         // );
-        // console.log('ndcresponse', ndcresponse);
+        // // conaole.log('ndcresponse', ndcresponse);
         console.time("redirect");
         const responseData = {
           responsedata: response.data,
@@ -846,7 +846,7 @@ function Home() {
           fromcotrav: "1",
         };
         console.timeEnd("redirect");
-        // console.log('responsedata', responseData);
+        // // conaole.log('responsedata', responseData);
         navigate("/SearchFlight", { state: { responseData } });
       } catch (error) {
         // ErrorLogger.logError('search_api',soapEnvelope,error);
@@ -865,7 +865,7 @@ function Home() {
   };
   const [loader, setLoader]= useState(false);
   // const [formActual, setformActual] = useState(null);
-  // console.log('form', formActual);
+  // // conaole.log('form', formActual);
   const [activeForm, setActiveForm] = useState("flight"); // Default form is shown initially
   const [activeTab, setActiveTab] = useState("flight");
   const handleIconClick = (type) => {
@@ -901,7 +901,7 @@ function Home() {
         }
 
         const data = await response.json();
-        console.log("API Response:", data);
+        // conaole.log("API Response:", data);
 
         if (data.Status.Code === 200) {
           const cityList = data.CityList || [];
@@ -927,6 +927,7 @@ function Home() {
     }
   }, []);
 
+  
   // Handle city search and filter
   const handleInputChange = (e) => {
     const searchValue = e.target.value.toLowerCase();
@@ -944,25 +945,100 @@ function Home() {
     setFilteredCities(filtered);
     setShowDropdown(filtered.length > 0);
   };
+    // Handle city selection
+    const handleCitySelect = (cityName) => {
+      setSelectedCity(cityName);
+      setShowDropdown(false);
+    };
 
-  // Handle city selection
-  const handleCitySelect = (cityName) => {
-    setSelectedCity(cityName);
-    setShowDropdown(false);
-  };
+    const [companyList, setCompanyList] = useState([]); // List of companies
+    const [filteredCompany, setFilteredCompany] = useState([]); // Filtered companies for search
+    const [showDropdown2, setShowDropdown2] = useState(false); // Controls dropdown visibility
+    const [selectedCompany, setSelectedCompany] = useState(""); // Selected company
+  
+    useEffect(() => {
+      const fetchCompanies = async () => {
+        try {
+          const response = await fetch("https://demo.taxivaxi.com/api/getAllSBTCompanies", {
+            method: "GET",
+            headers: {
+              // "Content-Type": "application/json",
+              'Origin': '*', // Change to your React app's origin
+              'Access-Control-Request-Method': 'POST', // The method you're going to use
+            },
+          });
+      
+          // console.log("Response Status:", response.status);
+      
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+      
+          const data = await response.json();
+          // console.log("API Response:", data);
+      
+          if (data.success === "1" && Array.isArray(data.response.Companies)) {
+            setCompanyList(data.response.Companies);
+            setFilteredCompany(data.response.Companies);
+            sessionStorage.setItem("companyList", JSON.stringify(data.response.Companies));
+          } else {
+            console.error("API Error: No companies found or invalid response format");
+          }
+        } catch (error) {
+          console.error("Fetch Error:", error);
+        }
+      };
+      
+  
+      // Check session storage before fetching
+      // const storedCompanies = sessionStorage.getItem("companyList");
+      // if (storedCompanies) {
+      //   setCompanyList(JSON.parse(storedCompanies));
+      //   setFilteredCompany(JSON.parse(storedCompanies));
+      // } else {
+      //   fetchCompanies();
+      // }
+      fetchCompanies();
+    }, []); // Runs only once when component mounts
+  
+    const handleInputChange2 = (e) => {
+      const searchValue = e.target.value;
+      
+      if (!searchValue.trim()) {
+        setFilteredCompany([]);
+        setShowDropdown2(false);
+        return;
+      }
+    
+      const filtered = companyList.filter((company) =>
+        company?.corporate_name?.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    
+      setFilteredCompany(filtered);
+      setShowDropdown2(filtered.length > 0);
+    };
+    
+    const handleSelectCompany = (company) => {
+      setSelectedCompany(company); // Store entire company object
+      sessionStorage.setItem("selectedCompany", JSON.stringify(company)); // Store in sessionStorage
+      setShowDropdown2(false); // Hide dropdown after selection
+    };
+    
+  
+    // const handleCompanySelect = (companyName) => {
+    //   setSelectedCompany(companyName);
+    //   setShowDropdown2(false);
+    // };
+  
+    console.log("Filtered Companies:", selectedCompany);
 
+  
   useLayoutEffect(() => {
     const fetchCity = async () => {
       if (filteredCities.length === 0) return; // Ensure filteredCities has data
 
       const cityCode = filteredCities[0]?.Code; // Get the first city's code
-      console.log(cityCode);
-      // if (!cityCode) return; // Avoid API call if cityCode is null
-
-      // console.log("Fetching hotels for City Code:", cityCode);
-
-      // console.log('TB Hotel Code List')
-
+      
       try {
         const response = await fetch(
           "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesList",
@@ -984,7 +1060,7 @@ function Home() {
         }
 
         const data = await response.json();
-        // console.log("Hotel :", data);
+        // // conaole.log("Hotel :", data);
 
         if (data.Status.Code === 200) {
           const hotels = data.Hotels || []; // Fix: Access Hotels from data.response
@@ -992,7 +1068,7 @@ function Home() {
 
           if (hotels.length > 0) {
             const codes = hotels.map((hotel) => hotel.HotelCode);
-            // console.log(codes);
+            // // conaole.log(codes);
             setHotelCodes(codes);
           } else {
             console.warn("No hotels found in response.");
@@ -1011,7 +1087,11 @@ function Home() {
     fetchCity();
   }, [filteredCities]); // Runs whenever `filteredCities` changes
 
-  // console.log(hotelCodes);
+    
+
+
+  
+  // // conaole.log(hotelCodes);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Control dropdown visibility
   const [roomCount, setRoomCount] = useState(1);
@@ -1047,13 +1127,13 @@ function Home() {
       checkInDate: date,
     }));
   };
+
   const handleCheckOutDateChange = (date) => {
     setFormData((prevData) => ({
       ...prevData,
       checkOutDate: date,
     }));
   };
-
   const formatDate1 = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
@@ -1075,7 +1155,7 @@ function Home() {
     const Children = roomchildCount;
     const ChildAge = childrenAges;
     const CityCode = hotelCodes.toString();
-    console.log(CityCode);
+    // conaole.log(CityCode);
 
     const requestBody = {
       CheckIn: checkIn,
@@ -1101,10 +1181,10 @@ function Home() {
       },
     };
     const hotel= hotelcityList;
-    console.log(hotel);
+    // conaole.log(hotel);
     
 
-    // console.log("Authorization Header:", `Basic ${btoa("Bai:Bai@12345")}`);
+    // // conaole.log("Authorization Header:", `Basic ${btoa("Bai:Bai@12345")}`);
 
     try {
      
@@ -1127,10 +1207,10 @@ function Home() {
       }
 
       const data = await response.json();
-      console.log("Hotel data:", data);
+      // conaole.log("Hotel data:", data);
       if (data.Status.Code === 200) {
         setHotelCityList(data.HotelResult || []);
-        // console.log("asd");
+        // // conaole.log("asd");
       
         // Prepare the data to store in sessionStorage
         const searchData = {
@@ -1145,13 +1225,14 @@ function Home() {
           "Children":Children,
           "ChildAge":ChildAge,
           "CityCode":CityCode,
+          "filteredCompany": JSON.parse(sessionStorage.getItem("selectedCompany")) || null, // Retrieve full company data,
           "filteredCities":filteredCities,
         };
         // Store the data in sessionStorage
         sessionStorage.setItem('hotelData', JSON.stringify(searchParams));
         sessionStorage.setItem('hotel', JSON.stringify(hotel));
         sessionStorage.setItem('hotelSearchData', JSON.stringify(searchData));
-      
+    
         // Navigate to SearchHotel with the state
         navigate("/SearchHotel", {
           state: searchData,
@@ -1272,7 +1353,7 @@ function Home() {
                               src={
                                 activeForm === "flight"
                                   ? "../img/Flight_Hover.svg" // Image to show when activeForm is "flight"
-                                  : "../img/Flight-01.png"     // Default image
+                                  : "../img/Flight_01.svg"     // Default image
                               }
                               alt="Flight Image"
                               className="w-8 h-8"
@@ -1307,7 +1388,7 @@ function Home() {
                               src={
                                 activeForm === "hotel"
                                   ? "../img/Hotel_Hover.svg" // Image to show when activeForm is "flight"
-                                  : "../img/Hotel-02.png"     // Default image
+                                  : "../img/Hotel_01.svg"     // Default image
                               }
                               // src="../img/Hotel-02.png"
                               alt="Hotel Image"
@@ -2143,6 +2224,55 @@ function Home() {
                             <div className=" hotel-box ">
                               <div className="hotel-container flex flex-cols ">
                                 {/* Input for City, Property, or Location */}
+                                <div className="from-hotel-group">
+      <div className="location-headers">Company Name</div>
+      <div className="location-details relative">
+        <input
+          type="text"
+          className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+          placeholder="Select Company"
+          value={selectedCompany}
+          onChange={handleInputChange2}
+          onFocus={() => setShowDropdown2(true)}
+          onBlur={() => setTimeout(() => setShowDropdown2(false), 200)}
+        />
+
+        {/* {showDropdown2 && (
+          <div className="dropdown-menu absolute w-full bg-white shadow-md rounded-lg max-h-48 overflow-auto mt-1">
+            {filteredCompany.length > 0 ? (
+              filteredCompany.map((company) => (
+                <div
+                  key={company.id}
+                  className="dropdown-item px-3 py-2 cursor-pointer hover:bg-gray-200"
+                  onClick={() => handleCompanySelect(company.corporate_name)}
+                >
+                  {company.corporate_name}
+                </div>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-gray-500">No companies found</div>
+            )}
+          </div>
+        )} */}
+         {showDropdown2 && (
+    <div className="absolute w-full bg-white shadow-md rounded-lg max-h-48 overflow-auto mt-1 border border-gray-300 z-50">
+      {filteredCompany.length > 0 ? (
+        filteredCompany.map((company, index) => (
+          <div
+            key={company.id || index}
+            className="px-3 py-2 cursor-pointer hover:bg-gray-200"
+            onClick={() => handleSelectCompany(company.corporate_name)}
+          >
+            {company.corporate_name}
+          </div>
+        ))
+      ) : (
+        <div className="px-3 py-2 text-gray-500">No companies found</div>
+      )}
+    </div>
+  )}
+      </div>
+    </div>
                                 <div className="from-hotel-group">
         <div className="location-headers">
           City, Property Name or Location

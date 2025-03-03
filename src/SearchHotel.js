@@ -19,8 +19,10 @@ import {
 
 const SearchHotel = () => {
   const location = useLocation();
+  // window.location.reload();
   const navigate = useNavigate();
   const [loader, setLoader] = useState(false);
+  const [hoveredHotel, setHoveredHotel] = useState("");
 
   const searchParams = JSON.parse(sessionStorage.getItem("hotelData")) || {};
   const hotelData = JSON.parse(sessionStorage.getItem("hotel")) || {};
@@ -246,7 +248,71 @@ const SearchHotel = () => {
   // Function to toggle modal visibility
   const toggleModal = () => setIsModalOpen(!isModalOpen);
   // Function to remove a hotel from the modal
+  const [formData, setFormData] = useState({
+    clientName: searchParams.filteredCompany,
+    spocName: "",
+    spocEmail: "",
+    additionalEmail: "",
+    remark: "",
+  });
+  
+  const [errors, setErrors] = useState({
+    clientName: "",
+    spocName: "",
+    spocEmail: "",
+    additionalEmail: "",
+    remark: "",
+  });
+  
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = { clientName: "", spocName: "", spocEmail: "", additionalEmail: "", remark: "" };
+  
+    if (!formData.clientName.trim()) {
+      newErrors.clientName = "Client Name is required";
+      isValid = false;
+    }
+    if (!formData.spocName.trim()) {
+      newErrors.spocName = "SPOC Name is required";
+      isValid = false;
+    }
+    if (!formData.spocEmail.trim()) {
+      newErrors.spocEmail = "SPOC Email is required";
+      isValid = false;
+    } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.spocEmail)) {
+      newErrors.spocEmail = "Enter a valid email";
+      isValid = false;
+    }
+    if (formData.additionalEmail && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.additionalEmail)) {
+      newErrors.additionalEmail = "Enter a valid email";
+      isValid = false;
+    }
+    // if (!formData.remark.trim()) {
+    //   newErrors.remark = "Remark is required";
+    //   isValid = false;
+    // }
+  
+    setErrors(newErrors);
+    return isValid;
+  };
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    setFormData({ ...formData, [name]: value });
 
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+};
+
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      console.log("Form Submitted:", formData);
+      toggleModal(); // Close modal on successful submission
+    }
+  };
+  
   return (
     <>
       {loader ? (
@@ -625,12 +691,43 @@ const SearchHotel = () => {
                             {renderStars(hotel.HotelRating)}
                           </div>
 
-                          <span className="text-lg font-semibold hotel-form-text-color">
-                            ₹ {hotel.Rooms?.[0]?.TotalFare || "N/A"}
-                          </span>
-                          <span className="text-xs">
-                            + ₹ {hotel.Rooms?.[0]?.TotalTax || "0"} taxes & fees
-                          </span>
+                          <div
+                            className="relative text-right"
+                            onMouseEnter={() =>
+                              setHoveredHotel(hotel.HotelCode)
+                            }
+                            onMouseLeave={() => setHoveredHotel(null)}
+                          >
+                            <span className="text-lg font-semibold hotel-form-text-color block">
+                              ₹ {hotel.Rooms?.[0]?.TotalFare || "N/A"}
+                            </span>
+                            <span className="text-xs block">
+                              + ₹ {hotel.Rooms?.[0]?.TotalTax || "0"} taxes &
+                              fees
+                            </span>
+                            {hoveredHotel === hotel.HotelCode && (
+                              <div className="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-lg p-3 border border-gray-300 z-10 animate-fade-in">
+                                {/* <h6 className="font-semibold text-gray-700 border-b pb-1">
+        Day Rates:
+      </h6> */}
+                                <ul className="mt-2 text-sm text-gray-600 space-y-1">
+                                  {hotel.Rooms[0].DayRates[0]?.map(
+                                    (rate, index) => (
+                                      <li
+                                        key={index}
+                                        className="flex justify-between"
+                                      >
+                                        <span>Day {index + 1}:</span>
+                                        <span className="font-medium text-black">
+                                          ₹ {rate.BasePrice}
+                                        </span>
+                                      </li>
+                                    )
+                                  )}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
 
                           <div className="flex gap-3 mt-5 ">
                             {/* <button className="border-2 w-20 h-7 border-[#785ef7] text-[#785ef7] bg-transparent px-2 rounded-md text-xs transition duration-300 hover:bg-[#785ef7]">
@@ -672,7 +769,7 @@ const SearchHotel = () => {
                 ) : (
                   <p>No hotels found</p>
                 )}
-              
+
                 {selectedHotels.length > 0 && (
                   <div
                     className="fixed bottom-0 right-0 mb-2 ml-2 bg-white  hotel_booking_cards shadow-md justify-end h-auto"
@@ -737,92 +834,93 @@ const SearchHotel = () => {
                     </div>
                   </div>
                 )}
-                {isModalOpen && (
-                  <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-                    <div className="bg-white rounded-lg shadow-lg w-1/2">
-                      <div className="flex justify-between items-center  pb-2 modal2 px-4 py-3">
-                        <h2 className="text-xl font-semibold ">Share With</h2>
-                        <button
-                          onClick={toggleModal}
-                          className="text-gray-500 hover:text-gray-700"
-                        >
-                          <img src="../img/cros.png" className="w-4 h-4"></img>
-                        </button>
-                      </div>
-                      <div className="py-3 px-4">
-                        <form className="space-y-5">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <label htmlFor="gridEmail" className="text-sm">
-                                Client Name
-                              </label>
-                              <input
-                                id="gridEmail"
-                                type="text"
-                                placeholder="Enter Client Name"
-                                className="frmTextInput2"
-                              />
-                            </div>
-                            <div>
-                              <label htmlFor="gridPassword" className="text-sm">
-                                SPOC Name
-                              </label>
-                              <input
-                                id="gridPassword"
-                                type="text"
-                                placeholder="spoc name"
-                                className="frmTextInput2"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label htmlFor="gridAddress1" className="text-sm">
-                              SPOC Email
-                            </label>
-                            <input
-                              id="gridAddress1"
-                              type="email"
-                              placeholder="Enter Email"
-                              className="frmTextInput2"
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="gridAddress2" className="text-sm">
-                              {" "}
-                              Additional Email
-                            </label>
-                            <input
-                              id="gridAddress2"
-                              type="text"
-                              placeholder="Enter Mail"
-                              className="frmTextInput2"
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="gridAddress2" className="text-sm">
-                              Remark
-                            </label>
-                            <input
-                              id="gridAddress2"
-                              type="text"
-                              className="frmTextAreaInput2"
-                            />
-                          </div>
-
-                          <div className="flex justify-end">
-                            <button
-                              onClick={toggleModal}
-                              className="bg-[#785ef7] text-white px-3 py-1 text-sm"
-                            >
-                              SEND
-                            </button>
-                          </div>
-                        </form>
-                        {/* Add share options here */}
-                      </div>
-                    </div>
-                  </div>
-                )}
+               {isModalOpen && (
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-lg w-1/2">
+        <div className="flex justify-between items-center pb-2 modal2 px-4 py-3">
+          <h2 className="text-xl font-semibold">Share With</h2>
+          <button onClick={toggleModal} className="text-gray-500 hover:text-gray-700">
+            <img src="../img/cros.png" className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="py-3 px-4">
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="clientName" className="text-sm">Client Name</label>
+                <input
+                  id="clientName"
+                  name="clientName"
+                  type="text"
+                  placeholder="Enter Client Name"
+                  className="frmTextInput2"
+                  value={formData.clientName}
+                  onChange={handleChange}
+                />
+                {errors.clientName && <p className="text-red-500 text-xs">{errors.clientName}</p>}
+              </div>
+              <div>
+                <label htmlFor="spocName" className="text-sm">SPOC Name</label>
+                <input
+                  id="spocName"
+                  name="spocName"
+                  type="text"
+                  placeholder="SPOC Name"
+                  className="frmTextInput2"
+                  value={formData.spocName}
+                  onChange={handleChange}
+                />
+                {errors.spocName && <p className="text-red-500 text-xs">{errors.spocName}</p>}
+              </div>
+            </div>
+            <div>
+              <label htmlFor="spocEmail" className="text-sm">Approver Email</label>
+              <input
+                id="spocEmail"
+                name="spocEmail"
+                type="email"
+                placeholder="Enter Email"
+                className="frmTextInput2"
+                value={formData.spocEmail}
+                onChange={handleChange}
+              />
+              {errors.spocEmail && <p className="text-red-500 text-xs">{errors.spocEmail}</p>}
+            </div>
+            <div>
+              <label htmlFor="additionalEmail" className="text-sm">Additional Email</label>
+              <input
+                id="additionalEmail"
+                name="additionalEmail"
+                type="text"
+                placeholder="Enter Email"
+                className="frmTextInput2"
+                value={formData.additionalEmail}
+                onChange={handleChange}
+              />
+              {errors.additionalEmail && <p className="text-red-500 text-xs">{errors.additionalEmail}</p>}
+            </div>
+            <div>
+              <label htmlFor="remark" className="text-sm">Remark</label>
+              <input
+                id="remark"
+                name="remark"
+                type="text"
+                className="frmTextAreaInput2"
+                value={formData.remark}
+                onChange={handleChange}
+              />
+              {errors.remark && <p className="text-red-500 text-xs">{errors.remark}</p>}
+            </div>
+            <div className="flex justify-end">
+              <button type="submit" className="bg-[#785ef7] text-white px-3 py-1 text-sm">
+                SEND
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  )}
               </div>
             </div>
           </div>

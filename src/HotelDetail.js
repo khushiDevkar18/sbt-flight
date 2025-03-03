@@ -306,7 +306,7 @@ const HotelDetails = () => {
                       </div> */}
 
                       <div className="flex gap-3">
-                        <div className="border  w-25 hotel_button_color text-black flex items-center gap-2 p-2 rounded-md">
+                        <div className="border  w-25 cursor-pointer hotel_button_color text-black flex items-center gap-2 p-2 rounded-md">
                           <img
                             src="../img/foodicon.png"
                             alt="food"
@@ -315,14 +315,14 @@ const HotelDetails = () => {
                           {/* Replace with an actual icon */}
                           <span className="text-sm">Food And Dining</span>
                         </div>
-                        <div className="border  w-25  text-black flex items-center gap-2 p-2 rounded-md hotel_button_color" onClick={() => setShowModal3(true)}>
+                        <div className="border  w-25  cursor-pointer text-black flex items-center gap-2 p-2 rounded-md hotel_button_color" onClick={() => setShowModal3(true)}>
                           <img
                             src="../img/location.png"
                             alt="map"
                             className="w-5 h-5"
                           />
                           {/* Replace with an actual icon */}
-                          <span className="text-sm" >Location</span>
+                          <span className="text-sm " >Location</span>
                         </div>
                         {showModal3 && (
                                   <Modal
@@ -479,7 +479,7 @@ const HotelDetails = () => {
                               </div>
 
                               <div
-                                className="flex items-center gap-2"
+                                className="flex items-center gap-2 cursor-pointer"
                                 onMouseEnter={() => setShowRates(true)}
                                 onMouseLeave={() => setShowRates(false)}
                               >
@@ -493,9 +493,9 @@ const HotelDetails = () => {
                               </div>
                               {showRates && (
                                   <div className="absolute left-0 mt-2 w-60 bg-white shadow-lg rounded-lg p-3 border border-gray-300 z-10 animate-fade-in">
-                                    <h6 className="font-semibold text-gray-700 border-b pb-1">
+                                    {/* <h6 className="font-semibold text-gray-700 border-b pb-1">
                                       Day Rates:
-                                    </h6>
+                                    </h6> */}
                                     <ul className="mt-2 text-sm text-gray-600 space-y-1">
                                       {hotel.Rooms[0].DayRates[0]?.map(
                                         (rate, index) => (
