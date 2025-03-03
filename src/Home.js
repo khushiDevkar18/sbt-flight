@@ -15,6 +15,7 @@ function Home() {
     const [loading, setLoading] = useState(true);
     const searchRef = useRef(null);
     const [airlineData, setAirlineResponse] = useState(null);
+    // console.log('airlinedata', airlineData);
     const [airportData, setAirportResponse] = useState(null);
 
     const [inputOrigin, setInputOrigin] = useState(() => {
@@ -48,11 +49,17 @@ function Home() {
     const location = useLocation();
     const [isseaarchresponse, setSearchresponse] = useState(false);
     const [companies, setCompanies] = useState([]);
+    // console.log("companies", companies);
     const [inputCompany, setInputCompany] = useState(""); // Display selected company name
     const [adminid, setAdminid] = useState(""); 
     const [showDropdown, setShowDropdown] = useState(false);
     const [ClientMarkupDetails, setClientMarkupDetails] = useState("");
     // console.log('ClientMarkupDetails', ClientMarkupDetails);
+
+    const Targetbranch = 'P7206253';
+    // console.log(Targetbranch);
+    // test TargetBranch: P7206253
+    // live TargetBranch: P4451438
 
     useEffect(() => {
         
@@ -103,94 +110,89 @@ function Home() {
     }, []);
     
     useEffect(() => {
-       
         const makeAirlineRequest = async () => {
-            // test TargetBranch: P7206253
-            // live TargetBranch: P4451438
-        try {
-            const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
-            <soapenv:Header/>
-            <soapenv:Body>
-                <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
-                    <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
-                    <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
-                </util:ReferenceDataRetrieveReq>
-            </soapenv:Body>
-            </soapenv:Envelope>`;
-            
-            const airlineresponse = await axios.post(
-                'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest',
-                airlineRequest, { headers: { 'Content-Type': 'text/xml'}
-                }
-            );
-            // console.log('airlineresponse', airlineresponse.data);
-            setAirlineResponse(airlineresponse);
-            
-        } catch (error) {
-            console.error(error);
-            // navigate('/tryagainlater');
-            }
-            finally {
+            if (airlineData) return; // Prevent API call if data exists
+    
+            try {
+                const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
+                <soapenv:Header/>
+                <soapenv:Body>
+                    <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="${Targetbranch}" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+                        <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
+                        <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
+                    </util:ReferenceDataRetrieveReq>
+                </soapenv:Body>
+                </soapenv:Envelope>`;
+    
+                const response = await axios.post(
+                    'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest',
+                    airlineRequest,
+                    { headers: { 'Content-Type': 'text/xml' } }
+                );
+                setAirlineResponse(response);
+            } catch (error) {
+                console.error(error);
+            } finally {
                 setLoading(false);
             }
         };
-
+    
         const makeAirportRequest = async () => {
-        try {
-            const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
-            <soapenv:Header/>
-            <soapenv:Body>
-            <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AV145ER" TypeCode="CityAirport">
-                <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
-                <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
-            </util:ReferenceDataRetrieveReq>
-            </soapenv:Body>
-        </soapenv:Envelope>`;
-            console.log("start opo")
-            const airportResponse = await axios.post(
-                'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
-                airportRequest, { headers: { 'Content-Type': 'text/xml'  }}
-            );
-            console.log("end opo")
-            setLoading(false);
-            // console.log('airportresp', airportResponse);
-           
-            setAirportResponse(airportResponse);
-            parseString(airportResponse.data, { explicitArray: false }, (errs, airportresult) => {
-                if (errs) {
-                console.error('Error parsing XML:', errs);
-                return;
-                }
-                const airportlist = airportresult['SOAP:Envelope']['SOAP:Body']['util:ReferenceDataRetrieveRsp']['util:ReferenceDataItem'];
-                setAirportOptions(airportlist);
-                const tempAirportCodes = {};
-                airportlist.forEach((airport) => {
+            if (airportData) return; // Prevent API call if data exists
+    
+            try {
+                const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
+                <soapenv:Header/>
+                <soapenv:Body>
+                    <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="${Targetbranch}" TraceId="AV145ER" TypeCode="CityAirport">
+                        <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
+                        <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
+                    </util:ReferenceDataRetrieveReq>
+                </soapenv:Body>
+                </soapenv:Envelope>`;
+    
+                const response = await axios.post(
+                    'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest',
+                    airportRequest,
+                    { headers: { 'Content-Type': 'text/xml' } }
+                );
+    
+                setAirportResponse(response);
+    
+                // XML Parsing Logic
+                parseString(response.data, { explicitArray: false }, (errs, result) => {
+                    if (errs) {
+                        console.error('Error parsing XML:', errs);
+                        return;
+                    }
+                    const airportList = result['SOAP:Envelope']['SOAP:Body']['util:ReferenceDataRetrieveRsp']['util:ReferenceDataItem'];
+                    setAirportOptions(airportList);
+    
+                    const tempAirportCodes = {};
+                    airportList.forEach((airport) => {
                         tempAirportCodes[airport.$.Code] = airport.$.Name;
                     });
-                
-                setAirportOriginCodes(tempAirportCodes);
-                setAllAirportsOrigin(airportlist);
-
-                setAirportDestinationCodes(tempAirportCodes);
-                setAllAirportsDestination(airportlist);
-            });
-            
-        } catch (error) {
-            console.error(error);
-                // navigate('/tryagainlater');
-                }
-                finally {
-                    setLoading(false);
-                }
+    
+                    setAirportOriginCodes(tempAirportCodes);
+                    setAllAirportsOrigin(airportList);
+    
+                    setAirportDestinationCodes(tempAirportCodes);
+                    setAllAirportsDestination(airportList);
+                });
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
         };
-
-        const executeRequestsSequentially = async () => {
-        await makeAirlineRequest();
-        await makeAirportRequest();
-        };
-
-        executeRequestsSequentially();
-    }, []);
+    
+        if (!airlineData || !airportData) {
+            (async () => {
+                await makeAirlineRequest();
+                await makeAirportRequest();
+            })();
+        }
+    }, [airlineData, airportData]);
 
     useEffect(() => {
         Cookies.set('cookiesData', JSON.stringify(formData), { expires: 7 });
@@ -228,19 +230,21 @@ function Home() {
         };
     }, []);
     useEffect(() => {
-        axios
-          .get("https://demo.taxivaxi.com/api/getIDNameAllCompanies")
-          .then((response) => {
-            if (response.data.success === "1") {
-              setCompanies(response.data.response.Companies); // Store company data
-            } else {
-              console.error("Failed to fetch company data");
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching companies:", error);
-          });
-      }, []);
+        if (companies.length === 0) {  // Only fetch if companies array is empty
+          axios
+            .get("https://demo.taxivaxi.com/api/getIDNameAllCompanies")
+            .then((response) => {
+              if (response.data.success === "1") {
+                setCompanies(response.data.response.Companies); // Store company data
+              } else {
+                console.error("Failed to fetch company data");
+              }
+            })
+            .catch((error) => {
+              console.error("Error fetching companies:", error);
+            });
+        }
+      }, [companies]);
     
       const handleCompanySelect = (company) => { 
         setInputCompany(company.corporate_name); // Show selected name
@@ -263,7 +267,7 @@ function Home() {
         
         
             .then((response) => {
-            console.log("Client Markup Details:", response.data.data);
+            // console.log("Client Markup Details:", response.data.data);
             setClientMarkupDetails(response.data.data);
             // Handle response if needed (e.g., store in state)
             })
@@ -741,7 +745,7 @@ function Home() {
             
                 return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                     <soap:Body>
-                    <air:LowFareSearchReq TargetBranch="P4451438" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
+                    <air:LowFareSearchReq TargetBranch="${Targetbranch}" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
                         <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                         <air:SearchAirLeg>
                             <air:SearchOrigin>
@@ -783,7 +787,7 @@ function Home() {
                 // console.timeEnd("make api request");
 
             sessionStorage.setItem('searchdata', soapEnvelope);
-            // console.log('search data', soapEnvelope);
+            console.log('search data', soapEnvelope);
             // console.time("API Call");
             const response = await axios.post(
                 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
@@ -1011,24 +1015,42 @@ return (
                                         />
 
                                         {showDropdown && (
-                                        <div className="dropdown-container">
-                                            <ul className="dropdown">
-                                            {companies
-                                                .filter((company) =>
-                                                company.corporate_name.toLowerCase().includes(inputCompany.toLowerCase())
-                                                )
-                                                .map((company) => (
-                                                <li
-                                                    key={company.id}
-                                                    className="dropdown-item"
-                                                    onMouseDown={() => handleCompanySelect(company)}
-                                                    style={{ marginBottom: "7px" }} // Added space between list items
-                                                >
-                                                    {company.corporate_name}
-                                                </li>
-                                                ))}
-                                            </ul>
-                                        </div>
+                                            <div className="dropdown-container">
+                                                <ul className="dropdown" style={{ minWidth: "137px"}}>
+                                                    {companies
+                                                    .filter((company) =>
+                                                        company.corporate_name.toLowerCase().includes(inputCompany.toLowerCase())
+                                                    )
+                                                    .map((company) => (
+                                                        <li
+                                                        key={company.id}
+                                                        className="dropdown-item"
+                                                        onMouseDown={() => handleCompanySelect(company)}
+                                                        style={{
+                                                            marginBottom: "7px",
+                                                            padding: "5px",
+                                                            width: "100%", // Ensure full width usage
+                                                        }}
+                                                        >
+                                                        <div
+                                                            style={{
+                                                            display: "flex",
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center",
+                                                            // whiteSpace: "nowrap", // Prevents text from wrapping 
+                                                            }}
+                                                        >
+                                                            <span style={{ fontWeight: "600", color: "#555", flexGrow: 1, overflow: "hidden", textOverflow: "ellipsis" }}>
+                                                            {company.corporate_name}
+                                                            </span>
+                                                            <span style={{ fontWeight: "500",  minWidth: "30px", textAlign: "right" }}>
+                                                            {company.id}
+                                                            </span>
+                                                        </div>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
                                         )}
                                     </div>
                                     </div>
@@ -1436,7 +1458,7 @@ return (
                                         </div>
                                     </div>
                                 </div>
-                                <button type='button' className="search-buttonn" style={{marginLeft:'67%'}} onClick={() => { setIsOpen(false);}}>Apply</button>
+                                <button type='button' className="search-buttonn" style={{marginLeft:'69%'}} onClick={() => { setIsOpen(false);}}>Apply</button>
                                 </div>
                             </form>
                             

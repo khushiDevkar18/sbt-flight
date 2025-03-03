@@ -35,6 +35,7 @@ const BookFlow = () => {
       const [Airports, setAirportOptions] = useState([]);
       const isPriceLoadingRef = useRef(false);
 const isReservationRef = useRef(false);
+const Targetbranch = 'P7206253';
     
     useEffect(() => {
         setLoading(true);
@@ -49,7 +50,7 @@ const isReservationRef = useRef(false);
             const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
-                <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+                <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="${Targetbranch}" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
                     <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                     <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
                 </util:ReferenceDataRetrieveReq>
@@ -83,7 +84,7 @@ const isReservationRef = useRef(false);
             const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
-            <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AV145ER" TypeCode="CityAirport">
+            <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="${Targetbranch}" TraceId="AV145ER" TypeCode="CityAirport">
                 <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                 <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
             </util:ReferenceDataRetrieveReq>
@@ -232,7 +233,7 @@ const isReservationRef = useRef(false);
                     
                         return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                         <soap:Body>
-                        <air:LowFareSearchReq TargetBranch="P7206253" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
+                        <air:LowFareSearchReq TargetBranch="${Targetbranch}" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
                             <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                             <air:SearchAirLeg>
                                 <air:SearchOrigin>
@@ -406,7 +407,7 @@ const isReservationRef = useRef(false);
                             'air:AirPriceReq': {
                               '$': {
                                 'AuthorizedBy': 'TAXIVAXI',
-                                'TargetBranch': 'P7206253',
+                                'TargetBranch': Targetbranch,
                                 'FareRuleType': 'short',
                                 'TraceId': 'TVSBP001',
                                 'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -595,7 +596,7 @@ const isReservationRef = useRef(false);
                         },
                         'air:AirMerchandisingOfferAvailabilityReq': {
                           '$': {
-                            'TargetBranch': 'P7206253',
+                            'TargetBranch': Targetbranch,
                             'TraceId': 'ac191f0b9c0546659065f29389eae552'
                           },
                           'com:BillingPointOfSaleInfo': {
@@ -731,7 +732,7 @@ const isReservationRef = useRef(false);
                                     'air:AirPriceReq': {
                                         '$': {
                                         'AuthorizedBy': 'TAXIVAXI',
-                                        'TargetBranch': 'P7206253',
+                                        'TargetBranch': Targetbranch,
                                         'FareRuleType': 'short',
                                         'TraceId': 'TVSBP001',
                                         'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -905,7 +906,7 @@ const isReservationRef = useRef(false);
                                                 },
                                                 'air:AirMerchandisingOfferAvailabilityReq': {
                                                   '$': {
-                                                    'TargetBranch': 'P7206253',
+                                                    'TargetBranch': Targetbranch,
                                                     'TraceId': 'ac191f0b9c0546659065f29389eae552'
                                                   },
                                                   'com:BillingPointOfSaleInfo': {

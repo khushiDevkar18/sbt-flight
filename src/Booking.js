@@ -127,6 +127,7 @@ const Booking = () => {
     const [cancellationPolicy, setCancellationPolicy] = useState(null);
     console.log('cancellationPolicy', cancellationPolicy);
     const providerCodeRef = useRef(null);
+    const Targetbranch = 'P7206253';
     // console.log('providerCodeRef', providerCodeRef);
   
     const handleChange = (value) => {
@@ -632,7 +633,7 @@ const Booking = () => {
                     'air:AirPriceReq': {
                         '$': {
                         'AuthorizedBy': 'TAXIVAXI',
-                        'TargetBranch': 'P4451438',
+                        'TargetBranch': Targetbranch,
                         'FareRuleType': 'short',
                         'TraceId': 'TVSBP001',
                         'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -682,6 +683,7 @@ const Booking = () => {
                     pricepointXMLpc
                 );
                 console.log('response for data', response.data)
+                // return response.data;
         
                 parseString(response.data, { explicitArray: false }, (err, priceresult) => {
                     if (err) {
@@ -875,44 +877,44 @@ const Booking = () => {
                                     'EmailID': Passengers.email,
                                 }
                             },
-                            'com:SSR': [
-                                {
-                                    '$': {
-                                        'Carrier': carrier,
-                                        'FreeText': "/IND/" + clientFormGst.GSTIN + "/" + clientFormGst.company_gst_name,
-                                        'Key': generateUniqueKey(),
-                                        'Status': "HK",
-                                        'Type': "GSTN"
-                                    }
-                                },
-                                {
-                                    '$': {
-                                        'Carrier': carrier,
-                                        'FreeText': "/IND/corporate//taxivaxi.com",
-                                        'Key': generateUniqueKey(),
-                                        'Status': "HK",
-                                        'Type': "GSTE"
-                                    }
-                                },
-                                {
-                                    '$': {
-                                        'Carrier': carrier,
-                                        'FreeText': "/IND/" + clientFormGst.company_gst_contact,
-                                        'Key': generateUniqueKey(),
-                                        'Status': "HK",
-                                        'Type': "GSTP"
-                                    }
-                                },
-                                {
-                                    '$': {
-                                        'Carrier': carrier,
-                                        'FreeText': "/IND/" + clientFormGst.company_gst_address,
-                                        'Key': generateUniqueKey(),
-                                        'Status': "HK",
-                                        'Type': "GSTA"
-                                    }
-                                }
-                            ],
+                            // 'com:SSR': [
+                            //     {
+                            //         '$': {
+                            //             'Carrier': carrier,
+                            //             'FreeText': "/IND/" + clientFormGst.GSTIN + "/" + clientFormGst.company_gst_name,
+                            //             'Key': generateUniqueKey(),
+                            //             'Status': "HK",
+                            //             'Type': "GSTN"
+                            //         }
+                            //     },
+                            //     {
+                            //         '$': {
+                            //             'Carrier': carrier,
+                            //             'FreeText': "/IND/corporate//taxivaxi.com",
+                            //             'Key': generateUniqueKey(),
+                            //             'Status': "HK",
+                            //             'Type': "GSTE"
+                            //         }
+                            //     },
+                            //     {
+                            //         '$': {
+                            //             'Carrier': carrier,
+                            //             'FreeText': "/IND/" + clientFormGst.company_gst_contact,
+                            //             'Key': generateUniqueKey(),
+                            //             'Status': "HK",
+                            //             'Type': "GSTP"
+                            //         }
+                            //     },
+                            //     {
+                            //         '$': {
+                            //             'Carrier': carrier,
+                            //             'FreeText': "/IND/" + clientFormGst.company_gst_address,
+                            //             'Key': generateUniqueKey(),
+                            //             'Status': "HK",
+                            //             'Type': "GSTA"
+                            //         }
+                            //     }
+                            // ],
                             ...(Passengers.codes[index] === 'CNN' || Passengers.codes[index] === 'INF' ? {
                                 'com:NameRemark': {
                                     'com:RemarkData': Passengers.codes[index] === 'CNN' ? `PC-${calculateAge(Passengers.ageNames[index])} ${formatDate(Passengers.ageNames[index])}` : formatDate(Passengers.ageNames[index])
@@ -990,7 +992,7 @@ const Booking = () => {
                                 '$': {
                                     'AuthorizedBy': 'TAXIVAXI',
                                     'RetainReservation': 'Both',
-                                    'TargetBranch': 'P4451438',
+                                    'TargetBranch': Targetbranch,
                                     'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                     'RestrictWaitlist': 'true',
                                     'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
@@ -1578,7 +1580,7 @@ const Booking = () => {
                                 '$': {
                                     'AuthorizedBy': 'TAXIVAXI',
                                     'RetainReservation': 'Both',
-                                    'TargetBranch': 'P4451438',
+                                    'TargetBranch': Targetbranch,
                                     'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                     'RestrictWaitlist': 'true',
                                     'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
@@ -1815,7 +1817,7 @@ const Booking = () => {
                                         'soap:Body': {
                                             'univ:UniversalRecordRetrieveReq': {
                                                 '$': {
-                                                    'TargetBranch': 'P4451438',
+                                                    'TargetBranch': Targetbranch,
                                                     'RetrieveProviderReservationDetails': 'true',
                                                     'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
                                                     'xmlns:com': 'http://www.travelport.com/schema/common_v52_0',
@@ -1858,7 +1860,7 @@ const Booking = () => {
                                                     'AuthorizedBy': 'TAXIVAXI',
                                                     'RetrieveProviderReservationDetails': 'true',
                                                     'ReturnInfoOnFail': 'true',
-                                                    'TargetBranch': 'P4451438',
+                                                    'TargetBranch': Targetbranch,
                                                     'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
                                                     'xmlns:common': 'http://www.travelport.com/schema/common_v52_0',
@@ -2085,7 +2087,7 @@ const Booking = () => {
                                                 },
                                                 'univ:AirMerchandisingFulfillmentReq': {
                                                     '$': {
-                                                        'TargetBranch': 'P4451438'
+                                                        'TargetBranch': Targetbranch
                                                     },
                                                     'com:BillingPointOfSaleInfo': {
                                                         '$': {
@@ -2157,7 +2159,7 @@ const Booking = () => {
                                                 },
                                                 'univ:AirMerchandisingFulfillmentReq': {
                                                     '$': {
-                                                        'TargetBranch': 'P4451438'
+                                                        'TargetBranch': Targetbranch
                                                     },
                                                     'com:BillingPointOfSaleInfo': {
                                                         '$': {
@@ -2471,7 +2473,7 @@ const Booking = () => {
                                         '$': {
                                             'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                             'AuthorizedBy': 'TAXIVAXI',
-                                            'TargetBranch': 'P4451438',
+                                            'TargetBranch': Targetbranch,
                                             'ReturnSeatPricing': 'true',
                                             'ReturnBrandingInfo': 'true'
                                         },
@@ -2979,7 +2981,7 @@ const Booking = () => {
                                             'air:AirPriceReq': {
                                                 '$': {
                                                     'AuthorizedBy': 'TAXIVAXI',
-                                                    'TargetBranch': 'P4451438',
+                                                    'TargetBranch': Targetbranch,
                                                     'FareRuleType': 'short',
                                                     'TraceId': 'TVSBP001',
                                                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -3148,7 +3150,7 @@ const Booking = () => {
                                                             },
                                                             'air:AirMerchandisingOfferAvailabilityReq': {
                                                                 '$': {
-                                                                    'TargetBranch': 'P4451438',
+                                                                    'TargetBranch': Targetbranch,
                                                                     'TraceId': 'ac191f0b9c0546659065f29389eae552'
                                                                 },
                                                                 'com:BillingPointOfSaleInfo': {
@@ -3215,7 +3217,7 @@ const Booking = () => {
                                                                         '$': {
                                                                             'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                                                             'AuthorizedBy': 'TAXIVAXI',
-                                                                            'TargetBranch': 'P4451438',
+                                                                            'TargetBranch': Targetbranch,
                                                                             'ReturnSeatPricing': 'true',
                                                                             'ReturnBrandingInfo': 'true'
                                                                         },

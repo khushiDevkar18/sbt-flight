@@ -60,6 +60,7 @@ const SearchFlight = () => {
   const [flightDepartureDates, setflightDepartureDate] = useState('');
   const [show, setShow] = useState(false);
   const [flightOptions, setFlightOptions] = useState([]);
+  console.log('flightOptions', flightOptions);
   const [flightairoption, setFlightAirOptions] = useState([]);
   const [flightDetails, setFlightDetails] = useState([]);
   const [flightErrors, setFlighterrors] = useState([]);
@@ -72,6 +73,7 @@ const SearchFlight = () => {
   const [showModal, setShowModal] = useState(false);
   const [newpayload, setPayload] = useState("");
   const contentRef = useRef(null);
+  const Targetbranch = 'P7206253';
   // console.log('farelist', FareList);
 
   const [Airlines, setAirlineOptions] = useState([]);
@@ -102,7 +104,7 @@ const SearchFlight = () => {
           const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
               <soapenv:Header/>
               <soapenv:Body>
-                  <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+                  <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="${Targetbranch}" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
                       <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                       <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
                   </util:ReferenceDataRetrieveReq>
@@ -150,7 +152,7 @@ const SearchFlight = () => {
           const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
-              <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AV145ER" TypeCode="CityAirport">
+              <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="${Targetbranch}" TraceId="AV145ER" TypeCode="CityAirport">
                 <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                 <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
               </util:ReferenceDataRetrieveReq>
@@ -385,7 +387,7 @@ const SearchFlight = () => {
           'air:AirPriceReq': {
             '$': {
               'AuthorizedBy': 'TAXIVAXI',
-              'TargetBranch': 'P4451438',
+              'TargetBranch': Targetbranch,
               'FareRuleType': 'short',
               'TraceId': 'TVSBP001',
               'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -608,7 +610,7 @@ console.log('airPricingCommand1',airPricingCommand1);
                   },
                   'air:AirMerchandisingOfferAvailabilityReq': {
                     '$': {
-                      'TargetBranch': 'P4451438',
+                      'TargetBranch': Targetbranch,
                       'TraceId': 'ac191f0b9c0546659065f29389eae552'
                     },
                     'com:BillingPointOfSaleInfo': {
@@ -778,8 +780,9 @@ console.log('airPricingCommand1',airPricingCommand1);
   };
 
   useEffect(() => {
-    if (response) {
-      parseString(response, { explicitArray: false }, (err, result) => {
+    console.log('hello');
+    if (SearchFinalResponse) {
+      parseString(SearchFinalResponse, { explicitArray: false }, (err, result) => {
         if (err) {
           console.error('Error parsing XML:', err);
           return;
@@ -787,6 +790,7 @@ console.log('airPricingCommand1',airPricingCommand1);
         const lowFareSearchRsp = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp'];
         if (lowFareSearchRsp !== null && lowFareSearchRsp !== undefined) {
           const pricepointlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirPricePointList']['air:AirPricePoint'];
+          console.log('pricepointlist', pricepointlist);
 
           const extractedBookingInfo = [];
           const pricepointlistArray = Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist];
@@ -821,7 +825,7 @@ console.log('airPricingCommand1',airPricingCommand1);
             });
           });
 
-          // console.log("Extracted Booking Info:", extractedBookingInfo);
+          console.log("Extracted Booking Info:", extractedBookingInfo);
 
           const Segmentlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirSegmentList']['air:AirSegment'];
           const flightdetailist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FlightDetailsList']['air:FlightDetails'];
@@ -991,6 +995,7 @@ console.log('airPricingCommand1',airPricingCommand1);
   };
 
   const calculateTravelTime = (traveltimes) => {
+    console.log('traveltimes', traveltimes);
     const days = traveltimes.match(/(\d+)DT/) ? parseInt(traveltimes.match(/(\d+)DT/)[1]) : 0;
     const hours = traveltimes.match(/(\d+)H/) ? parseInt(traveltimes.match(/(\d+)H/)[1]) : 0;
     const minutes = traveltimes.match(/(\d+)M/) ? parseInt(traveltimes.match(/(\d+)M/)[1]) : 0;
@@ -1306,7 +1311,7 @@ console.log('airPricingCommand1',airPricingCommand1);
                 'air:AirPriceReq': {
                   '$': {
                     'AuthorizedBy': 'TAXIVAXI',
-                    'TargetBranch': 'P4451438',
+                    'TargetBranch': Targetbranch,
                     'FareRuleType': 'short',
                     'TraceId': 'TVSBP001',
                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -1588,7 +1593,7 @@ console.log('airPricingCommand1',airPricingCommand1);
             },
             'air:AirMerchandisingOfferAvailabilityReq': {
               '$': {
-                'TargetBranch': 'P4451438',
+                'TargetBranch': Targetbranch,
                 'TraceId': 'ac191f0b9c0546659065f29389eae552'
               },
               'com:BillingPointOfSaleInfo': {
@@ -2030,7 +2035,7 @@ console.log('airPricingCommand1',airPricingCommand1);
 
           return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                   <soap:Body>
-                <air:LowFareSearchReq TargetBranch="P4451438" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
+                <air:LowFareSearchReq TargetBranch="${Targetbranch}" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
                     <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                     <air:SearchAirLeg>
                         <air:SearchOrigin>
@@ -2070,17 +2075,83 @@ console.log('airPricingCommand1',airPricingCommand1);
           PassengerCodeINF,
         );
         sessionStorage.setItem('searchdata', soapEnvelope);
-        const username = 'Universal API/uAPI6514598558-21259b0c';
-        const password = 'tN=54gT+%Y';
-        const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
+        console.log('soap', soapEnvelope);
+
 
         const eresponse = await axios.post(
           'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest',
           soapEnvelope, { headers: { 'Content-Type': 'text/xml' } }
         );
         const eResponse = eresponse.data;
+        console.log('eResponse', eResponse);
         setSearchFinalResponse(eResponse);
 
+        // parseString(eResponse, { explicitArray: false }, (err, result) => {
+        //   if (err) {
+        //     console.error('Error parsing XML:', err);
+        //     return;
+        //   }
+        //   const lowFareSearchRsp = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp'];
+        //   if (lowFareSearchRsp !== null && lowFareSearchRsp !== undefined) {
+        //     const pricepointlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirPricePointList']['air:AirPricePoint'];
+        //     console.log('pricepointlist', pricepointlist);
+        //     const extractedBookingInfo = [];
+        //     const pricepointlistArray = Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist];
+        //     // Iterate through the AirPricePoint list
+        //     pricepointlistArray.forEach((airPricePoint) => {
+        //       const airPricingInfo = airPricePoint['air:AirPricingInfo'];
+        //       if (!airPricingInfo) return; // Skip if no AirPricingInfo is found
+  
+        //       const flightOptionsList = airPricingInfo['air:FlightOptionsList'];
+        //       if (!flightOptionsList) return; // Skip if no FlightOptionsList is found
+  
+        //       const flightOptions = flightOptionsList['air:FlightOption'];
+        //       const flightOptionArray = Array.isArray(flightOptions) ? flightOptions : [flightOptions]; // Normalize to array
+  
+        //       // Iterate through each air:FlightOption
+        //       flightOptionArray.forEach((flightOption) => {
+        //         const options = flightOption['air:Option'];
+        //         const optionsArray = Array.isArray(options) ? options : [options]; // Normalize to array
+  
+        //         // Iterate through each air:Option
+        //         optionsArray.forEach((airOption) => {
+        //           const bookingInfo = airOption['air:BookingInfo'];
+        //           const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo]; // Normalize to array
+  
+        //           // Extract the "$" part from each bookingInfo
+        //           bookingInfoArray.forEach((info) => {
+        //             if (info && info["$"]) {
+        //               extractedBookingInfo.push(info["$"]); // Push the extracted info into the result array
+        //             }
+        //           });
+        //         });
+        //       });
+        //     });
+  
+        //     console.log("Extracted Booking Info:", extractedBookingInfo);
+  
+        //     const Segmentlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirSegmentList']['air:AirSegment'];
+        //     console.log('seg', Segmentlist);
+        //     const flightdetailist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FlightDetailsList']['air:FlightDetails'];
+        //     const hosttokenlist = result?.['SOAP:Envelope']?.['SOAP:Body']?.['air:LowFareSearchRsp']?.['air:HostTokenList']?.['common_v52_0:HostToken'] || [];
+        //     const fareinfolist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FareInfoList']['air:FareInfo'];
+        //     setFlightOptions(Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist]);
+        //     setFlightAirOptions(Array.isArray(extractedBookingInfo) ? extractedBookingInfo : [extractedBookingInfo]);
+  
+        //     setFlightDetails(Array.isArray(flightdetailist) ? flightdetailist : [flightdetailist]);
+        //     setSegment(Array.isArray(Segmentlist) ? Segmentlist : [Segmentlist]);
+        //     setHostlist(Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist]);
+        //     setFarelist(Array.isArray(fareinfolist) ? fareinfolist : [fareinfolist]);
+  
+        //   } else {
+        //     const error = result['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
+  
+        //     setFlighterrors(error);
+  
+        //   }
+  
+  
+        // });
         parseString(eResponse, { explicitArray: false }, (err, result) => {
           if (err) {
             console.error('Error parsing XML:', err);
@@ -2092,13 +2163,15 @@ console.log('airPricingCommand1',airPricingCommand1);
             // console.log("pricepointlist", pricepointlist)
             const Segmentlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirSegmentList']['air:AirSegment'];
             const flightdetailist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FlightDetailsList']['air:FlightDetails'];
-            const hosttokenlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:HostTokenList']['common_v52_0:HostToken'];
+            const hosttokenlist = result?.['SOAP:Envelope']?.['SOAP:Body']?.['air:LowFareSearchRsp']?.['air:HostTokenList']?.['common_v52_0:HostToken'] || [];
             const fareinfolist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FareInfoList']['air:FareInfo'];
             setFlightOptions(Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist]);
             setFlightDetails(Array.isArray(flightdetailist) ? flightdetailist : [flightdetailist]);
             setSegment(Array.isArray(Segmentlist) ? Segmentlist : [Segmentlist]);
+            console.log("pricepointlist", pricepointlist)
             setHostlist(Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist]);
             setFarelist(Array.isArray(fareinfolist) ? fareinfolist : [fareinfolist]);
+            
           } else {
             const error = result['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
             // ErrorLogger.logError('modify_search_api',soapEnvelope,error);
@@ -2692,7 +2765,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
         <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             <soap:Body xmlns:air="http://www.travelport.com/schema/air_v52_0"
                 xmlns:com="http://www.travelport.com/schema/common_v52_0">
-                <air:AirFareRulesReq xmlns="http://www.travelport.com/schema/air_v52_0" TraceId="8eaceda4-2f16-4421-807d-67f3fd9738a2" TargetBranch="P4451438">
+                <air:AirFareRulesReq xmlns="http://www.travelport.com/schema/air_v52_0" TraceId="8eaceda4-2f16-4421-807d-67f3fd9738a2" TargetBranch="${Targetbranch}">
                     <com:BillingPointOfSaleInfo xmlns="http://www.travelport.com/schema/common_v52_0" OriginApplication="uAPI" />
                     <air:FareRuleKey FareInfoRef="${fareInfoRefKey["$"].FareInfoRef}" ProviderCode="${fareInfoRefKey["$"].ProviderCode}">
                     ${fareInfoRefKey["_"]}
@@ -2746,10 +2819,11 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
   // const [dataFound, setDataFound] = useState(false);
   const renderedSegmentRefs = useRef(new Set()); // Track already rendered segments
   const [filteredFlights, setFilteredFlights] = useState([]);
-  // console.log('filteredFlights',filteredFlights);
+  
 
   useEffect(() => {
     setFilteredFlights([]); // Clear previous flights to avoid duplicates
+    console.log('new', flightOptions);
 
     flightOptions.forEach((pricepoint, priceindex) => {
       setTimeout(() => { // Introduce a delay for incremental rendering
@@ -2782,6 +2856,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       }, priceindex * 300); // Delay each flight render
     });
   }, [flightOptions]);
+  console.log('filteredFlights',filteredFlights);
+  console.log('new11', flightOptions);
 
 
   let flightsMatched = false; 
@@ -2805,7 +2881,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                     value={formData.bookingType}
                     onChange={handleRadioChange}
                     disabled={bookingid}
-                    style={{ backgroundColor: bookingid ? "#e0e0e0" : "white", fontSize: '14px', fontWeight: '600' }}
+                    style={{ backgroundColor: bookingid ? "#e0e0e0" : "white", fontSize: '14px', fontWeight: '600', height:'40px' }}
                   >
                     <option value="oneway">One Way</option>
                     <option value="Return">Return</option>
@@ -3066,7 +3142,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                 <label htmlFor="travellerAndClass" className="lbl_input latoBold font12 blueText appendBottom5">
                   PASSENGERS &amp; CLASS
                 </label>
-                <div className="input-a" style={{ width: '250px', height: '39px', backgroundColor: bookingid ? "#e0e0e0" : "white" }}>
+                <div className="input-a" style={{ width: '250px', height: '40px', backgroundColor: bookingid ? "#e0e0e0" : "white" }}>
                   <input
                     type="text"
                     id="openpassengermodal"
@@ -3091,8 +3167,118 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                   fontsize: '12px',
                   fontfamily: 'Raleway'
                 }}>Number of infants cannot be more than adults</div>
+                <div className="search-asvanced" style={{ display: isOpen ? 'block' : 'none', marginTop:'1%', marginLeft:'-43%' }}>
+                    <div className="search-large-i">
+                        <div className="srch-tab-line no-margin-bottom">
+                            <label style={{ textAlign:'left', marginBottom:'0px' }}>Adults (12y +)</label>
+                            <p style={{color:'#7b7777', fontSize:'small', marginBottom:'1px'}}>on the day of travel</p>
+                            <div className="select-wrapper1">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
+                                    <React.Fragment key={value}>
+                                        <input
+                                            type="radio"
+                                            name="adult"
+                                            id={`adult${value}`}
+                                            value={value}
+                                            onChange={(e) => handleAdult(e.target.value)}
+                                            checked={Cookies.get('cookiesData') ? value.toString() === adultCount.toString() : value === 1}
+                                        />
+                                        <label htmlFor={`adult${value}`}>{value}</label>
+                                    </React.Fragment>
+                                ))}
+                                <input
+                                    type="radio"
+                                    name="adult"
+                                    id="adultgreater9"
+                                    value={10}
+                                    onChange={(e) => handleAdult(e.target.value)}
+                                />
+                                <label htmlFor="adultgreater9">&gt;9</label>
+                            </div>
+                        </div>
+                        <div className="row-container">
+                            <div className="srch-tab-line no-margin-bottom">
+                                <label style={{ textAlign: 'left', marginBottom: '0px' }}>Children (2y - 12y)</label>
+                                <p style={{ color: '#7b7777', fontSize: 'small', marginBottom: '1px' }}>on the day of travel</p>
+                                <div className="select-wrapper1">
+                                    {[0, 1, 2, 3, 4, 5, 6].map((value) => (
+                                        <React.Fragment key={value}>
+                                            <input
+                                                type="radio"
+                                                name="child"
+                                                id={`child${value}`}
+                                                value={value}
+                                                onChange={(e) => handleChild(e.target.value)}
+                                                checked={Cookies.get('cookiesData') ? value.toString() === childCount.toString() : value === 0}
+                                            />
+                                            <label htmlFor={`child${value}`}>{value}</label>
+                                        </React.Fragment>
+                                    ))}
+                                    <input
+                                        type="radio"
+                                        name="child"
+                                        id="childgreater6"
+                                        value={7}
+                                        onChange={(e) => handleChild(e.target.value)}
+                                    />
+                                    <label htmlFor="childgreater6">&gt;6</label>
+                                </div>
+                            </div>
+                            <div className="srch-tab-line no-margin-bottom">
+                                <label style={{ textAlign: 'left', marginBottom: '0px' }}>Infants (below 2y)</label>
+                                <p style={{ color: '#7b7777', fontSize: 'small', marginBottom: '1px' }}>on the day of travel</p>
+                                <div className="select-wrapper1">
+                                    {[0, 1, 2, 3, 4, 5, 6].map((value) => (
+                                        <React.Fragment key={value}>
+                                            <input
+                                                type="radio"
+                                                name="infant"
+                                                id={`infant${value}`}
+                                                value={value}
+                                                onChange={(e) => handleInfant(e.target.value)}
+                                                checked={Cookies.get('cookiesData') ? value.toString() === infantCount.toString() : value === 0}
+                                            />
+                                            <label htmlFor={`infant${value}`}>{value}</label>
+                                        </React.Fragment>
+                                    ))}
+                                    <input
+                                        type="radio"
+                                        name="infant"
+                                        id="infantgreater6"
+                                        value={7}
+                                        onChange={(e) => handleInfant(e.target.value)}
+                                    />
+                                    <label htmlFor="infantgreater6">&gt;6</label>
+                                </div>
+                            </div>
+                        </div>
 
-                <div className="search-asvanced" style={{ display: isOpen ? 'block' : 'none' }}>
+                    </div>
+                    {/* Travel Class Selection */}
+                    <div className="search-large-i1">
+                        <div className="srch-tab-line no-margin-bottom">
+                            <label style={{ marginBottom:'1%', textAlign:'left'}}>Choose Travel Class</label>
+                            <div className="select-wrapper1 select-wrapper2">
+                                {['Economy/Premium Economy', 'Business', 'First'].map((value) => (
+                                    <React.Fragment key={value}>
+                                        <input
+                                            type="radio"
+                                            name="classtype"
+                                            id={`classtype${value}`}
+                                            value={value}
+                                            onChange={(e) => handleClasstype(e.target.value)}
+                                            checked={cabinClass?.toString() === "Economy" && value === "Economy/Premium Economy" ? true : cabinClass?.toString() === value}
+                                        />
+                                        <label style={{lineHeight:'2'}} htmlFor={`classtype${value}`}>{value === "Economy/Premium Economy" ? value : `${value} class`}</label>
+                                    </React.Fragment>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <button type='button' className="search-buttonn" style={{marginLeft:'69%'}} onClick={() => { setIsOpen(false);}}>Apply</button>
+                    </div>
+
+                {/* <div className="search-asvanced" style={{ display: isOpen ? 'block' : 'none' }}>
                   <div className="search-large-i">
                     <div className="srch-tab-line no-margin-bottom">
                       <div className="srch-tab-line no-margin-bottom">
@@ -3207,7 +3393,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                     </div>
                   </div>
                   <div className="clear" />
-                </div>
+                </div> */}
               </div>
               <button type="submit" className="srch-btn" style={{ width: '98px', marginBottom: '-5px', height: '39px' ,fontSize:"14px"}} id="btnSearch">Search</button>
 
@@ -3818,6 +4004,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
 
                           
                             {filteredFlights.map(pricepoint => {
+                              {/* console.log('pricepoint', pricepoint); */}
                               pricepoint.price = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
                               let result = {};
                               pricepoint['air:AirPricingInfo'] && (
@@ -4301,7 +4488,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                               pricepoint.departure = calculateDepartureTime(result.travelTime);
                               pricepoint.return = calculateDepartureTime(result.return);
                               pricepoint.stops = result.stops;
-                              {/* console.log('test', pricepoint); */ }
+                              {/* console.log('test', pricepoint); */}
                               return pricepoint;
 
                             })
@@ -4332,7 +4519,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                     {/* return 0; */ }
                                 }
                               }).map((pricepoint, priceindex) => {
-                                {/* console.log('price', pricepoint); */ }
+                                {/* console.log('price', pricepoint); */}
                                 const totalPrice = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
                                 {/* console.log('totalPrice',totalPrice); */ }
                                 let result = {};
