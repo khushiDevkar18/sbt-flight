@@ -60,7 +60,7 @@ const SearchFlight = () => {
   const [flightDepartureDates, setflightDepartureDate] = useState('');
   const [show, setShow] = useState(false);
   const [flightOptions, setFlightOptions] = useState([]);
-  console.log('flightOptions', flightOptions);
+  // console.log('flightOptions', flightOptions);
   const [flightairoption, setFlightAirOptions] = useState([]);
   const [flightDetails, setFlightDetails] = useState([]);
   const [flightErrors, setFlighterrors] = useState([]);
@@ -73,7 +73,7 @@ const SearchFlight = () => {
   const [showModal, setShowModal] = useState(false);
   const [newpayload, setPayload] = useState("");
   const contentRef = useRef(null);
-  const Targetbranch = 'P7206253';
+  const Targetbranch = 'P4451438';
   // console.log('farelist', FareList);
 
   const [Airlines, setAirlineOptions] = useState([]);
@@ -452,12 +452,12 @@ const SearchFlight = () => {
           
 
           if (AirPriceRsp !== null && AirPriceRsp !== undefined) {
-            console.log('hello');
+            // console.log('hello');
             const pricereponse = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp']['air:AirPriceResult']['air:AirPricingSolution'];
             const segmentpricereponse = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp']['air:AirItinerary']['air:AirSegment'];
-            console.log('segmentpricereponse', segmentpricereponse);
+            // console.log('segmentpricereponse', segmentpricereponse);
             const comHostTokens1 = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp']['air:AirItinerary']['common_v52_0:HostToken'];
-            console.log('comHostTokens1', comHostTokens1);
+            // console.log('comHostTokens1', comHostTokens1);
             const Priceinginfoselected = pricereponse;
             // console.log('firtest', segmentpricereponse['$']['Key']);
             const airPricingInfo = pricereponse['air:AirPricingInfo'];
@@ -502,7 +502,7 @@ const SearchFlight = () => {
             console.log(airPricingCommand1);
             
 
-console.log('airPricingCommand1',airPricingCommand1);
+// console.log('airPricingCommand1',airPricingCommand1);
             const combinedArray = [];
             if (Array.isArray(airPricingInfo)) {
               if (Array.isArray(airPricingInfo[0]['air:BookingInfo'])) {
@@ -790,7 +790,7 @@ console.log('airPricingCommand1',airPricingCommand1);
         const lowFareSearchRsp = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp'];
         if (lowFareSearchRsp !== null && lowFareSearchRsp !== undefined) {
           const pricepointlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirPricePointList']['air:AirPricePoint'];
-          console.log('pricepointlist', pricepointlist);
+          // console.log('pricepointlist', pricepointlist);
 
           const extractedBookingInfo = [];
           const pricepointlistArray = Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist];
@@ -825,7 +825,7 @@ console.log('airPricingCommand1',airPricingCommand1);
             });
           });
 
-          console.log("Extracted Booking Info:", extractedBookingInfo);
+          // console.log("Extracted Booking Info:", extractedBookingInfo);
 
           const Segmentlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirSegmentList']['air:AirSegment'];
           const flightdetailist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FlightDetailsList']['air:FlightDetails'];
@@ -995,7 +995,7 @@ console.log('airPricingCommand1',airPricingCommand1);
   };
 
   const calculateTravelTime = (traveltimes) => {
-    console.log('traveltimes', traveltimes);
+    // console.log('traveltimes', traveltimes);
     const days = traveltimes.match(/(\d+)DT/) ? parseInt(traveltimes.match(/(\d+)DT/)[1]) : 0;
     const hours = traveltimes.match(/(\d+)H/) ? parseInt(traveltimes.match(/(\d+)H/)[1]) : 0;
     const minutes = traveltimes.match(/(\d+)M/) ? parseInt(traveltimes.match(/(\d+)M/)[1]) : 0;
@@ -1870,6 +1870,7 @@ console.log('airPricingCommand1',airPricingCommand1);
   };
 
   const handleSubmit = async (event) => {
+    setFlightOptions([]);
     event.preventDefault();
     setismodify(true);
     let searchfrom = event.target.searchfrom.value.trim();
@@ -2075,7 +2076,7 @@ console.log('airPricingCommand1',airPricingCommand1);
           PassengerCodeINF,
         );
         sessionStorage.setItem('searchdata', soapEnvelope);
-        console.log('soap', soapEnvelope);
+        // console.log('soap', soapEnvelope);
 
 
         const eresponse = await axios.post(
@@ -2083,8 +2084,8 @@ console.log('airPricingCommand1',airPricingCommand1);
           soapEnvelope, { headers: { 'Content-Type': 'text/xml' } }
         );
         const eResponse = eresponse.data;
-        console.log('eResponse', eResponse);
-        setSearchFinalResponse(eResponse);
+        // console.log('eResponse', eResponse);
+        // setSearchFinalResponse(eResponse);
 
         // parseString(eResponse, { explicitArray: false }, (err, result) => {
         //   if (err) {
@@ -2165,12 +2166,19 @@ console.log('airPricingCommand1',airPricingCommand1);
             const flightdetailist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FlightDetailsList']['air:FlightDetails'];
             const hosttokenlist = result?.['SOAP:Envelope']?.['SOAP:Body']?.['air:LowFareSearchRsp']?.['air:HostTokenList']?.['common_v52_0:HostToken'] || [];
             const fareinfolist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FareInfoList']['air:FareInfo'];
-            setFlightOptions(Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist]);
+            // setFlightOptions(Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist]);
+            // console.log("Before updating flightOptions:", flightOptions.length);
+
+            // setFlightOptions((prev) => [...pricepointlist]);
+            setFlightOptions([...pricepointlist]);
+
+            // console.log("After updating flightOptions:", flightOptions.length);
             setFlightDetails(Array.isArray(flightdetailist) ? flightdetailist : [flightdetailist]);
             setSegment(Array.isArray(Segmentlist) ? Segmentlist : [Segmentlist]);
-            console.log("pricepointlist", pricepointlist)
+            // console.log("pricepointlist", pricepointlist)
             setHostlist(Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist]);
             setFarelist(Array.isArray(fareinfolist) ? fareinfolist : [fareinfolist]);
+            // console.log("Parsed XML successfully");
             
           } else {
             const error = result['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
@@ -2819,11 +2827,12 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
   // const [dataFound, setDataFound] = useState(false);
   const renderedSegmentRefs = useRef(new Set()); // Track already rendered segments
   const [filteredFlights, setFilteredFlights] = useState([]);
-  
+
 
   useEffect(() => {
     setFilteredFlights([]); // Clear previous flights to avoid duplicates
-    console.log('new', flightOptions);
+    // console.log('new', flightOptions);
+    // console.log("🔥 New flightOptions detected:", flightOptions);
 
     flightOptions.forEach((pricepoint, priceindex) => {
       setTimeout(() => { // Introduce a delay for incremental rendering
@@ -2856,8 +2865,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       }, priceindex * 300); // Delay each flight render
     });
   }, [flightOptions]);
-  console.log('filteredFlights',filteredFlights);
-  console.log('new11', flightOptions);
+  // console.log('filteredFlights',filteredFlights);
+  // console.log('new11', flightOptions);
 
 
   let flightsMatched = false; 
@@ -15800,7 +15809,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         </div>
                                                                       </div>
                                                                     </div>
-                                                                    {/* {agent_id  && ( */}
+                                                                     {agent_id  && ( 
                                                                     
                                                                       <div className='buttonbook' >
                                                                       
@@ -15811,7 +15820,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                           Book Now
                                                                         </button>
                                                                       </div>
-                                                                    {/* )} */}
+                                                                    )} 
                                                                     
                                                                     <button
                                                                       className="add-btn"

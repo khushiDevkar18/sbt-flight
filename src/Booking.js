@@ -50,7 +50,7 @@ const Booking = () => {
             setSegmentParse(segmentParsee);
         }
     }, [segmentParsee]);
-    console.log('segmentParse', segmentParse);
+    // console.log('segmentParse', segmentParse);
     const packageSelectedRef = useRef(null);
     const segmentParseRef = useRef(null);
     
@@ -127,7 +127,7 @@ const Booking = () => {
     const [cancellationPolicy, setCancellationPolicy] = useState(null);
     console.log('cancellationPolicy', cancellationPolicy);
     const providerCodeRef = useRef(null);
-    const Targetbranch = 'P7206253';
+    const Targetbranch = 'P4451438';
     // console.log('providerCodeRef', providerCodeRef);
   
     const handleChange = (value) => {
@@ -877,44 +877,44 @@ const Booking = () => {
                                     'EmailID': Passengers.email,
                                 }
                             },
-                            // 'com:SSR': [
-                            //     {
-                            //         '$': {
-                            //             'Carrier': carrier,
-                            //             'FreeText': "/IND/" + clientFormGst.GSTIN + "/" + clientFormGst.company_gst_name,
-                            //             'Key': generateUniqueKey(),
-                            //             'Status': "HK",
-                            //             'Type': "GSTN"
-                            //         }
-                            //     },
-                            //     {
-                            //         '$': {
-                            //             'Carrier': carrier,
-                            //             'FreeText': "/IND/corporate//taxivaxi.com",
-                            //             'Key': generateUniqueKey(),
-                            //             'Status': "HK",
-                            //             'Type': "GSTE"
-                            //         }
-                            //     },
-                            //     {
-                            //         '$': {
-                            //             'Carrier': carrier,
-                            //             'FreeText': "/IND/" + clientFormGst.company_gst_contact,
-                            //             'Key': generateUniqueKey(),
-                            //             'Status': "HK",
-                            //             'Type': "GSTP"
-                            //         }
-                            //     },
-                            //     {
-                            //         '$': {
-                            //             'Carrier': carrier,
-                            //             'FreeText': "/IND/" + clientFormGst.company_gst_address,
-                            //             'Key': generateUniqueKey(),
-                            //             'Status': "HK",
-                            //             'Type': "GSTA"
-                            //         }
-                            //     }
-                            // ],
+                            'com:SSR': [
+                                {
+                                    '$': {
+                                        'Carrier': carrier,
+                                        'FreeText': "/IND/" + clientFormGst.GSTIN + "/" + clientFormGst.company_gst_name,
+                                        'Key': generateUniqueKey(),
+                                        'Status': "HK",
+                                        'Type': "GSTN"
+                                    }
+                                },
+                                {
+                                    '$': {
+                                        'Carrier': carrier,
+                                        'FreeText': "/IND/corporate//taxivaxi.com",
+                                        'Key': generateUniqueKey(),
+                                        'Status': "HK",
+                                        'Type': "GSTE"
+                                    }
+                                },
+                                {
+                                    '$': {
+                                        'Carrier': carrier,
+                                        'FreeText': "/IND/" + clientFormGst.company_gst_contact,
+                                        'Key': generateUniqueKey(),
+                                        'Status': "HK",
+                                        'Type': "GSTP"
+                                    }
+                                },
+                                {
+                                    '$': {
+                                        'Carrier': carrier,
+                                        'FreeText': "/IND/" + clientFormGst.company_gst_address,
+                                        'Key': generateUniqueKey(),
+                                        'Status': "HK",
+                                        'Type': "GSTA"
+                                    }
+                                }
+                            ],
                             ...(Passengers.codes[index] === 'CNN' || Passengers.codes[index] === 'INF' ? {
                                 'com:NameRemark': {
                                     'com:RemarkData': Passengers.codes[index] === 'CNN' ? `PC-${calculateAge(Passengers.ageNames[index])} ${formatDate(Passengers.ageNames[index])}` : formatDate(Passengers.ageNames[index])
@@ -1286,8 +1286,8 @@ const Booking = () => {
                 return ;
             }
             // fetchPriceData();
-            console.log('packageSelected', packageSelected);
-            console.log('segmentParse', segmentParse);
+            // console.log('packageSelected', packageSelected);
+            // console.log('segmentParse', segmentParse);
 
             const formatDate = (dateString) => {
                 const date = new Date(dateString);
@@ -2700,6 +2700,7 @@ const Booking = () => {
     // console.log('previousSelections',previousSelections);
 
     const handleseatSelectiondisplay = (seatpassenger, seatsegment, seatcode, optionalservicekey) => {
+        setCurrentIndex((prevIndex) => (prevIndex === seatresponseparse.length - 1 ? 0 : prevIndex + 1));
         // console.log('seat detail ', seatpassenger, seatsegment, seatcode, optionalservicekey);
         setseatcodeselected(seatcode);
         setseatpassengerselected(seatpassenger);

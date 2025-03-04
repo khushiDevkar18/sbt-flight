@@ -2079,7 +2079,7 @@ button.srch-btn {
 .redestination1 {
   font-size: 15px;
   display: none;
-  margin-left: 36px;
+  margin-left: 12px;
   margin-top: -5px;
 }
 
@@ -17888,7 +17888,7 @@ color: #fff;
 .booking-left .accordion div{
   margin: 0px;
 }
-.seatprevbutton{
+/* .seatprevbutton{
   margin-top: 35%;
   margin-left: 5%;
   border: 2px solid #785eff;
@@ -17914,6 +17914,45 @@ color: #fff;
     font-size: 17px;
     color: #fff;
     font-weight: 600;
+} */
+
+.seatprevbutton, .seatnextbutton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  border: 2px solid #785eff;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #785eff, #5a42e0);
+  box-shadow: 0 5px 10px rgba(120, 94, 255, 0.3);
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  font-family: 'Raleway', sans-serif;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.seatprevbutton:hover, .seatnextbutton:hover {
+  background: #5a42e0;
+  box-shadow: 0 8px 15px rgba(120, 94, 255, 0.5);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.seatprevbutton {
+  /* left: 10px; */
+  left: 26%;
+  top: 53%;
+}
+
+.seatnextbutton {
+  right: 15%;
+  top: 53%;
 }
 .rc-slider-track{
   background-color: #785eff !important; 
