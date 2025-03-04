@@ -1259,6 +1259,7 @@ function Home() {
       // });
     }
   };
+  
 
   return (
     <div className="yield-content">
@@ -1272,6 +1273,18 @@ function Home() {
             </div>
           </div>
         )}
+          {loader &&(
+            <div className="page-center-loader flex items-center justify-center">
+            <div className="big-loader flex items-center justify-center">
+            <img
+              src="../img/hotel_loader.gif"
+              alt="Loading..."
+              className="loader_size"
+            />
+            </div>
+          </div>
+)}
+   
         {/* <div id="loaderone">
                         <img src="img/loader2.gif" alt="Loader" />
                     </div> */}
@@ -2263,7 +2276,8 @@ function Home() {
             className="px-3 py-2 cursor-pointer hover:bg-gray-200"
             onClick={() => handleSelectCompany(company.corporate_name)}
           >
-            {company.corporate_name}
+          <div className="text-sm">  {company.corporate_name}</div>
+          <div className="text-xs">  ({company.corporate_code})</div>
           </div>
         ))
       ) : (

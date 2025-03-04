@@ -874,7 +874,7 @@ const SearchHotel = () => {
               </div>
             </div>
             <div>
-              <label htmlFor="spocEmail" className="text-sm">Approver Email</label>
+              <label htmlFor="spocEmail" className="text-sm">SPOC Email</label>
               <input
                 id="spocEmail"
                 name="spocEmail"
