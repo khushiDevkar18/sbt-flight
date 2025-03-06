@@ -92,7 +92,7 @@ const Booking = () => {
     const segmentArray1 = location.state && location.state.serviceData.segmentArray;
     const Passengerxml = location.state && location.state.serviceData.Passengerxml;
     const airPricingCommand = location.state && location.state.serviceData.airPricingCommand;
-    
+    const markup_price = location.state && location.state.serviceData.markup_price;
 
     const [accordion1Expanded, setAccordion1Expanded] = useState(true);
     const [accordion5Expanded, setAccordion5Expanded] = useState(false);
@@ -125,7 +125,7 @@ const Booking = () => {
     const [isreservation, setReservation] = useState(false);
     const [fareRuleText, setFareRuleText] = useState(null);
     const [cancellationPolicy, setCancellationPolicy] = useState(null);
-    console.log('cancellationPolicy', cancellationPolicy);
+    // console.log('cancellationPolicy', cancellationPolicy);
     const providerCodeRef = useRef(null);
     const Targetbranch = 'P4451438';
     // console.log('providerCodeRef', providerCodeRef);
@@ -1321,12 +1321,12 @@ const Booking = () => {
                     if (Array.isArray(reservationpricinginfo['air:TaxInfo'])) {
                         reservationpricinginfo['air:TaxInfo'].forEach(taxreservationpricinginfo => {
                             if (taxreservationpricinginfo.$.Category === 'K3') {
-                                tax_k3 += parseInt((taxreservationpricinginfo.$.Amount).replace(/[^0-9]/g, ''));
+                                tax_k3 += Math.floor(parseFloat(taxreservationpricinginfo.$.Amount).replace("INR", "").trim());
                             }
                         });
                     } else {
                         if (reservationpricinginfo['air:TaxInfo'].$.Category === 'K3') {
-                            tax_k3 += parseInt((reservationpricinginfo['air:TaxInfo'].$.Amount).replace(/[^0-9]/g, ''));
+                            tax_k3 +=Math.floor(parseFloat(reservationpricinginfo['air:TaxInfo'].$.Amount).replace("INR", "").trim());
                         }
                     }
                 });
@@ -1334,12 +1334,12 @@ const Booking = () => {
                 if (Array.isArray(packageSelected['air:AirPricingInfo']['air:TaxInfo'])) {
                     packageSelected['air:AirPricingInfo']['air:TaxInfo'].forEach(taxreservationpricinginfo => {
                         if (taxreservationpricinginfo.$.Category === 'K3') {
-                            tax_k3 += parseInt((taxreservationpricinginfo.$.Amount).replace(/[^0-9]/g, ''));
+                            tax_k3 += Math.floor(parseFloat(taxreservationpricinginfo.$.Amount).replace("INR", "").trim());
                         }
                     });
                 } else {
                     if (packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Category === 'K3') {
-                        tax_k3 += parseInt((packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount).replace(/[^0-9]/g, ''));
+                        tax_k3 += Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount).replace("INR", "").trim());
                     }
                 }
             }
@@ -1350,18 +1350,22 @@ const Booking = () => {
             let fare_type = '';
             if (packageSelected['air:AirPricingInfo']) {
                 if (packageSelected['air:AirPricingInfo']['$']['TotalPrice']) {
-                    total_price = packageSelected['air:AirPricingInfo']['$']['TotalPrice'].replace(/[^0-9]/g, '');
+                    total_price = Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['$']['TotalPrice'].replace("INR", "").trim()));
                 }
                 if (packageSelected['air:AirPricingInfo']['$']['Taxes']) {
-                    total_tax = packageSelected['air:AirPricingInfo']['$']['Taxes'].replace(/[^0-9]/g, '');
+                    total_tax = Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['$']['Taxes'].replace("INR", "").trim()));
                 }
-                if (packageSelected['air:AirPricingInfo']['$']['BasePrice']) {
-                    base_price = packageSelected['air:AirPricingInfo']['$']['BasePrice'].replace(/[^0-9]/g, '');
+                // if (packageSelected['air:AirPricingInfo']['$']['BasePrice']) {
+                //     base_price = packageSelected['air:AirPricingInfo']['$']['BasePrice'].replace(/[^0-9]/g, '');
+                // }
+                if (packageSelected["air:AirPricingInfo"]["$"]["BasePrice"]) {
+                    base_price = Math.floor(parseFloat(packageSelected["air:AirPricingInfo"]["$"]["BasePrice"].replace("INR", "").trim()));
                 }
                 if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
                     fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable']== 'true'? 'Refundable':'Non Refundable';
                 }
             }
+            console.log('base_price', base_price);
             previousSelections.forEach(seatselect => {
                 const segmentseat = seatselect.segment;
                 let seat_price = '0';
@@ -1724,25 +1728,7 @@ const Booking = () => {
                             console.error('Error parsing XML:', err);
                             return;
                         }
-                        if (providerCodeValue?.trim() === "ACH") {
-                            console.log("Condition met, navigating...");
-                            const bookingCompleteData = {
-                                reservationdata: reservationresponse.data,
-                                segmentParse: segmentParse,
-                                Passengers:Passengers,
-                                PackageSelected:packageSelected,
-                                Airports:Airports,
-                                Airlines:Airlines,
-                                adult:request.adult,
-                                child:request.child,
-                                infant:request.infant,
-                                apiairportsdata:apiairports,
-                                // ticketdata: ticketresponse.data 
-                            };
-                            console.log('bookingCompleteData', bookingCompleteData);
-                            navigate('/bookingCompleted', { state: { bookingCompleteData } });
-                            return; 
-                        }
+                        
                         console.log('condition not met');
                         const ReservationRsp = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp'];
                         if (ReservationRsp !== null && ReservationRsp !== undefined) {
@@ -1799,6 +1785,77 @@ const Booking = () => {
                                         seatDetailsFormatted[`seat_no_${flightIndex}_${passengerIndex}`] = seat.seat_no || "NA";
                                     });
                                 });
+                            }
+
+                            if (providerCodeValue?.trim() === "ACH") {
+                                console.log("Condition met, navigating...");
+                                const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3); 
+                                        const formtaxivaxiData = {
+                                            // ...formtaxivaxi,
+                                            access_token: access_token,
+                                            booking_id: bookingid,
+                                            trip_type: tripType,
+                                            fare_type:fare_type,
+                                            is_extra_baggage_included: 0,
+                                            flight_type: flightType,
+                                            total_ex_tax_fees:base_price,
+                                            total_price: total_price,
+                                            tax_and_fees: tax_excluding_k3,
+                                            gst_k3: tax_k3,
+                                            mark_up_price: 0,
+                                            no_of_stops: stopCounts,
+                                            no_of_stops_return: returnstopCounts,
+                                            no_of_seats: noOfSeats,
+                                            people_id: 'NULL',
+                                            date_change_charges: 0,
+                                            seat_charges: 0,
+                                            meal_charges: 0,
+                                            extra_baggage_charges: 0,
+                                            fast_forward_charges: 0,
+                                            vip_service_charges: 0,
+                                            pnrcode: pnrCode,
+                                            // flightDetails: segmenttaxivaxis,
+                                            ...flightDetails,
+                                            extrabaggage: 'NA',
+                                            // seatdetails: formseat,
+                                            checkedInBaggage: checkedInBaggage,
+                                            cabinBaggage: cabinBaggage,
+                                            markup: markup_price,
+                                            returns: returns,
+                                            // passengerdetails: mergedData
+                                            ...passengerDetailsFormatted,
+                                            ...seatDetailsFormatted
+                                        };
+
+                                        console.log('formtaxivaxiData', formtaxivaxiData);
+
+                                    
+
+                                    const apiLink = 'https://demo.taxivaxi.com/api/flights/assignSbtCotravFlightBooking';
+
+                                    axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
+                                        headers: {
+                                            'Content-Type': 'application/x-www-form-urlencoded',
+                                        },
+                                    }).then((response) => {
+                                        console.log("responseData", response)
+                                    })
+                                const bookingCompleteData = {
+                                    reservationdata: reservationresponse.data,
+                                    segmentParse: segmentParse,
+                                    Passengers:Passengers,
+                                    PackageSelected:packageSelected,
+                                    Airports:Airports,
+                                    Airlines:Airlines,
+                                    adult:request.adult,
+                                    child:request.child,
+                                    infant:request.infant,
+                                    apiairportsdata:apiairports,
+                                    // ticketdata: ticketresponse.data 
+                                };
+                                console.log('bookingCompleteData', bookingCompleteData);
+                                navigate('/bookingCompleted', { state: { bookingCompleteData } });
+                                return; 
                             }
 
                             const tax_and_fees = parseFloat(base_price);
@@ -1903,80 +1960,80 @@ const Booking = () => {
 
                                     // if (hasNonEmptyProperties(emptaxivaxi)) {
                                     // const sessiondata = async () => {   
-                                        // const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3); 
-                                        // const formtaxivaxiData = {
-                                        //     // ...formtaxivaxi,
-                                        //     access_token: access_token,
-                                        //     booking_id: bookingid,
-                                        //     trip_type: tripType,
-                                        //     fare_type:fare_type,
-                                        //     is_extra_baggage_included: 0,
-                                        //     flight_type: flightType,
-                                        //     total_ex_tax_fees:base_price,
-                                        //     total_price: total_price,
-                                        //     tax_and_fees: tax_excluding_k3,
-                                        //     gst_k3: tax_k3,
-                                        //     mark_up_price: 0,
-                                        //     no_of_stops: stopCounts,
-                                        //     no_of_stops_return: returnstopCounts,
-                                        //     no_of_seats: noOfSeats,
-                                        //     people_id: 'NULL',
-                                        //     date_change_charges: 0,
-                                        //     seat_charges: 0,
-                                        //     meal_charges: 0,
-                                        //     extra_baggage_charges: 0,
-                                        //     fast_forward_charges: 0,
-                                        //     vip_service_charges: 0,
-                                        //     pnrcode: pnrCode,
-                                        //     // flightDetails: segmenttaxivaxis,
-                                        //     ...flightDetails,
-                                        //     extrabaggage: 'NA',
-                                        //     // seatdetails: formseat,
-                                        //     checkedInBaggage: checkedInBaggage,
-                                        //     cabinBaggage: cabinBaggage,
-                                        //     returns: returns,
-                                        //     // passengerdetails: mergedData
-                                        //     ...passengerDetailsFormatted,
-                                        //     ...seatDetailsFormatted
-                                        // };
+                                        const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3); 
+                                        const formtaxivaxiData = {
+                                            // ...formtaxivaxi,
+                                            access_token: access_token,
+                                            booking_id: bookingid,
+                                            trip_type: tripType,
+                                            fare_type:fare_type,
+                                            is_extra_baggage_included: 0,
+                                            flight_type: flightType,
+                                            total_ex_tax_fees:base_price,
+                                            total_price: total_price,
+                                            tax_and_fees: tax_excluding_k3,
+                                            gst_k3: tax_k3,
+                                            mark_up_price: 0,
+                                            no_of_stops: stopCounts,
+                                            no_of_stops_return: returnstopCounts,
+                                            no_of_seats: noOfSeats,
+                                            people_id: 'NULL',
+                                            date_change_charges: 0,
+                                            seat_charges: 0,
+                                            meal_charges: 0,
+                                            extra_baggage_charges: 0,
+                                            fast_forward_charges: 0,
+                                            vip_service_charges: 0,
+                                            pnrcode: pnrCode,
+                                            // flightDetails: segmenttaxivaxis,
+                                            ...flightDetails,
+                                            extrabaggage: 'NA',
+                                            // seatdetails: formseat,
+                                            checkedInBaggage: checkedInBaggage,
+                                            cabinBaggage: cabinBaggage,
+                                            returns: returns,
+                                            // passengerdetails: mergedData
+                                            ...passengerDetailsFormatted,
+                                            ...seatDetailsFormatted
+                                        };
 
-                                    // console.log("ticketresponse.data", ticketresponse)
+                                    console.log("ticketresponse.data", ticketresponse)
 
-                                    // console.log('formtaxivaxiData', JSON.stringify(formtaxivaxiData));
+                                    console.log('formtaxivaxiData', JSON.stringify(formtaxivaxiData));
 
-                                    // const apiLink = 'https://demo.taxivaxi.com/api/flights/assignSbtCotravFlightBooking';
+                                    const apiLink = 'https://demo.taxivaxi.com/api/flights/assignSbtCotravFlightBooking';
 
-                                    // axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
-                                    //     headers: {
-                                    //         'Content-Type': 'application/x-www-form-urlencoded',
-                                    //     },
-                                    // })
-                                    //     .then((response) => {
-                                    //         console.log("responseData", response)
-                                    //         if (response.data.success === "1") {
-                                    //             Swal.fire({
-                                    //                 title: "Success!",
-                                    //                 text: "Booking Confirmed.",
-                                    //                 icon: "success",
-                                    //                 confirmButtonText: "OK",
-                                    //             });
-                                    //         } else {
-                                    //             Swal.fire({
-                                    //                 title: "Error!",
-                                    //                 text: response.data.error || "Something went wrong.",
-                                    //                 icon: "error",
-                                    //                 confirmButtonText: "Retry",
-                                    //             });
-                                    //         }
-                                    //     })
-                                    //     .catch((error) => {
-                                    //         Swal.fire({
-                                    //             title: "Error!",
-                                    //             text: "Something went wrong while creating the booking.",
-                                    //             icon: "error",
-                                    //             confirmButtonText: "Retry",
-                                    //         });
-                                    //     });
+                                    axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
+                                        headers: {
+                                            'Content-Type': 'application/x-www-form-urlencoded',
+                                        },
+                                    })
+                                        .then((response) => {
+                                            console.log("responseData", response)
+                                            if (response.data.success === "1") {
+                                                Swal.fire({
+                                                    title: "Success!",
+                                                    text: "Booking Confirmed.",
+                                                    icon: "success",
+                                                    confirmButtonText: "OK",
+                                                });
+                                            } else {
+                                                Swal.fire({
+                                                    title: "Error!",
+                                                    text: response.data.error || "Something went wrong.",
+                                                    icon: "error",
+                                                    confirmButtonText: "Retry",
+                                                });
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            Swal.fire({
+                                                title: "Error!",
+                                                text: "Something went wrong while creating the booking.",
+                                                icon: "error",
+                                                confirmButtonText: "Retry",
+                                            });
+                                        });
                                         const bookingCompleteData = {
                                             reservationdata: reservationresponse.data,
                                             segmentParse: segmentParse,
@@ -5250,7 +5307,7 @@ const Booking = () => {
                                                                                         name="adult_last_name[]"
                                                                                         onKeyPress={handleKeyPress}
                                                                                         data-index={passengerindex}
-                                                                                        readOnly={bookingid}
+                                                                                        // readOnly={bookingid}
                                                                                         defaultValue={
                                                                                             emptaxivaxi?.[passengerindex]?.people_name
                                                                                                 ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
@@ -6561,13 +6618,65 @@ const Booking = () => {
                                                     )}
                                                 </div> */}
                                                 <div className="chk-line">
+    {Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])
+        ? packageSelected["air:AirPricingInfo"]["air:TaxInfo"]
+              .filter((tax) => tax["$"]["Category"] === "K3") // Filter only Category K3
+              .map((tax, index) => (
+                  <div key={index} className="chk-line-item">
+                      <div className="chk-l">{tax["$"]["Category"]}</div>
+                      <div className="chk-r">
+                          {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                          {tax["$"]["Amount"].replace("INR", "")}
+                      </div>
+                  </div>
+              ))
+        : packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"] &&
+          packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"] === "K3" && ( // Check single object case
+              <div className="chk-line-item">
+                  <div className="chk-l">
+                      {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"]}
+                  </div>
+                  <div className="chk-r">
+                      {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                      {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                  </div>
+              </div>
+          )}
+</div>
+                                                
+                                            {/* <div className="chk-line">
                                                 <span className="chk-l">Total Taxes</span>
                                                 <span className="chk-r">
                                                     {packageSelected.$.ApproximateTaxes.includes('INR') ? '₹ ' : ''}
                                                     {packageSelected.$.ApproximateTaxes.replace('INR', '')}
                                                 </span>
                                                 <div className="clear" />
-                                            </div>
+                                            </div> */}
+                                            <div className="chk-line">
+    <span className="chk-l">Others</span>
+    <span className="chk-r">
+        {packageSelected.$.ApproximateTaxes.includes("INR") ? "₹ " : ""}
+        {(() => {
+            // Convert ApproximateTaxes to number
+            const approximateTaxes = parseFloat(packageSelected.$.ApproximateTaxes.replace("INR", "").trim()) || 0;
+
+            // Get the K3 tax amount
+            const k3Tax = Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])
+                ? packageSelected["air:AirPricingInfo"]["air:TaxInfo"]
+                      .filter((tax) => tax["$"]["Category"] === "K3")
+                      .reduce((sum, tax) => sum + parseFloat(tax["$"]["Amount"].replace("INR", "").trim()), 0)
+                : packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"]?.["$"]["Category"] === "K3"
+                ? parseFloat(packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "").trim())
+                : 0;
+
+            // Calculate final tax amount after subtracting K3
+            const finalTax = Math.max(approximateTaxes - k3Tax + markup_price, 0); // Ensure it's not negative
+
+            return finalTax; // Display updated tax value
+        })()}
+    </span>
+    <div className="clear" />
+</div>
                                             
 
                                         </div>
@@ -6575,8 +6684,11 @@ const Booking = () => {
                                             <div className="chk-total-l">Total Price</div>
                                             <div className="chk-total-r" style={{ fontWeight: 700 }}>
                                                 {/* ₹ 6521 */}
+                                                {/* {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                {packageSelected.$.TotalPrice.replace('INR', '')} */}
                                                 {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                {packageSelected.$.TotalPrice.replace('INR', '')}
+                                                {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price)} 
+
                                             </div>
                                             <div className="clear" />
                                         </div>

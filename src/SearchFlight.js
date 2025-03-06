@@ -299,7 +299,15 @@ const SearchFlight = () => {
         fareInfo.BookingCode === bookingCode &&
         allSegmentKeys.includes(fareInfo.SegmentRef) // Use allSegmentKeys from state for connecting flights
     );
-    // console.log("Matched Data:", matchedData);
+    // console.log("fareInfoRefKey", fareInfoRefKey);
+
+    const matchingFareInfo = FareList.find(
+      (fareInfo) => fareInfo['$'] && fareInfo['$']['Key'] === fareInfoRefKey['FareInfoRef']
+    );
+    // console.log('price', matchingFareInfo['$']['Amount']);
+    // const price = matchingFareInfo['$']['Amount'];
+    const markup_price = calculateFinalMarkup(matchingFareInfo['$']['Amount'], markupdata, cabinClass, matchingFareInfo['$']['FareFamily'], inputOrigin, flight_type );
+    console.log('markup_price', markup_price);
 
     const segmentArray = matchedData
     .flatMap((fareInfo) => {
@@ -376,7 +384,9 @@ const SearchFlight = () => {
         .filter(Boolean); // Remove nulls
     }).flat();
 
-    // console.log("Processed airPricingCommand:", airPricingCommand);
+    console.log("Processed airPricingCommand:", airPricingCommand);
+
+    //promo code : CBAII
     const builder = require('xml2js').Builder;
     var pricepointXMLpc = new builder().buildObject({
       'soap:Envelope': {
@@ -409,13 +419,22 @@ const SearchFlight = () => {
                 'ETicketability': 'Yes',
                 'FaresIndicator': "AllFares"
               },
-              'air:PermittedCabins': {
-                'com:CabinClass': {
+              'air:PromoCodes': {
+                'air:PromoCode': {
                   '$': {
-                    'Type': formData.classType,
-                  },
-                },
+                    'Code': 'CBAII',
+                    'ProviderCode' : 'ACH',
+                    'SupplierCode' : '6E'
+                  }
+                }
               },
+              // 'air:PermittedCabins': {
+              //   'com:CabinClass': {
+              //     '$': {
+              //       'Type': formData.classType,
+              //     },
+              //   },
+              // },
               'air:BrandModifiers': {
                 'air:FareFamilyDisplay': {
                   '$': {
@@ -664,6 +683,8 @@ const SearchFlight = () => {
               client_id: clientid,
               is_gst_benefit: is_gst_benefit,
               accesstoken: access_token,
+              markup_price: markup_price,
+              
               // pricepointXMLpc: pricepointXMLpc,
               airPricingCommand: airPricingCommand1,
               Passengerxml: Passengerxml,
@@ -708,6 +729,7 @@ const SearchFlight = () => {
   };
 
   const calculateFinalPrice = (totalPrice, markup, seatType, fareName, airline, flighttype) => {
+    // console.log(totalPrice, markup, seatType, fareName, airline, flighttype);
 
     // Parse markup if it's a JSON string
     if (typeof markup === "string") {
@@ -765,6 +787,55 @@ const SearchFlight = () => {
     }
 
   };
+  const calculateFinalMarkup = (totalPrice, markup, seatType, fareName, airline, flighttype) => {
+    // Parse markup if it's a JSON string
+    if (typeof markup === "string") {
+        try {
+            markup = JSON.parse(markup);
+        } catch (error) {
+            return 0; // Return 0 markup if parsing fails
+        }
+    }
+
+    // Ensure totalPrice is numeric for calculations
+    const numericPrice = parseFloat(totalPrice.replace("INR", "").trim());
+
+    if (!Array.isArray(markup)) {
+        return 0; // Return 0 if markup is not an array
+    }
+
+    // Find the applicable markup based on criteria
+    let applicableMarkup = markup.find((m) => {
+        const seatTypeMatch = m.seat_type === seatType || m.seat_type === '';
+        const fareNameMatch = !fareName || m.fare_name === fareName || m.fare_name === '' || m.fare_name == null;
+        const flightTypeMatch = !flighttype || m.flight_type === flighttype || m.flight_type === '' ;
+        const airlineMatch = !airline || m.airline_full_name === airline || m.airline_full_name === '' || m.airline_full_name == null;
+
+        return seatTypeMatch && fareNameMatch && flightTypeMatch && airlineMatch;
+    });
+
+    // Fallback to "Base Fare" if no exact match is found
+    if (!applicableMarkup) {
+        applicableMarkup = markup.find(
+            (m) => m.seat_type === seatType && m.fare_name === "Base Fare"
+        );
+    }
+
+    if (!applicableMarkup) {
+        console.warn("No applicable markup found; returning 0.");
+        return 0;
+    }
+
+    // Calculate the markup amount
+    const markupValue = parseFloat(applicableMarkup.markup_value);
+    if (applicableMarkup.markup_type === "Fixed") {
+        return markupValue; // Return fixed markup amount
+    } else if (applicableMarkup.markup_type === "Percentage") {
+        return (numericPrice * markupValue) / 100; // Return percentage markup amount
+    }
+
+    return 0; // Default to 0 if no valid markup type
+};
 
   const swapOriginAndDestination = () => {
     if (lastActionWasSwap) {
@@ -923,7 +994,7 @@ const SearchFlight = () => {
   const [selectedAirlines, setSelectedAirlines] = useState([]);
   // console.log('selectedairline', selectedAirlines);
   const [selectedreturnAirlines, setreturnSelectedAirlines] = useState([]);
-  const [selectedStops, setSelectedStops] = useState([]);
+  const [selectedStops, setSelectedStops] = useState([0]);
   const [selectedreturnStops, setreturnSelectedStops] = useState([]);
   const [selectedTimeRange, setSelectedTimeRange] = useState([]);
   // console.log('selectedTimeRange', selectedTimeRange);
@@ -964,13 +1035,20 @@ const SearchFlight = () => {
   };
 
   // Function to handle checkbox change for stops
+  // const handleStopCheckboxChange = (stops) => {
+  //   // alert(stops);
+  //   if (selectedStops.includes(stops)) {
+  //     setSelectedStops(selectedStops.filter((selected) => selected !== stops));
+  //   } else {
+  //     setSelectedStops([...selectedStops, stops]);
+  //   }
+  // };
   const handleStopCheckboxChange = (stops) => {
-    // alert(stops);
-    if (selectedStops.includes(stops)) {
-      setSelectedStops(selectedStops.filter((selected) => selected !== stops));
-    } else {
-      setSelectedStops([...selectedStops, stops]);
-    }
+    setSelectedStops((prevStops) =>
+      prevStops.includes(stops)
+        ? prevStops.filter((selected) => selected !== stops) // Remove if already selected
+        : [...prevStops, stops] // Add if not selected
+    );
   };
 
   const handlereturnStopCheckboxChange = (stops) => {
@@ -1194,7 +1272,7 @@ const SearchFlight = () => {
         var SearchPriceTotalPrice = event.target.SearchPriceTotalPrice.value;
         sessionStorage.setItem('SearchPriceTotalPrice', SearchPriceTotalPrice);
 
-        console.log('SearchPriceTotalPrice', SearchPriceTotalPrice);
+        // console.log('SearchPriceTotalPrice', SearchPriceTotalPrice);
 
         // console.log('segarr', segmentArrayJSON);
         const segmentArray = [];
@@ -1299,7 +1377,7 @@ const SearchFlight = () => {
             }
           }
 
-          setpricesegment(segmentArray);
+          // setpricesegment(segmentArray);
           sessionStorage.setItem('segmentarray', JSON.stringify(segmentArray));
           const builder = require('xml2js').Builder;
           var pricepointXMLpc = new builder().buildObject({

@@ -17616,7 +17616,7 @@ input:checked+.slider:before {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+  background-color: rgba(0, 0, 0, 0.2); /* Semi-transparent black */
   z-index: 999; /* Ensure it appears above other content */
 }
 .chk-line-item {

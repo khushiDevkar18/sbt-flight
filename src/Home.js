@@ -132,9 +132,7 @@ function Home() {
                 setAirlineResponse(response);
             } catch (error) {
                 console.error(error);
-            } finally {
-                setLoading(false);
-            }
+            } 
         };
     
         const makeAirportRequest = async () => {
@@ -181,15 +179,13 @@ function Home() {
                 });
             } catch (error) {
                 console.error(error);
-            } finally {
-                setLoading(false);
-            }
+            } 
         };
     
         if (!airlineData || !airportData) {
             (async () => {
-                await makeAirlineRequest();
-                await makeAirportRequest();
+                await Promise.all([makeAirlineRequest(), makeAirportRequest()]); // Run both requests in parallel
+                setLoading(false); // Set loading to false only after both API calls finish
             })();
         }
     }, [airlineData, airportData]);
@@ -891,7 +887,7 @@ function Home() {
                 navigate('/tryagainlater');
             }
             finally {
-                setLoading(false);
+                // setLoading(false);
             }
         }
         
