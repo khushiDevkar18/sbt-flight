@@ -13,6 +13,8 @@ import HotelPayment from './HotelPayment';
 import PageNotFound from './PageNotFound';
 import TryAgainLater from './TryAgainLater';
 import HotelSearch from './HotelSearch';
+import RowPage from './RowPage';
+import ResultNotFound from './ResultNotFound';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => {
@@ -28,12 +30,14 @@ const App = () => {
           <Route path="/bookingProcess" element={<Booking />}/>
           <Route path="/bookingCompleted" element={<BookingComplete />}/>
           <Route path="/pagenotfound" element={<PageNotFound />}/>
+          <Route path="/ResultNotFound" element={<ResultNotFound />}/>
           <Route path="/tryagainlater" element={<TryAgainLater />}/>
           <Route path="/SearchHotel" element={<SearchHotel />}/>
           <Route path="/HotelDetail" element={<HotelDetail />}/>
           <Route path="/HotelBooking" element={<HotelBooking />}/>
           <Route path="/HotelPayment" element={<HotelPayment />}/>
           <Route path="/HotelSearch" element={<HotelSearch />}/>
+          <Route path="/RowPage" element={<RowPage />}/>
           <Route path="*" element={<PageNotFound />} />
         </Routes>
         </div>

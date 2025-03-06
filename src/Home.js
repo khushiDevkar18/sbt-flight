@@ -1225,11 +1225,11 @@ function Home() {
           "Children":Children,
           "ChildAge":ChildAge,
           "CityCode":CityCode,
-          "filteredCompany": JSON.parse(sessionStorage.getItem("selectedCompany")) || null, // Retrieve full company data,
+          "corporate_name": JSON.parse(sessionStorage.getItem("selectedCompany")) || null, // Retrieve full company data,
           "filteredCities":filteredCities,
         };
         // Store the data in sessionStorage
-        sessionStorage.setItem('hotelData', JSON.stringify(searchParams));
+        sessionStorage.setItem('hotelData_header', JSON.stringify(searchParams));
         sessionStorage.setItem('hotel', JSON.stringify(hotel));
         sessionStorage.setItem('hotelSearchData', JSON.stringify(searchData));
     

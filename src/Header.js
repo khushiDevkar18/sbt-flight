@@ -48,7 +48,7 @@ const Header = () => {
   
   useEffect(() => {
     const updateDates = () => {
-      const storedData = JSON.parse(sessionStorage.getItem("hotelData"));
+      const storedData = JSON.parse(sessionStorage.getItem("hotelData_header"));
       setSearchData(storedData);
   
       if (storedData) {
@@ -243,6 +243,69 @@ useEffect(() => {
     setCityName(city.Name); // Set selected city name
     setShowDropdown(false); // Hide dropdown
   };
+  const [companyList, setCompanyList] = useState([]); // Full list of companies
+  const [filteredCompany, setFilteredCompany] = useState([]); // Filtered list
+  const [showDropdown2, setShowDropdown2] = useState(false); // Dropdown visibility
+  const [selectedCompany, setSelectedCompany] = useState(""); // Selected company
+  const [companyName, setCompanyName] = useState(""); // Input field value
+  
+  
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const response = await fetch("https://demo.taxivaxi.com/api/getAllSBTCompanies");
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+        const data = await response.json();
+        if (data.success === "1" && Array.isArray(data.response.Companies)) {
+          setCompanyList(data.response.Companies);
+          setFilteredCompany(data.response.Companies);
+          sessionStorage.setItem("companyList", JSON.stringify(data.response.Companies));
+        } else {
+          console.error("API Error: No companies found or invalid response format");
+        }
+      } catch (error) {
+        console.error("Fetch Error:", error);
+      }
+    };
+
+    // Check session storage before fetching
+    const storedCompanies = sessionStorage.getItem("companyList");
+    if (storedCompanies) {
+      setCompanyList(JSON.parse(storedCompanies));
+      setFilteredCompany(JSON.parse(storedCompanies));
+    } else {
+      fetchCompanies();
+    }
+  }, []);
+
+  useEffect(() => {
+    const corporateName = searchParams.corporate_name; // Use .get() method correctly
+    if (corporateName) {
+      setCompanyName(corporateName);
+    }
+  }, [searchParams]); // Dependency is `searchParams`, not `searchParams.corporate_name`
+
+  const handleInputChange2 = (e) => {
+    const searchValue = e.target.value;
+    setCompanyName(searchValue);
+
+    const filtered = companyList.filter((company) =>
+      company?.corporate_name?.toLowerCase().includes(searchValue.toLowerCase())
+    );
+
+    setFilteredCompany(filtered);
+    setShowDropdown2(filtered.length > 0);
+  };
+
+  const handleSelectCompany = (company) => {
+    setSelectedCompany(company.corporate_name);
+    setCompanyName(company.corporate_name); // Update input value
+    sessionStorage.setItem("selectedCompany", JSON.stringify(company));
+    setShowDropdown2(false); // Hide dropdown after selection
+  };
+
  const showHeader2 = location.pathname === "/SearchHotel" || location.pathname === "/HotelDetail";
   //  const hotelList = location.state?.hotelList || [];
   // // console.log(hotelList);
@@ -401,7 +464,7 @@ useEffect(() => {
           filteredCities,
         };
         // Store the data in sessionStorage
-        sessionStorage.setItem("hotelData", JSON.stringify(searchParams));
+        sessionStorage.setItem("hotelData_header", JSON.stringify(searchParams));
         sessionStorage.setItem("hotel", JSON.stringify(hotel));
         sessionStorage.setItem("hotelSearchData", JSON.stringify(searchData));
 
@@ -431,39 +494,20 @@ useEffect(() => {
     }
   };
   const [showHeader, setShowHeader] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
-    let timeout;
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-
-      if (scrollY === 0) {
-        // User is at the top, always show the header
-        setShowHeader(true);
-      } else if (scrollY > lastScrollY) {
-        // Scrolling down, hide the header
-        setShowHeader(false);
-      } else {
-        // Scrolling up, show the header
-        setShowHeader(true);
-      }
-
-      setLastScrollY(scrollY);
-
-      // Optional: Prevent flickering by adding a delay before hiding again
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        if (window.scrollY > 100) setShowHeader(false);
-      }, 2000); // Auto-hide after 2 seconds if not at the top
+      setShowHeader(window.scrollY === 0); // Show header only when at top
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      clearTimeout(timeout);
     };
-  }, [lastScrollY]);
+  }, []);
+
+  
+
 
   // import ErrorLogger from './ErrorLogger';
   return (
@@ -507,8 +551,8 @@ useEffect(() => {
         </section>
       </div>
       <header id="top">
-        {showHeader && (
-          <div className="header-b">
+       
+          <div className="header-b" style={{ display: showHeader ? "block" : "none" }}>
             <div className="mobile-menu">
               <nav>
                 <ul>
@@ -616,14 +660,53 @@ useEffect(() => {
               <div className="clear"></div>
             </div>
           </div>
-        )}
+        
       </header>
       {showHeader2 && (
         <header className="search-bar2" id="widgetHeader">
           <form onSubmit={handleHotelSearch}>
             <div id="search-widget" className="hsw v2">
               <div className="hsw_inner" style={{ marginLeft: "4%" }}>
-                <div className="hsw_inputBox tripTypeWrapper grid grid-cols-5 gap-10">
+                <div className="hsw_inputBox tripTypeWrapper grid grid-cols-6 gap-10">
+                <div className="hotel-form-box">
+      {/* Clickable div to trigger dropdown */}
+      <div className="flex gap-2" onClick={() => setShowDropdown2(true)}>
+        <h6 className="text-xs hotel-form-text-color">COMPANY</h6>
+        <img src="../img/downarrow.svg" className="w-3 h-4" alt="Dropdown" />
+      </div>
+
+      {/* Searchable input field */}
+      <div className="hotel-city-name-2">
+        <input
+          type="text"
+          className="font-semibold hotel-city"
+          value={companyName}
+          onChange={handleInputChange2}
+          placeholder="Search Company"
+          onFocus={() => setShowDropdown2(true)} // Show dropdown when input is focused
+        />
+      </div>
+
+      {/* Dropdown for search results */}
+      {showDropdown2 && (
+        <div className="absolute w-25 bg-white border border-gray-300 margin_City max-h-60 overflow-y-auto z-10 dropdown-size">
+          {filteredCompany.length > 0 ? (
+            filteredCompany.map((company, index) => (
+              <div
+                key={company.id || index}
+                className="px-3 py-2 cursor-pointer hover:bg-gray-200"
+                onClick={() => handleSelectCompany(company)}
+              >
+                <div className="text-sm">{company.corporate_name}</div>
+                <div className="text-xs">({company.corporate_code})</div>
+              </div>
+            ))
+          ) : (
+            <div className="px-3 py-2 text-gray-500">No companies found</div>
+          )}
+        </div>
+      )}
+    </div>
                   <div className="hotel-form-box ">
                     {/* Clickable div to trigger dropdown */}
                     <div
@@ -631,7 +714,7 @@ useEffect(() => {
                       onClick={() => setShowDropdown(true)}
                     >
                       <h6 className="text-xs hotel-form-text-color">
-                        CITY, AREA OR PROPERTY
+                        CITY OR AREA
                       </h6>
                       <img src="../img/downarrow.svg" className="w-3 h-4" />
                     </div>

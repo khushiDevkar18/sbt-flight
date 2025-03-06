@@ -14,8 +14,9 @@ import {
   Marker,
   useLoadScript,
 } from "@react-google-maps/api";
+import { Chip } from "@mui/material";
 
-// //// console.log("asdafdsfa");
+// //// // console.log("asdafdsfa");
 
 const SearchHotel = () => {
   const location = useLocation();
@@ -24,14 +25,15 @@ const SearchHotel = () => {
   const [loader, setLoader] = useState(false);
   const [hoveredHotel, setHoveredHotel] = useState("");
 
-  const searchParams = JSON.parse(sessionStorage.getItem("hotelData")) || {};
+  const searchParams =
+    JSON.parse(sessionStorage.getItem("hotelData_header")) || {};
   const hotelData = JSON.parse(sessionStorage.getItem("hotel")) || {};
   const [hotelDetails, setHotelDetails] = useState(() => {
     // Try getting data from sessionStorage first
     const storedData = sessionStorage.getItem("hotelDetails");
     return storedData ? JSON.parse(storedData) : [];
   });
-  // // // console.log("Received Hotel List:", hotelData);
+  // // // // console.log("Received Hotel List:", hotelData);
   // const [hotelList, setHotelList] = useState(() => {
   //   return JSON.parse(sessionStorage.getItem("hotelSearchData")) || [];
   // });
@@ -59,17 +61,17 @@ const SearchHotel = () => {
         ? JSON.parse(storedHotelList).hotelList
         : [];
 
-      console.log("Parsed hotelList:", hotelList);
+      // console.log("Parsed hotelList:", hotelList);
 
       if (!Array.isArray(hotelList) || hotelList.length === 0) {
-        console.log("Hotel list is empty, exiting fetchCity");
+        // console.log("Hotel list is empty, exiting fetchCity");
         return;
       }
 
       setLoader(true);
 
       const codes = hotelList.map((hotel) => hotel.HotelCode);
-      console.log("Hotel Codes:", codes);
+      // console.log("Hotel Codes:", codes);
 
       const hotelcodes = codes.toString(); // Convert array to comma-separated string
 
@@ -95,7 +97,7 @@ const SearchHotel = () => {
         }
 
         const data = await response.json();
-        console.log("Hotel data:", data);
+        // console.log("Hotel data:", data);
 
         if (data.Status && data.Status.Code === 200) {
           setHotelDetails(data.HotelDetails || []);
@@ -130,7 +132,7 @@ const SearchHotel = () => {
       };
     });
   }, [hotelDetails, hotelList, hotelData]); // Recompute only when dependencies change
-  console.log(combinedHotels);
+  // console.log(combinedHotels);
 
   const renderRatingText = (rating) => {
     if (rating > 4.5) return "Excellent";
@@ -144,8 +146,12 @@ const SearchHotel = () => {
 
     return (
       <>
-        {Array(fullStars).fill(<FaStar className="text-yellow-500" />)}
-        {Array(emptyStars).fill(<FaRegStar className="text-gray-300" />)}
+         {Array.from({ length: fullStars }, (_, index) => (
+      <FaStar key={`full-${index}`} className="text-yellow-500" />
+    ))}
+    {Array.from({ length: emptyStars }, (_, index) => (
+      <FaRegStar key={`empty-${index}`} className="text-gray-300" />
+    ))}
       </>
     );
   };
@@ -167,7 +173,7 @@ const SearchHotel = () => {
   };
 
   const defaultCenter = { lat: 40.7128, lng: -74.006 };
-  // //// console.log(storedCities);
+  // //// // console.log(storedCities);
   const [mapCenter, setMapCenter] = useState({ lat: 40.7128, lng: -74.006 });
 
   const [isOpen, setIsOpen] = useState(false);
@@ -226,7 +232,7 @@ const SearchHotel = () => {
   const [showModal1, setShowModal1] = useState(false);
   const handleHotelSelect = (hotel) => {
     const isSelected = selectedHotels.some((h) => h.name === hotel.HotelName);
-
+  
     if (isSelected) {
       setSelectedHotels((prev) =>
         prev.filter((h) => h.name !== hotel.HotelName)
@@ -236,82 +242,210 @@ const SearchHotel = () => {
         ...prev,
         {
           name: hotel.HotelName,
-          price: hotel.Rooms?.[0]?.TotalFare,
+          code: hotel.HotelCode, // Ensure this property exists in API response
+          price: hotel.Rooms?.[0]?.TotalFare || 0, // Store TotalFare properly
+          tax: hotel.Rooms?.[0]?.TotalTax || 0, // Store TotalTax properly
           cityName: hotel.CityName,
           Description: hotel.Description,
+          BookingCode: hotel.Rooms?.[0]?.BookingCode || 0,
+          // BookingCode: hotel.BookingCode,
         },
       ]);
     }
   };
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const handleShareOptions = () => {
+    const sharedHotels = selectedHotels.map(hotel => ({
+      name: hotel.name, // Use `name` from selectedHotels
+      code: hotel.code, // Use `code` from selectedHotels
+      tax: hotel.tax, // Use stored tax value
+      total: hotel.price, // Use stored price value
+      BookingCode:hotel.BookingCode,
+    }));
+  
+    console.log(sharedHotels); // This should now log correct hotel data
+    setIsModalOpen(true);
+  };
+  
+  
 
+
+const handleCancel =()=>{
+  setIsModalOpen(false);
+}
   // Function to toggle modal visibility
-  const toggleModal = () => setIsModalOpen(!isModalOpen);
+ 
   // Function to remove a hotel from the modal
+
+  // const [errors, setErrors] = useState({
+  //   clientName: "",
+  //   spocName: "",
+  //   spocEmail: "",
+  //   additionalEmail: "",
+  //   remark: "",
+  // });
+
+  // const validateForm = () => {
+  //   let isValid = true;
+  //   const newErrors = {
+  //     clientName: "",
+  //     spocName: "",
+  //     spocEmail: "",
+  //     additionalEmail: "",
+  //     remark: "",
+  //   };
+
+  //   if (!formData.clientName.trim()) {
+  //     newErrors.clientName = "Client Name is required";
+  //     isValid = false;
+  //   }
+  //   if (!formData.spocName.trim()) {
+  //     newErrors.spocName = "SPOC Name is required";
+  //     isValid = false;
+  //   }
+  //   if (!formData.spocEmail.trim()) {
+  //     newErrors.spocEmail = "SPOC Email is required";
+  //     isValid = false;
+  //   } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.spocEmail)) {
+  //     newErrors.spocEmail = "Enter a valid email";
+  //     isValid = false;
+  //   }
+  //   if (
+  //     formData.additionalEmail &&
+  //     !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.additionalEmail)
+  //   ) {
+  //     newErrors.additionalEmail = "Enter a valid email";
+  //     isValid = false;
+  //   }
+  //   // if (!formData.remark.trim()) {
+  //   //   newErrors.remark = "Remark is required";
+  //   //   isValid = false;
+  //   // }
+
+  //   setErrors(newErrors);
+  //   return isValid;
+  // };
+
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+
+  //   setFormData({ ...formData, [name]: value });
+
+  //   setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+  // };
   const [formData, setFormData] = useState({
-    clientName: searchParams.filteredCompany,
-    spocName: "",
-    spocEmail: "",
+    clientName: searchParams.corporate_name,
+    spocName: searchParams.spoc_name,
+    ApproverEmail: "",
     additionalEmail: "",
     remark: "",
   });
-  
-  const [errors, setErrors] = useState({
-    clientName: "",
-    spocName: "",
-    spocEmail: "",
-    additionalEmail: "",
-    remark: "",
-  });
-  
-  const validateForm = () => {
-    let isValid = true;
-    const newErrors = { clientName: "", spocName: "", spocEmail: "", additionalEmail: "", remark: "" };
-  
-    if (!formData.clientName.trim()) {
-      newErrors.clientName = "Client Name is required";
-      isValid = false;
-    }
-    if (!formData.spocName.trim()) {
-      newErrors.spocName = "SPOC Name is required";
-      isValid = false;
-    }
-    if (!formData.spocEmail.trim()) {
-      newErrors.spocEmail = "SPOC Email is required";
-      isValid = false;
-    } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.spocEmail)) {
-      newErrors.spocEmail = "Enter a valid email";
-      isValid = false;
-    }
-    if (formData.additionalEmail && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.additionalEmail)) {
-      newErrors.additionalEmail = "Enter a valid email";
-      isValid = false;
-    }
-    // if (!formData.remark.trim()) {
-    //   newErrors.remark = "Remark is required";
-    //   isValid = false;
-    // }
-  
-    setErrors(newErrors);
-    return isValid;
+  const [toEmail, setToEmail] = useState("");
+  const [toEmailList, setToEmailList] = useState([]); // ✅ List for "To" emails
+
+  const [ccEmail, setCcEmail] = useState("");
+  const [ccEmailList, setCcEmailList] = useState([]); // ✅ List for "CC" emails
+
+  const [errors, setErrors] = useState({});
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
-  
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    setFormData({ ...formData, [name]: value });
 
-    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
-};
+  const handleAddEmail = (email, setEmail, emailList, setEmailList, field) => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) return;
 
-  
-  const handleSubmit = (e) => {
+    if (!validateEmail(trimmedEmail)) {
+      setErrors((prev) => ({ ...prev, [field]: "Invalid email format" }));
+      return;
+    }
+
+    if (emailList.includes(trimmedEmail)) {
+      setErrors((prev) => ({ ...prev, [field]: "Email already added" }));
+      return;
+    }
+
+    setEmailList((prevEmails) => [...prevEmails, trimmedEmail]); // ✅ Add to respective list
+    setEmail(""); // ✅ Clear input
+    setErrors((prev) => ({ ...prev, [field]: "" })); // ✅ Clear error
+  };
+
+  const handleKeyDown = (
+    e,
+    email,
+    setEmail,
+    emailList,
+    setEmailList,
+    field
+  ) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleAddEmail(email, setEmail, emailList, setEmailList, field);
+    }
+  };
+
+  const handleDelete = (emailToDelete, setEmailList) => {
+    setEmailList((prevEmails) => prevEmails.filter((e) => e !== emailToDelete));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log("Form Submitted:", formData);
-      toggleModal(); // Close modal on successful submission
+  
+    // Construct the Options array dynamically
+    const options = selectedHotels.map(hotel => ({
+      booking_id: searchParams.booking_id, // Use booking_id from searchParams
+      hotel_code: hotel.code, // Use hotel code from selectedHotels
+      booking_code: hotel.BookingCode, // Use BookingCode from selectedHotels
+      total_fare: hotel.price, // Use total fare from selectedHotels
+      tax: hotel.tax, // Use tax from selectedHotels
+      checkin_date: searchParams.checkIn, // Update dynamically if needed
+      checkout_date: searchParams.checkOut, // Update dynamically if needed
+      no_of_seats: 2, // Modify based on user input if applicable
+      city: searchParams.filteredCities , // Use city from searchParams or default
+      hotel_name: hotel.name, // Use hotel name from selectedHotels
+      source: 2, // Static value, update if necessary
+      additional_email: toEmailList, // Use toEmailList from form state
+      approver_email: [searchParams.approver1, searchParams.approver2].filter(Boolean), // Filter out empty values
+      cc_email: ccEmailList, // Use ccEmailList from form state
+    }));
+  
+    const requestBody = { Options: options };
+  console.log(requestBody);
+    try {
+      const response = await fetch(
+        "https://demo.taxivaxi.com/api/hotels/addsbthoteloptions",
+        {
+          method: "POST",
+          headers: {
+            // "Content-Type": "application/json",
+            Origin: "*", // Change to your React app's origin
+            "Access-Control-Request-Method": "POST",
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log("API Response:", data);
+      if(data.success=='1'){
+        setIsModalOpen(false);
+        setSelectedHotels([]);
+
+      }
+    } catch (error) {
+      console.error("Error submitting data:", error);
     }
+  
+    console.log("Request Body:", requestBody);
   };
+  
   
   return (
     <>
@@ -827,100 +961,244 @@ const SearchHotel = () => {
                       <button
                         type="button"
                         className="bg-[#785ef7] h-6 text-white px-2 rounded-lg text-xs ml-auto"
-                        onClick={toggleModal}
+                        onClick={handleShareOptions}
                       >
                         Share hotel options
                       </button>
                     </div>
                   </div>
                 )}
-               {isModalOpen && (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-lg w-1/2">
-        <div className="flex justify-between items-center pb-2 modal2 px-4 py-3">
-          <h2 className="text-xl font-semibold">Share With</h2>
-          <button onClick={toggleModal} className="text-gray-500 hover:text-gray-700">
-            <img src="../img/cros.png" className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="py-3 px-4">
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="clientName" className="text-sm">Client Name</label>
-                <input
-                  id="clientName"
-                  name="clientName"
-                  type="text"
-                  placeholder="Enter Client Name"
-                  className="frmTextInput2"
-                  value={formData.clientName}
-                  onChange={handleChange}
-                />
-                {errors.clientName && <p className="text-red-500 text-xs">{errors.clientName}</p>}
-              </div>
-              <div>
-                <label htmlFor="spocName" className="text-sm">SPOC Name</label>
-                <input
-                  id="spocName"
-                  name="spocName"
-                  type="text"
-                  placeholder="SPOC Name"
-                  className="frmTextInput2"
-                  value={formData.spocName}
-                  onChange={handleChange}
-                />
-                {errors.spocName && <p className="text-red-500 text-xs">{errors.spocName}</p>}
-              </div>
-            </div>
-            <div>
-              <label htmlFor="spocEmail" className="text-sm">SPOC Email</label>
-              <input
-                id="spocEmail"
-                name="spocEmail"
-                type="email"
-                placeholder="Enter Email"
-                className="frmTextInput2"
-                value={formData.spocEmail}
-                onChange={handleChange}
-              />
-              {errors.spocEmail && <p className="text-red-500 text-xs">{errors.spocEmail}</p>}
-            </div>
-            <div>
-              <label htmlFor="additionalEmail" className="text-sm">Additional Email</label>
-              <input
-                id="additionalEmail"
-                name="additionalEmail"
-                type="text"
-                placeholder="Enter Email"
-                className="frmTextInput2"
-                value={formData.additionalEmail}
-                onChange={handleChange}
-              />
-              {errors.additionalEmail && <p className="text-red-500 text-xs">{errors.additionalEmail}</p>}
-            </div>
-            <div>
-              <label htmlFor="remark" className="text-sm">Remark</label>
-              <input
-                id="remark"
-                name="remark"
-                type="text"
-                className="frmTextAreaInput2"
-                value={formData.remark}
-                onChange={handleChange}
-              />
-              {errors.remark && <p className="text-red-500 text-xs">{errors.remark}</p>}
-            </div>
-            <div className="flex justify-end">
-              <button type="submit" className="bg-[#785ef7] text-white px-3 py-1 text-sm">
-                SEND
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  )}
+                {isModalOpen && (
+                  <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                    <div className="bg-white rounded-lg shadow-lg w-1/2">
+                      <div className="flex justify-between items-center pb-2 modal2 px-4 py-3">
+                        <h2 className="text-xl font-semibold">Share With</h2>
+                        <button
+                          onClick={handleCancel}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <img src="../img/cros.png" className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="py-3 px-4">
+                        <form className="space-y-5" onSubmit={handleSubmit}>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label
+                                htmlFor="clientName"
+                                className="text-sm font-semibold"
+                              >
+                                Client Name
+                              </label>
+                              <input
+                                id="clientName"
+                                name="clientName"
+                                type="text"
+                                placeholder="Enter Client Name"
+                                className="frmTextInput2"
+                                value={searchParams.corporate_name}
+                                // onChange={handleChange}
+                              />
+                              {errors.clientName && (
+                                <p className="text-red-500 text-xs">
+                                  {errors.clientName}
+                                </p>
+                              )}
+                            </div>
+                            <div>
+                              <label
+                                htmlFor="spocName"
+                                className="text-sm font-semibold"
+                              >
+                                SPOC Name
+                              </label>
+                              <input
+                                id="spocName"
+                                name="spocName"
+                                type="text"
+                                placeholder="SPOC Name"
+                                className="frmTextInput2"
+                                value={searchParams.spoc_name}
+                                // onChange={handleChange}
+                              />
+                              {errors.spocName && (
+                                <p className="text-red-500 text-xs">
+                                  {errors.spocName}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="spocEmail"
+                              className="text-sm font-semibold"
+                            >
+                              Approver Email
+                            </label>
+                            <input
+                              id="spocEmail"
+                              name="spocEmail"
+                              type="text"
+                              placeholder="Enter Email"
+                              className="frmTextInput2"
+                              value={`${searchParams.approver1 || ""} ,  ${
+                                searchParams.approver2 || ""
+                              }`}
+                            />
+
+                            {errors.spocEmail && (
+                              <p className="text-red-500 text-xs">
+                                {errors.spocEmail}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            {/* Additional Emails (To) */}
+                            <label
+                              htmlFor="toEmail"
+                              className="text-sm font-semibold"
+                            >
+                              Additional Email
+                            </label>
+                            <div className="flex flex-wrap gap-2 border border-gray-300 rounded-md p-2 text-xs">
+                              {toEmailList.map((emailItem, index) => (
+                                <Chip
+                                  key={index}
+                                  label={emailItem}
+                                  variant="outlined"
+                                  onDelete={() =>
+                                    handleDelete(emailItem, setToEmailList)
+                                  }
+                                />
+                              ))}
+                              <input
+                                id="toEmail"
+                                name="toEmail"
+                                type="text"
+                                placeholder="Enter Email"
+                                className="flex-1 min-w-[150px] border-none outline-none"
+                                value={toEmail}
+                                onChange={(e) => setToEmail(e.target.value)}
+                                onBlur={() =>
+                                  handleAddEmail(
+                                    toEmail,
+                                    setToEmail,
+                                    toEmailList,
+                                    setToEmailList,
+                                    "toEmail"
+                                  )
+                                }
+                                onKeyDown={(e) =>
+                                  handleKeyDown(
+                                    e,
+                                    toEmail,
+                                    setToEmail,
+                                    toEmailList,
+                                    setToEmailList,
+                                    "toEmail"
+                                  )
+                                }
+                              />
+                            </div>
+                            {errors.toEmail && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {errors.toEmail}
+                              </p>
+                            )}
+
+                            {/* CC Emails */}
+                            <label
+                              htmlFor="ccEmail"
+                              className="text-sm font-semibold mt-3"
+                            >
+                              CC Email
+                            </label>
+                            <div className="flex flex-wrap gap-2 border border-gray-300 rounded-md p-2 text-xs">
+                              {ccEmailList.map((emailItem, index) => (
+                                <Chip
+                                  key={index}
+                                  label={emailItem}
+                                  variant="outlined"
+                                  onDelete={() =>
+                                    handleDelete(emailItem, setCcEmailList)
+                                  }
+                                />
+                              ))}
+                              <input
+                                id="ccEmail"
+                                name="ccEmail"
+                                type="text"
+                                placeholder="Enter CC Email"
+                                className="flex-1 min-w-[150px] border-none outline-none"
+                                value={ccEmail}
+                                onChange={(e) => setCcEmail(e.target.value)}
+                                onBlur={() =>
+                                  handleAddEmail(
+                                    ccEmail,
+                                    setCcEmail,
+                                    ccEmailList,
+                                    setCcEmailList,
+                                    "ccEmail"
+                                  )
+                                }
+                                onKeyDown={(e) =>
+                                  handleKeyDown(
+                                    e,
+                                    ccEmail,
+                                    setCcEmail,
+                                    ccEmailList,
+                                    setCcEmailList,
+                                    "ccEmail"
+                                  )
+                                }
+                              />
+                            </div>
+                            {errors.ccEmail && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {errors.ccEmail}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="remark"
+                              className="text-sm font-semibold"
+                            >
+                              Remark
+                            </label>
+                            <input
+                              id="remark"
+                              name="remark"
+                              type="text"
+                              className="frmTextAreaInput2"
+                              value={formData.remark}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  remark: e.target.value,
+                                })
+                              } // ✅ Update remark field
+                            />
+
+                            {errors.remark && (
+                              <p className="text-red-500 text-xs">
+                                {errors.remark}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex justify-end">
+                            <button
+                              type="submit"
+                              className="bg-[#785ef7] text-white px-3 py-1 text-sm"
+                            >
+                              SEND
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
