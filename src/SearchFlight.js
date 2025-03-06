@@ -60,7 +60,8 @@ const SearchFlight = () => {
   const [flightDepartureDates, setflightDepartureDate] = useState('');
   const [show, setShow] = useState(false);
   const [flightOptions, setFlightOptions] = useState([]);
-  // console.log('flightOptions', flightOptions);
+  const [BrandList, setBrandlist] = useState([]);
+  // console.log('BrandList', BrandList);
   const [flightairoption, setFlightAirOptions] = useState([]);
   const [flightDetails, setFlightDetails] = useState([]);
   const [flightErrors, setFlighterrors] = useState([]);
@@ -75,6 +76,28 @@ const SearchFlight = () => {
   const contentRef = useRef(null);
   const Targetbranch = 'P4451438';
   // console.log('farelist', FareList);
+
+  const getFareDetails = (brandName) => {
+    setFareInfoDetails(null);
+    if (!BrandList || BrandList.length === 0) return ['NA'];
+  
+    let fareDetails = [];
+  
+    BrandList.forEach((brand) => {
+      if (brand['$']?.Name === brandName) {
+        brand['air:Text'].forEach((text) => {
+
+          fareDetails.push(text['_']);
+        });
+      }
+    });
+    console.log('fareDetails', fareDetails);
+    // setFareInfoDetails(fareDetails);
+    setFareInfoDetails(fareDetails.length > 0 ? fareDetails : null);
+    setVisibleDetails(true);
+  
+    // return fareDetails.length > 0 ? fareDetails : ['NA'];
+  };
 
   const [Airlines, setAirlineOptions] = useState([]);
   const [Airports, setAirportOptions] = useState([]);
@@ -902,9 +925,10 @@ const SearchFlight = () => {
           const flightdetailist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FlightDetailsList']['air:FlightDetails'];
           const hosttokenlist = result?.['SOAP:Envelope']?.['SOAP:Body']?.['air:LowFareSearchRsp']?.['air:HostTokenList']?.['common_v52_0:HostToken'] || [];
           const fareinfolist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FareInfoList']['air:FareInfo'];
+          const brandlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:BrandList']['air:Brand'];
           setFlightOptions(Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist]);
           setFlightAirOptions(Array.isArray(extractedBookingInfo) ? extractedBookingInfo : [extractedBookingInfo]);
-
+          setBrandlist(Array.isArray(brandlist) ? brandlist : [brandlist]);
           setFlightDetails(Array.isArray(flightdetailist) ? flightdetailist : [flightdetailist]);
           setSegment(Array.isArray(Segmentlist) ? Segmentlist : [Segmentlist]);
           setHostlist(Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist]);
@@ -1744,6 +1768,22 @@ const SearchFlight = () => {
 
     makeServicesRequest();
   };
+  const [cancellationPolicy, setCancellationPolicy] = useState(null);
+  
+  useEffect(() => {
+    const fetchCancellationPolicy = async () => {
+        if (cancellationPolicy) return; 
+
+        try {
+            const response = await axios.get("https://demo.taxivaxi.com/api/flights/getCancellationDateChangePolicy");
+            setCancellationPolicy(response.data.data); 
+        } catch (error) {
+            console.error("Error fetching cancellation policy:", error);
+        }
+    };
+
+    fetchCancellationPolicy();
+}, [cancellationPolicy]);
 
   function formattedDate(date) {
     const options = {
@@ -14919,60 +14959,90 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                               <div className="clear" />
                                                                             </div>
                                                                             <div id={`Date_Change${priceindex}`} className="tabcontent" style={{ display: activeTab === `Date_Change${priceindex}` ? 'block' : 'none' }}>
-                                                                              {
-                                                                                pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty'] &&
+                                                                              {pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty'] ? (
                                                                                 <div>
-
                                                                                   <div className="flight-details-a">
-                                                                                    {flightorigins} to {flightdestinations} ||  &nbsp;
+                                                                                    {flightorigins} to {flightdestinations} || &nbsp;
                                                                                     {flightDepartureDates}
                                                                                   </div>
 
                                                                                   <div className="flight-details-l">
-                                                                                    <div className="flight-details-b">
-                                                                                      Time Frame
-                                                                                    </div>
+                                                                                    <div className="flight-details-b">Time Frame</div>
                                                                                     <div className="flight-details-c">
                                                                                       {pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['$'] &&
-                                                                                        pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['$']['PenaltyApplies'] ? (
-                                                                                        pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['$']['PenaltyApplies']
+                                                                                      pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['$']['PenaltyApplies']
+                                                                                        ? pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['$']['PenaltyApplies']
+                                                                                        : 'NA'}
+                                                                                    </div>
+                                                                                  </div>
+
+                                                                                  <div className="flight-details-r">
+                                                                                    <div className="flight-details-b">Airline Fee</div>
+                                                                                    <div className="flight-details-c">
+                                                                                      {pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['air:Amount'] ? (
+                                                                                        <>
+                                                                                          {pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['air:Amount'].includes('INR') ? '₹ ' : ''}
+                                                                                          {pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['air:Amount'].replace('INR', '').trim()}
+                                                                                        </>
+                                                                                      ) : pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['air:Percentage'] ? (
+                                                                                        pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['air:Percentage']
                                                                                       ) : (
                                                                                         'NA'
                                                                                       )}
                                                                                     </div>
                                                                                   </div>
-                                                                                  <div className="flight-details-r">
-                                                                                    <div className="flight-details-b">
-                                                                                      Airline Fee
-                                                                                    </div>
-                                                                                    <div className="flight-details-c">
-                                                                                      {pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['air:Amount'] ? (
-                                                                                        <>
-                                                                                          {pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['air:Amount'].includes('INR') ? '₹ ' : ''}
-                                                                                        </>
-                                                                                      ) : (
-                                                                                        pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['air:Percentage'] ? (
-                                                                                          pricepoint['air:AirPricingInfo'][0]['air:ChangePenalty']['air:Percentage']
-                                                                                        ) : (
-                                                                                          'NA'
-                                                                                        )
-                                                                                      )}
-                                                                                    </div>
-                                                                                  </div>
+
                                                                                   <div className="clear" />
                                                                                   <br className="clear" />
                                                                                   <div className="flight-details-c">
                                                                                     <mark>
-                                                                                      *Please note that the airline fee provided is indicative. CoTrav does not guarantee the exact amount of the fee.
+                                                                                      *Please note that the airline fee provided is indicative. CoTrav does not guarantee the exact amount of the
+                                                                                      fee.
                                                                                     </mark>
                                                                                   </div>
                                                                                   <div className="clear" />
                                                                                 </div>
-                                                                              }
+                                                                              ) : (
+                                                                                // Fallback Data Source
+                                                                                <div>
+                                                                                  <div className="flight-details-a">
+                                                                                    {flightorigins} to {flightdestinations} || &nbsp;
+                                                                                    {flightDepartureDates}
+                                                                                  </div>
+
+                                                                                  <div className="flight-details-l">
+                                                                                    <div className="flight-details-b">Date Change Fee</div>
+                                                                                    <div className="flight-details-c">
+                                                                                      {/* Call the function and display the result */}
+                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {/* {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"} */}
+                                                                                      
+                                                                                    </div>
+                                                                                  </div>
+
+                                                                                  {/* <div className="flight-details-r">
+                                                                                    <div className="flight-details-b">Airline Fee</div>
+                                                                                    <div className="flight-details-c">
+                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      
+                                                                                    </div>
+                                                                                  </div> */}
+
+                                                                                  <div className="clear" />
+                                                                                  <br className="clear" />
+                                                                                  <div className="flight-details-c">
+                                                                                    <mark>
+                                                                                      *Please note that the airline fee provided is indicative. CoTrav does not guarantee the exact amount of the
+                                                                                      fee.
+                                                                                    </mark>
+                                                                                  </div>
+                                                                                  <div className="clear" />
+                                                                                </div>
+                                                                              )}
                                                                             </div>
                                                                             <div id={`Cancellation${priceindex}`} className="tabcontent" style={{ display: activeTab === `Cancellation${priceindex}` ? 'block' : 'none' }}>
                                                                               {
-                                                                                pricepoint['air:AirPricingInfo'][0]['air:CancelPenalty'] &&
+                                                                                pricepoint['air:AirPricingInfo'][0]['air:CancelPenalty'] ?(
                                                                                 <div>
 
                                                                                   <div className="flight-details-a">
@@ -15001,6 +15071,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                       {pricepoint['air:AirPricingInfo'][0]['air:CancelPenalty']['air:Amount'] ? (
                                                                                         <>
                                                                                           {pricepoint['air:AirPricingInfo'][0]['air:CancelPenalty']['air:Amount'].includes('INR') ? '₹ ' : ''}
+                                                                                          {pricepoint['air:AirPricingInfo'][0]['air:CancelPenalty']['air:Amount'].replace('INR', '').trim()}
+
                                                                                         </>
                                                                                       ) : (
                                                                                         pricepoint['air:AirPricingInfo'][0]['air:CancelPenalty']['air:Percentage'] ? (
@@ -15020,6 +15092,41 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                   </div>
                                                                                   <div className="clear" />
                                                                                 </div>
+                                                                                ) : (
+                                                                                  <div>
+
+                                                                                  <div className="flight-details-a">
+                                                                                    {flightorigins} to {flightdestinations} ||  &nbsp;
+                                                                                    {flightDepartureDates}
+                                                                                  </div>
+
+                                                                                  <div className="flight-details-l">
+                                                                                    <div className="flight-details-b">Cancellation Charges</div>
+                                                                                    <div className="flight-details-c">
+                                                                                      {/* Call the function and display the result */}
+                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {/* {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"} */}
+                                                                                      
+                                                                                    </div>
+                                                                                  </div>
+
+                                                                                  {/* <div className="flight-details-r">
+                                                                                    <div className="flight-details-b">Airline Fee</div>
+                                                                                    <div className="flight-details-c">
+                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      
+                                                                                    </div>
+                                                                                  </div> */}
+                                                                                  <div className="clear" />
+                                                                                  <br className="clear" />
+                                                                                  <div className="flight-details-c">
+                                                                                    <mark>
+                                                                                      *Please note that the airline fee provided is indicative. CoTrav does not guarantee the exact amount of the fee.
+                                                                                    </mark>
+                                                                                  </div>
+                                                                                  <div className="clear" />
+                                                                                </div>
+                                                                                )
                                                                               }
                                                                             </div>
                                                                           </div>
@@ -15675,7 +15782,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                             </div>
                                                                             <div id={`Date_Change${priceindex}`} className="tabcontent" style={{ display: activeTab === `Date_Change${priceindex}` ? 'block' : 'none' }}>
                                                                               {
-                                                                                pricepoint['air:AirPricingInfo']['air:ChangePenalty'] &&
+                                                                                pricepoint['air:AirPricingInfo']['air:ChangePenalty'] ?(
                                                                                 <div>
 
                                                                                   <div className="flight-details-a">
@@ -15705,6 +15812,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                       {pricepoint['air:AirPricingInfo']['air:ChangePenalty']['air:Amount'] ? (
                                                                                         <>
                                                                                           {pricepoint['air:AirPricingInfo']['air:ChangePenalty']['air:Amount'].includes('INR') ? '₹ ' : ''}
+                                                                                          {pricepoint['air:AirPricingInfo']['air:ChangePenalty']['air:Amount'].replace('INR', '').trim()}
                                                                                         </>
                                                                                       ) : (
                                                                                         pricepoint['air:AirPricingInfo']['air:ChangePenalty']['air:Percentage'] ? (
@@ -15724,11 +15832,47 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                   </div>
                                                                                   <div className="clear" />
                                                                                 </div>
+                                                                                ) : (
+                                                                                  <div>
+                                                                                  <div className="flight-details-a">
+                                                                                    {flightorigins} to {flightdestinations} || &nbsp;
+                                                                                    {flightDepartureDates}
+                                                                                  </div>
+
+                                                                                  <div className="flight-details-l">
+                                                                                    <div className="flight-details-b">Date Change Fee</div>
+                                                                                    <div className="flight-details-c">
+                                                                                      {/* Call the function and display the result */}
+                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {/* {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"} */}
+                                                                                      
+                                                                                    </div>
+                                                                                  </div>
+
+                                                                                  {/* <div className="flight-details-r">
+                                                                                    <div className="flight-details-b">Airline Fee</div>
+                                                                                    <div className="flight-details-c">
+                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      
+                                                                                    </div>
+                                                                                  </div> */}
+
+                                                                                  <div className="clear" />
+                                                                                  <br className="clear" />
+                                                                                  <div className="flight-details-c">
+                                                                                    <mark>
+                                                                                      *Please note that the airline fee provided is indicative. CoTrav does not guarantee the exact amount of the
+                                                                                      fee.
+                                                                                    </mark>
+                                                                                  </div>
+                                                                                  <div className="clear" />
+                                                                                </div>
+                                                                                )
                                                                               }
                                                                             </div>
                                                                             <div id={`Cancellation${priceindex}`} className="tabcontent" style={{ display: activeTab === `Cancellation${priceindex}` ? 'block' : 'none' }}>
                                                                               {
-                                                                                pricepoint['air:AirPricingInfo']['air:CancelPenalty'] &&
+                                                                                pricepoint['air:AirPricingInfo']['air:CancelPenalty'] ?(
                                                                                 <div>
 
                                                                                   <div className="flight-details-a">
@@ -15757,6 +15901,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                       {pricepoint['air:AirPricingInfo']['air:CancelPenalty']['air:Amount'] ? (
                                                                                         <>
                                                                                           {pricepoint['air:AirPricingInfo']['air:CancelPenalty']['air:Amount'].includes('INR') ? '₹ ' : ''}
+                                                                                          {pricepoint['air:AirPricingInfo']['air:CancelPenalty']['air:Amount'].replace('INR', '').trim()}
 
                                                                                         </>
                                                                                       ) : (
@@ -15777,6 +15922,41 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                   </div>
                                                                                   <div className="clear" />
                                                                                 </div>
+                                                                              ) : (
+                                                                                  <div>
+
+                                                                                  <div className="flight-details-a">
+                                                                                    {flightorigins} to {flightdestinations} ||  &nbsp;
+                                                                                    {flightDepartureDates}
+                                                                                  </div>
+
+                                                                                  <div className="flight-details-l">
+                                                                                    <div className="flight-details-b">Cancellation Charges</div>
+                                                                                    <div className="flight-details-c">
+                                                                                      {/* Call the function and display the result */}
+                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {/* {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"} */}
+                                                                                      
+                                                                                    </div>
+                                                                                  </div>
+
+                                                                                  {/* <div className="flight-details-r">
+                                                                                    <div className="flight-details-b">Airline Fee</div>
+                                                                                    <div className="flight-details-c">
+                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      
+                                                                                    </div>
+                                                                                  </div> */}
+                                                                                  <div className="clear" />
+                                                                                  <br className="clear" />
+                                                                                  <div className="flight-details-c">
+                                                                                    <mark>
+                                                                                      *Please note that the airline fee provided is indicative. CoTrav does not guarantee the exact amount of the fee.
+                                                                                    </mark>
+                                                                                  </div>
+                                                                                  <div className="clear" />
+                                                                                </div>
+                                                                                )
                                                                               }
                                                                             </div>
                                                                           </div>
@@ -15846,9 +16026,9 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         {/* Display FareFamily as the Header */}
                                                                         <div className="seelctheader">
                                                                           {matchingFareInfo['$']['FareFamily']}
-                                                                          {/* <button
+                                                                          <button
                                                                                         type="button"
-                                                                                        onClick={() => handleFareInfoClick(extractedFareInfoRef)}
+                                                                                        onClick={() => getFareDetails(matchingFareInfo['$']['FareFamily'])}
                                                                                         style={{
                                                                                           border: "none", 
                                                                                           background: "none",
@@ -15859,7 +16039,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                         aria-label="Toggle Details"
                                                                                       >
                                                                                         <i className="fas fa-info-circle" style={{ color: '#785eff', marginLeft: '5px', fontSize: '12px', cursor: 'pointer' }}></i>
-                                                                                      </button> */}
+                                                                                      </button>
                                                                         </div>
                                                                         <div className="selectprice">
                                                                           {(() => {
