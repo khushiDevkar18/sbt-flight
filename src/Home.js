@@ -263,7 +263,7 @@ function Home() {
         
         
             .then((response) => {
-            // console.log("Client Markup Details:", response.data.data);
+            console.log("Client Markup Details:", response.data.data);
             setClientMarkupDetails(response.data.data);
             // Handle response if needed (e.g., store in state)
             })

@@ -252,7 +252,7 @@ const SearchFlight = () => {
   const agent_id = location.state && location.state.responseData?.agent_id;
   const global = location.state && location.state.responseData?.global;
 
-  // console.log('markupdata',markupdata);
+  console.log('markupdata',markupdata);
   const bookingid = location.state && location.state.responseData?.bookingid;
   const is_approved = location.state && location.state.responseData?.isapproved;
   const searchdeparturedate = convertDateFormat(location.state && location.state.responseData?.searchdeparture);
@@ -752,9 +752,6 @@ const SearchFlight = () => {
   };
 
   const calculateFinalPrice = (totalPrice, markup, seatType, fareName, airline, flighttype) => {
-    // console.log(totalPrice, markup, seatType, fareName, airline, flighttype);
-
-    // Parse markup if it's a JSON string
     if (typeof markup === "string") {
       try {
         markup = JSON.parse(markup);
@@ -762,101 +759,56 @@ const SearchFlight = () => {
         return parseFloat(totalPrice.replace("INR", "").trim()); // Return the original price
       }
     }
-
+  
     // Ensure totalPrice is numeric for calculations
     const numericPrice = parseFloat(totalPrice.replace("INR", "").trim());
-
-    if (!Array.isArray(markup)) {
-      return numericPrice; // Return the original price
+  
+    if (!Array.isArray(markup) || markup.length === 0) {
+      return numericPrice; // Return the original price if no markup exists
     }
-
-    // Find the applicable markup based on fareName
-
-    let applicableMarkup = markup.find((m) => {
-      const seatTypeMatch = m.seat_type === seatType || m.seat_type === '';
-      const fareNameMatch = !fareName || m.fare_name === fareName || m.fare_name === '' || m.fare_name == null;
-
-      const flightTypeMatch = !flighttype || m.flight_type === flighttype || m.flight_type === '';
-
-      const airlineMatch = !airline || m.airline_full_name === airline || m.airline_full_name === '' || m.airline_full_name == null;
-
-      return seatTypeMatch && fareNameMatch && flightTypeMatch && airlineMatch;
-    });
-
-    // console.log("applicableMarkup",applicableMarkup)
-    // If no specific fareName markup found, fallback to Base Fare
-    if (!applicableMarkup) {
-      applicableMarkup = markup.find(
-        (m) => m.seat_type === seatType && m.fare_name === "Base Fare"
-      );
-    }
-
-    if (!applicableMarkup) {
-      console.warn("No applicable markup found; applying original price.");
-      return numericPrice;
-    }
-    // console.log("Without markup", numericPrice)
-    // console.log("markup type",applicableMarkup.markup_type)
-    // console.log("markup value",applicableMarkup.markup_value)
-
+  
+    const { markup_value, markup_type } = markup[0]; // Extract the first markup object
+  
     // Calculate the final price based on markup type
-    const markupValue = parseFloat(applicableMarkup.markup_value);
-    if (applicableMarkup.markup_type === "Fixed") {
-      // console.log('with markup', numericPrice + markupValue);
+    const markupValue = parseFloat(markup_value);
+  
+    if (markup_type === "Fixed") {
       return numericPrice + markupValue; // Add fixed value
-    } else if (applicableMarkup.markup_type === "Percentage") {
-      // console.log('with markup', numericPrice + (numericPrice * markupValue) / 100);
-      return numericPrice + (numericPrice * markupValue) / 100; // Add percentage
+    } else if (markup_type === "Percentage") {
+      return numericPrice + (numericPrice * markupValue) / 100; // Add percentage markup
     }
+
+    console.log('numericPrice', numericPrice);
+    return numericPrice
+    
 
   };
   const calculateFinalMarkup = (totalPrice, markup, seatType, fareName, airline, flighttype) => {
     // Parse markup if it's a JSON string
     if (typeof markup === "string") {
-        try {
-            markup = JSON.parse(markup);
-        } catch (error) {
-            return 0; // Return 0 markup if parsing fails
-        }
+      try {
+        markup = JSON.parse(markup);
+      } catch (error) {
+        return 0; // Return 0 if parsing fails
+      }
     }
-
+  
     // Ensure totalPrice is numeric for calculations
     const numericPrice = parseFloat(totalPrice.replace("INR", "").trim());
-
-    if (!Array.isArray(markup)) {
-        return 0; // Return 0 if markup is not an array
+  
+    if (!Array.isArray(markup) || markup.length === 0) {
+      return 0; // No markup available
     }
-
-    // Find the applicable markup based on criteria
-    let applicableMarkup = markup.find((m) => {
-        const seatTypeMatch = m.seat_type === seatType || m.seat_type === '';
-        const fareNameMatch = !fareName || m.fare_name === fareName || m.fare_name === '' || m.fare_name == null;
-        const flightTypeMatch = !flighttype || m.flight_type === flighttype || m.flight_type === '' ;
-        const airlineMatch = !airline || m.airline_full_name === airline || m.airline_full_name === '' || m.airline_full_name == null;
-
-        return seatTypeMatch && fareNameMatch && flightTypeMatch && airlineMatch;
-    });
-
-    // Fallback to "Base Fare" if no exact match is found
-    if (!applicableMarkup) {
-        applicableMarkup = markup.find(
-            (m) => m.seat_type === seatType && m.fare_name === "Base Fare"
-        );
+  
+    const { markup_value, markup_type } = markup[0]; // Extract the first markup object
+    const markupValue = parseFloat(markup_value);
+  
+    if (markup_type === "Fixed") {
+      return markupValue; // Return fixed markup
+    } else if (markup_type === "Percentage") {
+      return (numericPrice * markupValue) / 100; // Return calculated percentage markup
     }
-
-    if (!applicableMarkup) {
-        console.warn("No applicable markup found; returning 0.");
-        return 0;
-    }
-
-    // Calculate the markup amount
-    const markupValue = parseFloat(applicableMarkup.markup_value);
-    if (applicableMarkup.markup_type === "Fixed") {
-        return markupValue; // Return fixed markup amount
-    } else if (applicableMarkup.markup_type === "Percentage") {
-        return (numericPrice * markupValue) / 100; // Return percentage markup amount
-    }
-
+  
     return 0; // Default to 0 if no valid markup type
 };
 
