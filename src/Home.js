@@ -1121,6 +1121,7 @@ function Home() {
   };
   const [isCheckInOpen, setCheckInIsOpen] = useState(false);
   const [isCheckOutOpen, setCheckOutIsOpen] = useState(false);
+ 
   const handleCheckInDateChange = (date) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -1140,23 +1141,19 @@ function Home() {
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-
+  const [hotelDetails, setHotelDetails] = useState();
   const handleHotelSearch = async (e) => {
     e.preventDefault();
     setLoader(true);
-    const checkIn = formData.checkInDate
-      ? formatDate1(formData.checkInDate)
-      : "";
-    const checkOut = formData.checkOutDate
-      ? formatDate1(formData.checkOutDate)
-      : "";
+  
+    const checkIn = formData.checkInDate ? formatDate1(formData.checkInDate) : "";
+    const checkOut = formData.checkOutDate ? formatDate1(formData.checkOutDate) : "";
     const Rooms = roomCount;
     const Adults = roomadultCount;
     const Children = roomchildCount;
     const ChildAge = childrenAges;
     const CityCode = hotelCodes.toString();
-    // conaole.log(CityCode);
-
+  
     const requestBody = {
       CheckIn: checkIn,
       CheckOut: checkOut,
@@ -1180,69 +1177,44 @@ function Home() {
         HotelName: null,
       },
     };
-    const hotel= hotelcityList;
-    // conaole.log(hotel);
-    
-
-    // // conaole.log("Authorization Header:", `Basic ${btoa("Bai:Bai@12345")}`);
-
+  
     try {
-     
-      const response = await fetch(
-        "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
-        {
-          method: "POST",
-          headers: {
-            // "Content-Type": "application/json",
-            'Origin': 'http://localhost:3000', // Change to your React app's origin
-            'Access-Control-Request-Method': 'POST', // The method you're going to use
-            // Authorization: `Basic ${btoa("Bai:Bai@12345")}`,
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-
+      const response = await fetch("https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch", {
+        method: "POST",
+        headers: {
+          'Origin': 'http://localhost:3000',
+          'Access-Control-Request-Method': 'POST',
+        },
+        body: JSON.stringify(requestBody),
+      });
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const data = await response.json();
-      // conaole.log("Hotel data:", data);
+  
       if (data.Status.Code === 200) {
         setHotelCityList(data.HotelResult || []);
-        // // conaole.log("asd");
-      
-        // Prepare the data to store in sessionStorage
-        const searchData = {
-          hotelList: data.HotelResult,
-         
+  
+        const searchParams = {
+          checkIn,
+          checkOut,
+          Rooms,
+          Adults,
+          Children,
+          ChildAge,
+          CityCode,
+          corporate_name: JSON.parse(sessionStorage.getItem("selectedCompany")) || null,
+          filteredCities,
         };
-       const searchParams = {
-        "checkIn":checkIn,
-          "checkOut":checkOut,
-          "Rooms":Rooms,
-          "Adults":Adults,
-          "Children":Children,
-          "ChildAge":ChildAge,
-          "CityCode":CityCode,
-          "corporate_name": JSON.parse(sessionStorage.getItem("selectedCompany")) || null, // Retrieve full company data,
-          "filteredCities":filteredCities,
-        };
-        // Store the data in sessionStorage
+  
         sessionStorage.setItem('hotelData_header', JSON.stringify(searchParams));
-        sessionStorage.setItem('hotel', JSON.stringify(hotel));
-        sessionStorage.setItem('hotelSearchData', JSON.stringify(searchData));
-    
-        // Navigate to SearchHotel with the state
-        navigate("/SearchHotel", {
-          state: searchData,
-        });
-        setLoader(false);
-      
-        // navigate("/SearchHotel", { state: { hotelList: data.HotelResult } });
+        sessionStorage.setItem('hotelSearchData', JSON.stringify({ hotelcityList: data.HotelResult }));
+        // Now immediately call fetchCity
+        fetchCity(data.HotelResult || []);
       } else {
         Swal.fire({
-          // icon: "error",
           title: "Error",
           text: data.Status.Description || "Something went wrong!",
         });
@@ -1250,15 +1222,56 @@ function Home() {
       }
     } catch (error) {
       console.error("Error fetching hotels:", error);
-      setLoader(false);
-
-      // Swal.fire({
-      //   icon: "error",
-      //   title: "Request Failed",
-      //   text: error.message || "Failed to fetch hotel data.",
-      // });
     }
   };
+  
+  // Function to fetch hotel details
+  const fetchCity = async (hotelcityList) => {
+    if (!Array.isArray(hotelcityList) || hotelcityList.length === 0) {
+      return;
+    }
+  
+    setLoader(true);
+    const codes = hotelcityList.map((hotel) => hotel.HotelCode).join(",");
+  
+    try {
+      const response = await fetch("https://demo.taxivaxi.com/api/hotels/sbtHotelDetails", {
+        method: "POST",
+        headers: {
+          Origin: "*",
+          "Access-Control-Request-Method": "POST",
+        },
+        body: JSON.stringify({
+          Hotelcodes: codes,
+          Language: "EN",
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+  
+      if (data.Status && data.Status.Code === 200) {
+        setHotelDetails(data.HotelDetails || []);
+  
+        sessionStorage.setItem("hotelDetails", JSON.stringify(data.HotelDetails || []));
+        
+  
+        navigate("/SearchHotel", {
+          state: { hotelcityList: data.HotelResult },
+        });
+      } else {
+        console.error("Error fetching hotels:", data.Status?.Description);
+      }
+    } catch (error) {
+      console.error("Error fetching hotels:", error);
+    } finally {
+      setLoader(false);
+    }
+  };
+  
   
 
   return (

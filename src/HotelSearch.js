@@ -6,6 +6,7 @@ const HotelSearch = () => {
   const [hotelCityList, setHotelCityList] = useState([]);
   const [hotelCodes, setHotelCodes] = useState([]);
   const [loader, setLoader] = useState(false);
+  const [hotelDetails, setHotelDetails] = useState();
   const navigate = useNavigate();
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -121,16 +122,19 @@ const HotelSearch = () => {
                       "ChildAge":formtaxivaxiData.Passengerchildage,
                       "CityCode":formtaxivaxiData,
                     //   "filteredCompany": JSON.parse(sessionStorage.getItem("selectedCompany")) || null, // Retrieve full company data,
-                      "filteredCities":formtaxivaxiData.city_name,
+                      "City_name":formtaxivaxiData.city_name,
                       "spoc_name":formtaxivaxiData.spoc_name,
                       "approver1":formtaxivaxiData.approver1_email,
                       "approver2":formtaxivaxiData.approver2_email,
                       "corporate_name":formtaxivaxiData.corporate_name,
                       "booking_id":formtaxivaxiData.booking_id,
+                      "admin_id":formtaxivaxiData.admin_id,
+                    
                     };
                     sessionStorage.setItem('hotelData_header', JSON.stringify(searchParams));
-            sessionStorage.setItem("hotelSearchData", JSON.stringify({ hotelList: data.HotelResult }));
-            navigate("/SearchHotel", { state: { hotelList: data.HotelResult } });
+            sessionStorage.setItem("hotelSearchData", JSON.stringify({ hotelcityList: data.HotelResult }));
+          
+            fetchCity(data.HotelResult || []);
           } else {
             // Swal.fire({ title: "Error", text: data.Status.Description || "Something went wrong!" });
             navigate("/ResultNotFound")
@@ -138,13 +142,58 @@ const HotelSearch = () => {
         } catch (error) {
           console.error("Error fetching hotels:", error);
         } finally {
-          setLoader(false);
+          // setLoader(false);
         }
       };
 
       fetchSearchApi();
     }
   }, [hotelCodes]); // Runs only when hotelCodes are updated
+  const fetchCity = async (hotelcityList) => {
+    if (!Array.isArray(hotelcityList) || hotelcityList.length === 0) {
+      return;
+    }
+  
+    setLoader(true);
+    const codes = hotelcityList.map((hotel) => hotel.HotelCode).join(",");
+  
+    try {
+      const response = await fetch("https://demo.taxivaxi.com/api/hotels/sbtHotelDetails", {
+        method: "POST",
+        headers: {
+          Origin: "*",
+          "Access-Control-Request-Method": "POST",
+        },
+        body: JSON.stringify({
+          Hotelcodes: codes,
+          Language: "EN",
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+  
+      if (data.Status && data.Status.Code === 200) {
+        setHotelDetails(data.HotelDetails || []);
+  
+        sessionStorage.setItem("hotelDetails", JSON.stringify(data.HotelDetails || []));
+        
+  
+        navigate("/SearchHotel", {
+          state: { hotelcityList: data.HotelResult },
+        });
+      } else {
+        console.error("Error fetching hotels:", data.Status?.Description);
+      }
+    } catch (error) {
+      console.error("Error fetching hotels:", error);
+    } finally {
+      setLoader(false);
+    }
+  };
 
   return (
     <div>

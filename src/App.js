@@ -14,6 +14,7 @@ import PageNotFound from './PageNotFound';
 import TryAgainLater from './TryAgainLater';
 import HotelSearch from './HotelSearch';
 import RowPage from './RowPage';
+import HotelBookingCompleted from './HotelBookingCompleted';
 import ResultNotFound from './ResultNotFound';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -38,6 +39,7 @@ const App = () => {
           <Route path="/HotelPayment" element={<HotelPayment />}/>
           <Route path="/HotelSearch" element={<HotelSearch />}/>
           <Route path="/RowPage" element={<RowPage />}/>
+          <Route path="/HotelBookingCompleted" element={<HotelBookingCompleted />}/>
           <Route path="*" element={<PageNotFound />} />
         </Routes>
         </div>

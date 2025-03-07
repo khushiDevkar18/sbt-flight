@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 
 const HotelBooking = () => {
   const [loader, setLoader] = useState(false);
-  const searchParams = JSON.parse(sessionStorage.getItem("hotelData")) || {};
+  const searchParams = JSON.parse(sessionStorage.getItem("hotelData_header")) || {};
   const location = useLocation();
   const hotel = location.state?.hotel;
 
@@ -489,12 +489,12 @@ const HotelBooking = () => {
                             </span>{" "}
                             Children
                             {searchParams.ChildAge?.length > 0 && (
-                              <span className="font-bold">
-                                {" "}
-                                {searchParams.ChildAge.map(
-                                  (age) => `${age} yrs`
-                                ).join(", ")}
-                              </span>
+                             <span className="font-bold">
+                             {Array.isArray(searchParams.ChildAge) && searchParams.ChildAge.length > 0
+                               ? searchParams.ChildAge.map((age) => `${age} yrs`).join(", ")
+                               : "0"}
+                           </span>
+                           
                             )}{" "}
                             |
                             <span className="font-bold">

@@ -27,111 +27,96 @@ const SearchHotel = () => {
 
   const searchParams =
     JSON.parse(sessionStorage.getItem("hotelData_header")) || {};
-  const hotelData = JSON.parse(sessionStorage.getItem("hotel")) || {};
+  const hotelData = JSON.parse(sessionStorage.getItem("hotelSearchData")) || {};
   const [hotelDetails, setHotelDetails] = useState(() => {
     // Try getting data from sessionStorage first
     const storedData = sessionStorage.getItem("hotelDetails");
     return storedData ? JSON.parse(storedData) : [];
   });
-  // // // // console.log("Received Hotel List:", hotelData);
-  // const [hotelList, setHotelList] = useState(() => {
-  //   return JSON.parse(sessionStorage.getItem("hotelSearchData")) || [];
-  // });
-  const hotelList =
-    JSON.parse(sessionStorage.getItem("hotelSearchData"))?.hotelList || [];
 
-  // // Listen for changes in sessionStorage
+  const hotelcityList =
+    JSON.parse(sessionStorage.getItem("hotelSearchData"))?.hotelcityList || [];
+
+
+
   // useEffect(() => {
-  //   const handleStorageChange = () => {
-  //     const updatedData = JSON.parse(sessionStorage.getItem("hotelSearchData")) || [];
-  //     setHotelList(updatedData);
+  //   const fetchCity = async () => {
+  //     const storedHotelList = sessionStorage.getItem("hotelSearchData");
+  //     const hotelcityList = storedHotelList
+  //       ? JSON.parse(storedHotelList).hotelcityList
+  //       : [];
+
+  //     // console.log("Parsed hotelcityList:", hotelcityList);
+
+  //     if (!Array.isArray(hotelcityList) || hotelcityList.length === 0) {
+  //       // console.log("Hotel list is empty, exiting fetchCity");
+  //       return;
+  //     }
+
+  //     setLoader(true);
+
+  //     const codes = hotelcityList.map((hotel) => hotel.HotelCode);
+  //     // console.log("Hotel Codes:", codes);
+
+  //     const hotelcodes = codes.toString(); // Convert array to comma-separated string
+
+  //     try {
+  //       const response = await fetch(
+  //         "https://demo.taxivaxi.com/api/hotels/sbtHotelDetails",
+  //         {
+  //           method: "POST",
+  //           headers: {
+  //             // "Content-Type": "application/json",
+  //             Origin: "*", // Change to your React app's origin
+  //             "Access-Control-Request-Method": "POST", // The method you're going to use
+  //           },
+  //           body: JSON.stringify({
+  //             Hotelcodes: hotelcodes,
+  //             Language: "EN",
+  //           }),
+  //         }
+  //       );
+
+  //       if (!response.ok) {
+  //         throw new Error(`HTTP error! status: ${response.status}`);
+  //       }
+
+  //       const data = await response.json();
+  //       // console.log("Hotel data:", data);
+
+  //       if (data.Status && data.Status.Code === 200) {
+  //         setHotelDetails(data.HotelDetails || []);
+  //         sessionStorage.setItem(
+  //           "hotelDetails",
+  //           JSON.stringify(data.HotelDetails || [])
+  //         );
+  //       } else {
+  //         console.error("Error fetching hotels:", data.Status?.Description);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching hotels:", error);
+  //     } finally {
+  //       setLoader(false);
+  //     }
   //   };
 
-  //   window.addEventListener("storage", handleStorageChange);
-
-  //   return () => {
-  //     window.removeEventListener("storage", handleStorageChange);
-  //   };
+  //   fetchCity();
   // }, []);
-
-  useEffect(() => {
-    const fetchCity = async () => {
-      const storedHotelList = sessionStorage.getItem("hotelSearchData");
-      const hotelList = storedHotelList
-        ? JSON.parse(storedHotelList).hotelList
-        : [];
-
-      // console.log("Parsed hotelList:", hotelList);
-
-      if (!Array.isArray(hotelList) || hotelList.length === 0) {
-        // console.log("Hotel list is empty, exiting fetchCity");
-        return;
-      }
-
-      setLoader(true);
-
-      const codes = hotelList.map((hotel) => hotel.HotelCode);
-      // console.log("Hotel Codes:", codes);
-
-      const hotelcodes = codes.toString(); // Convert array to comma-separated string
-
-      try {
-        const response = await fetch(
-          "https://demo.taxivaxi.com/api/hotels/sbtHotelDetails",
-          {
-            method: "POST",
-            headers: {
-              // "Content-Type": "application/json",
-              Origin: "*", // Change to your React app's origin
-              "Access-Control-Request-Method": "POST", // The method you're going to use
-            },
-            body: JSON.stringify({
-              Hotelcodes: hotelcodes,
-              Language: "EN",
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        // console.log("Hotel data:", data);
-
-        if (data.Status && data.Status.Code === 200) {
-          setHotelDetails(data.HotelDetails || []);
-          sessionStorage.setItem(
-            "hotelDetails",
-            JSON.stringify(data.HotelDetails || [])
-          );
-        } else {
-          console.error("Error fetching hotels:", data.Status?.Description);
-        }
-      } catch (error) {
-        console.error("Error fetching hotels:", error);
-      } finally {
-        setLoader(false);
-      }
-    };
-
-    fetchCity();
-  }, []);
 
   const combinedHotels = useMemo(() => {
     return hotelDetails.map((hotel) => {
-      const matchedHotelList = hotelList.find(
+      const matchedHotelList = hotelcityList.find(
         (item) => item.HotelCode === hotel.HotelCode
       );
       const matchedHotelData = hotelData[hotel.HotelCode] || {};
 
       return {
         ...hotel, // Base details
-        ...matchedHotelList, // Override with hotelList data if found
+        ...matchedHotelList, // Override with hotelcityList data if found
         ...matchedHotelData, // Override with hotelData if found
       };
     });
-  }, [hotelDetails, hotelList, hotelData]); // Recompute only when dependencies change
+  }, [hotelDetails, hotelcityList, hotelData]); // Recompute only when dependencies change
   // console.log(combinedHotels);
 
   const renderRatingText = (rating) => {
@@ -172,7 +157,7 @@ const SearchHotel = () => {
     height: "400px", // Ensure height is set, otherwise the map won't show
   };
 
-  const defaultCenter = { lat: 40.7128, lng: -74.006 };
+  
   // //// // console.log(storedCities);
   const [mapCenter, setMapCenter] = useState({ lat: 40.7128, lng: -74.006 });
 
@@ -181,6 +166,12 @@ const SearchHotel = () => {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: "AIzaSyCnfQ-TTa0kZzAPvcgc9qyorD34aIxaZhk", // Use environment variables for security
   });
+  useEffect(() => {
+    if (hotelData.Map) {
+      const [lat, lng] = hotelData.Map.split("|").map(Number);
+      setMapCenter({ lat, lng });
+    }
+  }, []);
   const [selectedHotel, setSelectedHotel] = useState(null);
   useEffect(() => {
     const style = document.createElement("style");
@@ -223,10 +214,11 @@ const SearchHotel = () => {
   };
 
   const [cityName, setCityName] = useState(
-    searchParams.filteredCities && searchParams.filteredCities.length > 0
+    searchParams.filteredCities?.length > 0
       ? searchParams.filteredCities[0].Name
-      : ""
+      : searchParams.City_name || ""
   );
+  
   const [showModal2, setShowModal2] = useState(false);
   const [selectedHotels, setSelectedHotels] = useState([]);
   const [showModal1, setShowModal1] = useState(false);
@@ -248,9 +240,10 @@ const SearchHotel = () => {
           cityName: hotel.CityName,
           Description: hotel.Description,
           BookingCode: hotel.Rooms?.[0]?.BookingCode || 0,
-          // BookingCode: hotel.BookingCode,
+          BasePrice: hotel.Rooms?.[0]?.DayRates?.[0]?.map((rate) => rate.BasePrice) || [],
         },
       ]);
+      
     }
   };
   
@@ -262,6 +255,7 @@ const SearchHotel = () => {
       tax: hotel.tax, // Use stored tax value
       total: hotel.price, // Use stored price value
       BookingCode:hotel.BookingCode,
+      BasePrice:hotel.BasePrice,
     }));
   
     console.log(sharedHotels); // This should now log correct hotel data
@@ -274,66 +268,7 @@ const SearchHotel = () => {
 const handleCancel =()=>{
   setIsModalOpen(false);
 }
-  // Function to toggle modal visibility
- 
-  // Function to remove a hotel from the modal
-
-  // const [errors, setErrors] = useState({
-  //   clientName: "",
-  //   spocName: "",
-  //   spocEmail: "",
-  //   additionalEmail: "",
-  //   remark: "",
-  // });
-
-  // const validateForm = () => {
-  //   let isValid = true;
-  //   const newErrors = {
-  //     clientName: "",
-  //     spocName: "",
-  //     spocEmail: "",
-  //     additionalEmail: "",
-  //     remark: "",
-  //   };
-
-  //   if (!formData.clientName.trim()) {
-  //     newErrors.clientName = "Client Name is required";
-  //     isValid = false;
-  //   }
-  //   if (!formData.spocName.trim()) {
-  //     newErrors.spocName = "SPOC Name is required";
-  //     isValid = false;
-  //   }
-  //   if (!formData.spocEmail.trim()) {
-  //     newErrors.spocEmail = "SPOC Email is required";
-  //     isValid = false;
-  //   } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.spocEmail)) {
-  //     newErrors.spocEmail = "Enter a valid email";
-  //     isValid = false;
-  //   }
-  //   if (
-  //     formData.additionalEmail &&
-  //     !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.additionalEmail)
-  //   ) {
-  //     newErrors.additionalEmail = "Enter a valid email";
-  //     isValid = false;
-  //   }
-  //   // if (!formData.remark.trim()) {
-  //   //   newErrors.remark = "Remark is required";
-  //   //   isValid = false;
-  //   // }
-
-  //   setErrors(newErrors);
-  //   return isValid;
-  // };
-
-  // const handleChange = (e) => {
-  //   const { name, value } = e.target;
-
-  //   setFormData({ ...formData, [name]: value });
-
-  //   setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
-  // };
+  
   const [formData, setFormData] = useState({
     clientName: searchParams.corporate_name,
     spocName: searchParams.spoc_name,
@@ -395,24 +330,32 @@ const handleCancel =()=>{
     e.preventDefault();
   
     // Construct the Options array dynamically
-    const options = selectedHotels.map(hotel => ({
-      booking_id: searchParams.booking_id, // Use booking_id from searchParams
-      hotel_code: hotel.code, // Use hotel code from selectedHotels
-      booking_code: hotel.BookingCode, // Use BookingCode from selectedHotels
-      total_fare: hotel.price, // Use total fare from selectedHotels
-      tax: hotel.tax, // Use tax from selectedHotels
-      checkin_date: searchParams.checkIn, // Update dynamically if needed
-      checkout_date: searchParams.checkOut, // Update dynamically if needed
-      no_of_seats: 2, // Modify based on user input if applicable
-      city: searchParams.filteredCities , // Use city from searchParams or default
-      hotel_name: hotel.name, // Use hotel name from selectedHotels
-      source: 2, // Static value, update if necessary
+    const requestBody = {
+      Options: selectedHotels.map(hotel => ({
+        hotel_code: hotel.code, 
+        booking_code: hotel.BookingCode, 
+        base_fares: hotel.BasePrice,
+        total_fare: hotel.price, 
+        tax: hotel.tax, 
+        hotel_name: hotel.name, 
+        source: 2,
+        
+      })),
       additional_email: toEmailList, // Use toEmailList from form state
-      approver_email: [searchParams.approver1, searchParams.approver2].filter(Boolean), // Filter out empty values
+      approver_email: [searchParams.approver1, searchParams.approver2].filter(Boolean), // Remove empty values
       cc_email: ccEmailList, // Use ccEmailList from form state
-    }));
+      admin_id: searchParams.admin_id, 
+      booking_id: searchParams.booking_id, 
+      checkin_date: searchParams.checkIn, 
+      checkout_date: searchParams.checkOut, 
+      no_of_seats: 2, 
+      city: searchParams.City_name 
+    };
+    
+    // console.log(formattedData);
+    
   
-    const requestBody = { Options: options };
+    // const requestBody = { formattedData: formattedData };
   console.log(requestBody);
     try {
       const response = await fetch(
@@ -437,6 +380,10 @@ const handleCancel =()=>{
       if(data.success=='1'){
         setIsModalOpen(false);
         setSelectedHotels([]);
+        Swal.fire({
+                  title: "Mail Sent",
+                  text:"Mail Was Sent Successfully" ,
+                });
 
       }
     } catch (error) {
@@ -597,34 +544,34 @@ const handleCancel =()=>{
           )}
           <div className="yield-content" style={{ background: "#e8e4ff" }}>
             <div className="flex card-container ">
-              <div className="w-1/3  items-center justify-center  p-4">
-                <div className="mb-5">
-                  <div
-                    className="max-w-[19rem] w-full bg-white shadow-lg rounded border cursor-pointer"
-                    onClick={() => setIsOpen(true)}
-                  >
-                    <div className="relative">
-                      {/* Small Map Preview */}
-                      <GoogleMap
-                        mapContainerStyle={{
-                          width: "100%",
-                          height: "150px",
-                          borderRadius: "8px",
-                        }}
-                        zoom={10}
-                        center={mapCenter}
-                      >
-                        {/* Map is empty without markers */}
-                      </GoogleMap>
+               <div className="w-1/3 items-center justify-center p-4">
+      <div className="mb-5">
+        <div
+          className="max-w-[19rem] w-full bg-white shadow-lg rounded border cursor-pointer" onClick={() => setIsOpen(true)}
+        >
+          <div className="relative">
+            {/* Small Map Preview */}
+            <GoogleMap
+              mapContainerStyle={{
+                width: "100%",
+                height: "150px",
+                borderRadius: "8px",
+              }}
+              zoom={15}
+              center={mapCenter}
+            >
+              {/* Marker at Hotel Location */}
+              <Marker position={mapCenter} />
+            </GoogleMap>
 
-                      {/* Overlay Text */}
-                      <h6 className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-gray-700 text-xs font-semibold mb-4 bg-white p-2 rounded">
-                        EXPOLRE ON MAP
-                      </h6>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {/* Overlay Text */}
+            <h6 className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-gray-700 text-xs font-semibold mb-4 bg-white p-2 rounded">
+              EXPLORE ON MAP
+            </h6>
+          </div>
+        </div>
+      </div>
+    </div>
 
               <div className="w-full items-center justify-center">
                 <p className="py-7 px-6 heading-line mb-0">

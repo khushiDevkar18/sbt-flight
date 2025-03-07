@@ -95,24 +95,10 @@ const Header = () => {
   }, []);
   const searchParams = searchData || {};
   
-  // const SESSION_TIMEOUT = 60 * 60 * 1000; // 1 hour in milliseconds
-  // useEffect(() => {
-  //   const timeout = setTimeout(() => {
-  //     sessionStorage.clear();
-  //     setCheckInDate("");
-  //     setCheckOutDate("");
-  //   }, SESSION_TIMEOUT); // 1 hour
-    
-  //   return () => clearTimeout(timeout); // Cleanup on component unmount
-  // }, []);
   
   const [isCheckInOpen, setCheckInIsOpen] = useState(false);
   const [isCheckOutOpen, setCheckOutIsOpen] = useState(false);
-  // // // console.log( 'previous date ',searchParams.checkIn);
-  // // // console.log('Displayed date ',parseDate(searchParams.checkIn));
-  // // // console.log('actual date displayed',formatDate(checkInDate))
-  // Handle date changes
-
+ 
   const handleCheckInDateChange = (date) => {
     setCheckInDate(date);
   };
@@ -162,17 +148,19 @@ const Header = () => {
 const [cityName, setCityName] = useState("");
 
 useEffect(() => {
+  if (!searchParams) return; // Ensure searchParams exists
+
   const timeout = setTimeout(() => {
     setCityName(
-      searchParams.filteredCities && searchParams.filteredCities.length > 0
+      searchParams.filteredCities?.length > 0
         ? searchParams.filteredCities[0].Name
-        : ""
+        : searchParams.City_name || ""
     );
-  }, 1000); // Delay of 1 second (1000 ms)
+  }, 1000); // 1-second delay
 
-  return () => clearTimeout(timeout); // Cleanup function to avoid memory leaks
-}, [searchParams.filteredCities]); // Runs when `filteredCities` changes
-// console.log(searchParams);
+  return () => clearTimeout(timeout); // Cleanup timeout to avoid memory leaks
+}, [searchParams]); // Re-run effect when searchParams changes
+
   // // console.log(cityName);
   const [isTyping, setIsTyping] = useState(false);
   useLayoutEffect(() => {

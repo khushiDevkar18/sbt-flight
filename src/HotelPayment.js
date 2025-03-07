@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import Modal from "./Modal";
 import { useEffect, useRef, useState } from "react";
@@ -9,8 +9,8 @@ const HotelPayment = () => {
   const location = useLocation();
   const combinedHotels = location.state?.combinedHotels;
   const personDetails = location.state?.person;
-  const searchParams = JSON.parse(sessionStorage.getItem("hotelData")) || {};
-    console.log(combinedHotels);
+  const searchParams = JSON.parse(sessionStorage.getItem("hotelData_header")) || {};
+    // console.log(combinedHotels);
   const rooms = combinedHotels?.[0]?.Rooms?.[0];
   //   console.log('Rooms:', rooms);
   const Amount = rooms.TotalFare;
@@ -122,6 +122,7 @@ const HotelPayment = () => {
   //     setSelectedTab2(menthod);
   //     console.log(`Selected Payment Method:`, menthod);
   //   }
+  const navigate = useNavigate();
   const [orderId, setOrderId] = useState();
   const integerAmount = Amount;
   useEffect(() => {
@@ -160,30 +161,55 @@ const HotelPayment = () => {
     console.log("real amount in paise:", Math.round(integerAmount));
 
     var options = {
-      key: "rzp_test_ehsLN9JxfDgZGp", // Replace with your Razorpay API Key
-      amount: Math.round(integerAmount * 100), // Already in paise, no need to multiply by 100
-      currency: "INR",
-      name: "Cotrav",
-      description: "Test Transaction",
-      order_id: orderId,
-      prefill: {
-        name: "khushi devkar",
-        email: "khushi.devghar@taxivaxi.com",
-        contact: "1234567890",
-      },
-      theme: {
-        color: "#785ef7",
-      },
-      modal: {
-        ondismiss: function () {
-          console.log("Checkout closed.");
+        key: "rzp_test_go8VcTslr3QSxe",
+        secret: "vQJRXCJnE5uIZ5y8Q4KjMbhV",
+        amount: Math.round(integerAmount * 100), // Already in paise
+        currency: "INR",
+        name: "Cotrav",
+        description: "Test Transaction",
+        order_id: orderId,
+        prefill: {
+          name: "khushi devkar",
+          email: "khushi.devghar@taxivaxi.com",
+          contact: "1234567890",
         },
-      },
+        theme: {
+          color: "#785ef7",
+        },
+        modal: {
+          ondismiss: function () {
+            console.log("Checkout closed.");
+          },
+        },
+        handler: function (response) {
+          console.log("Payment Successful", response);
+          navigate("/HotelBookingCompleted", { state: {combinedHotels} });
+        },
+      };
+    
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
     };
+    
+    // var options = {
+    //     "key": "rzp_test_go8VcTslr3QSxe",
+    //     "secret": "vQJRXCJnE5uIZ5y8Q4KjMbhV",
+    //     "amount": 57000*100,
+    //     "currency": "INR",
+    //     "name": "Acme Corp",
+    //     "description": "Test Transaction",
+    //     "image": "https://example.com/your_logo",
+    //     "prefill": {
+    //         "name": "Gaurav Kumar",
+    //         "email": "gaurav.kumar@example.com",
+    //         "contact": "9000090000"
+    //     },
+    //     "theme": {
+    //         "color": "#3399cc"
+    //     }
+    // };
 
-    const paymentObject = new window.Razorpay(options);
-    paymentObject.open();
-  };
+  
 
 
 
