@@ -303,6 +303,9 @@ const SearchFlight = () => {
   const [allSegmentKeys, setAllSegmentKeys] = useState([]);
   const [isbookingpage, setBookingpage] = useState(false);
 
+  const taxesRef = useRef(null);
+  console.log('taxesRef', taxesRef);
+
   const handleSegmentKeyMatch = (segmentKey) => {
     setFareInfoRefsState([]);
     const matchedBookingInfo = flightairoption.filter(
@@ -752,16 +755,14 @@ const SearchFlight = () => {
   };
 
   const calculateFinalPrice = (totalPrice, markup, seatType, fareName, airline, flighttype) => {
-    if (typeof markup === "string") {
-      try {
-        markup = JSON.parse(markup);
-      } catch (error) {
-        return parseFloat(totalPrice.replace("INR", "").trim()); // Return the original price
-      }
-    }
+    console.log('totalPrice', totalPrice);
+    
   
     // Ensure totalPrice is numeric for calculations
-    const numericPrice = parseFloat(totalPrice.replace("INR", "").trim());
+    // const numericPrice = parseFloat(totalPrice.replace("INR", "").trim());
+    const numericPrice = String(totalPrice).includes("INR") 
+  ? parseFloat(totalPrice.replace("INR", "").trim()) 
+  : parseFloat(totalPrice);
   
     if (!Array.isArray(markup) || markup.length === 0) {
       return numericPrice; // Return the original price if no markup exists
@@ -1217,7 +1218,11 @@ const SearchFlight = () => {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
   // useEffect(() => {
-  const handlePriceSubmit = (event, priceindex) => {
+  const handlePriceSubmit = (event, priceindex, taxes) => {
+    // console.log('taxes', taxes);
+    taxesRef.current = null;
+    const tax = Math.floor(parseFloat(taxes.replace("INR", "").trim()));
+
     setLoading(true);
     setFareInfoRefsState([]);
     setpriceparse([]);
@@ -1241,6 +1246,7 @@ const SearchFlight = () => {
       }, 2000);
 
       if (ismodify) {
+        taxesRef.current = tax;
         setLoading(true);
         setIsDropdownVisible(true);
         setSelectedPriceIndex(priceindex);
@@ -1727,7 +1733,7 @@ const SearchFlight = () => {
         if (cancellationPolicy) return; 
 
         try {
-            const response = await axios.get("https://demo.taxivaxi.com/api/flights/getCancellationDateChangePolicy");
+            const response = await axios.get("https://corporate.taxivaxi.com/api/flights/getCancellationDateChangePolicy");
             setCancellationPolicy(response.data.data); 
         } catch (error) {
             console.error("Error fetching cancellation policy:", error);
@@ -2720,7 +2726,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
     };
     setPayload(payload);
     console.log('payload', payload);
-    const apiLink = 'https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking';
+    const apiLink = 'https://corporate.taxivaxi.com/api/flights/addCotravFlightOptionBooking';
     
 
     axios.post(apiLink, JSON.stringify(payload), {
@@ -2774,7 +2780,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       };
       console.log('updatedPayload', updatedPayload);
   
-      const apiLink = "https://demo.taxivaxi.com/api/flights/addCotravFlightOptionBooking";
+      const apiLink = "https://corporate.taxivaxi.com/api/flights/addCotravFlightOptionBooking";
   
       axios
         .post(apiLink, JSON.stringify(updatedPayload), {
@@ -5338,7 +5344,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                     {/* console.log('pricepoint', pricepoint); */}
                                     return (
                                       <React.Fragment key={priceindex}>
-                                        <form onSubmit={(e) => handlePriceSubmit(e, priceindex)}>
+                                        <form onSubmit={(e) => handlePriceSubmit(e, priceindex, pricepoint['$']['Taxes'])}>
                                           <div key={priceindex}>
                                             {pricepoint && pricepoint['air:AirPricingInfo'] && (
                                               (pricepoint['air:AirPricingInfo'][0]?.['air:FlightOptionsList']?.['air:FlightOption'] && Array.isArray(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'])) ||
@@ -11738,7 +11744,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                                     <div className="selectprice">
                                                                                       {(() => {
                                                                                         const totalPrice = priceParseData['air:AirPricingInfo'][0].$.TotalPrice;
-                                                                                        const numericTotalPrice = totalPrice.replace('INR', '').trim(); // Extract numeric part of price
+                                                                                        const numericTotalPrice = totalPrice.replace('INR', '').trim(); 
+                                                                                       
                                                                                         const airline = inputOrigin;
                                                                                         const calculatedPrice = calculateFinalPrice(
                                                                                           numericTotalPrice,
@@ -15997,9 +16004,11 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                           {(() => {
                                                                             // Use Amount from matchingFareInfo for price
                                                                             const totalAmount = matchingFareInfo['$']['Amount'];
-                                                                            const numericTotalPrice = totalAmount
-                                                                              .replace("INR", "")
-                                                                              .trim(); // Extract numeric part of price
+                                                                            {/* console.log('totalamounttttttt', totalAmount.replace("INR", "").trim() + taxesRef.current); */}
+                                                                            console.log('totalamounttttttt', parseFloat(totalAmount.replace("INR", "").trim()) + (taxesRef.current));
+
+                                                                            const numericTotalPrice = parseFloat(totalAmount.replace("INR", "").trim()) + (taxesRef.current);
+                                                                             
                                                                             const airline = inputOrigin;
                                                                             const calculatedPrice = calculateFinalPrice(
                                                                               numericTotalPrice,
@@ -16040,7 +16049,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                       onClick={() => handleCheckboxChange(
                                                                         pricepoint["air:AirPricingInfo"],
                                                                         calculateFinalPrice(
-                                                                          matchingFareInfo['$']['Amount'], 
+                                                                          (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + (taxesRef.current)),
+                                                                          // (matchingFareInfo['$']['Amount'].replace('INR', '').trim() + (taxesRef.current)).toFixed(2), 
                                                                           markupdata, 
                                                                           cabinClass, 
                                                                           matchingFareInfo['$']['FareFamily'], 
@@ -16058,7 +16068,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                               (fare) =>
                                                                                 fare.fare_type === matchingFareInfo["$"]["FareFamily"] &&
                                                                                 fare.price === calculateFinalPrice(
-                                                                          matchingFareInfo['$']['Amount'], 
+                                                                                  (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + (taxesRef.current)), 
                                                                           markupdata, 
                                                                           cabinClass, 
                                                                           matchingFareInfo['$']['FareFamily'], 

@@ -228,7 +228,7 @@ function Home() {
     useEffect(() => {
         if (companies.length === 0) {  // Only fetch if companies array is empty
           axios
-            .get("https://demo.taxivaxi.com/api/getIDNameAllCompanies")
+            .get("https://corporate.taxivaxi.com/api/getIDNameAllCompanies")
             .then((response) => {
               if (response.data.success === "1") {
                 setCompanies(response.data.response.Companies); // Store company data
@@ -255,7 +255,7 @@ function Home() {
         };
         // console.log('payload', payload);
         
-        axios.post('https://demo.taxivaxi.com/api/flights/getClientMarkupDetails', payload, {
+        axios.post('https://corporate.taxivaxi.com/api/flights/getClientMarkupDetails', payload, {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded', // Correct content type
             }

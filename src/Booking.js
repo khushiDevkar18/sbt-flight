@@ -179,7 +179,7 @@ const Booking = () => {
             if (cancellationPolicy) return; 
     
             try {
-                const response = await axios.get("https://demo.taxivaxi.com/api/flights/getCancellationDateChangePolicy");
+                const response = await axios.get("https://corporate.taxivaxi.com/api/flights/getCancellationDateChangePolicy");
                 setCancellationPolicy(response.data.data); 
             } catch (error) {
                 console.error("Error fetching cancellation policy:", error);
@@ -198,7 +198,7 @@ const Booking = () => {
         });
 
         try {
-            const response = await fetch('https://demo.taxivaxi.com/api/flights/employeeByTaxivaxi', {
+            const response = await fetch('https://corporate.taxivaxi.com/api/flights/employeeByTaxivaxi', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -231,7 +231,7 @@ const Booking = () => {
 
         try {
             if (is_gst_benefit == '1') {
-                const response = await fetch('https://demo.taxivaxi.com/api/flights/getClientGst', {
+                const response = await fetch('https://corporate.taxivaxi.com/api/flights/getClientGst', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -1034,27 +1034,51 @@ const Booking = () => {
                                 },
                                 'com:FormOfPayment': {
                                     '$': {
-                                        'Type': "Credit"
+                                        'Type': "Agency",
+                                        'IsAgentType':"true"
                                     },
-                                    'com:CreditCard': {
-                                        '$': {
-                                            'BankCountryCode': "IN",
-                                            'CVV': "737",
-                                            'ExpDate': "2026-11",
-                                            'Name': "Pavan Patil",
-                                            'Number': "4111111111111111",
-                                            'Type': "VI",
-                                        },
-                                        'com:BillingAddress': {
-                                            'com:AddressName': "Home",
-                                            'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
-                                            'com:City': "Pune",
-                                            'com:State': "Maharashtra",
-                                            'com:PostalCode': "411011",
-                                            'com:Country': "IN",
-                                        }
-                                    },
+                                    // 'com:CreditCard': {
+                                    //     '$': {
+                                    //         'BankCountryCode': "IN",
+                                    //         'CVV': "737",
+                                    //         'ExpDate': "2026-11",
+                                    //         'Name': "Pavan Patil",
+                                    //         'Number': "4111111111111111",
+                                    //         'Type': "VI",
+                                    //     },
+                                    //     'com:BillingAddress': {
+                                    //         'com:AddressName': "Home",
+                                    //         'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                                    //         'com:City': "Pune",
+                                    //         'com:State': "Maharashtra",
+                                    //         'com:PostalCode': "411011",
+                                    //         'com:Country': "IN",
+                                    //     }
+                                    // },
                                 },
+                                // 'com:FormOfPayment': {
+                                //     '$': {
+                                //         'Type': "Credit"
+                                //     },
+                                //     'com:CreditCard': {
+                                //         '$': {
+                                //             'BankCountryCode': "IN",
+                                //             'CVV': "737",
+                                //             'ExpDate': "2026-11",
+                                //             'Name': "Pavan Patil",
+                                //             'Number': "4111111111111111",
+                                //             'Type': "VI",
+                                //         },
+                                //         'com:BillingAddress': {
+                                //             'com:AddressName': "Home",
+                                //             'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                                //             'com:City': "Pune",
+                                //             'com:State': "Maharashtra",
+                                //             'com:PostalCode': "411011",
+                                //             'com:Country': "IN",
+                                //         }
+                                //     },
+                                // },
                                 'air:AirPricingSolution': packageSelected,
                                 'com:ActionStatus': {
                                     '$': {
@@ -1626,27 +1650,51 @@ const Booking = () => {
                                 },
                                 'com:FormOfPayment': {
                                     '$': {
-                                        'Type': "Credit"
+                                        'Type': "Agency",
+                                        'IsAgentType':"true"
                                     },
-                                    'com:CreditCard': {
-                                        '$': {
-                                            'BankCountryCode': "IN",
-                                            'CVV': "737",
-                                            'ExpDate': "2026-11",
-                                            'Name': "Pavan Patil",
-                                            'Number': "4111111111111111",
-                                            'Type': "VI",
-                                        },
-                                        'com:BillingAddress': {
-                                            'com:AddressName': "Home",
-                                            'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
-                                            'com:City': "Pune",
-                                            'com:State': "Maharashtra",
-                                            'com:PostalCode': "411011",
-                                            'com:Country': "IN",
-                                        }
-                                    },
+                                    // 'com:CreditCard': {
+                                    //     '$': {
+                                    //         'BankCountryCode': "IN",
+                                    //         'CVV': "737",
+                                    //         'ExpDate': "2026-11",
+                                    //         'Name': "Pavan Patil",
+                                    //         'Number': "4111111111111111",
+                                    //         'Type': "VI",
+                                    //     },
+                                    //     'com:BillingAddress': {
+                                    //         'com:AddressName': "Home",
+                                    //         'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                                    //         'com:City': "Pune",
+                                    //         'com:State': "Maharashtra",
+                                    //         'com:PostalCode': "411011",
+                                    //         'com:Country': "IN",
+                                    //     }
+                                    // },
                                 },
+                                // 'com:FormOfPayment': {
+                                //     '$': {
+                                //         'Type': "Credit"
+                                //     },
+                                //     'com:CreditCard': {
+                                //         '$': {
+                                //             'BankCountryCode': "IN",
+                                //             'CVV': "737",
+                                //             'ExpDate': "2026-11",
+                                //             'Name': "Pavan Patil",
+                                //             'Number': "4111111111111111",
+                                //             'Type': "VI",
+                                //         },
+                                //         'com:BillingAddress': {
+                                //             'com:AddressName': "Home",
+                                //             'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                                //             'com:City': "Pune",
+                                //             'com:State': "Maharashtra",
+                                //             'com:PostalCode': "411011",
+                                //             'com:Country': "IN",
+                                //         }
+                                //     },
+                                // },
                                 'air:AirPricingSolution': packageSelected,
                                 'com:ActionStatus': {
                                     '$': {
@@ -1834,7 +1882,7 @@ const Booking = () => {
 
                                     
 
-                                    const apiLink = 'https://demo.taxivaxi.com/api/flights/assignSbtCotravFlightBooking';
+                                    const apiLink = 'https://corporate.taxivaxi.com/api/flights/assignSbtCotravFlightBooking';
 
                                     axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
                                         headers: {
@@ -2006,7 +2054,7 @@ const Booking = () => {
 
                                     console.log('formtaxivaxiData', JSON.stringify(formtaxivaxiData));
 
-                                    const apiLink = 'https://demo.taxivaxi.com/api/flights/assignSbtCotravFlightBooking';
+                                    const apiLink = 'https://corporate.taxivaxi.com/api/flights/assignSbtCotravFlightBooking';
 
                                     axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
                                         headers: {
@@ -2429,7 +2477,7 @@ const Booking = () => {
                 const addSearchQueryAsBooking = async () => {
                     try {
                         const response = await axios.post(
-                            "https://demo.taxivaxi.com/api/flights/addSearchQueryAsBooking",
+                            "https://corporate.taxivaxi.com/api/flights/addSearchQueryAsBooking",
                             requestData
                         );
                         console.log("API Response:", response.data);

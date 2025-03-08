@@ -90,9 +90,10 @@ const BookingContinue = () => {
           if (ReservationRsp !== null && ReservationRsp !== undefined) {
             const passnegrinfo = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['common_v52_0:BookingTraveler'];
             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode'];
+            const universallocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode'];
             const ressegmentinfo = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
             const respricinginfo = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirPricingInfo'];
-            setPnr(pnrCode);
+            setPnr(universallocatorCode);
             setresegments(Array.isArray(ressegmentinfo) ? ressegmentinfo : [ressegmentinfo]);
             setrespricings(Array.isArray(respricinginfo) ? respricinginfo : [respricinginfo]);
           }else{
