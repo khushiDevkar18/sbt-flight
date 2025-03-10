@@ -70,12 +70,13 @@ const SearchFlight = () => {
   const [SegmentList, setSegment] = useState([]);
   const [HostList, setHostlist] = useState([]);
   const [FareList, setFarelist] = useState([]);
+  const [TaxList, setTaxlist] = useState([]);
   const [htmlContent, setHtmlContent] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [newpayload, setPayload] = useState("");
   const contentRef = useRef(null);
   const Targetbranch = 'P4451438';
-  // console.log('farelist', FareList);
+  // console.log('TaxList', TaxList);
 
   const getFareDetails = (brandName) => {
     setFareInfoDetails(null);
@@ -91,7 +92,7 @@ const SearchFlight = () => {
         });
       }
     });
-    console.log('fareDetails', fareDetails);
+    // console.log('fareDetails', fareDetails);
     // setFareInfoDetails(fareDetails);
     setFareInfoDetails(fareDetails.length > 0 ? fareDetails : null);
     setVisibleDetails(true);
@@ -252,7 +253,7 @@ const SearchFlight = () => {
   const agent_id = location.state && location.state.responseData?.agent_id;
   const global = location.state && location.state.responseData?.global;
 
-  console.log('markupdata',markupdata);
+  // console.log('markupdata',markupdata);
   const bookingid = location.state && location.state.responseData?.bookingid;
   const is_approved = location.state && location.state.responseData?.isapproved;
   const searchdeparturedate = convertDateFormat(location.state && location.state.responseData?.searchdeparture);
@@ -300,11 +301,12 @@ const SearchFlight = () => {
   const [pricesegment, setpricesegment] = useState([]);
   const [loadingIndex, setLoadingIndex] = useState(null);
   const [fareInfoRefsState, setFareInfoRefsState] = useState([]);
+  // console.log('fareInfoRefsState', fareInfoRefsState);
   const [allSegmentKeys, setAllSegmentKeys] = useState([]);
   const [isbookingpage, setBookingpage] = useState(false);
 
   const taxesRef = useRef(null);
-  console.log('taxesRef', taxesRef);
+  // console.log('taxesRef', taxesRef);
 
   const handleSegmentKeyMatch = (segmentKey) => {
     setFareInfoRefsState([]);
@@ -330,9 +332,16 @@ const SearchFlight = () => {
     const matchingFareInfo = FareList.find(
       (fareInfo) => fareInfo['$'] && fareInfo['$']['Key'] === fareInfoRefKey['FareInfoRef']
     );
+    const extractedtaxinfo = fareInfoRefKey['TaxInfoRef'];
+                                                              
+    const matchingTaxInfo = TaxList.find(
+      (taxinfo) => taxinfo['Key'] === extractedtaxinfo 
+    );
+    const totalTax = matchingTaxInfo['Amount'];
     // console.log('price', matchingFareInfo['$']['Amount']);
     // const price = matchingFareInfo['$']['Amount'];
-    const markup_price = calculateFinalMarkup(matchingFareInfo['$']['Amount'], markupdata, cabinClass, matchingFareInfo['$']['FareFamily'], inputOrigin, flight_type );
+    
+    const markup_price = calculateFinalMarkup( (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + parseFloat(totalTax.replace("INR", "").trim())),  markupdata, cabinClass, matchingFareInfo['$']['FareFamily'], inputOrigin, flight_type );
     console.log('markup_price', markup_price);
 
     const segmentArray = matchedData
@@ -779,23 +788,27 @@ const SearchFlight = () => {
       return numericPrice + (numericPrice * markupValue) / 100; // Add percentage markup
     }
 
-    console.log('numericPrice', numericPrice);
+    // console.log('numericPrice', numericPrice);
     return numericPrice
     
 
   };
   const calculateFinalMarkup = (totalPrice, markup, seatType, fareName, airline, flighttype) => {
     // Parse markup if it's a JSON string
-    if (typeof markup === "string") {
-      try {
-        markup = JSON.parse(markup);
-      } catch (error) {
-        return 0; // Return 0 if parsing fails
-      }
-    }
+    console.log('totalPrice for markup', totalPrice)
+    // if (typeof markup === "string") {
+    //   try {
+    //     markup = JSON.parse(markup);
+    //   } catch (error) {
+    //     return 0; // Return 0 if parsing fails
+    //   }
+    // }
   
     // Ensure totalPrice is numeric for calculations
-    const numericPrice = parseFloat(totalPrice.replace("INR", "").trim());
+    // const numericPrice = parseFloat(totalPrice.replace("INR", "").trim());
+    const numericPrice = String(totalPrice).includes("INR") 
+  ? parseFloat(totalPrice.replace("INR", "").trim()) 
+  : parseFloat(totalPrice);
   
     if (!Array.isArray(markup) || markup.length === 0) {
       return 0; // No markup available
@@ -840,11 +853,20 @@ const SearchFlight = () => {
           // console.log('pricepointlist', pricepointlist);
 
           const extractedBookingInfo = [];
+          const extractedTaxInfo = [];
           const pricepointlistArray = Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist];
           // Iterate through the AirPricePoint list
           pricepointlistArray.forEach((airPricePoint) => {
             const airPricingInfo = airPricePoint['air:AirPricingInfo'];
             if (!airPricingInfo) return; // Skip if no AirPricingInfo is found
+            const taxInfoList = airPricingInfo['air:TaxInfo'];
+            const taxInfoArray = Array.isArray(taxInfoList) ? taxInfoList : taxInfoList ? [taxInfoList] : [];
+
+            taxInfoArray.forEach((taxInfo) => {
+              if (taxInfo && taxInfo["$"] && taxInfo["$"].SupplierCode === "6E") {
+                extractedTaxInfo.push(taxInfo["$"]); // Only push if SupplierCode is "6E"
+              }
+            });
 
             const flightOptionsList = airPricingInfo['air:FlightOptionsList'];
             if (!flightOptionsList) return; // Skip if no FlightOptionsList is found
@@ -886,6 +908,7 @@ const SearchFlight = () => {
           setSegment(Array.isArray(Segmentlist) ? Segmentlist : [Segmentlist]);
           setHostlist(Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist]);
           setFarelist(Array.isArray(fareinfolist) ? fareinfolist : [fareinfolist]);
+          setTaxlist(Array.isArray(extractedTaxInfo) ? extractedTaxInfo : [extractedTaxInfo]);
 
         } else {
           const error = result['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
@@ -15970,6 +15993,12 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                           (fareInfoRefsState && fareInfoRefsState.length > 0 ? (
                                                             fareInfoRefsState.map((fareInfoRefKey, fareInfoIndex) => {
                                                               const extractedFareInfoRef = fareInfoRefKey['FareInfoRef'];
+                                                              const extractedtaxinfo = fareInfoRefKey['TaxInfoRef'];
+                                                              
+                                                              const matchingTaxInfo = TaxList.find(
+                                                                (taxinfo) => taxinfo['Key'] === extractedtaxinfo 
+                                                              );
+                                                              {/* console.log('matchingTaxInfo', matchingTaxInfo); */}
                                                               const matchingFareInfo = FareList.find(
                                                                 (fareInfo) => fareInfo['$'] && fareInfo['$']['Key'] === extractedFareInfoRef
                                                               );
@@ -16004,10 +16033,11 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                           {(() => {
                                                                             // Use Amount from matchingFareInfo for price
                                                                             const totalAmount = matchingFareInfo['$']['Amount'];
+                                                                            const totalTax = matchingTaxInfo['Amount'];
                                                                             {/* console.log('totalamounttttttt', totalAmount.replace("INR", "").trim() + taxesRef.current); */}
-                                                                            console.log('totalamounttttttt', parseFloat(totalAmount.replace("INR", "").trim()) + (taxesRef.current));
+                                                                            {/* console.log('totalamounttttttt', parseFloat(totalAmount.replace("INR", "").trim()) + (taxesRef.current)); */}
 
-                                                                            const numericTotalPrice = parseFloat(totalAmount.replace("INR", "").trim()) + (taxesRef.current);
+                                                                            const numericTotalPrice = parseFloat(totalAmount.replace("INR", "").trim()) + parseFloat(totalTax.replace("INR", "").trim());
                                                                              
                                                                             const airline = inputOrigin;
                                                                             const calculatedPrice = calculateFinalPrice(
@@ -16049,7 +16079,8 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                       onClick={() => handleCheckboxChange(
                                                                         pricepoint["air:AirPricingInfo"],
                                                                         calculateFinalPrice(
-                                                                          (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + (taxesRef.current)),
+                                                                          
+                                                                          (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + (matchingTaxInfo['Amount'].replace("INR", "").trim())),
                                                                           // (matchingFareInfo['$']['Amount'].replace('INR', '').trim() + (taxesRef.current)).toFixed(2), 
                                                                           markupdata, 
                                                                           cabinClass, 
@@ -16068,7 +16099,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                               (fare) =>
                                                                                 fare.fare_type === matchingFareInfo["$"]["FareFamily"] &&
                                                                                 fare.price === calculateFinalPrice(
-                                                                                  (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + (taxesRef.current)), 
+                                                                                  (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + (matchingTaxInfo['Amount'].replace("INR", "").trim())), 
                                                                           markupdata, 
                                                                           cabinClass, 
                                                                           matchingFareInfo['$']['FareFamily'], 

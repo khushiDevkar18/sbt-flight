@@ -274,7 +274,7 @@ const Booking = () => {
         }
     };
 
-    // console.log(emptaxivaxi);
+    console.log('emptaxivaxi', emptaxivaxi);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const openModal = () => {
@@ -672,7 +672,18 @@ const Booking = () => {
                         },
                         'com:SearchPassenger': Passengerxml,
                         'air:AirPricingCommand': airPricingCommand,
-                        ...optionalServicesXML
+                        ...optionalServicesXML,
+                        'com:FormOfPayment': {
+                            '$': {
+                                'Type': 'AgencyPayment'
+                            },
+                            'com:AgencyPayment': {
+                                '$': {
+                                    'AgencyBillingIdentifier': 'KTDEL283',
+                                    'AgencyBillingPassword': 'Baiinfo@2024'
+                                }
+                            }
+                        },
                     }
                     }
                 }
@@ -1032,30 +1043,25 @@ const Booking = () => {
                                         'Recipients': "All"
                                     }
                                 },
+                                // 'com:FormOfPayment': {
+                                //     '$': {
+                                //         'Type': "AgencyPayment",
+                                //         'IsAgentType':"true"
+                                //     },
+                                    
+                                // },
                                 'com:FormOfPayment': {
                                     '$': {
-                                        'Type': "Agency",
-                                        'IsAgentType':"true"
+                                        'Type': 'AgencyPayment'
                                     },
-                                    // 'com:CreditCard': {
-                                    //     '$': {
-                                    //         'BankCountryCode': "IN",
-                                    //         'CVV': "737",
-                                    //         'ExpDate': "2026-11",
-                                    //         'Name': "Pavan Patil",
-                                    //         'Number': "4111111111111111",
-                                    //         'Type': "VI",
-                                    //     },
-                                    //     'com:BillingAddress': {
-                                    //         'com:AddressName': "Home",
-                                    //         'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
-                                    //         'com:City': "Pune",
-                                    //         'com:State': "Maharashtra",
-                                    //         'com:PostalCode': "411011",
-                                    //         'com:Country': "IN",
-                                    //     }
-                                    // },
+                                    'com:AgencyPayment': {
+                                        '$': {
+                                            'AgencyBillingIdentifier': 'KTDEL283',
+                                            'AgencyBillingPassword': 'Baiinfo@2024'
+                                        }
+                                    }
                                 },
+                                
                                 // 'com:FormOfPayment': {
                                 //     '$': {
                                 //         'Type': "Credit"
@@ -1159,6 +1165,118 @@ const Booking = () => {
                             console.error('Error parsing XML:', err);
                             return;
                         }
+                        const soapFault = reservationresult?.['SOAP:Envelope']?.['SOAP:Body']?.['SOAP:Fault'];
+                            const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
+
+
+                            const flightDetails = {};
+
+                            const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis]
+                            if (Array.isArray(formattedsegmenttaxivaxis)) {
+                                formattedsegmenttaxivaxis.forEach((segment, index) => {
+                                    const departureDate = new Date(segment.DepartureTime);
+                                    const arrivalDate = new Date(segment.ArrivalTime);
+
+                                    const formattedDeparture = departureDate.toISOString().slice(0, 16).replace("T", " ");
+                                    const formattedArrival = arrivalDate.toISOString().slice(0, 16).replace("T", " ");
+
+                                    flightDetails[`from_${index}`] = segment.Origin;
+                                    flightDetails[`to_${index}`] = segment.Destination;
+                                    flightDetails[`depart_${index}`] = formattedDeparture;
+                                    flightDetails[`arrival_${index}`] = formattedArrival;
+                                    flightDetails[`flight_name_${index}`] = handleAirline(segment.Carrier)+ " ("+ flightType +")";
+                                    flightDetails[`flight_no_${index}`] = segment.FlightNumber;
+                                    flightDetails[`seat_type_${index}`] = seat_type;
+                                    flightDetails[`pnr_no_${index}`] = pnrCode;
+                                    flightDetails[`checked_bg_${index}`] = '15 KG';
+                                    flightDetails[`cabin_bg_${index}`] = '7 KG';
+                                });
+                            }
+
+                            console.log("segmenttaxivaxis", segmenttaxivaxis);
+
+                            const formatedmergedData = Array.isArray(mergedData) ? mergedData : [mergedData];
+                            console.log("passData", formatedmergedData);
+                            const passengerDetailsFormatted = {};
+                            if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formatedmergedData)) {
+                                formattedsegmenttaxivaxis.forEach((segment, flightIndex) => {
+                                    formatedmergedData.forEach((passenger, passengerIndex) => {
+                                        passengerDetailsFormatted[`people_id_${flightIndex}_${passengerIndex}`] = passenger.id || "NA";
+                                        passengerDetailsFormatted[`ticket_no_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
+                                        passengerDetailsFormatted[`meal_include_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
+                                    });
+                                });
+                            }
+
+                            const seatDetailsFormatted = {};
+                            console.log("formseat", formseat)
+                            if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formseat)) {
+                                segmenttaxivaxis.forEach((segment, flightIndex) => {
+                                    formseat.forEach((seat, passengerIndex) => {
+                                        seatDetailsFormatted[`seat_no_${flightIndex}_${passengerIndex}`] = seat.seat_no || "NA";
+                                    });
+                                });
+                            }
+                        if (soapFault) {
+                            // console.log('hello');
+                            navigate('/tryagainlater');
+                            return;
+                            
+                        }
+                        const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3); 
+                                        const formtaxivaxiData = {
+                                            // ...formtaxivaxi,
+                                            access_token: access_token,
+                                            booking_id: bookingid,
+                                            trip_type: tripType,
+                                            fare_type:fare_type,
+                                            is_extra_baggage_included: 0,
+                                            flight_type: flightType,
+                                            total_ex_tax_fees:base_price,
+                                            total_price: total_price,
+                                            tax_and_fees: tax_excluding_k3,
+                                            gst_k3: tax_k3,
+                                            mark_up_price: 0,
+                                            no_of_stops: stopCounts,
+                                            no_of_stops_return: returnstopCounts,
+                                            no_of_seats: noOfSeats,
+                                            people_id: 'NULL',
+                                            date_change_charges: 0,
+                                            seat_charges: 0,
+                                            meal_charges: 0,
+                                            extra_baggage_charges: 0,
+                                            fast_forward_charges: 0,
+                                            vip_service_charges: 0,
+                                            pnrcode: pnrCode,
+                                            // applied_markup: formtaxivaxi.markup_details.markup_value
+                                            applied_markup: markup_price,
+                                            actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
+                                            // flightDetails: segmenttaxivaxis,
+                                            ...flightDetails,
+                                            extrabaggage: 'NA',
+                                            // seatdetails: formseat,
+                                            checkedInBaggage: checkedInBaggage,
+                                            cabinBaggage: cabinBaggage,
+                                            // markup: markup_price,
+                                            returns: returns,
+                                            // passengerdetails: mergedData
+                                            ...passengerDetailsFormatted,
+                                            ...seatDetailsFormatted
+                                        };
+
+                                        console.log('formtaxivaxiData', formtaxivaxiData);
+
+                                    
+
+                                    const apiLink = 'https://corporate.taxivaxi.com/api/flights/assignSbtCotravFlightBooking';
+
+                                    axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
+                                        headers: {
+                                            'Content-Type': 'application/x-www-form-urlencoded',
+                                        },
+                                    }).then((response) => {
+                                        console.log("responseData", response)
+                                    })
                         
                             console.log("Condition met, navigating... now in the reservationresult");
                             const bookingCompleteData = {
@@ -1177,7 +1295,7 @@ const Booking = () => {
                             console.log('bookingCompleteData', bookingCompleteData);
                             navigate('/bookingCompleted', { state: { bookingCompleteData } });
                             return; 
-                        })
+                    })
                     
                     
                 };
@@ -1650,7 +1768,7 @@ const Booking = () => {
                                 },
                                 'com:FormOfPayment': {
                                     '$': {
-                                        'Type': "Agency",
+                                        'Type': "AgencyPayment",
                                         'IsAgentType':"true"
                                     },
                                     // 'com:CreditCard': {
@@ -5341,12 +5459,19 @@ const Booking = () => {
                                                                                         name="adult_first_name[]"
                                                                                         onKeyPress={handleKeyPress}
                                                                                         data-index={passengerindex}
-                                                                                        // readOnly={bookingid}
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={
-                                                                                            emptaxivaxi?.[passengerindex]?.people_name
-                                                                                                ? emptaxivaxi[passengerindex].people_name.trim().split(' ').slice(0, -1).join(' ').trim()
-                                                                                                : ''
-                                                                                        }
+  emptaxivaxi?.[passengerindex]?.people_name
+    ? (emptaxivaxi[passengerindex].people_name.trim().includes(' ')
+        ? emptaxivaxi[passengerindex].people_name.trim().split(' ').slice(0, -1).join(' ').trim()
+        : emptaxivaxi[passengerindex].people_name.trim()) // If only one word, use the same for first name
+    : ''
+}
+                                                                                        // defaultValue={
+                                                                                        //     emptaxivaxi?.[passengerindex]?.people_name
+                                                                                        //         ? emptaxivaxi[passengerindex].people_name.trim().split(' ').slice(0, -1).join(' ').trim()
+                                                                                        //         : ''
+                                                                                        // }
                                                                                     />
                                                                                     <span className="error-message adult_first_name-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
                                                                                                 Please enter the First name.
@@ -5360,12 +5485,19 @@ const Booking = () => {
                                                                                         name="adult_last_name[]"
                                                                                         onKeyPress={handleKeyPress}
                                                                                         data-index={passengerindex}
-                                                                                        // readOnly={bookingid}
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={
-                                                                                            emptaxivaxi?.[passengerindex]?.people_name
-                                                                                                ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
-                                                                                                : ''
-                                                                                        }
+  emptaxivaxi?.[passengerindex]?.people_name
+    ? (emptaxivaxi[passengerindex].people_name.trim().includes(' ')
+        ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
+        : emptaxivaxi[passengerindex].people_name.trim()) // If only one word, use the same for last name
+    : ''
+}
+                                                                                        // defaultValue={
+                                                                                        //     emptaxivaxi?.[passengerindex]?.people_name
+                                                                                        //         ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
+                                                                                        //         : ''
+                                                                                        // }
                                                                                     />
                                                                                     <span className="error-message adult_last_name-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
                                                                                         Please enter the last name.
@@ -5654,7 +5786,7 @@ const Booking = () => {
                                                                                     type="email"
                                                                                     name="email"
                                                                                     placeholder=""
-                                                                                    // readOnly={bookingid}
+                                                                                    readOnly={bookingid}
                                                                                     defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['people_email'] &&
                                                                                         emptaxivaxi[0]['people_email']
                                                                                     }
@@ -5682,7 +5814,7 @@ const Booking = () => {
                                                                                     maxLength={10}
                                                                                     minLength={10}
                                                                                     placeholder=""
-                                                                                    // readOnly={bookingid}
+                                                                                    readOnly={bookingid}
                                                                                     defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['people_contact'] &&
                                                                                         emptaxivaxi[0]['people_contact']
                                                                                     }
