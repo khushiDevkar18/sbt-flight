@@ -103,7 +103,7 @@ const Booking = () => {
     const [passengerDetailsVisible, setPassengerDetailsVisible] = useState(true);
     const [seattravelerparse, setseattravelerparse] = useState(null);
     const [seatOptionalparse, setseatOptionalparse] = useState(null);
-    // console.log('seatOptionalparse', seatOptionalparse);
+    console.log('seatOptionalparse', seatOptionalparse);
     const [checkedInBaggage, setCheckedIn] = useState(null);
     const [cabinBaggage, setCabin] = useState(null);
     const [Passengers, setPassengers] = useState(null);
@@ -125,9 +125,9 @@ const Booking = () => {
     const [isreservation, setReservation] = useState(false);
     const [fareRuleText, setFareRuleText] = useState(null);
     const [cancellationPolicy, setCancellationPolicy] = useState(null);
-    // console.log('cancellationPolicy', cancellationPolicy);
+  
     const providerCodeRef = useRef(null);
-    const Targetbranch = 'P4451438';
+    const Targetbranch = 'P7206253';
     // console.log('providerCodeRef', providerCodeRef);
   
     const handleChange = (value) => {
@@ -274,7 +274,7 @@ const Booking = () => {
         }
     };
 
-    console.log('emptaxivaxi', emptaxivaxi);
+    // console.log('emptaxivaxi', emptaxivaxi);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const openModal = () => {
@@ -514,7 +514,7 @@ const Booking = () => {
     }
 
     const handleEffectiveDate1 = (date) => {
-        console.log("date", date);
+        // console.log("date", date);
 
         const arrivalTime = new Date(date);
         const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -525,7 +525,7 @@ const Booking = () => {
         const month = months[arrivalTime.getMonth()];
         const year = arrivalTime.getFullYear();
         const formattedDateString = `${weekday}, ${day} ${month} ${year}`;
-        console.log("formattedDateString", formattedDateString);
+        // console.log("formattedDateString", formattedDateString);
 
         return formattedDateString;
     }
@@ -599,6 +599,7 @@ const Booking = () => {
             // setSegmentParse();
             // console.log('segmentParse', segmentParse);
             console.log('fetchprice');
+            const tempCodes = [];
             const optionalServicesXML = {
                 "air:OptionalServices": {
                     "air:OptionalService": seatOptionalparse
@@ -606,6 +607,12 @@ const Booking = () => {
                         .map(service => {
                             const matchedSelection = previousSelections.find(selection => selection.optionalkey === service["$"].Key);
                             delete service["air:BrandingInfo"]; // Remove air:BrandingInfo
+                            // if (matchedSelection?.code) {
+                            //     setSelectedCodes(prevCodes => [...prevCodes, matchedSelection.code]); 
+                            // }
+                            if (matchedSelection?.code) {
+                                tempCodes.push(matchedSelection.code); // Collect seat codes
+                            }
             
                             return {
                                 "$": service["$"], // Retain existing attributes
@@ -673,6 +680,29 @@ const Booking = () => {
                         'com:SearchPassenger': Passengerxml,
                         'air:AirPricingCommand': airPricingCommand,
                         ...optionalServicesXML,
+                        // 'com:FormOfPayment': {
+                        //             '$': {
+                        //                 'Type': "Credit"
+                        //             },
+                        //             'com:CreditCard': {
+                        //                 '$': {
+                        //                     'BankCountryCode': "IN",
+                        //                     'CVV': "737",
+                        //                     'ExpDate': "2026-11",
+                        //                     'Name': "Pavan Patil",
+                        //                     'Number': "4111111111111111",
+                        //                     'Type': "VI",
+                        //                 },
+                        //                 'com:BillingAddress': {
+                        //                     'com:AddressName': "Home",
+                        //                     'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                        //                     'com:City': "Pune",
+                        //                     'com:State': "Maharashtra",
+                        //                     'com:PostalCode': "411011",
+                        //                     'com:Country': "IN",
+                        //                 }
+                        //             },
+                        //         },
                         'com:FormOfPayment': {
                             '$': {
                                 'Type': 'AgencyPayment'
@@ -776,15 +806,29 @@ const Booking = () => {
                     let base_price = 0;
                     let total_tax = 0;
                     let fare_type = '';
+                    // if (packageSelected['air:AirPricingInfo']) {
+                    //     if (packageSelected['air:AirPricingInfo']['$']['TotalPrice']) {
+                    //         total_price = packageSelected['air:AirPricingInfo']['$']['TotalPrice'].replace(/[^0-9]/g, '');
+                    //     }
+                    //     if (packageSelected['air:AirPricingInfo']['$']['Taxes']) {
+                    //         total_tax = packageSelected['air:AirPricingInfo']['$']['Taxes'].replace(/[^0-9]/g, '');
+                    //     }
+                    //     if (packageSelected['air:AirPricingInfo']['$']['BasePrice']) {
+                    //         base_price = packageSelected['air:AirPricingInfo']['$']['BasePrice'].replace(/[^0-9]/g, '');
+                    //     }
+                    //     if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
+                    //         fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable']== 'true'? 'Refundable':'Non Refundable';
+                    //     }
+                    // }
                     if (packageSelected['air:AirPricingInfo']) {
                         if (packageSelected['air:AirPricingInfo']['$']['TotalPrice']) {
-                            total_price = packageSelected['air:AirPricingInfo']['$']['TotalPrice'].replace(/[^0-9]/g, '');
+                            total_price = Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['$']['TotalPrice'].replace("INR", "").trim()));
                         }
                         if (packageSelected['air:AirPricingInfo']['$']['Taxes']) {
-                            total_tax = packageSelected['air:AirPricingInfo']['$']['Taxes'].replace(/[^0-9]/g, '');
+                            total_tax = Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['$']['Taxes'].replace("INR", "").trim()));
                         }
-                        if (packageSelected['air:AirPricingInfo']['$']['BasePrice']) {
-                            base_price = packageSelected['air:AirPricingInfo']['$']['BasePrice'].replace(/[^0-9]/g, '');
+                        if (packageSelected["air:AirPricingInfo"]["$"]["BasePrice"]) {
+                            base_price = Math.floor(parseFloat(packageSelected["air:AirPricingInfo"]["$"]["BasePrice"].replace("INR", "").trim()));
                         }
                         if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
                             fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable']== 'true'? 'Refundable':'Non Refundable';
@@ -1043,13 +1087,7 @@ const Booking = () => {
                                         'Recipients': "All"
                                     }
                                 },
-                                // 'com:FormOfPayment': {
-                                //     '$': {
-                                //         'Type': "AgencyPayment",
-                                //         'IsAgentType':"true"
-                                //     },
-                                    
-                                // },
+                                
                                 'com:FormOfPayment': {
                                     '$': {
                                         'Type': 'AgencyPayment'
@@ -1152,7 +1190,7 @@ const Booking = () => {
                 // console.log('providerCodeValue', providerCodeValue);
 
                 var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
-                console.log('modifiedXmlString', modifiedXmlString);
+                console.log('modifiedXmlString ACH', modifiedXmlString);
                 
                 
                 const reservationresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', modifiedXmlString);
@@ -1166,6 +1204,12 @@ const Booking = () => {
                             return;
                         }
                         const soapFault = reservationresult?.['SOAP:Envelope']?.['SOAP:Body']?.['SOAP:Fault'];
+                        if (soapFault) {
+                            // console.log('hello');
+                            navigate('/tryagainlater');
+                            return;
+                            
+                        }
                             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
 
 
@@ -1217,12 +1261,7 @@ const Booking = () => {
                                     });
                                 });
                             }
-                        if (soapFault) {
-                            // console.log('hello');
-                            navigate('/tryagainlater');
-                            return;
-                            
-                        }
+                        
                         const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3); 
                                         const formtaxivaxiData = {
                                             // ...formtaxivaxi,
@@ -1290,6 +1329,8 @@ const Booking = () => {
                                 child:request.child,
                                 infant:request.infant,
                                 apiairportsdata:apiairports,
+                                markup_price: markup_price,
+                                seat_codes: tempCodes,
                                 // ticketdata: ticketresponse.data 
                             };
                             console.log('bookingCompleteData', bookingCompleteData);
@@ -1497,9 +1538,6 @@ const Booking = () => {
                 if (packageSelected['air:AirPricingInfo']['$']['Taxes']) {
                     total_tax = Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['$']['Taxes'].replace("INR", "").trim()));
                 }
-                // if (packageSelected['air:AirPricingInfo']['$']['BasePrice']) {
-                //     base_price = packageSelected['air:AirPricingInfo']['$']['BasePrice'].replace(/[^0-9]/g, '');
-                // }
                 if (packageSelected["air:AirPricingInfo"]["$"]["BasePrice"]) {
                     base_price = Math.floor(parseFloat(packageSelected["air:AirPricingInfo"]["$"]["BasePrice"].replace("INR", "").trim()));
                 }
@@ -1768,28 +1806,16 @@ const Booking = () => {
                                 },
                                 'com:FormOfPayment': {
                                     '$': {
-                                        'Type': "AgencyPayment",
-                                        'IsAgentType':"true"
+                                        'Type': 'AgencyPayment'
                                     },
-                                    // 'com:CreditCard': {
-                                    //     '$': {
-                                    //         'BankCountryCode': "IN",
-                                    //         'CVV': "737",
-                                    //         'ExpDate': "2026-11",
-                                    //         'Name': "Pavan Patil",
-                                    //         'Number': "4111111111111111",
-                                    //         'Type': "VI",
-                                    //     },
-                                    //     'com:BillingAddress': {
-                                    //         'com:AddressName': "Home",
-                                    //         'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
-                                    //         'com:City': "Pune",
-                                    //         'com:State': "Maharashtra",
-                                    //         'com:PostalCode': "411011",
-                                    //         'com:Country': "IN",
-                                    //     }
-                                    // },
+                                    'com:AgencyPayment': {
+                                        '$': {
+                                            'AgencyBillingIdentifier': 'KTDEL283',
+                                            'AgencyBillingPassword': 'Baiinfo@2024'
+                                        }
+                                    }
                                 },
+                                
                                 // 'com:FormOfPayment': {
                                 //     '$': {
                                 //         'Type': "Credit"
@@ -2020,6 +2046,7 @@ const Booking = () => {
                                     child:request.child,
                                     infant:request.infant,
                                     apiairportsdata:apiairports,
+                                    markup_price: markup_price,
                                     // ticketdata: ticketresponse.data 
                                 };
                                 console.log('bookingCompleteData', bookingCompleteData);
@@ -2216,40 +2243,20 @@ const Booking = () => {
                                             child:request.child,
                                             infant:request.infant,
                                             apiairportsdata:apiairports,
-                                            ticketdata: ticketresponse
+                                            ticketdata: ticketresponse,
+                                            markup_price: markup_price
                                         };
                                         console.log('bookingCompleteData', bookingCompleteData);
                                         navigate('/bookingCompleted', { state: { bookingCompleteData } });
 
-                                    // const bookingCompleteData = {
-                                    //     reservationdata: reservationresponse.data,
-                                    //     getuniversaldata: getUnversalCoderesponse.data,
-                                    //     ticketdata: ticketresponse.data
-                                    // };
-                                    // console.log('bookingCompleteData', bookingCompleteData);
-                                    // navigate('/bookingCompleted', { state: { bookingCompleteData } });
+                                    
                                 } catch (error) {
                                     console.error('Error executing requests:', error);
                                 } 
                             };
                             executeCodeTicketSequentially();
 
-                            // } else {
-                            //     const bookingCompleteData = {
-                            //         reservationdata: reservationresponse.data,
-                            //         segmentParse: segmentParse,
-                            //         Passengers: Passengers,
-                            //         PackageSelected: packageSelected,
-                            //         Airports: Airports,
-                            //         Airlines: Airlines,
-                            //         adult: request.adult,
-                            //         child: request.child,
-                            //         infant: request.infant,
-                            //         apiairportsdata: apiairports,
-                            //         // ticketdata: ticketresponse.data
-                            //     };
-                            //     navigate('/bookingCompleted', { state: { bookingCompleteData } });
-                            // }
+                            
 
 
                             if (Array.isArray(segmentreservation)) {
@@ -5533,6 +5540,7 @@ const Booking = () => {
                                                                                         name="email1"
                                                                                         data-index={passengerindex}  
                                                                                         placeholder=""
+                                                                                        readOnly={bookingid}
                                                                                         defaultValue={emptaxivaxi?.[0]?.people_email || ''}
                                                                                     />
                                                                                     <span className="error-message">Please enter Email ID.</span>
@@ -5549,6 +5557,7 @@ const Booking = () => {
                                                                                         onChange={handleChange}
                                                                                         className="phone-input"
                                                                                         placeholder="Enter phone number"
+                                                                                        readOnly={bookingid}
                                                                                         name="contact_details1"
                                                                                         />
                                                                                     </div>
@@ -5786,10 +5795,8 @@ const Booking = () => {
                                                                                     type="email"
                                                                                     name="email"
                                                                                     placeholder=""
-                                                                                    readOnly={bookingid}
-                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['people_email'] &&
-                                                                                        emptaxivaxi[0]['people_email']
-                                                                                    }
+                                                                                    // readOnly={bookingid}
+                                                                                    defaultValue= 'flight@cotrav.co'
                                                                                 />
 
                                                                             </div>
@@ -5814,7 +5821,7 @@ const Booking = () => {
                                                                                     maxLength={10}
                                                                                     minLength={10}
                                                                                     placeholder=""
-                                                                                    readOnly={bookingid}
+                                                                                    // readOnly={bookingid}
                                                                                     defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['people_contact'] &&
                                                                                         emptaxivaxi[0]['people_contact']
                                                                                     }

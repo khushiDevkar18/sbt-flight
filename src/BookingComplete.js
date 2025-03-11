@@ -15,12 +15,15 @@ const BookingContinue = () => {
     const reservationData = location.state && location.state.bookingCompleteData.reservationdata;
     const apiairports = location.state && location.state.bookingCompleteData.apiairportsdata;
     const ticketdata = location.state && location.state.bookingCompleteData.ticketdata;
-    console.log('ticketdata', ticketdata);
+    // console.log('ticketdata', ticketdata);
     const segments = location.state && location.state.bookingCompleteData.segmentParse;
     const Passengers = location.state && location.state.bookingCompleteData.Passengers;
     const packageSelected = location.state && location.state.bookingCompleteData.PackageSelected;
     const Airports = location.state && location.state.bookingCompleteData.Airports;
     const Airlines = location.state && location.state.bookingCompleteData.Airlines;
+    const markup_price = location.state && location.state.bookingCompleteData.markup_price;
+    const seat_codes = location.state && location.state.bookingCompleteData.seat_codes;
+    // console.log('seat_codes', seat_codes);
     const request = location.state?.bookingCompleteData || {};
     
     useEffect(() => {
@@ -89,11 +92,11 @@ const BookingContinue = () => {
           const ReservationRsp = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp'];
           if (ReservationRsp !== null && ReservationRsp !== undefined) {
             const passnegrinfo = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['common_v52_0:BookingTraveler'];
-            const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode'];
+            const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
             const universallocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode'];
             const ressegmentinfo = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
             const respricinginfo = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirPricingInfo'];
-            setPnr(universallocatorCode);
+            setPnr(pnrCode);
             setresegments(Array.isArray(ressegmentinfo) ? ressegmentinfo : [ressegmentinfo]);
             setrespricings(Array.isArray(respricinginfo) ? respricinginfo : [respricinginfo]);
           }else{
@@ -568,8 +571,11 @@ const BookingContinue = () => {
                             <br />
                             
                         </td>
-                        <td></td>
-                        <td></td>
+                        <td>
+    {Array.isArray(seat_codes) && seat_codes.length > 0 ? seat_codes.join(", ") : " - "}
+</td>
+                        
+                        <td>-</td>
                         <td>-</td>
                     </tr>
                 ))
@@ -762,7 +768,7 @@ const BookingContinue = () => {
                                             We would be happy to help you!
                                         </div>
                                         <div className="h-help-phone">0124-423-4958</div>
-                                        <div className="h-help-email">info@cotrav.com</div>
+                                        <div className="h-help-email">flight@cotrav.co</div>
                                     </div>
                                     <div className="h-reasons">
                                         <div className="h-liked-lbl">Ticket Price Information</div>
@@ -775,7 +781,8 @@ const BookingContinue = () => {
                                                             <div className="reasons-p">
                                                                 <div className="reasons-i-lbl">
                                                                 {packageSelected && packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                {packageSelected && packageSelected.$.TotalPrice.replace('INR', '')}
+                                                                {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price)}
+                                                                {/* {packageSelected && packageSelected.$.TotalPrice.replace('INR', '')} */}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -853,7 +860,8 @@ const BookingContinue = () => {
                                                             <div className="reasons-p">
                                                                 <div className="reasons-i-lbl">
                                                                     {packageSelected && packageSelected.$.ApproximateTaxes.includes('INR') ? '₹ ' : ''}
-                                                                    {packageSelected && packageSelected.$.ApproximateTaxes.replace('INR', '')}
+                                                                    {/* {packageSelected && packageSelected.$.ApproximateTaxes.replace('INR', '')} */}
+                                                                    {(parseFloat(packageSelected.$.ApproximateTaxes.replace('INR', '').trim()) + markup_price)}
                                                                 </div>
                                                             </div>
                                                         </div>
