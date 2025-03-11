@@ -8,12 +8,13 @@ const HotelBooking = () => {
   const [loader, setLoader] = useState(false);
   const searchParams = JSON.parse(sessionStorage.getItem("hotelData_header")) || {};
   const location = useLocation();
+  const selectedRoom = location.state?.selectedRoom; // Safe optional chaining
   const hotel = location.state?.hotel;
-
-  console.log(searchParams); // This prevents errors if Rooms is undefined or empty
+  console.log(selectedRoom);
+  console.log(hotel);
 
   const [hotelBooking, setHotelBooking] = useState([]);
-  // console.log(hotelBooking);
+  // // console.log(hotelBooking);
   useLayoutEffect(() => {
     if (!hotel || !hotel.Rooms || hotel.Rooms.length === 0) {
       console.error("Hotel or Rooms data is missing!");
@@ -22,15 +23,15 @@ const HotelBooking = () => {
 
     const fetchPriBooking = async () => {
       try {
-        const BookingCode_1 = hotel.Rooms[0];
-        const BookingCode = BookingCode_1?.BookingCode; // Ensure BookingCode exists
-        // console.log(BookingCode);
+        const BookingCode = selectedRoom.BookingCode;
+        // const  = BookingCode_1?.BookingCode; // Ensure BookingCode exists
+        // // console.log(BookingCode);
         if (!BookingCode) {
           console.error("BookingCode is missing!");
           return;
         }
 
-        // console.log(BookingCode);
+        // // console.log(BookingCode);
 
         const response = await fetch(
           "https://demo.taxivaxi.com/api/hotels/sbtHotelPreBook",
@@ -52,7 +53,7 @@ const HotelBooking = () => {
         }
 
         const data = await response.json();
-        // console.log("Hotel data:", data);
+        console.log("Hotel data:", data);
 
         if (data.Status?.Code === 200) {
           setHotelBooking(data.HotelResult || []);
@@ -71,39 +72,56 @@ const HotelBooking = () => {
   }, []); // Empty dependency array ensures it runs once
   const combinedHotels = useMemo(() => {
     if (!hotel && hotelBooking.length === 0) return []; // Return empty if both are missing
-
+  
     // Convert `hotel` into an array if it exists
     const hotelArray = hotel ? [hotel] : [];
-
-    // Merge hotelArray and hotelBooking
-    const mergedHotels = [...hotelArray, ...hotelBooking].reduce(
-      (acc, curr) => {
-        const existingIndex = acc.findIndex(
-          (item) => item.HotelCode === curr.HotelCode
-        );
-
-        if (existingIndex !== -1) {
-          // Merge existing hotel with the new data
-          acc[existingIndex] = { ...acc[existingIndex], ...curr };
-        } else {
-          // Add new hotel if not already in the list
-          acc.push(curr);
-        }
-
-        return acc;
-      },
-      []
-    );
-
+  
+    // Extract the new Rooms array from the API response (hotelBooking)
+    const updatedHotel = hotelArray.map((hotelItem) => {
+      // Find the corresponding hotel in the hotelBooking array
+      const matchingHotel = hotelBooking.find(
+        (booking) => booking.HotelCode === hotelItem.HotelCode
+      );
+  
+      if (matchingHotel && matchingHotel.HotelResult && matchingHotel.HotelResult.length > 0) {
+        // Replace the Rooms array in the hotel object
+        return {
+          ...hotelItem,
+          Rooms: matchingHotel.HotelResult[0].Rooms, // Use the new Rooms array
+        };
+      }
+  
+      // If no matching hotel is found, return the original hotel object
+      return hotelItem;
+    });
+  
+    // Merge updatedHotel and hotelBooking
+    const mergedHotels = [...updatedHotel, ...hotelBooking].reduce((acc, curr) => {
+      const existingIndex = acc.findIndex(
+        (item) => item.HotelCode === curr.HotelCode
+      );
+  
+      if (existingIndex !== -1) {
+        // Merge existing hotel with the new data
+        acc[existingIndex] = { ...acc[existingIndex], ...curr };
+      } else {
+        // Add new hotel if not already in the list
+        acc.push(curr);
+      }
+  
+      return acc;
+    }, []);
+  
     return mergedHotels;
   }, [hotel, hotelBooking]);
+  console.log(combinedHotels);
   const navigate = useNavigate();
   const [showGSTDetails, setShowGSTDetails] = useState(false);
   const [showTaxDetails, setShowTaxDetails] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showModal3, setShowModal3] = useState(false);
   const [showModal2, setShowModal2] = useState(false);
-  console.log("Final Combined Hotels:", combinedHotels);
+  // console.log("Final Combined Hotels:", combinedHotels);
   const decodeHtmlEntities = (text) => {
     const textarea = document.createElement("textarea");
     textarea.innerHTML = text;
@@ -226,7 +244,7 @@ const HotelBooking = () => {
       const newAdultsCount = updatedGuests.filter((g) => g.isAdults).length;
       const newChildrenCount = updatedGuests.filter((g) => g.isBelow12).length;
 
-      // console.log("Adults:", newAdultsCount, "Children:", newChildrenCount);
+      // // console.log("Adults:", newAdultsCount, "Children:", newChildrenCount);
 
       // Restrict max adults
       if (!newIsBelow12 && newAdultsCount > MAX_ADULTS) {
@@ -331,12 +349,12 @@ const HotelBooking = () => {
   
  
   // const handleSubmit2 = (e) => {
-  //   console.log('hello');
+  //   // console.log('hello');
   //   e.preventDefault();
   //   if (validateForm()) {
   //     setPersonDetails(person);
   //     // alert("Form submitted successfully!");
-  //     // console.log("Person Data:", person);
+  //     // // console.log("Person Data:", person);
 
   //     // You can call an API or perform further actions here
   //   }
@@ -344,7 +362,7 @@ const HotelBooking = () => {
   const handleNavigate =() =>{
     if (validateForm()) {
       // setPersonDetails(person);
-        console.log("Person Data:", person);
+        // console.log("Person Data:", person);
     navigate('/HotelPayment', {
       state: { combinedHotels, person }
       
@@ -379,9 +397,9 @@ const HotelBooking = () => {
       return;
     }
     if (guestDetails.isBelow12) {
-      // console.log("This guest is a child.");
+      // // console.log("This guest is a child.");
     } else {
-      // console.log("This guest is an adult.");
+      // // console.log("This guest is an adult.");
     }
 
     setGuests((prevGuests) => [...prevGuests, guestDetails]); // Add updated guest back
@@ -407,7 +425,7 @@ const HotelBooking = () => {
   const handleRemoveGuest = (index) => {
     setSelectedGuests((prevGuests) => prevGuests.filter((_, i) => i !== index));
   };
-
+console.log(hotelBooking);
   return (
     <div className="search-bar3 h-20 w-full " id="widgetHeader2">
       <div className="purple-header">
@@ -509,7 +527,7 @@ const HotelBooking = () => {
 
                     <div className="flex justify-between items-center">
                       <h5 className="text-[#3b3f5c] text-lg font-semibold dark:text-white-light">
-                        {hotelItem?.Rooms?.[0]?.Name ||
+                        {selectedRoom.Name ||
                           "No Room Name Available"}
                       </h5>
                       <h5
@@ -530,23 +548,23 @@ const HotelBooking = () => {
                       </Modal>
                     )}
                     <ul className="list-disc text-black space-y-1">
-                      {hotelItem?.Rooms?.[0]?.Inclusion && (
+                      {selectedRoom.Inclusion && (
                         <li className="text-sm">
-                          {hotelItem.Rooms[0].Inclusion}
+                          {selectedRoom.Inclusion}
                         </li>
                       )}
                       <li className="text-sm">
-                        {hotelItem?.Rooms?.[0]?.MealType === "Room_Only"
+                        {selectedRoom.MealType === "Room_Only"
                           ? "No Meals Included"
-                          : hotelItem?.Rooms?.[0]?.MealType === "BreakFast"
+                          : selectedRoom.MealType === "BreakFast"
                           ? "Breakfast Included"
-                          : hotelItem?.Rooms?.[0]?.MealType}
+                          : selectedRoom.MealType}
                       </li>
                     </ul>
 
                     <div className="text-xs text-green-700">
                       {formatCancelPolicies(
-                        hotelItem?.Rooms?.[0]?.CancelPolicies || []
+                        selectedRoom.CancelPolicies || []
                       ).map((policy, idx) => (
                         <div key={idx} className="flex gap-2">
                           <img
@@ -1159,7 +1177,7 @@ const HotelBooking = () => {
                           </p>
                           <p className="text-sm text-gray-700 dark:text-white-light font-semibold">
                             - ₹
-                            {hotelItem?.Rooms?.[0]?.PriceBreakUp?.[0]?.AgentCommission?.toFixed(
+                            {selectedRoom.PriceBreakUp?.[0]?.AgentCommission?.toFixed(
                               2
                             )}
                           </p>

@@ -12,6 +12,8 @@ import {
 } from "@react-google-maps/api";
 const HotelDetails = () => {
   const location = useLocation();
+  const hotel = location.state?.hotel;
+  console.log(hotel);
   const navigate = useNavigate();
   const [showHeader, setShowHeader] = useState(false);
   const [activeSection, setActiveSection] = useState("overview");
@@ -54,34 +56,25 @@ const HotelDetails = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  const handleSelectRoom = (room) => {
+    navigate("/HotelBooking", { state: { selectedRoom: room, hotel: hotel } }); // Pass room & hotel info
+  };
 
   // Smooth scrolling function
   const scrollToSection = (sectionRef) => {
-    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  const images = [
-    "../img/hotelroom1.jpg",
-    "../img/hotelroom2.jpg",
-    "../img/hotelroom3.jpg",
-  ];
-
-  const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+    if (sectionRef.current) {
+      window.scrollTo({
+        top: sectionRef.current.offsetTop - 80, // Adjust 80px based on your header height
+        behavior: "smooth",
+      });
+      setShowHeader(false);
+    }
   };
 
-  const prevSlide = () => {
-    setCurrentIndex(
-      (prevIndex) => (prevIndex - 1 + images.length) % images.length
-    );
-  };
   const containerStyle = { width: "100%", height: "400px" };
 
   const [showRates, setShowRates] = useState(false);
 
-  const hotel = location.state?.hotel;
-  console.log(hotel);
   const searchParams = JSON.parse(sessionStorage.getItem("hotelData")) || {};
   const extractAttraction = (Description) => {
     if (!Description || typeof Description !== "string") {
@@ -95,55 +88,17 @@ const HotelDetails = () => {
   };
   dayjs.extend(customParseFormat); // Enable custom date parsing
 
-  //   const cancellationDate = hotel.CancelPolicies?.[0]?.FromDate || null;
-  //   const mealType = hotel.Rooms?.[0]?.MealType || "";
-  //   const isRefundable = hotel.Rooms?.[0]?.IsRefundable || false;
-
-  //   // Debugging: Log the raw cancellation date
-  //   // console.log("Raw Cancellation Date:", cancellationDate);
-
-  //   // Ensure cancellationDate is a valid string before parsing
-  //   const parsedCancellationDate = cancellationDate
-  //       ? dayjs(String(cancellationDate), "DD-MM-YYYY HH:mm:ss", true)
-  //       : null;
-
-  //   // Check if date parsing was successful
-  //   const isValidDate = parsedCancellationDate?.isValid() || false;
-  //   const isFutureDate = isValidDate ? parsedCancellationDate.isAfter(dayjs()) : false;
-
-  //   // Debugging: Log parsed date and validation
-  //   // console.log("Parsed Cancellation Date:", isValidDate ? parsedCancellationDate.format("YYYY-MM-DD HH:mm:ss") : "Invalid Date");
-  //   // console.log("Is Future Date:", isFutureDate);
-  //   // console.log("Meal Type:", mealType);
-
-  //   let cancellationText = "";
-
-  //   // Handle cancellation conditions
-  //   if (!isValidDate) {
-  //       cancellationText = "Invalid cancellation date provided";
-  //   } else if (!isFutureDate && mealType === "Room_Only") {
-  //       cancellationText = "Rooms cancellation not available";
-  //   } else if (!isFutureDate && mealType === "BreakFast") {
-  //       cancellationText = "Breakfast only";
-  //   } else if (isFutureDate && mealType === "Room_Only") {
-  //       cancellationText = "Rooms with cancellation";
-  //   } else if (isFutureDate && mealType === "BreakFast") {
-  //       cancellationText = "Rooms with cancellation | Breakfast Only";
-  //   } else {
-  //       cancellationText = "Room Cancellation";
-  //   }
-
   const formatCancelPolicies = (CancelPolicies) => {
     const today = new Date(); // Get today's date
     today.setHours(0, 0, 0, 0); // Set time to midnight for accurate comparison
-  
+
     return CancelPolicies.filter((policy) => {
       // Convert FromDate to a Date object
       const policyDate = new Date(
         policy.FromDate.split(" ")[0].split("-").reverse().join("-")
       );
       policyDate.setHours(0, 0, 0, 0); // Set time to midnight for accurate comparison
-  
+
       return policyDate >= today; // Only keep future or current dates
     }).map((policy) => {
       const formattedDate = policy.FromDate.split(" ")[0]; // Extract only DD-MM-YYYY
@@ -157,14 +112,16 @@ const HotelDetails = () => {
       return `Policy starts from ${formattedDate}`;
     });
   };
-  
-  const cancellationPolicies = formatCancelPolicies(hotel.Rooms?.[0]?.CancelPolicies || []);
-  
+
+  const cancellationPolicies = formatCancelPolicies(
+    hotel.Rooms?.[0]?.CancelPolicies || []
+  );
+
   const mealType = hotel.Rooms?.[0]?.MealType || "";
   const isRefundable = hotel.Rooms?.[0]?.IsRefundable || false;
-  
+
   let cancellationText = "";
-  
+
   if (cancellationPolicies.length === 0) {
     cancellationText = "No cancellation policies available.";
   } else if (mealType === "Room_Only") {
@@ -174,12 +131,16 @@ const HotelDetails = () => {
   } else if (mealType === "BreakFast") {
     cancellationText = isRefundable
       ? "Rooms with cancellation | Breakfast Only"
-      : "Breakfast only";
+      : "Rooms with Breakfast Only";
   } else {
     cancellationText = "Room Cancellation";
   }
-  
 
+  const images = [
+    "../img/hotelroom1.jpg",
+    "../img/hotelroom2.jpg",
+    "../img/hotelroom3.jpg",
+  ];
   // console.log("Final Cancellation Text:", cancellationText);
   const mapSectionRef = useRef(null);
   const [showInfo, setShowInfo] = useState(true);
@@ -201,17 +162,28 @@ const HotelDetails = () => {
   });
 
   if (!isLoaded) return <p>Loading Map...</p>;
+  console.log("hotel.rooms:", hotel.rooms);
+  console.log("Is hotel.rooms an array?", Array.isArray(hotel.rooms));
+  console.log(
+    "hotel.rooms.length:",
+    hotel.rooms ? hotel.rooms.length : "Undefined"
+  );
 
   return (
     <div className="">
       {/* Sticky Header */}
       {showHeader && (
         <div
-          className="fixed  w-full bg-white shadow-md  z-50 flex  h-10 "
-          style={{ top: "80px" }} // Adjust '64px' based on your main header height
+          className="fixed w-full bg-white shadow-md z-50 flex h-10"
+          style={{ top: "80px" }} // Adjust based on your header height
         >
           <div className="flex gap-5">
-            {["overview", "rooms", "location", "rules"].map((section) => (
+            {[
+              "overview",
+              ...(hotel?.Rooms?.length > 1 ? ["rooms"] : []), // Conditionally add "rooms"
+              "location",
+              "rules",
+            ].map((section) => (
               <button
                 key={section}
                 onClick={() =>
@@ -225,7 +197,7 @@ const HotelDetails = () => {
                       : rulesRef
                   )
                 }
-                className={`  ${
+                className={`${
                   activeSection === section
                     ? "font-bold text-blue-500"
                     : "text-gray-600"
@@ -268,32 +240,30 @@ const HotelDetails = () => {
                   <h5 className="text-[#3b3f5c] text-xl mb-3 font-semibold dark:text-white-light">
                     {hotel.HotelName}
                   </h5>
-                 
+
                   <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-3 gap-3 mb-5 flex">
-                 
                     <div className="lg:col-span-2 xl:col-span-2 space-y-2  ">
-                    {Array.isArray(hotel.Images) &&
-                                hotel.Images.length > 0 ? (
-                      <div className="flex gap-3 max-h-[21rem]">
-                        <img
-                          src={hotel.Images[0]}
-                          className="photos-hotels"
-                        ></img>
-                        <div className="grid grid-rows-2 gap-3 py-1 ">
+                      {Array.isArray(hotel.Images) &&
+                      hotel.Images.length > 0 ? (
+                        <div className="flex gap-3 max-h-[21rem]">
                           <img
-                            src={hotel.Images[2]}
-                            className="photos-hotel"
+                            src={hotel.Images[0]}
+                            className="photos-hotels"
                           ></img>
-                          <img
-                            src={hotel.Images[3]}
-                            className="photos-hotel"
-                          ></img>
+                          <div className="grid grid-rows-2 gap-3 py-1 ">
+                            <img
+                              src={hotel.Images[2]}
+                              className="photos-hotel"
+                            ></img>
+                            <img
+                              src={hotel.Images[3]}
+                              className="photos-hotel"
+                            ></img>
+                          </div>
                         </div>
-                      </div>
-                       ) : (
+                      ) : (
                         <div className="">
-                          
-                        <img src="./img/image_NA02.png" className=""></img>
+                          <img src="./img/image_NA02.png" className=""></img>
                         </div>
                       )}
                       {/* <div className="py-2 ">
@@ -315,25 +285,28 @@ const HotelDetails = () => {
                           {/* Replace with an actual icon */}
                           <span className="text-sm">Food And Dining</span>
                         </div>
-                        <div className="border  w-25  cursor-pointer text-black flex items-center gap-2 p-2 rounded-md hotel_button_color" onClick={() => setShowModal3(true)}>
+                        <div
+                          className="border  w-25  cursor-pointer text-black flex items-center gap-2 p-2 rounded-md hotel_button_color"
+                          onClick={() => setShowModal3(true)}
+                        >
                           <img
                             src="../img/location.png"
                             alt="map"
                             className="w-5 h-5"
                           />
                           {/* Replace with an actual icon */}
-                          <span className="text-sm " >Location</span>
+                          <span className="text-sm ">Location</span>
                         </div>
                         {showModal3 && (
-                                  <Modal
-                                    title="Location"
-                                    onClose={() => setShowModal3(false)}
-                                  >
-                                    <div className="text-sm text-gray-700 dark:text-white-light">
-                                  {hotel.Address}
-                                    </div>
-                                  </Modal>
-                                )}
+                          <Modal
+                            title="Location"
+                            onClose={() => setShowModal3(false)}
+                          >
+                            <div className="text-sm text-gray-700 dark:text-white-light">
+                              {hotel.Address}
+                            </div>
+                          </Modal>
+                        )}
                       </div>
                       <div>
                         <h6 className="text-[#3b3f5c] text-lg font-semibold dark:text-white-ligh">
@@ -390,7 +363,7 @@ const HotelDetails = () => {
                                 {hotel.HotelFacilities.length >
                                   matchedFacilities.length && (
                                   <span
-                                    className="information_button text-sm cursor-pointer" 
+                                    className="information_button text-sm cursor-pointer"
                                     onClick={() => setShowModal2(true)}
                                   >
                                     +
@@ -439,8 +412,7 @@ const HotelDetails = () => {
                           Deluxe King Room
                         </h5> */}
                               <h5 className="text-[#3b3f5c] text-sm dark:text-white-light">
-                                Fits {searchParams.Adults} Adults &{" "}
-                                {searchParams.Children} Children
+                                {hotel.Rooms[0].Name}
                               </h5>
                               <ul className="list-disc text-black space-y-1">
                                 {hotel?.Rooms?.[0]?.Inclusion && (
@@ -489,36 +461,34 @@ const HotelDetails = () => {
                                 <span className="text-xs text-gray-500 font-semibold ">
                                   + ₹ {hotel.Rooms[0].TotalTax} taxes and fees
                                 </span>
-                               
                               </div>
                               {showRates && (
-                                  <div className="absolute left-0 mt-2 w-60 bg-white shadow-lg rounded-lg p-3 border border-gray-300 z-10 animate-fade-in">
-                                    {/* <h6 className="font-semibold text-gray-700 border-b pb-1">
+                                <div className="absolute left-0 mt-2 w-60 bg-white shadow-lg rounded-lg p-3 border border-gray-300 z-10 animate-fade-in">
+                                  {/* <h6 className="font-semibold text-gray-700 border-b pb-1">
                                       Day Rates:
                                     </h6> */}
-                                    <ul className="mt-2 text-sm text-gray-600 space-y-1">
-                                      {hotel.Rooms[0].DayRates[0]?.map(
-                                        (rate, index) => (
-                                          <li
-                                            key={index}
-                                            className="flex justify-between"
-                                          >
-                                            <span>Day {index + 1}:</span>
-                                            <span className="font-medium text-black">
-                                              ₹ {rate.BasePrice}
-                                            </span>
-                                          </li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </div>
-                                )}
+                                  <ul className="mt-2 text-sm text-gray-600 space-y-1">
+                                    {hotel.Rooms[0].DayRates[0]?.map(
+                                      (rate, index) => (
+                                        <li
+                                          key={index}
+                                          className="flex justify-between"
+                                        >
+                                          <span>Day {index + 1}:</span>
+                                          <span className="font-medium text-black">
+                                            ₹ {rate.BasePrice}
+                                          </span>
+                                        </li>
+                                      )
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
                               <button
-                                className="bg-[#785ef7] w-30 h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]"
+                                className="bg-[#785ef7] w-[120px] h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]"
                                 onClick={() =>
-                                  navigate("/HotelBooking", {
-                                    state: { hotel },
-                                  })
+                                  hotel.Rooms.length > 0 &&
+                                  handleSelectRoom(hotel.Rooms[0])
                                 }
                               >
                                 BOOK THIS NOW
@@ -566,165 +536,163 @@ const HotelDetails = () => {
                       </div>
                     </div>
                   </div>
-                    
                 </div>
               </div>
             </section>
           </div>
-          <div className="flex items-center justify-center py-2">
-            <section ref={roomsRef} id="overview">
-              <div className="max-w-[75rem] w-full bg-white shadow-[4px_6px_10px_-3px_#bfc9d4]  border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none hotel-border">
-                <div className="py-3 px-3 ">
-                  {/* <h5 className="text-[#3b3f5c] text-xl mb-3 font-semibold dark:text-white-light">
-              Hotel Name{" "}
-            </h5> */}
-                  <div className="border w-full h-full hotel-border">
-                    <div className="border-b   w-full ">
-                      {" "}
-                      <h6 className="text-sm py-2 px-3 font-semibold ">
-                        Rooms
-                      </h6>
-                    </div>
-                    <div className="grid grid-cols-3 flex space-y-2 ">
-                      <div className="border h-full">
-                        <div className="px-3 py-2">
-                          <div className="relative">
-                            <img
-                              src={images[currentIndex]}
-                              className="photos-hotelss mb-2"
-                              alt="Hotel Room"
-                            />
-                            <button
-                              onClick={prevSlide}
-                              className="absolute top-1/2 left-0 transform -translate-y-1/2 text-white bg-black bg-opacity-50 p-2"
-                            >
-                              ❮
-                            </button>
-                            <button
-                              onClick={nextSlide}
-                              className="absolute top-1/2 right-0 transform -translate-y-1/2 text-white bg-black bg-opacity-50 p-2"
-                            >
-                              ❯
-                            </button>
-                          </div>
-
-                          <h5 className="text-[#3b3f5c] text-lg font-semibold dark:text-white-light  ">
-                            {hotel.Rooms[0].Name}
-                          </h5>
-                          {/* <h5 className="text-[#3b3f5c] text-sm dark:text-white-light">
-                                                    (168 sq.ft (16 sq.mt) | Twin Bed)
-                                                </h5> */}
-                          <ul className="list-disc text-black space-y-1">
-                            <div className="grid grid-cols-2 gap-2">
-                              {hotel?.HotelFacilities?.slice(0, 6).map(
-                                (facility, index) => (
-                                  <li key={index} className="text-sm">
-                                    {facility}
-                                  </li>
-                                )
-                              )}
-                            </div>
-                          </ul>
-
-                          <p className="information_button text-sm cursor-pointer">
-                            More Details
-                          </p>
-                        </div>
+          {hotel.Rooms && hotel.Rooms.length > 1 && (
+            <div className="flex items-center justify-center py-2">
+              <section ref={roomsRef} id="overview">
+                <div className="max-w-[75rem] min-w-[75rem] w-full bg-white shadow-[4px_6px_10px_-3px_#bfc9d4] border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none hotel-border">
+                  <div className="py-3 px-3">
+                    <div className="border w-full h-full hotel-border">
+                      <div className="border-b w-full">
+                        <h6 className="text-xl py-2 px-3 font-semibold">
+                          Rooms
+                        </h6>
                       </div>
-                      <div className="py-2 px-3 space-y-1">
-                        {/* <button className="border-2 w-ful h-5 mb-2 border-[#785ef7] text-[#785ef7] bg-transparent px-2  hotel-border text-xs transition duration-300 hover:bg-[#785ef7] hover:text-white">
-                        RECOMMEDED
-                      </button> */}
-                        <h5 className="text-[#3b3f5c] text-lg font-semibold dark:text-white-light">
-                          {cancellationText}
-                        </h5>
 
-                        <ul className="list-disc text-black space-y-1">
-                          {hotel?.Rooms?.[0]?.Inclusion && (
-                            <div className="text-sm flex items-center mt-1">
-                              {/* <img
-                              src="/img/tick.svg"
-                              alt="✔"
-                              className="w-3 h-3 mr-1"
-                            /> */}
-                              <li className="">{hotel.Rooms[0].Inclusion}</li>
-                            </div>
-                          )}
-                          <li className="text-sm">
-                            {hotel.Rooms[0].MealType === "Room_Only"
-                              ? "No Meals Included"
-                              : hotel.Rooms[0].MealType === "BreakFast"
-                              ? "Breakfast Included"
-                              : hotel.Rooms[0].MealType}
-                          </li>
-                        </ul>
-                        <div className="text-xs text-green-700">
-                          {formatCancelPolicies(
-                            hotel?.Rooms?.[0]?.CancelPolicies || []
-                          ).map((policy, index) => (
-                            <div key={index} className="flex gap-2">
-                              <img
-                                src="../img/tick.svg"
-                                className="w-3 h-5"
-                                alt="✔"
-                              />{" "}
-                              {policy}
-                            </div>
-                          ))}
-                        </div>
-
-                        <p className="information_button text-sm cursor-pointer">
-                          More Details
-                        </p>
-                      </div>
-                      <div className="py-4 px-3 space-y-2">
-                        <div
-                          className="relative"
-                          onMouseEnter={() => setShowRates(true)}
-                          onMouseLeave={() => setShowRates(false)}
-                        >
-                          <div>
-                            <h5 className="hotel-form-text-color text-xl font-semibold dark:text-white-light">
-                              ₹ {hotel.Rooms[0].TotalFare}
-                            </h5>
-                            <h5 className="text-[#3b3f5c] text-sm dark:text-white-light">
-                              + ₹ {hotel.Rooms[0].TotalTax} taxes and fees
-                            </h5>
-                          </div>
-
-                          {showRates && (
-                            <div className="absolute left-0 mt-2 w-60 bg-white shadow-lg rounded-lg p-3 border border-gray-300 z-10 animate-fade-in">
-                              <h6 className="font-semibold text-gray-700 border-b pb-1">
-                                Day Rates:
-                              </h6>
-                              <ul className="mt-2 text-sm text-gray-600 space-y-1">
-                                {hotel.Rooms[0].DayRates[0]?.map(
-                                  (rate, index) => (
-                                    <li
-                                      key={index}
-                                      className="flex justify-between"
-                                    >
-                                      <span>Day {index + 1}:</span>
-                                      <span className="font-medium text-black">
-                                        ₹ {rate.BasePrice}
-                                      </span>
-                                    </li>
-                                  )
+                      {/* Loop through rooms starting from index 1 */}
+                      {hotel.Rooms.slice(1, 4).map((room, index) => (
+                        <div key={index} className="flex border-b py-2">
+                          {/* Left section with image */}
+                          <div className="w-1/2 border-r">
+                            <div className="h-full px-3 py-2">
+                              <div className="relative max-h-[20rem]">
+                                {Array.isArray(hotel.Images) &&
+                                hotel.Images.length > 0 ? (
+                                  <img
+                                    src={
+                                      hotel.Images[
+                                        (index + 4) % hotel.Images.length
+                                      ] || "./img/image_NA02.png"
+                                    } // Skip first image
+                                    className="photos-hotelss"
+                                    alt="Hotel Room"
+                                  />
+                                ) : (
+                                  <div className="photos-hotelss">
+                                    <img
+                                      src="./img/image_NA02.png"
+                                      alt="No Image"
+                                    />
+                                  </div>
                                 )}
-                              </ul>
+                              </div>
                             </div>
-                          )}
+                          </div>
+
+                          {/* Right section with details */}
+                          <div className="px-3 py-2 w-full flex">
+                            <div className="flex flex-col w-full">
+                              <h5 className="text-[#3b3f5c] text-sm font-semibold dark:text-white-light">
+                                {room.Name}
+                              </h5>
+
+                              <ul className="list-disc text-black space-y-1">
+                                <div className="grid grid-cols-2 space-y-1">
+                                  {hotel?.HotelFacilities?.slice(0, 4).map(
+                                    (facility, i) => (
+                                      <li key={i} className="text-xs">
+                                        {facility}
+                                      </li>
+                                    )
+                                  )}
+                                </div>
+                              </ul>
+                              <p
+                                className="information_button text-sm cursor-pointer"
+                                onClick={() => setShowModal2(true)}
+                              >
+                                More Details
+                              </p>
+
+                              <div className="mt-2">
+                                <h5 className="text-[#3b3f5c] text-sm font-semibold dark:text-white-light">
+                                  {cancellationText}
+                                </h5>
+                                <ul className="list-disc text-black space-y-1">
+                                  {room?.Inclusion && (
+                                    <div className="text-xs flex items-center mt-1">
+                                      <li>{room.Inclusion}</li>
+                                    </div>
+                                  )}
+                                  <li className="text-xs">
+                                    {room.MealType === "Room_Only"
+                                      ? "No Meals Included"
+                                      : room.MealType === "BreakFast"
+                                      ? "Breakfast Included"
+                                      : room.MealType}
+                                  </li>
+                                </ul>
+                                <div className="text-xs text-green-700">
+                                  {formatCancelPolicies(
+                                    room?.CancelPolicies || []
+                                  ).map((policy, i) => (
+                                    <div key={i} className="flex gap-2">
+                                      <img
+                                        src="../img/tick.svg"
+                                        className="w-3 h-5"
+                                        alt="✔"
+                                      />
+                                      {policy}
+                                    </div>
+                                  ))}
+                                </div>
+                                {/* <p className="information_button text-sm cursor-pointer">More Details</p> */}
+                              </div>
+                            </div>
+
+                            {/* Pricing Section */}
+                            <div>
+                              <div
+                                className="relative cursor-pointer"
+                                onMouseEnter={() => setShowRates(index)}
+                                onMouseLeave={() => setShowRates(null)}
+                              >
+                                <h5 className="hotel-form-text-color text-xl font-semibold dark:text-white-light">
+                                  ₹ {room.TotalFare}
+                                </h5>
+                                <h5 className="text-[#3b3f5c] text-sm dark:text-white-light">
+                                  + ₹ {room.TotalTax} taxes and fees
+                                </h5>
+                              </div>
+                              {showRates === index && (
+                                <div className="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-lg p-3 border border-gray-300 z-10 animate-fade-in">
+                                  <h6 className="font-semibold text-gray-700 border-b pb-1">
+                                    Day Rates:
+                                  </h6>
+                                  <ul className="mt-2 text-sm text-gray-600 space-y-1">
+                                    {room?.DayRates?.[0]?.map((rate, i) => (
+                                      <li
+                                        key={i}
+                                        className="flex justify-between"
+                                      >
+                                        <span>Day {i + 1}:</span>
+                                        <span className="font-medium text-black">
+                                          ₹ {rate.BasePrice}
+                                        </span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              <button
+                                className="bg-[#785ef7] w-30 h-7 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]"
+                                onClick={() => handleSelectRoom(room)}
+                              >
+                                SELECT ROOM
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        <button className="bg-[#785ef7] w-30 h-7 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]">
-                          SELECT ROOM
-                        </button>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
-              </div>
-            </section>
-          </div>
+              </section>
+            </div>
+          )}
 
           <div
             ref={mapSectionRef}

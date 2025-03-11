@@ -1170,7 +1170,7 @@ function Home() {
       IsDetailedResponse: true,
       Filters: {
         Refundable: false,
-        NoOfRooms: 1,
+        NoOfRooms: Rooms,
         MealType: 0,
         OrderBy: 0,
         StarRating: 0,

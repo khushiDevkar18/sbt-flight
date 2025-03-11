@@ -356,7 +356,7 @@ const handleCancel =()=>{
     
   
     // const requestBody = { formattedData: formattedData };
-  console.log(requestBody);
+  // console.log(requestBody);
     try {
       const response = await fetch(
         "https://demo.taxivaxi.com/api/hotels/addsbthoteloptions",

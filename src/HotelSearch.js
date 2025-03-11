@@ -11,10 +11,13 @@ const HotelSearch = () => {
 
   const urlParams = new URLSearchParams(window.location.search);
   const extractedData = urlParams.get("taxivaxidata");
+const [personDetails , setPersonDetails]= useState();
 
   let formtaxivaxiData = null;
   try {
-    formtaxivaxiData = extractedData ? JSON.parse(decodeURIComponent(extractedData)) : null;
+    formtaxivaxiData = extractedData
+      ? JSON.parse(decodeURIComponent(extractedData))
+      : null;
     console.log("formtaxivaxiData", formtaxivaxiData);
   } catch (error) {
     console.error("Error parsing JSON:", error);
@@ -25,19 +28,22 @@ const HotelSearch = () => {
     if (formtaxivaxiData) {
       const fetchHotelCodes = async () => {
         try {
-            setLoader(true);
-          const response = await fetch("https://demo.taxivaxi.com/api/hotels/sbtHotelCodesList", {
-            method: "POST",
-            headers: {
-            //   "Content-Type": "application/json",
-              "Origin": "*",
-              "Access-Control-Request-Method": "POST",
-            },
-            body: JSON.stringify({
-              CityCode: formtaxivaxiData.city,
-              IsDetailedResponse: "true",
-            }),
-          });
+          setLoader(true);
+          const response = await fetch(
+            "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesList",
+            {
+              method: "POST",
+              headers: {
+                //   "Content-Type": "application/json",
+                Origin: "*",
+                "Access-Control-Request-Method": "POST",
+              },
+              body: JSON.stringify({
+                CityCode: formtaxivaxiData.city,
+                IsDetailedResponse: "true",
+              }),
+            }
+          );
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -65,7 +71,57 @@ const HotelSearch = () => {
       fetchHotelCodes();
     }
   }, []);
+  const passengerId1 = formtaxivaxiData["passengerDetailsArray[0][id]"];
+  const passengerId2 = formtaxivaxiData["passengerDetailsArray[1][id]"];
+  
+  console.log("Passenger 1 ID:", passengerId1);  // Should log "28833"
+  console.log("Passenger 2 ID:", passengerId2);  // Should log "26307"
+  
+  
 
+  useEffect(() => {
+    const fetchPerson = async () => {
+      try {
+        // setLoader(true);
+  
+        const requestBody = {
+          people_ids: [
+            passengerId1,
+            passengerId2
+          ],
+        };
+  console.log(requestBody)
+        const response = await fetch(
+          "https://demo.taxivaxi.com/api/hotels/getPeoplewithId",
+          {
+            method: "POST",
+            headers: {
+              // "Content-Type": "application/json", // Added correct content type
+              Origin: "*",
+              "Access-Control-Request-Method": "POST",
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        console.log(data);
+  
+        // Store response in session storage
+        sessionStorage.setItem("peopleData", JSON.stringify(data));
+      } catch (error) {
+        console.error("Error fetching people data:", error);
+      } finally {
+        // setLoader(false); // Ensure loader is turned off
+      }
+    };
+  
+    fetchPerson();
+  }, []);
 
   useEffect(() => {
     if (formtaxivaxiData && hotelCodes.length > 0) {
@@ -80,7 +136,10 @@ const HotelSearch = () => {
             {
               Adults: formtaxivaxiData.PassengerADT,
               Children: formtaxivaxiData.Passengerchild,
-              ChildrenAges: formtaxivaxiData.Passengerchild > 0 ? formtaxivaxiData.Passengerchildage : [],
+              ChildrenAges:
+                formtaxivaxiData.Passengerchild > 0
+                  ? formtaxivaxiData.Passengerchildage
+                  : [],
             },
           ],
           ResponseTime: 23.0,
@@ -96,48 +155,58 @@ const HotelSearch = () => {
         };
 
         try {
-          const response = await fetch("https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch", {
-            method: "POST",
-            headers: {
-            //   "Content-Type": "application/json",
-              "Origin": "*",
-              "Access-Control-Request-Method": "POST",
-            },
-            body: JSON.stringify(requestBody),
-          });
+          const response = await fetch(
+            "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
+            {
+              method: "POST",
+              headers: {
+                //   "Content-Type": "application/json",
+                Origin: "*",
+                "Access-Control-Request-Method": "POST",
+              },
+              body: JSON.stringify(requestBody),
+            }
+          );
 
-          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          if (!response.ok)
+            throw new Error(`HTTP error! status: ${response.status}`);
 
           const data = await response.json();
-        //   console.log("Hotel data:", data);
+          //   console.log("Hotel data:", data);
 
           if (data.Status.Code === 200) {
             setHotelCityList(data.HotelResult || []);
-              const searchParams = {
-                    "checkIn":formtaxivaxiData.checkindate,
-                      "checkOut":formtaxivaxiData.checkoutdate,
-                      "Rooms":"1",
-                      "Adults":formtaxivaxiData.PassengerADT,
-                      "Children":formtaxivaxiData.Passengerchild,
-                      "ChildAge":formtaxivaxiData.Passengerchildage,
-                      "CityCode":formtaxivaxiData,
-                    //   "filteredCompany": JSON.parse(sessionStorage.getItem("selectedCompany")) || null, // Retrieve full company data,
-                      "City_name":formtaxivaxiData.city_name,
-                      "spoc_name":formtaxivaxiData.spoc_name,
-                      "approver1":formtaxivaxiData.approver1_email,
-                      "approver2":formtaxivaxiData.approver2_email,
-                      "corporate_name":formtaxivaxiData.corporate_name,
-                      "booking_id":formtaxivaxiData.booking_id,
-                      "admin_id":formtaxivaxiData.admin_id,
-                    
-                    };
-                    sessionStorage.setItem('hotelData_header', JSON.stringify(searchParams));
-            sessionStorage.setItem("hotelSearchData", JSON.stringify({ hotelcityList: data.HotelResult }));
-          
+            const searchParams = {
+              checkIn: formtaxivaxiData.checkindate,
+              checkOut: formtaxivaxiData.checkoutdate,
+              Rooms: "1",
+              Adults: formtaxivaxiData.PassengerADT,
+              Children: formtaxivaxiData.Passengerchild,
+              ChildAge: formtaxivaxiData.Passengerchildage,
+              CityCode: formtaxivaxiData,
+              //   "filteredCompany": JSON.parse(sessionStorage.getItem("selectedCompany")) || null, // Retrieve full company data,
+              City_name: formtaxivaxiData.city_name,
+              spoc_name: formtaxivaxiData.spoc_name,
+              approver1: formtaxivaxiData.approver1_email,
+              approver2: formtaxivaxiData.approver2_email,
+              corporate_name: formtaxivaxiData.corporate_name,
+              booking_id: formtaxivaxiData.booking_id,
+              admin_id: formtaxivaxiData.admin_id,
+            
+            };
+            sessionStorage.setItem(
+              "hotelData_header",
+              JSON.stringify(searchParams)
+            );
+            sessionStorage.setItem(
+              "hotelSearchData",
+              JSON.stringify({ hotelcityList: data.HotelResult })
+            );
+
             fetchCity(data.HotelResult || []);
           } else {
             // Swal.fire({ title: "Error", text: data.Status.Description || "Something went wrong!" });
-            navigate("/ResultNotFound")
+            navigate("/ResultNotFound");
           }
         } catch (error) {
           console.error("Error fetching hotels:", error);
@@ -153,35 +222,40 @@ const HotelSearch = () => {
     if (!Array.isArray(hotelcityList) || hotelcityList.length === 0) {
       return;
     }
-  
+
     setLoader(true);
     const codes = hotelcityList.map((hotel) => hotel.HotelCode).join(",");
-  
+
     try {
-      const response = await fetch("https://demo.taxivaxi.com/api/hotels/sbtHotelDetails", {
-        method: "POST",
-        headers: {
-          Origin: "*",
-          "Access-Control-Request-Method": "POST",
-        },
-        body: JSON.stringify({
-          Hotelcodes: codes,
-          Language: "EN",
-        }),
-      });
-  
+      const response = await fetch(
+        "https://demo.taxivaxi.com/api/hotels/sbtHotelDetails",
+        {
+          method: "POST",
+          headers: {
+            Origin: "*",
+            "Access-Control-Request-Method": "POST",
+          },
+          body: JSON.stringify({
+            Hotelcodes: codes,
+            Language: "EN",
+          }),
+        }
+      );
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+
       const data = await response.json();
-  
+
       if (data.Status && data.Status.Code === 200) {
         setHotelDetails(data.HotelDetails || []);
-  
-        sessionStorage.setItem("hotelDetails", JSON.stringify(data.HotelDetails || []));
-        
-  
+
+        sessionStorage.setItem(
+          "hotelDetails",
+          JSON.stringify(data.HotelDetails || [])
+        );
+
         navigate("/SearchHotel", {
           state: { hotelcityList: data.HotelResult },
         });
@@ -199,7 +273,11 @@ const HotelSearch = () => {
     <div>
       {loader && (
         <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
-          <img src="../img/hotel_loader.gif" alt="Loading..." className="loader_size" />
+          <img
+            src="../img/hotel_loader.gif"
+            alt="Loading..."
+            className="loader_size"
+          />
         </div>
       )}
     </div>
