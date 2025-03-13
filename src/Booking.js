@@ -127,7 +127,7 @@ const Booking = () => {
     const [cancellationPolicy, setCancellationPolicy] = useState(null);
   
     const providerCodeRef = useRef(null);
-    const Targetbranch = 'P7206253';
+    const Targetbranch = 'P4451438';
     // console.log('providerCodeRef', providerCodeRef);
   
     const handleChange = (value) => {
@@ -778,12 +778,12 @@ const Booking = () => {
                         packageSelected['air:AirPricingInfo'].forEach(reservationpricinginfo => {
                             if (Array.isArray(reservationpricinginfo['air:TaxInfo'])) {
                                 reservationpricinginfo['air:TaxInfo'].forEach(taxreservationpricinginfo => {
-                                    if (taxreservationpricinginfo.$.Category === 'K3') {
+                                    if (taxreservationpricinginfo.$.CarrierDefinedCategory.includes("GST")) {
                                         tax_k3 += parseInt((taxreservationpricinginfo.$.Amount).replace(/[^0-9]/g, ''));
                                     }
                                 });
                             } else {
-                                if (reservationpricinginfo['air:TaxInfo'].$.Category === 'K3') {
+                                if (reservationpricinginfo['air:TaxInfo'].$.CarrierDefinedCategory.includes("GST")) {
                                     tax_k3 += parseInt((reservationpricinginfo['air:TaxInfo'].$.Amount).replace(/[^0-9]/g, ''));
                                 }
                             }
@@ -791,12 +791,12 @@ const Booking = () => {
                     } else {
                         if (Array.isArray(packageSelected['air:AirPricingInfo']['air:TaxInfo'])) {
                             packageSelected['air:AirPricingInfo']['air:TaxInfo'].forEach(taxreservationpricinginfo => {
-                                if (taxreservationpricinginfo.$.Category === 'K3') {
+                                if (taxreservationpricinginfo.$.CarrierDefinedCategory.includes("GST")) {
                                     tax_k3 += parseInt((taxreservationpricinginfo.$.Amount).replace(/[^0-9]/g, ''));
                                 }
                             });
                         } else {
-                            if (packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Category === 'K3') {
+                            if (packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.CarrierDefinedCategory.includes("GST")) {
                                 tax_k3 += parseInt((packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount).replace(/[^0-9]/g, ''));
                             }
                         }
@@ -1198,7 +1198,7 @@ const Booking = () => {
                     console.log('reservationResponse', reservationResponse);
                     // alert("resp", reservationResponse);
                     
-                    parseString(reservationResponse, { explicitArray: false }, (err, reservationresult) => {
+                    parseString(reservationResponse, { explicitArray: false }, async (err, reservationresult) => {
                         if (err) {
                             console.error('Error parsing XML:', err);
                             return;
@@ -1211,6 +1211,39 @@ const Booking = () => {
                             
                         }
                             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
+                            const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
+
+                            var UniversalRecordRequest = {
+                                "soap:Envelope": {
+                                    '$': {
+                                        "@xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
+                                    },
+                                    "soap:Body": {
+                                        "univ:UniversalRecordRetrieveReq": {
+                                            '$': {
+                                                "@TargetBranch": Targetbranch,
+                                                "@TraceId": "TVSBP001",
+                                                "@AuthorizedBy": "TAXIVAXI",
+                                                "@RetrieveProviderReservationDetails": "true",
+                                                "@xmlns:univ": "http://www.travelport.com/schema/universal_v52_0",
+                                                "@xmlns:com": "http://www.travelport.com/schema/common_v52_0",
+                                            },
+                                            "com:BillingPointOfSaleInfo": {
+                                                '$': {
+                                                "@OriginApplication": "UAPI"
+                                                }
+                                            },
+                                            "univ:ProviderReservationInfo": {
+                                                '$': {
+                                                "@ProviderCode": "ACH",
+                                                "@ProviderLocatorCode": flightpnrCode
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            const UniversalRecordResponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
 
 
                             const flightDetails = {};
@@ -1468,9 +1501,7 @@ const Booking = () => {
                 fetchPriceData(); 
                 return ;
             }
-            // fetchPriceData();
-            // console.log('packageSelected', packageSelected);
-            // console.log('segmentParse', segmentParse);
+            
 
             const formatDate = (dateString) => {
                 const date = new Date(dateString);
@@ -1503,12 +1534,12 @@ const Booking = () => {
                 packageSelected['air:AirPricingInfo'].forEach(reservationpricinginfo => {
                     if (Array.isArray(reservationpricinginfo['air:TaxInfo'])) {
                         reservationpricinginfo['air:TaxInfo'].forEach(taxreservationpricinginfo => {
-                            if (taxreservationpricinginfo.$.Category === 'K3') {
+                            if (taxreservationpricinginfo.$.CarrierDefinedCategory.includes("GST")) {
                                 tax_k3 += Math.floor(parseFloat(taxreservationpricinginfo.$.Amount).replace("INR", "").trim());
                             }
                         });
                     } else {
-                        if (reservationpricinginfo['air:TaxInfo'].$.Category === 'K3') {
+                        if (reservationpricinginfo['air:TaxInfo'].$.CarrierDefinedCategory.includes("GST")) {
                             tax_k3 +=Math.floor(parseFloat(reservationpricinginfo['air:TaxInfo'].$.Amount).replace("INR", "").trim());
                         }
                     }
@@ -1516,12 +1547,12 @@ const Booking = () => {
             } else {
                 if (Array.isArray(packageSelected['air:AirPricingInfo']['air:TaxInfo'])) {
                     packageSelected['air:AirPricingInfo']['air:TaxInfo'].forEach(taxreservationpricinginfo => {
-                        if (taxreservationpricinginfo.$.Category === 'K3') {
+                        if (taxreservationpricinginfo.$.CarrierDefinedCategory.includes("GST")) {
                             tax_k3 += Math.floor(parseFloat(taxreservationpricinginfo.$.Amount).replace("INR", "").trim());
                         }
                     });
                 } else {
-                    if (packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Category === 'K3') {
+                    if (packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.CarrierDefinedCategory.includes("GST")) {
                         tax_k3 += Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount).replace("INR", "").trim());
                     }
                 }
@@ -1915,7 +1946,7 @@ const Booking = () => {
                     console.log('reservationResponse', reservationResponse);
                     // alert("resp", reservationResponse);
                     
-                    parseString(reservationResponse, { explicitArray: false }, (err, reservationresult) => {
+                    parseString(reservationResponse, { explicitArray: false }, async (err, reservationresult) => {
                         if (err) {
                             console.error('Error parsing XML:', err);
                             return;
@@ -1928,6 +1959,7 @@ const Booking = () => {
                             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
                             const universallocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
                             const segmentreservation = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
+                            const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
 
 
                             const flightDetails = {};
@@ -2035,6 +2067,39 @@ const Booking = () => {
                                     }).then((response) => {
                                         console.log("responseData", response)
                                     })
+
+                                    var UniversalRecordRequest = {
+                                        "soap:Envelope": {
+                                            '$': {
+                                                "@xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
+                                            },
+                                            "soap:Body": {
+                                                "univ:UniversalRecordRetrieveReq": {
+                                                    '$': {
+                                                        "@TargetBranch": Targetbranch,
+                                                        "@TraceId": "TVSBP001",
+                                                        "@AuthorizedBy": "TAXIVAXI",
+                                                        "@RetrieveProviderReservationDetails": "true",
+                                                        "@xmlns:univ": "http://www.travelport.com/schema/universal_v52_0",
+                                                        "@xmlns:com": "http://www.travelport.com/schema/common_v52_0",
+                                                    },
+                                                    "com:BillingPointOfSaleInfo": {
+                                                        '$': {
+                                                        "@OriginApplication": "UAPI"
+                                                        }
+                                                    },
+                                                    "univ:ProviderReservationInfo": {
+                                                        '$': {
+                                                        "@ProviderCode": "ACH",
+                                                        "@ProviderLocatorCode": flightpnrCode
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    const UniversalRecordResponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
+                                    
                                 const bookingCompleteData = {
                                     reservationdata: reservationresponse.data,
                                     segmentParse: segmentParse,
@@ -5329,6 +5394,102 @@ const Booking = () => {
                                                 <strong>*Important:</strong> The airline fee is indicative. Cotrav does not guarantee the accuracy of this information.
                                                     All fees mentioned are per passenger. All Refunds are airline approval.
                                                 </p>
+                                                <div className="bg-orange-100 border-l-4 border-orange-500 p-3 rounded-md shadow-sm text-sm">
+                                                    <p className="text-orange-700 font-bold text-xs">IMPORTANT INFORMATION</p>
+                                                    <ul className="mt-1 text-gray-700 text-xs pl-4">
+                                                        <li className="flex items-start">
+                                                            <span className="text-xs leading-5">●</span>
+                                                            <div className="pl-2">
+                                                                <span className="font-semibold">Valid ID proof needed :</span>
+                                                                <span className="ml-1">
+                                                                    Carry a valid photo identification proof (Driver Licence, Aadhar Card, Pan Card, or any other Government-recognized photo identification)
+                                                                </span>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <div className="cancellation-container">
+            <p className="cancellation-title">CANCELLATION</p>
+            <p className="cancellation-info">
+                You are eligible for full cancellation with just <strong>INR 315.0</strong> + convenience fees (per passenger) being charged as airline refund applicable fee if you cancel within <strong>05:07 hrs</strong>
+            </p>
+
+            <div className="flight-info">
+                <p style={{ marginBottom:'0'}}><strong>Mumbai ➝ Delhi</strong> 18 Feb, AIR INDIA</p>
+                
+            </div>
+
+            {/* <div className="cancellation-rules">
+                <div className="rule-card">
+                    <span className="bullet black">&#9679;</span>
+                    <div className="rule-content">
+                        <p className="rule-header">Booking Date - 24 Hr(s) to Departure <span className="charges">Cancellation Charges: ₹ 262.0/Adult</span></p>
+                        <p className="rule-time">Till Mon Feb 17 21:00:00 2025 (Departure City TimeZone)</p>
+                    </div>
+                </div>
+
+                <div className="rule-card">
+                    <span className="bullet orange">&#9679;</span>
+                    <div className="rule-content">
+                        <p className="rule-header">24 Hr(s) - 2 Hr(s) to Departure <span className="charges">Cancellation Charges: ₹ 524.0/Adult</span></p>
+                        <p className="rule-time">Till Tue Feb 18 19:00:00 2025 (Departure City TimeZone)</p>
+                    </div>
+                </div>
+
+                <div className="rule-card non-refundable">
+                    <span className="bullet red">&#9679;</span>
+                    <div className="rule-content">
+                        <p className="rule-header">2 Hr(s) - Departure time <span className="non-refundable-text">Non-Refundable</span></p>
+                        <p className="rule-time">Till Tue Feb 18 21:00:00 2025 (Departure City TimeZone)</p>
+                        <p className="rule-details">The airline does not allow cancellation during this time window.</p>
+                    </div>
+                </div>
+            </div> */}
+            <table className="cancellation-table">
+    <tbody>
+        <tr>
+            <td className="bullet black">&#9679;</td>
+            <td>
+                <p className="rule-header">Booking Date - 24 Hr(s) to Departure</p>
+                <p className="rule-time">Till Mon Feb 17 21:00:00 2025 (Departure City TimeZone)</p>
+            </td>
+            <td className="charges">Cancellation Charges: ₹ 262.0/Adult</td>
+        </tr>
+        <tr>
+            <td className="bullet orange">&#9679;</td>
+            <td>
+                <p className="rule-header">24 Hr(s) - 2 Hr(s) to Departure</p>
+                <p className="rule-time">Till Tue Feb 18 19:00:00 2025 (Departure City TimeZone)</p>
+            </td>
+            <td className="charges">Cancellation Charges: ₹ 524.0/Adult</td>
+        </tr>
+        <tr>
+            <td className="bullet red">&#9679;</td>
+            <td>
+                <p className="rule-header">2 Hr(s) - Departure time</p>
+                <p className="rule-time">Till Tue Feb 18 21:00:00 2025 (Departure City TimeZone)</p>
+            </td>
+            <td>
+                <p className="rule-header" style={{ marginLeft: '59%', color: 'red'}}>Non-Refundable</p>
+                <p className="rule-details" style={{ marginLeft: '40%'}}>The airline does not allow cancellation during this time window.</p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+            <ul className="policy-list">
+                <li>The airline cancellation penalty is subject to change and will be based on the policy in effect at the time of cancellation.</li>
+                <li>Airline charges a cancellation fees when you cancel in a particular time window.</li>
+                <li>Insurance, donation and convenience fees are non-refundable.</li>
+            </ul>
+
+            <div className="cancellation-buttons">
+                <button className="full-cancel-btn">FULL CANCELLATION</button>
+                <button className="partial-cancel-btn">PARTIAL CANCELLATION</button>
+            </div>
+        </div>
+
+
                                                 {/* <div className="table-container">
                                                     <h1>Date Change Charges</h1>
                                                     <table className="styled-table">
@@ -6812,10 +6973,11 @@ const Booking = () => {
                                                 <div className="chk-line">
     {Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])
         ? packageSelected["air:AirPricingInfo"]["air:TaxInfo"]
-              .filter((tax) => tax["$"]["Category"] === "K3") // Filter only Category K3
+              
+              .filter((tax) => tax["$"]["CarrierDefinedCategory"]?.includes("GST"))
               .map((tax, index) => (
                   <div key={index} className="chk-line-item">
-                      <div className="chk-l">{tax["$"]["Category"]}</div>
+                      <div className="chk-l">{tax["$"]["CarrierDefinedCategory"]}</div>
                       <div className="chk-r">
                           {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
                           {tax["$"]["Amount"].replace("INR", "")}
@@ -6823,7 +6985,8 @@ const Booking = () => {
                   </div>
               ))
         : packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"] &&
-          packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"] === "K3" && ( // Check single object case
+        
+        packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"]?.["$"]["CarrierDefinedCategory"]?.includes("GST") && ( // Check single object case
               <div className="chk-line-item">
                   <div className="chk-l">
                       {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"]}
@@ -6855,9 +7018,10 @@ const Booking = () => {
             // Get the K3 tax amount
             const k3Tax = Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])
                 ? packageSelected["air:AirPricingInfo"]["air:TaxInfo"]
-                      .filter((tax) => tax["$"]["Category"] === "K3")
+                      .filter((tax) => tax["$"]["CarrierDefinedCategory"]?.includes("GST"))
                       .reduce((sum, tax) => sum + parseFloat(tax["$"]["Amount"].replace("INR", "").trim()), 0)
-                : packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"]?.["$"]["Category"] === "K3"
+                
+                : packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"]?.["$"]["CarrierDefinedCategory"]?.includes("GST")
                 ? parseFloat(packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "").trim())
                 : 0;
 

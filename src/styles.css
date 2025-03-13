@@ -14462,6 +14462,9 @@ html {
     float: none;
     margin: 0px;
   }
+  /* .ul{
+    padding-left:0 !important;
+  } */
 
   .flt-i-padding {
     padding: 20px 0px 0px 0px;
@@ -19965,4 +19968,208 @@ button#search-button:hover {
 
 .traveller-name {
   font-size: 14px;
+}
+.cancellation-container {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cancellation-title {
+  font-size: 18px;
+  font-weight: bold;
+  /* color: #d9822b; */
+  margin-bottom: 0px;
+}
+
+.cancellation-info {
+  font-size: 14px;
+  color: #d9822b;
+  font-weight: 500;
+  margin-bottom: 15px;
+}
+
+.flight-info {
+  background: #f5f5f5;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.arrow-icon {
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.cancellation-rules {
+  margin-top: 15px;
+}
+
+.rule-card {
+  display: flex;
+  align-items: flex-start;
+  background: #fef4e6;
+  padding: 7px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.rule-card:nth-child(2) {
+  background: #fff;
+}
+
+.non-refundable {
+  background: #fff;
+}
+
+.bullet {
+  font-size: 14px;
+  margin-right: 8px;
+  margin-top: 5px;
+}
+
+.black {
+  color: black;
+}
+
+.orange {
+  color: #f39c12;
+}
+
+.red {
+  color: red;
+}
+
+.rule-content {
+  flex: 1;
+}
+
+
+
+.charges {
+  float: right;
+  font-weight: bold;
+  color: #d9822b;
+}
+
+.non-refundable-text {
+  float: right;
+  font-weight: bold;
+  color: red;
+}
+
+.rule-time {
+  font-size: 12px;
+  color: #555;
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.rule-details {
+  font-size: 12px;
+  color: #777;
+  margin-top: 5px;
+}
+
+.policy-list {
+  margin-top: 15px;
+  padding-left: 20px;
+  font-size: 12px;
+  color: #444;
+}
+
+.policy-list li {
+  margin-bottom: 5px;
+}
+
+.cancellation-buttons {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.full-cancel-btn {
+  background: linear-gradient(to right, #ff6b57, #ff9153);
+  border: none;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-right: 10px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.partial-cancel-btn {
+  background: transparent;
+  border: 2px solid #ff6b57;
+  color: #ff6b57;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.cancellation-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cancellation-table td {
+  padding: 10px;
+  vertical-align: top;
+}
+
+.bullet {
+  font-size: 14px;
+  padding-right: 10px;
+}
+
+.black {
+  color: black;
+}
+
+.orange {
+  color: orange;
+}
+
+.red {
+  color: red;
+}
+
+.rule-header {
+  font-weight: bold;
+  font-size: 13px;
+  color: #d4952d; /* Yellowish heading */
+}
+
+.rule-time {
+  font-size: 12px;
+  color: black;
+  margin-top: 2px;
+}
+
+.charges {
+  font-weight: bold;
+  font-size: 13px;
+  color: black;
+}
+
+.non-refundable-text {
+  color: red;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.rule-details {
+  font-size: 12px;
+  color: #333;
+  margin-top: 2px; /* Adds a small gap between Non-Refundable and details */
 }

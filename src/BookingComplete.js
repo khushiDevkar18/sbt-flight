@@ -464,126 +464,63 @@ const BookingContinue = () => {
                                                             </div>
                                                         </div>
                                                         <div className="complete-devider" />
-                                                        {/* <div className="complete-txt">
-                                                            <div className='serviceinfo'>
-                                                           
-                                                                <div className='servicess'>Passenger Details</div>
-                                                                <div className='servicedetails'>
-                                                                <div className='row' style={{width:'100%'}}>
-                                                                    <div className="passengers" style={{ width: "100%" }}>
-                                                                    {Passengers && Passengers.keys && Passengers.keys.length > 1 ? (
-                                                                        Passengers.keys.map((key, index) => (
-                                                                                <>
-                                                                                    <div className="countpassenger">
-                                                                                        {Passengers.codes[index] === 'ADT' ? 'Adult' : 
-                                                                                            Passengers.codes[index] === 'CNN' ? 'Child' :
-                                                                                            Passengers.codes[index] === 'INF' ? 'Infant' : 'Unknown'}-P{index+1} :
-                                                                                    </div>
-
-                                                                                    <div className="passengerdetail">
-                                                                                    {Passengers.namesWithPrefix[index]}&nbsp;
-                                                                                    {Passengers.firstNames[index]}&nbsp;
-                                                                                    {Passengers.lastNames[index]}&nbsp;
-                                                                                    ({Passengers.genderNames[index] === 'M' ? 'Male' : 'Female'},Age - {calculateAge(Passengers.ageNames[index])})
-                                                                                    </div>
-                                                                                </>
-                                                                        ))
-                                                                    )
-                                                                    : (
-                                                                        <>
-                                                                            {Passengers && Passengers.keys && (
-                                                                                <>
-                                                                                    <div className="countpassenger">
-                                                                                        {Passengers.codes[0] === 'ADT' ? 'Adult' : 
-                                                                                            Passengers.codes[0] === 'CNN' ? 'Child' :
-                                                                                            Passengers.codes[0] === 'INF' ? 'Infant' : 'Unknown'}-P1 :
-                                                                                    </div>
-
-                                                                                    <div className="passengerdetail">
-                                                                                    {Passengers.namesWithPrefix[0]}&nbsp;
-                                                                                    {Passengers.firstNames[0]}&nbsp;
-                                                                                    {Passengers.lastNames[0]}&nbsp;
-                                                                                    ({Passengers.genderNames[0] === 'M' ? 'Male' : 'Female'},Age - {calculateAge(Passengers.ageNames[0])})
-                                                                                    </div>
-                                                                                </>
-                                                                            )}
-                                                                        </>
-                                                                    )}
-                                                                    
-                                                                    
-                                                                        
-                                                                    </div>
-                                                                    <div className="complete-txt-link">
-                                                                    {Passengers && Passengers.keys && Passengers.keys.length > 1 ? (
-                                                                        
-                                                                            <>
-                                                                                <a href="#">
-                                                                                    Mail ID: 
-                                                                                    {Passengers.email && Passengers.email} || 
-                                                                                    Contact No. :
-                                                                                    {Passengers.contactNo && Passengers.contactNo}
-                                                                                </a>
-                                                                            </>
-                                                                        
-                                                                    )
-                                                                    : (
-                                                                            <>
-                                                                            {Passengers && Passengers.keys &&
-                                                                                <a href="#">
-                                                                                    Mail ID: 
-                                                                                    {Passengers.email && Passengers.email} || 
-                                                                                    Contact No. :
-                                                                                    {Passengers.contactNo && Passengers.contactNo}
-                                                                                </a>
-                                                                            }
-                                                                            </>
-                                                                    )}
-                                                                    </div>
-                                                                </div></div>
-                                                            </div>
-                                                        </div> */}
+                                                        
                                                         <div className="passenger-details-container">
-    <table className="passenger-table">
-        <thead>
-            <tr>
-                <th>TRAVELLER</th>
-                <th>PNR/E-TICKET NUMBER</th>
-                <th>SEAT</th>
-                <th>MEAL</th>
-                <th>EXCESS BAGGAGE</th>
-            </tr>
-        </thead>
-        <tbody>
-            {Passengers && Passengers.keys && Passengers.keys.length > 0 &&
-                Passengers.keys.map((key, index) => (
-                    <tr key={index}>
-                        <td className="traveller-info">
-                            <span className="traveller-icon">👤</span>
-                            <span className="traveller-name">
-                                <strong>{Passengers.namesWithPrefix[index]} {Passengers.firstNames[index]} {Passengers.lastNames[index]}</strong>
-                                &nbsp;{Passengers.codes[index] === 'ADT' ? 'Adult' :
-                                    Passengers.codes[index] === 'CNN' ? 'Child' :
-                                        Passengers.codes[index] === 'INF' ? 'Infant' : 'Unknown'}, {Passengers.genderNames[index] === 'M' ? 'Male' : 'Female'}
-                            </span>
-                        </td>
-                        <td>
-                            <strong>{pnr}</strong>
-                            <br />
-                            
-                        </td>
-                        <td>
-    {Array.isArray(seat_codes) && seat_codes.length > 0 ? seat_codes.join(", ") : " - "}
-</td>
-                        
-                        <td>-</td>
-                        <td>-</td>
-                    </tr>
-                ))
-            }
-        </tbody>
-    </table>
-</div>
-<div className="complete-devider" />
+                                                            <table className="passenger-table">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>TRAVELLER</th>
+                                                                        <th>PNR/E-TICKET NUMBER</th>
+                                                                        <th>SEAT</th>
+                                                                        <th>MEAL</th>
+                                                                        <th>EXCESS BAGGAGE</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {Passengers && Passengers.keys && Passengers.keys.length > 0 &&
+                                                                        Passengers.keys.map((key, index) => (
+                                                                            <tr key={index}>
+                                                                                <td className="traveller-info">
+                                                                                    <span className="traveller-icon">👤</span>
+                                                                                    <span className="traveller-name">
+                                                                                        <strong>{Passengers.namesWithPrefix[index]} {Passengers.firstNames[index]} {Passengers.lastNames[index]}</strong>
+                                                                                        &nbsp;{Passengers.codes[index] === 'ADT' ? 'Adult' :
+                                                                                            Passengers.codes[index] === 'CNN' ? 'Child' :
+                                                                                                Passengers.codes[index] === 'INF' ? 'Infant' : 'Unknown'}, {Passengers.genderNames[index] === 'M' ? 'Male' : 'Female'}
+                                                                                    </span>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <strong>{pnr}</strong>
+                                                                                    <br />
+                                                                                    
+                                                                                </td>
+                                                                                <td>
+                                                            {Array.isArray(seat_codes) && seat_codes.length > 0 ? seat_codes.join(", ") : " - "}
+                                                        </td>
+                                                                                
+                                                                                <td>-</td>
+                                                                                <td>-</td>
+                                                                            </tr>
+                                                                        ))
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                        <div className="complete-devider" />
+                                                        <div className="bg-orange-100 border-l-4 border-orange-500 p-3 rounded-md shadow-sm text-sm">
+                                                            <p className="text-orange-700 font-bold text-xs">IMPORTANT INFORMATION</p>
+                                                            <ul className="mt-1 text-gray-700 text-xs pl-4">
+                                                                <li className="flex items-start">
+                                                                    <span className="text-xs leading-5">●</span>
+                                                                    <div className="pl-2">
+                                                                        <span className="font-semibold">Valid ID proof needed :</span>
+                                                                        <span className="ml-1">
+                                                                            Carry a valid photo identification proof (Driver Licence, Aadhar Card, Pan Card, or any other Government-recognized photo identification)
+                                                                        </span>
+                                                                    </div>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
                                                         <div className='complete-txt'>
                                                         
                                                             {/* {respricings && 

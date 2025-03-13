@@ -61,7 +61,7 @@ const SearchFlight = () => {
   const [show, setShow] = useState(false);
   const [flightOptions, setFlightOptions] = useState([]);
   const [BrandList, setBrandlist] = useState([]);
-  // console.log('BrandList', BrandList);
+  // console.log('flightOptions', flightOptions);
   const [flightairoption, setFlightAirOptions] = useState([]);
   const [flightDetails, setFlightDetails] = useState([]);
   const [flightErrors, setFlighterrors] = useState([]);
@@ -75,7 +75,7 @@ const SearchFlight = () => {
   const [showModal, setShowModal] = useState(false);
   const [newpayload, setPayload] = useState("");
   const contentRef = useRef(null);
-  const Targetbranch = 'P7206253';
+  const Targetbranch = 'P4451438';
   // console.log('TaxList', TaxList);
 
   const getFareDetails = (brandName) => {
@@ -318,6 +318,7 @@ const SearchFlight = () => {
   // console.log('hello');
 
   const handleach = (fareInfoRefKey) => {
+    // console.log('fareInfoRefKey', fareInfoRefKey);
     setLoading(true);
     setBookingpage(true);
     const bookingCode = fareInfoRefKey['BookingCode'];
@@ -327,7 +328,7 @@ const SearchFlight = () => {
         fareInfo.BookingCode === bookingCode &&
         allSegmentKeys.includes(fareInfo.SegmentRef) // Use allSegmentKeys from state for connecting flights
     );
-    // console.log("fareInfoRefKey", fareInfoRefKey);
+    // console.log("matchedData", matchedData);
 
     const matchingFareInfo = FareList.find(
       (fareInfo) => fareInfo['$'] && fareInfo['$']['Key'] === fareInfoRefKey['FareInfoRef']
@@ -342,7 +343,7 @@ const SearchFlight = () => {
     // const price = matchingFareInfo['$']['Amount'];
     
     const markup_price = calculateFinalMarkup( (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + parseFloat(totalTax.replace("INR", "").trim())),  markupdata, cabinClass, matchingFareInfo['$']['FareFamily'], inputOrigin, flight_type );
-    console.log('markup_price', markup_price);
+    // console.log('markup_price', markup_price);
 
     const segmentArray = matchedData
     .flatMap((fareInfo) => {
@@ -394,6 +395,8 @@ const SearchFlight = () => {
           _: hostToken._ // Add the token value
         }));
     }).flat();
+
+    // console.log('comHostTokens', comHostTokens)
   
     const airPricingCommand = matchedData.map((fareInfo) => {
       const farekey = fareInfo['FareInfoRef'];
@@ -764,7 +767,7 @@ const SearchFlight = () => {
   };
 
   const calculateFinalPrice = (totalPrice, markup, seatType, fareName, airline, flighttype) => {
-    console.log('totalPrice', totalPrice);
+    // console.log('totalPrice', totalPrice);
     
   
     // Ensure totalPrice is numeric for calculations
@@ -2924,47 +2927,85 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
   };
 
   // const [dataFound, setDataFound] = useState(false);
-  const renderedSegmentRefs = useRef(new Set()); // Track already rendered segments
-  const [filteredFlights, setFilteredFlights] = useState([]);
+  const renderedSegmentRefs = useRef(new Set()); // Track already rendered segment combinations
+const [filteredFlights, setFilteredFlights] = useState([]);
 
+useEffect(() => {
+  setFilteredFlights([]); // Clear previous flights
 
-  useEffect(() => {
-    setFilteredFlights([]); // Clear previous flights to avoid duplicates
-    // console.log('new', flightOptions);
-    // console.log("🔥 New flightOptions detected:", flightOptions);
+  flightOptions.forEach((pricepoint) => {
+    setTimeout(() => {
+      const options = pricepoint['air:AirPricingInfo']?.['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'];
+      const optionsArray = Array.isArray(options) ? options : options ? [options] : [];
 
-    flightOptions.forEach((pricepoint, priceindex) => {
-      setTimeout(() => { // Introduce a delay for incremental rendering
-        // const totalPrice = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
+      optionsArray.forEach((airOption) => {
+        const bookingInfo = airOption['air:BookingInfo'];
+        const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
 
-        const collectedSegmentRefs = [];
-        const options = pricepoint['air:AirPricingInfo']?.['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'];
+        // Collect all segment keys from bookingInfo
+        const segmentKeys = bookingInfoArray.map(info => info['$']['SegmentRef']).sort(); // Sort for consistent ordering
 
-        const optionsArray = Array.isArray(options) ? options : options ? [options] : [];
-        optionsArray.forEach((airOption) => {
-          const bookingInfo = airOption?.['air:BookingInfo'];
-          const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : bookingInfo ? [bookingInfo] : [];
+        // Create a unique identifier for this flight option
+        const segmentKeyString = segmentKeys.join(',');
 
-          bookingInfoArray.forEach((info) => {
-            if (info?.['$']?.['SegmentRef']) {
-              const segmentRef = info['$']['SegmentRef'];
-              collectedSegmentRefs.push(segmentRef);
+        if (!renderedSegmentRefs.current.has(segmentKeyString)) {
+          // Mark this segment combination as rendered
+          renderedSegmentRefs.current.add(segmentKeyString);
+
+          // Create a new flight option with only this `airOption`
+          const newFlightOption = {
+            ...pricepoint,
+            'air:AirPricingInfo': {
+              ...pricepoint['air:AirPricingInfo'],
+              'air:FlightOptionsList': {
+                'air:FlightOption': {
+                  ...pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'],
+                  'air:Option': airOption // Assign only this option
+                }
+              }
             }
-          });
-        });
+          };
 
-        const shouldSkipForm = collectedSegmentRefs.some((ref) => renderedSegmentRefs.current.has(ref));
-
-        if (!shouldSkipForm) {
-          collectedSegmentRefs.forEach((ref) => renderedSegmentRefs.current.add(ref));
-
-          setFilteredFlights((prevFlights) => [...prevFlights, pricepoint]); // Add one by one
+          setFilteredFlights(prevFlights => [...prevFlights, newFlightOption]);
         }
+      });
+    }, 200);
+  });
+}, [flightOptions]);
+  // const renderedSegmentRefs = useRef(new Set()); // Track already rendered segments
+  // const [filteredFlights, setFilteredFlights] = useState([]);
 
-      }, priceindex * 300); // Delay each flight render
-    });
-  }, [flightOptions]);
-  // console.log('filteredFlights',filteredFlights);
+
+  // useEffect(() => {
+  //   setFilteredFlights([]); // Clear previous flights
+  
+  //   flightOptions.forEach((pricepoint) => {
+  //     setTimeout(() => {
+  //       const options = pricepoint['air:AirPricingInfo']?.['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'];
+  
+  //       const optionsArray = Array.isArray(options) ? options : options ? [options] : [];
+  
+  //       optionsArray.forEach((airOption) => {
+  //         // Create a new flight option with only this `airOption`
+  //         const newFlightOption = {
+  //           ...pricepoint,
+  //           'air:AirPricingInfo': {
+  //             ...pricepoint['air:AirPricingInfo'],
+  //             'air:FlightOptionsList': {
+  //               'air:FlightOption': {
+  //                 ...pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'],
+  //                 'air:Option': airOption // Assign only this option
+  //               }
+  //             }
+  //           }
+  //         };
+  
+  //         setFilteredFlights(prevFlights => [...prevFlights, newFlightOption]);
+  //       });
+  //     }, 200);
+  //   });
+  // }, [flightOptions]);
+  console.log('filteredFlights',filteredFlights);
   // console.log('new11', flightOptions);
 
 
@@ -16058,7 +16099,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                         </div>
                                                                       </div>
                                                                     </div>
-                                                                     {/* {agent_id  && (  */}
+                                                                     {agent_id  && ( 
                                                                     
                                                                       <div className='buttonbook' >
                                                                       
@@ -16069,7 +16110,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
                                                                           Book Now
                                                                         </button>
                                                                       </div>
-                                                                    {/* )}  */}
+                                                                    )} 
                                                                     
                                                                     <button
                                                                       className="add-btn"
