@@ -1661,6 +1661,8 @@ const SearchFlight = () => {
         segment['$'].HostTokenRef = matchedEntry.hostTokenRef;
       }
     });
+    const markup_price = calculateFinalMarkup( (parseFloat(priceParse[selectedprice]['$']['TotalPrice'].replace("INR", "").trim())),  markupdata, cabinClass, extractFareName(priceParse[selectedprice]), inputOrigin, flight_type );
+
 
     const makeServicesRequest = async () => {
       const builder = require('xml2js').Builder;
@@ -1733,7 +1735,8 @@ const SearchFlight = () => {
           client_id: clientid,
           is_gst_benefit: is_gst_benefit,
           accesstoken: access_token,
-          fareInfoRefKey: fareInfoRefKey
+          fareInfoRefKey: fareInfoRefKey,
+          markup_price: markup_price,
 
         };
         setLoading(false);
@@ -2373,6 +2376,8 @@ const SearchFlight = () => {
   };
 
   const handleCheckboxChange = (airPricingInfo, farePrice, fareName, isReturn = 0) => {
+    console.log('airPricingInfo, farePrice, fareName', airPricingInfo, farePrice, fareName);
+
     airPricingInfo.isReturn = isReturn;
 
     const flightOptionsList = airPricingInfo["air:FlightOptionsList"];
@@ -3005,7 +3010,7 @@ useEffect(() => {
   //     }, 200);
   //   });
   // }, [flightOptions]);
-  console.log('filteredFlights',filteredFlights);
+  // console.log('filteredFlights',filteredFlights);
   // console.log('new11', flightOptions);
 
 
@@ -16110,7 +16115,7 @@ useEffect(() => {
                                                                           Book Now
                                                                         </button>
                                                                       </div>
-                                                                    )} 
+                                                                    )}  
                                                                     
                                                                     <button
                                                                       className="add-btn"
@@ -16121,7 +16126,7 @@ useEffect(() => {
                                                                         pricepoint["air:AirPricingInfo"],
                                                                         calculateFinalPrice(
                                                                           
-                                                                          (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + (matchingTaxInfo['Amount'].replace("INR", "").trim())),
+                                                                          (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + parseFloat(matchingTaxInfo['Amount'].replace("INR", "").trim())),
                                                                           // (matchingFareInfo['$']['Amount'].replace('INR', '').trim() + (taxesRef.current)).toFixed(2), 
                                                                           markupdata, 
                                                                           cabinClass, 
@@ -16140,7 +16145,7 @@ useEffect(() => {
                                                                               (fare) =>
                                                                                 fare.fare_type === matchingFareInfo["$"]["FareFamily"] &&
                                                                                 fare.price === calculateFinalPrice(
-                                                                                  (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + (matchingTaxInfo['Amount'].replace("INR", "").trim())), 
+                                                                                  (parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + parseFloat(matchingTaxInfo['Amount'].replace("INR", "").trim())), 
                                                                           markupdata, 
                                                                           cabinClass, 
                                                                           matchingFareInfo['$']['FareFamily'], 

@@ -93,6 +93,7 @@ const Booking = () => {
     const Passengerxml = location.state && location.state.serviceData.Passengerxml;
     const airPricingCommand = location.state && location.state.serviceData.airPricingCommand;
     const markup_price = location.state && location.state.serviceData.markup_price;
+    console.log('markup', markup_price);
 
     const [accordion1Expanded, setAccordion1Expanded] = useState(true);
     const [accordion5Expanded, setAccordion5Expanded] = useState(false);
@@ -128,7 +129,7 @@ const Booking = () => {
   
     const providerCodeRef = useRef(null);
     const Targetbranch = 'P4451438';
-    // console.log('providerCodeRef', providerCodeRef);
+    console.log('cancellationPolicy', cancellationPolicy);
   
     const handleChange = (value) => {
         setValue(value);
@@ -1243,7 +1244,7 @@ const Booking = () => {
                                     }
                                 }
                             }
-                            const UniversalRecordResponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
+                            // const UniversalRecordResponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
 
 
                             const flightDetails = {};
@@ -1530,33 +1531,35 @@ const Booking = () => {
 
             const formseat = [];
             let tax_k3 = 0;
+
             if (Array.isArray(packageSelected['air:AirPricingInfo'])) {
                 packageSelected['air:AirPricingInfo'].forEach(reservationpricinginfo => {
                     if (Array.isArray(reservationpricinginfo['air:TaxInfo'])) {
                         reservationpricinginfo['air:TaxInfo'].forEach(taxreservationpricinginfo => {
                             if (taxreservationpricinginfo.$.CarrierDefinedCategory.includes("GST")) {
-                                tax_k3 += Math.floor(parseFloat(taxreservationpricinginfo.$.Amount).replace("INR", "").trim());
+                                // First, remove 'INR', then parse to float
+                                let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
+                                tax_k3 += Math.floor(amount);
                             }
                         });
-                    } else {
-                        if (reservationpricinginfo['air:TaxInfo'].$.CarrierDefinedCategory.includes("GST")) {
-                            tax_k3 +=Math.floor(parseFloat(reservationpricinginfo['air:TaxInfo'].$.Amount).replace("INR", "").trim());
-                        }
+                    } else if (reservationpricinginfo['air:TaxInfo']?.$?.CarrierDefinedCategory?.includes("GST")) {
+                        let amount = parseFloat(reservationpricinginfo['air:TaxInfo'].$.Amount.replace("INR", "").trim());
+                        tax_k3 += Math.floor(amount);
                     }
                 });
-            } else {
-                if (Array.isArray(packageSelected['air:AirPricingInfo']['air:TaxInfo'])) {
-                    packageSelected['air:AirPricingInfo']['air:TaxInfo'].forEach(taxreservationpricinginfo => {
-                        if (taxreservationpricinginfo.$.CarrierDefinedCategory.includes("GST")) {
-                            tax_k3 += Math.floor(parseFloat(taxreservationpricinginfo.$.Amount).replace("INR", "").trim());
-                        }
-                    });
-                } else {
-                    if (packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.CarrierDefinedCategory.includes("GST")) {
-                        tax_k3 += Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount).replace("INR", "").trim());
+            } else if (Array.isArray(packageSelected['air:AirPricingInfo']['air:TaxInfo'])) {
+                packageSelected['air:AirPricingInfo']['air:TaxInfo'].forEach(taxreservationpricinginfo => {
+                    if (taxreservationpricinginfo.$.CarrierDefinedCategory.includes("GST")) {
+                        let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
+                        tax_k3 += Math.floor(amount);
                     }
-                }
+                });
+            } else if (packageSelected['air:AirPricingInfo']['air:TaxInfo']?.$?.CarrierDefinedCategory?.includes("GST")) {
+                let amount = parseFloat(packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount.replace("INR", "").trim());
+                tax_k3 += Math.floor(amount);
             }
+
+            console.log("Total GST Tax:", tax_k3);
 
             let total_price = 0;
             let base_price = 0;
@@ -2098,7 +2101,7 @@ const Booking = () => {
                                             }
                                         }
                                     }
-                                    const UniversalRecordResponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
+                                    // const UniversalRecordResponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
                                     
                                 const bookingCompleteData = {
                                     reservationdata: reservationresponse.data,
@@ -5390,7 +5393,7 @@ const Booking = () => {
                                                     </table>
                                                     <p className="note">* From the Time of Departure</p>
                                                 </div> */}
-                                                <p className="highlighted-note">
+                                                {/* <p className="highlighted-note">
                                                 <strong>*Important:</strong> The airline fee is indicative. Cotrav does not guarantee the accuracy of this information.
                                                     All fees mentioned are per passenger. All Refunds are airline approval.
                                                 </p>
@@ -5408,6 +5411,7 @@ const Booking = () => {
                                                         </li>
                                                     </ul>
                                                 </div>
+                                                <div className="booking-devider" />
                                                 <div className="cancellation-container">
             <p className="cancellation-title">CANCELLATION</p>
             <p className="cancellation-info">
@@ -5419,32 +5423,7 @@ const Booking = () => {
                 
             </div>
 
-            {/* <div className="cancellation-rules">
-                <div className="rule-card">
-                    <span className="bullet black">&#9679;</span>
-                    <div className="rule-content">
-                        <p className="rule-header">Booking Date - 24 Hr(s) to Departure <span className="charges">Cancellation Charges: ₹ 262.0/Adult</span></p>
-                        <p className="rule-time">Till Mon Feb 17 21:00:00 2025 (Departure City TimeZone)</p>
-                    </div>
-                </div>
-
-                <div className="rule-card">
-                    <span className="bullet orange">&#9679;</span>
-                    <div className="rule-content">
-                        <p className="rule-header">24 Hr(s) - 2 Hr(s) to Departure <span className="charges">Cancellation Charges: ₹ 524.0/Adult</span></p>
-                        <p className="rule-time">Till Tue Feb 18 19:00:00 2025 (Departure City TimeZone)</p>
-                    </div>
-                </div>
-
-                <div className="rule-card non-refundable">
-                    <span className="bullet red">&#9679;</span>
-                    <div className="rule-content">
-                        <p className="rule-header">2 Hr(s) - Departure time <span className="non-refundable-text">Non-Refundable</span></p>
-                        <p className="rule-time">Till Tue Feb 18 21:00:00 2025 (Departure City TimeZone)</p>
-                        <p className="rule-details">The airline does not allow cancellation during this time window.</p>
-                    </div>
-                </div>
-            </div> */}
+            
             <table className="cancellation-table">
     <tbody>
         <tr>
@@ -5487,7 +5466,7 @@ const Booking = () => {
                 <button className="full-cancel-btn">FULL CANCELLATION</button>
                 <button className="partial-cancel-btn">PARTIAL CANCELLATION</button>
             </div>
-        </div>
+        </div> */}
 
 
                                                 {/* <div className="table-container">
@@ -5733,7 +5712,7 @@ const Booking = () => {
                                                                                         <select
                                                                                             name="adult_gender[]"
                                                                                             data-index={passengerindex}
-                                                                                            readOnly={bookingid}
+                                                                                            disabled = {bookingid}
                                                                                             defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Female" ? 'F' : 'M'}
                                                                                         >
                                                                                             <option value="">Select Gender</option>
@@ -6970,69 +6949,65 @@ const Booking = () => {
                                                         </div>
                                                     )}
                                                 </div> */}
-                                                <div className="chk-line">
-    {Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])
-        ? packageSelected["air:AirPricingInfo"]["air:TaxInfo"]
-              
-              .filter((tax) => tax["$"]["CarrierDefinedCategory"]?.includes("GST"))
-              .map((tax, index) => (
-                  <div key={index} className="chk-line-item">
-                      <div className="chk-l">{tax["$"]["CarrierDefinedCategory"]}</div>
-                      <div className="chk-r">
-                          {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
-                          {tax["$"]["Amount"].replace("INR", "")}
-                      </div>
-                  </div>
-              ))
-        : packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"] &&
-        
-        packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"]?.["$"]["CarrierDefinedCategory"]?.includes("GST") && ( // Check single object case
-              <div className="chk-line-item">
-                  <div className="chk-l">
-                      {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"]}
-                  </div>
-                  <div className="chk-r">
-                      {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
-                      {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
-                  </div>
-              </div>
-          )}
-</div>
+                                            <div className="chk-line">
+                                                {Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                    ? packageSelected["air:AirPricingInfo"]["air:TaxInfo"]
+                                                        
+                                                        .filter((tax) => tax["$"]["CarrierDefinedCategory"]?.includes("GST"))
+                                                        .map((tax, index) => (
+                                                            <div key={index} className="chk-line-item">
+                                                                <div className="chk-l">{tax["$"]["CarrierDefinedCategory"]}</div>
+                                                                <div className="chk-r">
+                                                                    {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                    {tax["$"]["Amount"].replace("INR", "")}
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    : packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"] &&
+                                                    
+                                                    packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"]?.["$"]["CarrierDefinedCategory"]?.includes("GST") && ( // Check single object case
+                                                        <div className="chk-line-item">
+                                                            <div className="chk-l">
+                                                                {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"]}
+                                                            </div>
+                                                            <div className="chk-r">
+                                                                {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                            </div>
                                                 
-                                            {/* <div className="chk-line">
-                                                <span className="chk-l">Total Taxes</span>
-                                                <span className="chk-r">
-                                                    {packageSelected.$.ApproximateTaxes.includes('INR') ? '₹ ' : ''}
-                                                    {packageSelected.$.ApproximateTaxes.replace('INR', '')}
-                                                </span>
-                                                <div className="clear" />
-                                            </div> */}
+                                            
                                             <div className="chk-line">
     <span className="chk-l">Others</span>
     <span className="chk-r">
         {packageSelected.$.ApproximateTaxes.includes("INR") ? "₹ " : ""}
         {(() => {
-            // Convert ApproximateTaxes to number
+            // Convert ApproximateTaxes to a number, default to 0 if NaN
             const approximateTaxes = parseFloat(packageSelected.$.ApproximateTaxes.replace("INR", "").trim()) || 0;
 
-            // Get the K3 tax amount
-            const k3Tax = Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])
-                ? packageSelected["air:AirPricingInfo"]["air:TaxInfo"]
-                      .filter((tax) => tax["$"]["CarrierDefinedCategory"]?.includes("GST"))
-                      .reduce((sum, tax) => sum + parseFloat(tax["$"]["Amount"].replace("INR", "").trim()), 0)
-                
-                : packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"]?.["$"]["CarrierDefinedCategory"]?.includes("GST")
-                ? parseFloat(packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "").trim())
-                : 0;
+            // Check if TaxInfo is an array and filter for GST taxes
+            let k3Tax = 0;
+            if (Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])) {
+                k3Tax = packageSelected["air:AirPricingInfo"]["air:TaxInfo"]
+                    .filter((tax) => tax["$"]["CarrierDefinedCategory"]?.includes("GST"))
+                    .reduce((sum, tax) => sum + (parseFloat(tax["$"]["Amount"].replace("INR", "").trim()) || 0), 0);
+            } else if (
+                packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"]?.["$"]["CarrierDefinedCategory"]?.includes("GST")
+            ) {
+                k3Tax = parseFloat(packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "").trim()) || 0;
+            }
 
-            // Calculate final tax amount after subtracting K3
-            const finalTax = Math.max(approximateTaxes - k3Tax + markup_price, 0); // Ensure it's not negative
+            // Ensure the final tax is non-negative and only subtract GST if it exists
+            const finalTax = approximateTaxes - (k3Tax > 0 ? k3Tax : 0) + markup_price;
 
-            return finalTax; // Display updated tax value
+            return finalTax >= 0 ? finalTax : 0; // Ensure we don’t return negative values
         })()}
     </span>
     <div className="clear" />
 </div>
+
                                             
 
                                         </div>

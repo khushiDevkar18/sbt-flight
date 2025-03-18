@@ -285,7 +285,8 @@ const Targetbranch = 'P4451438';
                       );
                       console.log('call 1');
                       const eResponse = response.data;
-                      // console.log('eResponse',eResponse);
+                      console.log('eResponse',eResponse);
+                      return ;
                       parseString(eResponse, { explicitArray: false }, (err, result) => {
                           if (err) {
                               console.error("XML Parsing Error:", err);
@@ -381,7 +382,7 @@ const Targetbranch = 'P4451438';
                       if (!segmentRef.current) {
                         console.error("Missing required flight data.");
                         return;
-                    }
+                      }
                 
                     console.log("Matched 1G");
                     console.log("SegmentList:", segmentRef.current);

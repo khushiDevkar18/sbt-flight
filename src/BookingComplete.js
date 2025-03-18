@@ -521,7 +521,64 @@ const BookingContinue = () => {
                                                                 </li>
                                                             </ul>
                                                         </div>
+                                                        <div className="booking-devider" />
+                                                        <div className="cancellation-container">
+            <p className="cancellation-title">CANCELLATION</p>
+            <p className="cancellation-info">
+                You are eligible for full cancellation with just <strong>INR 315.0</strong> + convenience fees (per passenger) being charged as airline refund applicable fee if you cancel within <strong>05:07 hrs</strong>
+            </p>
+
+            <div className="flight-info">
+                <p style={{ marginBottom:'0'}}><strong>Mumbai ➝ Delhi</strong> 18 Feb, AIR INDIA</p>
+                
+            </div>
+
+            
+            <table className="cancellation-table">
+    <tbody>
+        <tr>
+            <td className="bullet black">&#9679;</td>
+            <td>
+                <p className="rule-header">Booking Date - 24 Hr(s) to Departure</p>
+                <p className="rule-time">Till Mon Feb 17 21:00:00 2025 (Departure City TimeZone)</p>
+            </td>
+            <td className="charges">Cancellation Charges: ₹ 262.0/Adult</td>
+        </tr>
+        <tr>
+            <td className="bullet orange">&#9679;</td>
+            <td>
+                <p className="rule-header">24 Hr(s) - 2 Hr(s) to Departure</p>
+                <p className="rule-time">Till Tue Feb 18 19:00:00 2025 (Departure City TimeZone)</p>
+            </td>
+            <td className="charges">Cancellation Charges: ₹ 524.0/Adult</td>
+        </tr>
+        <tr>
+            <td className="bullet red">&#9679;</td>
+            <td>
+                <p className="rule-header">2 Hr(s) - Departure time</p>
+                <p className="rule-time">Till Tue Feb 18 21:00:00 2025 (Departure City TimeZone)</p>
+            </td>
+            <td>
+                <p className="rule-header" style={{ marginLeft: '59%', color: 'red'}}>Non-Refundable</p>
+                <p className="rule-details" style={{ marginLeft: '40%'}}>The airline does not allow cancellation during this time window.</p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+            <ul className="policy-list">
+                <li>The airline cancellation penalty is subject to change and will be based on the policy in effect at the time of cancellation.</li>
+                <li>Airline charges a cancellation fees when you cancel in a particular time window.</li>
+                <li>Insurance, donation and convenience fees are non-refundable.</li>
+            </ul>
+
+            <div className="cancellation-buttons">
+                <button className="full-cancel-btn">FULL CANCELLATION</button>
+                <button className="partial-cancel-btn">PARTIAL CANCELLATION</button>
+            </div>
+        </div>
                                                         <div className='complete-txt'>
+                                                        
                                                         
                                                             {/* {respricings && 
                                                             respricings.map((respriceinginfo,respriceingindex)=>(
@@ -699,6 +756,19 @@ const BookingContinue = () => {
                                     </div>
                                 </div>
                                 <div className="sp-page-r" style={{ marginTop: '83px'}}>
+                                <div className="h-help">
+                                    <div className="h-help-lbl">Ticket(s)</div>
+                                    <div className="h-help-links">
+                                        <div className="h-help-link">
+                                            <img src="/icons/download.png" alt="Download" className="h-help-icon" />
+                                            <a href="#" className="h-help-text">Download E-ticket(s)</a>
+                                        </div>
+                                        <div className="h-help-link">
+                                            <img src="/icons/download.png" alt="Download" className="h-help-icon" />
+                                            <a href="#" className="h-help-text">Download Invoice(s)</a>
+                                        </div>
+                                    </div>
+                                </div>
                                     <div className="h-help">
                                         <div className="h-help-lbl">Need CoTrav Help?</div>
                                         <div className="h-help-lbl-a">
@@ -707,8 +777,33 @@ const BookingContinue = () => {
                                         <div className="h-help-phone">0124-423-4958</div>
                                         <div className="h-help-email">flight@cotrav.co</div>
                                     </div>
+                                    <div className="h-help">
+                                        <div className="h-help-lbl">Good To Know</div>
+                                        <div className="h-help-lbl-a">While boarding a Domestic Flight</div>
+
+                                        <div className="h-help-item">
+                                            <i className="fas fa-clock h-help-icon"></i>
+                                            <div className="h-help-text">
+                                                <div className="h-help-title">Boarding Time</div>
+                                                <p className="h-help-desc">Check-in desks will close 1 hour before departure.</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="h-help-item">
+                                            <i className="fas fa-id-card h-help-icon"></i>
+                                            <div className="h-help-text">
+                                                <div className="h-help-title">Valid ID Proof Required</div>
+                                                <p className="h-help-desc">
+                                                    Please carry a valid ID proof. Driving License, Aadhar Card, Pan Card, or any other government-authorized photo identification.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    
+
                                     <div className="h-reasons">
-                                        <div className="h-liked-lbl">Ticket Price Information</div>
+                                        <div className="h-liked-lbl">Price Breakup</div>
                                         <div className="h-reasons-row">
                                             <div className="reasons-i">
                                                 <div className="reasons-h">
@@ -717,8 +812,9 @@ const BookingContinue = () => {
                                                         <div className="reasons-rb">
                                                             <div className="reasons-p">
                                                                 <div className="reasons-i-lbl">
+                                                                <strong>
                                                                 {packageSelected && packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price)}
+                                                                {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price)}</strong>
                                                                 {/* {packageSelected && packageSelected.$.TotalPrice.replace('INR', '')} */}
                                                                 </div>
                                                             </div>
