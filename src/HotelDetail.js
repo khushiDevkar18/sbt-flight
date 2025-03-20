@@ -485,13 +485,13 @@ const HotelDetails = () => {
                                 </div>
                               )}
                               <button
-                                className="bg-[#785ef7] w-[120px] h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]"
+                                className="bg-[#785ef7] w-[131px] h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]"
                                 onClick={() =>
                                   hotel.Rooms.length > 0 &&
                                   handleSelectRoom(hotel.Rooms[0])
                                 }
                               >
-                                BOOK THIS NOW
+                                BOOK&nbsp;THIS&nbsp;NOW
                               </button>
                             </div>
                           </div>
@@ -547,7 +547,7 @@ const HotelDetails = () => {
                   <div className="py-3 px-3">
                     <div className="border w-full h-full hotel-border">
                       <div className="border-b w-full">
-                        <h6 className="text-xl py-2 px-3 font-semibold">
+                        <h6 className="text-md py-2 px-3 font-semibold">
                           Rooms
                         </h6>
                       </div>
@@ -565,7 +565,7 @@ const HotelDetails = () => {
                                     src={
                                       hotel.Images[
                                         (index + 4) % hotel.Images.length
-                                      ] || "./img/image_NA02.png"
+                                      ] || "./img/hotel_not_found.png"
                                     } // Skip first image
                                     className="photos-hotelss"
                                     alt="Hotel Room"
@@ -573,7 +573,7 @@ const HotelDetails = () => {
                                 ) : (
                                   <div className="photos-hotelss">
                                     <img
-                                      src="./img/image_NA02.png"
+                                      src="./img/hotel_not_found.png"
                                       alt="No Image"
                                     />
                                   </div>
@@ -703,7 +703,7 @@ const HotelDetails = () => {
                 <div className="py-3 px-3">
                   <div className="border w-full hotel-border">
                     <div className="border-b w-full">
-                      <h6 className="text-sm py-2 px-3 font-semibold">
+                      <h6 className="text-md py-2 px-3 font-semibold">
                         Location
                       </h6>
                     </div>
@@ -739,7 +739,7 @@ const HotelDetails = () => {
                 <div className="py-3 px-3 ">
                   <div className="border w-full h-full hotel-border">
                     {" "}
-                    <h6 className="text-lg py-2 px-3 font-semibold ">
+                    <h6 className="text-md py-2 px-3 font-semibold ">
                       Property Rules
                     </h6>
                     <dv className="flex gap-4 py-1 px-3">

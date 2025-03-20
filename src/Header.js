@@ -160,7 +160,23 @@ useEffect(() => {
 
   return () => clearTimeout(timeout); // Cleanup timeout to avoid memory leaks
 }, [searchParams]); // Re-run effect when searchParams changes
+useEffect(() => {
+  if (!searchParams) return;
 
+  const interval = setInterval(() => {
+    setCityName(
+      searchParams.filteredCities?.length > 0
+        ? searchParams.filteredCities[0].Name
+        : searchParams.City_name || ""
+    );
+
+    if (checkInDate && checkOutDate && cityName) {
+      clearInterval(interval);
+    }
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [searchParams, checkInDate, checkOutDate, cityName]);
   // // console.log(cityName);
   const [isTyping, setIsTyping] = useState(false);
   useLayoutEffect(() => {
@@ -494,7 +510,23 @@ useEffect(() => {
     };
   }, []);
 
-  
+  useEffect(() => {
+    if (!searchParams) return;
+
+    const interval = setInterval(() => {
+      setCityName(
+        searchParams.filteredCities?.length > 0
+          ? searchParams.filteredCities[0].Name
+          : searchParams.City_name || ""
+      );
+
+      if (checkInDate && checkOutDate && cityName) {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [searchParams, checkInDate, checkOutDate, cityName]);
 
 
   // import ErrorLogger from './ErrorLogger';

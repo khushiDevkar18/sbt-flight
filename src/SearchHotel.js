@@ -16,7 +16,7 @@ import {
 } from "@react-google-maps/api";
 import { Chip } from "@mui/material";
 
-// //// // console.log("asdafdsfa");
+// //// // // console.log("asdafdsfa");
 
 const SearchHotel = () => {
   const location = useLocation();
@@ -46,17 +46,17 @@ const SearchHotel = () => {
   //       ? JSON.parse(storedHotelList).hotelcityList
   //       : [];
 
-  //     // console.log("Parsed hotelcityList:", hotelcityList);
+  //     // // console.log("Parsed hotelcityList:", hotelcityList);
 
   //     if (!Array.isArray(hotelcityList) || hotelcityList.length === 0) {
-  //       // console.log("Hotel list is empty, exiting fetchCity");
+  //       // // console.log("Hotel list is empty, exiting fetchCity");
   //       return;
   //     }
 
   //     setLoader(true);
 
   //     const codes = hotelcityList.map((hotel) => hotel.HotelCode);
-  //     // console.log("Hotel Codes:", codes);
+  //     // // console.log("Hotel Codes:", codes);
 
   //     const hotelcodes = codes.toString(); // Convert array to comma-separated string
 
@@ -82,7 +82,7 @@ const SearchHotel = () => {
   //       }
 
   //       const data = await response.json();
-  //       // console.log("Hotel data:", data);
+  //       // // console.log("Hotel data:", data);
 
   //       if (data.Status && data.Status.Code === 200) {
   //         setHotelDetails(data.HotelDetails || []);
@@ -117,7 +117,7 @@ const SearchHotel = () => {
       };
     });
   }, [hotelDetails, hotelcityList, hotelData]); // Recompute only when dependencies change
-  // console.log(combinedHotels);
+  // // console.log(combinedHotels);
 
   const renderRatingText = (rating) => {
     if (rating > 4.5) return "Excellent";
@@ -158,7 +158,7 @@ const SearchHotel = () => {
   };
 
   
-  // //// // console.log(storedCities);
+  // //// // // console.log(storedCities);
   const [mapCenter, setMapCenter] = useState({ lat: 40.7128, lng: -74.006 });
 
   const [isOpen, setIsOpen] = useState(false);
@@ -218,7 +218,7 @@ const SearchHotel = () => {
       ? searchParams.filteredCities[0].Name
       : searchParams.City_name || ""
   );
-  
+  const agent_portal= sessionStorage.getItem('agent_portal');
   const [showModal2, setShowModal2] = useState(false);
   const [selectedHotels, setSelectedHotels] = useState([]);
   const [showModal1, setShowModal1] = useState(false);
@@ -227,6 +227,7 @@ const SearchHotel = () => {
   
     if (isSelected) {
       setSelectedHotels((prev) =>
+
         prev.filter((h) => h.name !== hotel.HotelName)
       );
     } else {
@@ -258,7 +259,7 @@ const SearchHotel = () => {
       BasePrice:hotel.BasePrice,
     }));
   
-    console.log(sharedHotels); // This should now log correct hotel data
+    // console.log(sharedHotels); // This should now log correct hotel data
     setIsModalOpen(true);
   };
   
@@ -269,13 +270,7 @@ const handleCancel =()=>{
   setIsModalOpen(false);
 }
   
-  const [formData, setFormData] = useState({
-    clientName: searchParams.corporate_name,
-    spocName: searchParams.spoc_name,
-    ApproverEmail: "",
-    additionalEmail: "",
-    remark: "",
-  });
+
   const [toEmail, setToEmail] = useState("");
   const [toEmailList, setToEmailList] = useState([]); // ✅ List for "To" emails
 
@@ -325,7 +320,21 @@ const handleCancel =()=>{
   const handleDelete = (emailToDelete, setEmailList) => {
     setEmailList((prevEmails) => prevEmails.filter((e) => e !== emailToDelete));
   };
-
+  const [formData, setFormData] = useState({
+    clientName: searchParams.corporate_name ,
+    spocName: searchParams.spoc_name || "",
+    spocEmail: `${searchParams.approver1 || ""}, ${searchParams.approver2 || ""}`,
+    remark: "",
+    toEmail: "",
+    ccEmail: "",
+  });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
   
@@ -342,21 +351,22 @@ const handleCancel =()=>{
         
       })),
       additional_email: toEmailList, // Use toEmailList from form state
-      approver_email: [searchParams.approver1, searchParams.approver2].filter(Boolean), // Remove empty values
+      approver_email: formData.spocEmail.split(",").map((email) => email.trim()),
       cc_email: ccEmailList, // Use ccEmailList from form state
       admin_id: searchParams.admin_id, 
       booking_id: searchParams.booking_id, 
       checkin_date: searchParams.checkIn, 
       checkout_date: searchParams.checkOut, 
-      no_of_seats: 2, 
-      city: searchParams.City_name 
+      no_of_seats: searchParams.Adults || 2, 
+      city: searchParams.City_name || (searchParams.filteredCities?.length > 0 ? searchParams.filteredCities[0].Name : ""),
+
     };
     
-    // console.log(formattedData);
+    // // console.log(formattedData);
     
   
     // const requestBody = { formattedData: formattedData };
-  // console.log(requestBody);
+  // // console.log(requestBody);
     try {
       const response = await fetch(
         "https://demo.taxivaxi.com/api/hotels/addsbthoteloptions",
@@ -376,7 +386,7 @@ const handleCancel =()=>{
       }
   
       const data = await response.json();
-      console.log("API Response:", data);
+      // console.log("API Response:", data);
       if(data.success=='1'){
         setIsModalOpen(false);
         setSelectedHotels([]);
@@ -390,7 +400,7 @@ const handleCancel =()=>{
       console.error("Error submitting data:", error);
     }
   
-    console.log("Request Body:", requestBody);
+    // console.log("Request Body:", requestBody);
   };
   
   
@@ -744,19 +754,17 @@ const handleCancel =()=>{
                           </div>
 
                           <div className="text-xs text-green-700">
-                            {formatCancelPolicies(
-                              hotel?.Rooms?.[0]?.CancelPolicies || []
-                            ).map((policy, index) => (
-                              <div key={index} className="flex gap-2">
-                                <img
-                                  src="../img/tick.svg"
-                                  className="w-3 h-5"
-                                  alt="✔"
-                                />{" "}
-                                {policy}
-                              </div>
-                            ))}
-                          </div>
+  {formatCancelPolicies(hotel?.Rooms?.[0]?.CancelPolicies || []).length > 0 ? (
+    formatCancelPolicies(hotel?.Rooms?.[0]?.CancelPolicies || []).map((policy, index) => (
+      <div key={index} className="flex gap-2">
+        <img src="../img/tick.svg" className="w-3 h-5" alt="✔" /> {policy}
+      </div>
+    ))
+  ) : (
+    <p className="text-xs  hotel-form-text-color ">No Cancellation Policy Available</p>
+  )}
+</div>
+
                         </div>
 
                         <div className="w-1/4 py-3 px-3 flex flex-col items-end border-l border-gray-300">
@@ -810,39 +818,33 @@ const handleCancel =()=>{
                             )}
                           </div>
 
-                          <div className="flex gap-3 mt-5 ">
-                            {/* <button className="border-2 w-20 h-7 border-[#785ef7] text-[#785ef7] bg-transparent px-2 rounded-md text-xs transition duration-300 hover:bg-[#785ef7]">
-                              Add
-                            </button> */}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleHotelSelect(hotel);
-                              }}
-                              className={`bg-[#785ef7] w-full h-7 text-white px-2 rounded-md font-semibold text-xs transition duration-300 hover:bg-[#5a3ec8] ${selectedHotels.some(
-                                (h) => h.name === hotel.HotelName
-                              )}`}
-                              style={{ width: "124px" }}
-                            >
-                              {selectedHotels.some(
-                                (h) => h.name === hotel.HotelName
-                              ) ? (
-                                <span className="flex items-center gap-2">
-                                  Added{" "}
-                                  {/* <span className="text-lg cursor-pointer">
-                                    ✔
-                                  </span> */}
-                                  <img
-                                    src="../img/cros.png"
-                                    className="w-3 h-3 "
-                                  ></img>
-                                </span>
-                              ) : (
-                                "Add to Share"
-                              )}
-                            </button>
-                          </div>
+                          <div className="flex mt-5 justify-end gap-2 w-full">
+  <button
+    type="button"
+    onClick={(e) => {
+      e.stopPropagation();
+      handleHotelSelect(hotel);
+    }}
+    className={`bg-[#785ef7] w-[91px] h-7 text-white px-2 rounded-md font-semibold text-xs transition duration-300 hover:bg-[#5a3ec8] ${
+      selectedHotels.some((h) => h.name === hotel.HotelName) ? "" : ""
+    }`}
+  >
+    {selectedHotels.some((h) => h.name === hotel.HotelName) ? (
+      <span className="flex items-center gap-2 text-xs">
+        Added{" "}
+        <img src="../img/cros.png" className="w-3 h-3" alt="Remove" />
+      </span>
+    ) : (
+      "Add to Share"
+    )}
+  </button>
+
+  {/* Conditionally show "Book Now" button */}
+  {agent_portal === "0" && (
+    <button className="button_book text-xs w-[91px] h-7">Book Now</button>
+  )}
+</div>
+
                         </div>
                       </div>
                     </div>
@@ -960,14 +962,14 @@ const handleCancel =()=>{
                                 SPOC Name
                               </label>
                               <input
-                                id="spocName"
-                                name="spocName"
-                                type="text"
-                                placeholder="SPOC Name"
-                                className="frmTextInput2"
-                                value={searchParams.spoc_name}
-                                // onChange={handleChange}
-                              />
+        id="spocName"
+        name="spocName"
+        type="text"
+        placeholder="SPOC Name"
+        className="frmTextInput2"
+        value={formData.spocName}
+        onChange={handleChange}
+      />
                               {errors.spocName && (
                                 <p className="text-red-500 text-xs">
                                   {errors.spocName}
@@ -983,15 +985,14 @@ const handleCancel =()=>{
                               Approver Email
                             </label>
                             <input
-                              id="spocEmail"
-                              name="spocEmail"
-                              type="text"
-                              placeholder="Enter Email"
-                              className="frmTextInput2"
-                              value={`${searchParams.approver1 || ""} ,  ${
-                                searchParams.approver2 || ""
-                              }`}
-                            />
+      id="spocEmail"
+      name="spocEmail"
+      type="text"
+      placeholder="Enter Email"
+      className="frmTextInput2"
+      value={formData.spocEmail}
+      onChange={handleChange}
+    />
 
                             {errors.spocEmail && (
                               <p className="text-red-500 text-xs">

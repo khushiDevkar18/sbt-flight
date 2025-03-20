@@ -74,8 +74,8 @@ const [personDetails , setPersonDetails]= useState();
   const passengerId1 = formtaxivaxiData["passengerDetailsArray[0][id]"];
   const passengerId2 = formtaxivaxiData["passengerDetailsArray[1][id]"];
   
-  console.log("Passenger 1 ID:", passengerId1);  // Should log "28833"
-  console.log("Passenger 2 ID:", passengerId2);  // Should log "26307"
+//  const search = formtaxivaxiData.request_type;
+ sessionStorage.setItem("agent_portal", 1);
   
   
 
@@ -192,6 +192,7 @@ const [personDetails , setPersonDetails]= useState();
               corporate_name: formtaxivaxiData.corporate_name,
               booking_id: formtaxivaxiData.booking_id,
               admin_id: formtaxivaxiData.admin_id,
+              payment: formtaxivaxiData.is_self_payment,
             
             };
             sessionStorage.setItem(

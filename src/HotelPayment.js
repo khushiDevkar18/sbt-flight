@@ -8,9 +8,9 @@ const HotelPayment = () => {
 
   const location = useLocation();
   const combinedHotels = location.state?.combinedHotels;
-  const personDetails = location.state?.person;
+  const personDetails = location.state?.personData;
   const searchParams = JSON.parse(sessionStorage.getItem("hotelData_header")) || {};
-    // console.log(combinedHotels);
+    // console.log(personDetails);
   const rooms = combinedHotels?.[0]?.Rooms?.[0];
   //   console.log('Rooms:', rooms);
   const Amount = rooms.TotalFare;
@@ -415,17 +415,32 @@ const HotelPayment = () => {
                             />
                           </div>
                           <div>
-                            <div className="text-sm font-semibold  ">
-                              {" "}
-                              Traveler(s){" "}
-                            </div>
-                            <div className="text-sm ">
-                              {personDetails.firstName} {personDetails.lastName}
-                            </div>
-                            <div className="text-sm ">
-                              {personDetails.email} | {personDetails.contact_no}
-                            </div>
-                          </div>
+  <div className="text-sm font-semibold">Traveler(s)</div>
+  <div className="grid grid-cols-2 gap-3 mb-3">
+    {/* First Traveler */}
+    {personDetails?.[0] && (
+      <div className={`text-sm ${personDetails?.[1] ? "border-r pr-2" : ""}`}>
+        {personDetails[0].firstName} {personDetails[0].lastName}
+        <div>
+          {personDetails[0].email}{" "}
+          {personDetails?.[1] ? "|" : "|"} {/* Show '|' only if there's a second traveler */}
+          {personDetails[0].contact_no}
+        </div>
+      </div>
+    )}
+
+    {/* Second Traveler */}
+    {personDetails?.[1] && (
+      <div className="text-sm">
+        {personDetails[1].firstName} {personDetails[1].lastName}
+        <div>
+          {personDetails[1].email} | {personDetails[1].contact_no}
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
                         </div>
                       </div>
                     </div>

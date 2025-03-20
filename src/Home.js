@@ -1030,7 +1030,7 @@ function Home() {
     //   setShowDropdown2(false);
     // };
   
-    console.log("Filtered Companies:", selectedCompany);
+    // console.log("Filtered Companies:", selectedCompany);
 
   
   useLayoutEffect(() => {
@@ -1196,7 +1196,7 @@ function Home() {
   
       if (data.Status.Code === 200) {
         setHotelCityList(data.HotelResult || []);
-  
+  const payment = '1';
         const searchParams = {
           checkIn,
           checkOut,
@@ -1207,8 +1207,9 @@ function Home() {
           CityCode,
           corporate_name: JSON.parse(sessionStorage.getItem("selectedCompany")) || null,
           filteredCities,
+          payment,
         };
-  
+        sessionStorage.setItem("agent_portal", 0);
         sessionStorage.setItem('hotelData_header', JSON.stringify(searchParams));
         sessionStorage.setItem('hotelSearchData', JSON.stringify({ hotelcityList: data.HotelResult }));
         // Now immediately call fetchCity
