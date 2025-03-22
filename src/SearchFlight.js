@@ -13,6 +13,7 @@ import "rc-slider/assets/index.css";
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import CONFIG from "./config";
 
 const FlightInfoOrigin = ({ origin, onFlightOriginChange }) => {
   useEffect(() => {
@@ -64,6 +65,7 @@ const SearchFlight = () => {
   // console.log('flightOptions', flightOptions);
   const [flightairoption, setFlightAirOptions] = useState([]);
   const [flightDetails, setFlightDetails] = useState([]);
+  
   const [flightErrors, setFlighterrors] = useState([]);
   const [Passengerarray, setPassengerkeys] = useState([]);
   const [Passengerxml, setPassengerxml] = useState([]);
@@ -75,7 +77,7 @@ const SearchFlight = () => {
   const [showModal, setShowModal] = useState(false);
   const [newpayload, setPayload] = useState("");
   const contentRef = useRef(null);
-  const Targetbranch = 'P4451438';
+  const Targetbranch = 'P7206253';
   // console.log('TaxList', TaxList);
 
   const getFareDetails = (brandName) => {
@@ -136,7 +138,7 @@ const SearchFlight = () => {
           </soapenv:Envelope>`;
 
           const response = await axios.post(
-            "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest",
+            `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightRequest`,
             airlineRequest,
             { headers: { "Content-Type": "text/xml" } }
           );
@@ -184,7 +186,7 @@ const SearchFlight = () => {
           </soapenv:Envelope>`;
   
           const response = await axios.post(
-            'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
+            `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightRequest`, 
             airportRequest, 
             { headers: { 'Content-Type': 'text/xml' } }
           );
@@ -258,6 +260,7 @@ const SearchFlight = () => {
   const is_approved = location.state && location.state.responseData?.isapproved;
   const searchdeparturedate = convertDateFormat(location.state && location.state.responseData?.searchdeparture);
   // alert(searchdeparturedate);
+  // console.log('searchdeparturedate', searchdeparturedate);
   const searchreturnd = location.state && location.state.responseData?.searchreturnd;
   let no_of_seats = location.state && location.state.responseData?.no_of_seats;
   const request_id = location.state && location.state.responseData?.request_id;
@@ -495,7 +498,7 @@ const SearchFlight = () => {
       // console.log("in api1")
       try {
         const priceresponse = await axios.post(
-          'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest',
+          `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
           pricepointXML);
         
         const priceResponse = priceresponse.data;
@@ -511,6 +514,8 @@ const SearchFlight = () => {
           if (AirPriceRsp !== null && AirPriceRsp !== undefined) {
             // console.log('hello');
             const pricereponse = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp']['air:AirPriceResult']['air:AirPricingSolution'];
+            console.log("pricereponse",pricereponse);
+            
             const segmentpricereponse = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp']['air:AirItinerary']['air:AirSegment'];
             // console.log('segmentpricereponse', segmentpricereponse);
             const comHostTokens1 = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp']['air:AirItinerary']['common_v52_0:HostToken'];
@@ -686,7 +691,7 @@ const SearchFlight = () => {
             });
             console.log('servicerequestXML', servicerequestXML);
             const serviceresponse = axios.post(
-              'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', servicerequestXML);
+              `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, servicerequestXML);
             const serviceResponse = serviceresponse.data;
             console.log('serviceResponse', serviceresponse);
 
@@ -727,7 +732,8 @@ const SearchFlight = () => {
               airPricingCommand: airPricingCommand1,
               Passengerxml: Passengerxml,
               segmentArray: segmentArray,
-              comHostTokens1: comHostTokens1
+              comHostTokens1: comHostTokens1,
+              flightDetails: flightDetails,
 
             };
             setLoading(false);
@@ -908,6 +914,7 @@ const SearchFlight = () => {
           setFlightAirOptions(Array.isArray(extractedBookingInfo) ? extractedBookingInfo : [extractedBookingInfo]);
           setBrandlist(Array.isArray(brandlist) ? brandlist : [brandlist]);
           setFlightDetails(Array.isArray(flightdetailist) ? flightdetailist : [flightdetailist]);
+          // sessionStorage.setItem('flightdetailist', flightdetailist);
           setSegment(Array.isArray(Segmentlist) ? Segmentlist : [Segmentlist]);
           setHostlist(Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist]);
           setFarelist(Array.isArray(fareinfolist) ? fareinfolist : [fareinfolist]);
@@ -1242,6 +1249,7 @@ const SearchFlight = () => {
 
   const [segmentpriceParse, setsegmentpriceparse] = useState(null);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [ terminals, setTerminals] = useState([])
 
   // useEffect(() => {
   const handlePriceSubmit = (event, priceindex, taxes) => {
@@ -1253,6 +1261,7 @@ const SearchFlight = () => {
     setFareInfoRefsState([]);
     setpriceparse([]);
     setPassengerxml([]);
+    setTerminals([]);
 
     event.preventDefault();
     // alert(isDropdownVisible)
@@ -1335,6 +1344,7 @@ const SearchFlight = () => {
 
         setPassengerxml(passengerKeysXml);
         var segmentArrayJSON = Array.from(searchData.getAll('Segmentarray[]'));
+        console.log('segmentArrayJSON', segmentArrayJSON);
         var BookingInfoJSON = Array.from(searchData.getAll('BookingInfoData[]'));
         const passengerKeysXmlString = JSON.stringify(passengerKeysXml);
         sessionStorage.setItem('passengerKeysXml', passengerKeysXmlString);
@@ -1343,6 +1353,9 @@ const SearchFlight = () => {
         segmentArrayJSON.forEach(jsonString => {
           segmentArray.push(JSON.parse(jsonString));
         });
+        const parsedData = JSON.parse(segmentArrayJSON);
+        // const flightDetailsRefKey = parsedData["air:FlightDetailsRef"]["$"]["Key"];
+        // console.log('flightDetailsRefKey', flightDetailsRefKey);
 
         BookingInfoJSON.forEach(jsonString => {
           bookingInfoArray.push(JSON.parse(jsonString));
@@ -1363,6 +1376,8 @@ const SearchFlight = () => {
           (providerCode['$'].ProviderCode || providerCode['air:AirAvailInfo']['$'].ProviderCode)
           : null;
 
+          // console.log('updatedsegmentar', segmentArray);
+
         if (providerCodeValue === '1G') {
           console.log('hi');
           segmentArray.forEach(segment => {
@@ -1371,7 +1386,7 @@ const SearchFlight = () => {
             }
             delete segment['air:FlightDetailsRef'];
           });
-          // console.log('updatedsegmentar', segmentArray);
+          
 
           for (let i = 0; i < segmentArray.length; i++) {
             let currentSegment = segmentArray[i];
@@ -1386,7 +1401,7 @@ const SearchFlight = () => {
           }
 
           // setpricesegment(segmentArray);
-          sessionStorage.setItem('segmentarray', JSON.stringify(segmentArray));
+          sessionStorage.setItem('segmentarray', JSON.stringify(parsedData));
           const builder = require('xml2js').Builder;
           var pricepointXMLpc = new builder().buildObject({
             'soap:Envelope': {
@@ -1460,7 +1475,7 @@ const SearchFlight = () => {
           // console.log('main_prc', pricepointXML);
           try {
             const priceresponse = await axios.post(
-              'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest',
+              `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
               pricepointXML, { headers: { 'Content-Type': 'text/xml' } }
             );
             const priceResponse = priceresponse.data;
@@ -1701,7 +1716,7 @@ const SearchFlight = () => {
 
       try {
         const serviceresponse = await axios.post(
-          'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', servicerequestXML);
+          `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, servicerequestXML);
         // const serviceResponse = serviceresponse.data;
         console.log('serviceresponse',serviceresponse.data);
         const serviceData = {
@@ -1737,6 +1752,7 @@ const SearchFlight = () => {
           accesstoken: access_token,
           fareInfoRefKey: fareInfoRefKey,
           markup_price: markup_price,
+          flightDetails: flightDetails,
 
         };
         setLoading(false);
@@ -1762,7 +1778,7 @@ const SearchFlight = () => {
         if (cancellationPolicy) return; 
 
         try {
-            const response = await axios.get("https://corporate.taxivaxi.com/api/flights/getCancellationDateChangePolicy");
+            const response = await axios.get(`${CONFIG.MAIN_API}/api/flights/getCancellationDateChangePolicy`);
             setCancellationPolicy(response.data.data); 
         } catch (error) {
             console.error("Error fetching cancellation policy:", error);
@@ -2185,7 +2201,7 @@ const SearchFlight = () => {
 
 
         const eresponse = await axios.post(
-          'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest',
+          `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
           soapEnvelope, { headers: { 'Content-Type': 'text/xml' } }
         );
         const eResponse = eresponse.data;
@@ -2648,12 +2664,18 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
           const bookingInfo = singleOption?.["air:BookingInfo"];
           const segmentRefArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
 
-          const flightDetails = segmentRefArray.map((info) => {
+          const flightDetail = segmentRefArray.map((info) => {
             const segmentRef = info?.["$"]?.["SegmentRef"];
             const matchingSegment = SegmentList.find(
               (segment) => segment["$"]["Key"] === segmentRef
             );
-            console.log('matchingseg', matchingSegment);
+            // console.log('matchingseg', matchingSegment);
+            const matchingFlightDetails = flightDetails.find(
+              (flight) => flight["$"]["Key"] === matchingSegment?.["air:FlightDetailsRef"]?.["$"]?.["Key"]
+          );
+          
+          // console.log('matchingFlightDetails', matchingFlightDetails);
+
 
             if (!segmentRef || !matchingSegment) {
               console.warn("Invalid SegmentRef or missing matching segment:", { segmentRef, info });
@@ -2671,7 +2693,14 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
               arrival_datetime: matchingSegment["$"]["ArrivalTime"] || "Unknown",
               origin_airline_city: handleAirport(matchingSegment['$']['Origin']) || "Unknown",
               destination_airline_city: handleAirport(matchingSegment['$']['Destination']) || "Unknown",
-              provider_code: matchingSegment["air:AirAvailInfo"]?.["$"]?.["ProviderCode"] || "Unknown"
+              provider_code: matchingSegment["air:AirAvailInfo"]?.["$"]?.["ProviderCode"] || "Unknown",
+              OriginTerminal: /\d+$/.test(matchingFlightDetails["$"]["OriginTerminal"])
+                  ? matchingFlightDetails["$"]["OriginTerminal"] + "T"
+                  : matchingFlightDetails["$"]["OriginTerminal"],
+
+              DestinationTerminal: /\d+$/.test(matchingFlightDetails["$"]["DestinationTerminal"])
+                  ? matchingFlightDetails["$"]["DestinationTerminal"] + "T"
+                  : matchingFlightDetails["$"]["DestinationTerminal"],
             };
           }).filter(Boolean); // Remove null entries
 
@@ -2682,25 +2711,25 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
 
 
           return {
-            flight_no: flightDetails.map((detail) => detail.flight_no).join(", "),
-            airline_name: flightDetails.map((detail) => detail.airline_name).join(", "),
-            from_city: flightDetails[0]?.from_city || "Unknown",
-            from_city_code: flightDetails[0]?.from_city_code || "Unknown",
-            to_city: flightDetails[flightDetails.length - 1]?.to_city || "Unknown",
-            to_city_code: flightDetails[flightDetails.length - 1]?.to_city_code || "Unknown",
-            departure_datetime: flightDetails[0]?.departure_datetime || "Unknown",
-            arrival_datetime: flightDetails[flightDetails.length - 1]?.arrival_datetime || "Unknown",
+            flight_no: flightDetail.map((detail) => detail.flight_no).join(", "),
+            airline_name: flightDetail.map((detail) => detail.airline_name).join(", "),
+            from_city: flightDetail[0]?.from_city || "Unknown",
+            from_city_code: flightDetail[0]?.from_city_code || "Unknown",
+            to_city: flightDetail[flightDetail.length - 1]?.to_city || "Unknown",
+            to_city_code: flightDetail[flightDetail.length - 1]?.to_city_code || "Unknown",
+            departure_datetime: flightDetail[0]?.departure_datetime || "Unknown",
+            arrival_datetime: flightDetail[flightDetail.length - 1]?.arrival_datetime || "Unknown",
             price: parseInt(flight["$"].TotalPrice.replace("INR", "").trim(), 10),
             is_return: flight?.isReturn ? 1 : 0,
             no_of_stops: no_of_stops,
-            carrier: flightDetails.map((detail) => detail.flight_no.slice(0, 2)).join(", "),
-            provider_code: flightDetails[0]?.provider_code || "Unknown",
+            carrier: flightDetail.map((detail) => detail.flight_no.slice(0, 2)).join(", "),
+            provider_code: flightDetail[0]?.provider_code || "Unknown",
             duration: formatISODuration(
               singleOption?.["$"]?.["TravelTime"] || "00:00:00"
             ),
             is_refundable: flight["$"].Refundable ? 1 : 0,
             fare_details: fareDetails,
-            flight_details: flightDetails,
+            flight_details: flightDetail,
           };
         });
       });
@@ -2757,7 +2786,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
     };
     setPayload(payload);
     console.log('payload', payload);
-    const apiLink = 'https://corporate.taxivaxi.com/api/flights/addCotravFlightOptionBooking';
+    const apiLink = `${CONFIG.MAIN_API}/api/flights/addCotravFlightOptionBooking`;
     
 
     axios.post(apiLink, JSON.stringify(payload), {
@@ -2766,7 +2795,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       },
     })
       .then((response) => {
-        // console.log('data.data', response.data.data);
+        console.log('data.data', response.data);
         if (response.data.success === "1") {
           setHtmlContent(response.data.data);
           setShowModal(true);
@@ -2811,7 +2840,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       };
       console.log('updatedPayload', updatedPayload);
   
-      const apiLink = "https://corporate.taxivaxi.com/api/flights/addCotravFlightOptionBooking";
+      const apiLink = `${CONFIG.MAIN_API}/api/flights/addCotravFlightOptionBooking`;
   
       axios
         .post(apiLink, JSON.stringify(updatedPayload), {
@@ -2892,7 +2921,7 @@ const [spocEmailInput, setSpocEmailInput] = useState("");
       // console.log('soapEnvelope', soapEnvelope);
   
       const response = await axios.post(
-        "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest",
+        `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
         soapEnvelope,
         { headers: { "Content-Type": "text/xml" } }
       );
@@ -15042,7 +15071,7 @@ useEffect(() => {
                                                                                     <div className="flight-details-b">Date Change Fee</div>
                                                                                     <div className="flight-details-c">
                                                                                       {/* Call the function and display the result */}
-                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "demo")?.fee || "N/A"}
                                                                                       {/* {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"} */}
                                                                                       
                                                                                     </div>
@@ -15051,7 +15080,7 @@ useEffect(() => {
                                                                                   {/* <div className="flight-details-r">
                                                                                     <div className="flight-details-b">Airline Fee</div>
                                                                                     <div className="flight-details-c">
-                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "demo")?.fee || "N/A"}
                                                                                       
                                                                                     </div>
                                                                                   </div> */}
@@ -15132,7 +15161,7 @@ useEffect(() => {
                                                                                     <div className="flight-details-b">Cancellation Charges</div>
                                                                                     <div className="flight-details-c">
                                                                                       {/* Call the function and display the result */}
-                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "demo")?.fee || "N/A"}
                                                                                       {/* {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"} */}
                                                                                       
                                                                                     </div>
@@ -15141,7 +15170,7 @@ useEffect(() => {
                                                                                   {/* <div className="flight-details-r">
                                                                                     <div className="flight-details-b">Airline Fee</div>
                                                                                     <div className="flight-details-c">
-                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "demo")?.fee || "N/A"}
                                                                                       
                                                                                     </div>
                                                                                   </div> */}
@@ -15871,7 +15900,7 @@ useEffect(() => {
                                                                                     <div className="flight-details-b">Date Change Fee</div>
                                                                                     <div className="flight-details-c">
                                                                                       {/* Call the function and display the result */}
-                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "demo")?.fee || "N/A"}
                                                                                       {/* {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"} */}
                                                                                       
                                                                                     </div>
@@ -15880,7 +15909,7 @@ useEffect(() => {
                                                                                   {/* <div className="flight-details-r">
                                                                                     <div className="flight-details-b">Airline Fee</div>
                                                                                     <div className="flight-details-c">
-                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === "demo")?.fee || "N/A"}
                                                                                       
                                                                                     </div>
                                                                                   </div> */}
@@ -15962,7 +15991,7 @@ useEffect(() => {
                                                                                     <div className="flight-details-b">Cancellation Charges</div>
                                                                                     <div className="flight-details-c">
                                                                                       {/* Call the function and display the result */}
-                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "demo")?.fee || "N/A"}
                                                                                       {/* {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"} */}
                                                                                       
                                                                                     </div>
@@ -15971,7 +16000,7 @@ useEffect(() => {
                                                                                   {/* <div className="flight-details-r">
                                                                                     <div className="flight-details-b">Airline Fee</div>
                                                                                     <div className="flight-details-c">
-                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "Corporate")?.fee || "N/A"}
+                                                                                      {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === "demo")?.fee || "N/A"}
                                                                                       
                                                                                     </div>
                                                                                   </div> */}
@@ -16104,7 +16133,7 @@ useEffect(() => {
                                                                         </div>
                                                                       </div>
                                                                     </div>
-                                                                     {agent_id  && ( 
+                                                                     {/* {agent_id  && (  */}
                                                                     
                                                                       <div className='buttonbook' >
                                                                       
@@ -16115,7 +16144,7 @@ useEffect(() => {
                                                                           Book Now
                                                                         </button>
                                                                       </div>
-                                                                    )}  
+                                                                    {/* )}   */}
                                                                     
                                                                     <button
                                                                       className="add-btn"
@@ -16739,7 +16768,7 @@ useEffect(() => {
                                                                   )}
                                                                 </div>
 
-                                                                {agent_id && (
+                                                                {/* {agent_id && ( */}
                                                                   <div className='buttonbook' >
                                                                     <button type='button' className="continuebutton" 
                                                                       style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }} 
@@ -16747,7 +16776,7 @@ useEffect(() => {
                                                                       Book Now
                                                                     </button>
                                                                   </div>
-                                                                )}
+                                                                {/* )} */}
                                                                 <button
                                                                   className="add-btn"
                                                                   type="button"

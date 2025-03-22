@@ -9,6 +9,7 @@ import { format, parseISO ,parse,isValid  } from 'date-fns';
 import SearchFlight from './SearchFlight';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import CONFIG from "./config"; 
 // import ErrorLogger from './ErrorLogger';
 function Home() {
     const [activeTab, setActiveTab] = useState('flight');
@@ -54,9 +55,9 @@ function Home() {
     const [adminid, setAdminid] = useState(""); 
     const [showDropdown, setShowDropdown] = useState(false);
     const [ClientMarkupDetails, setClientMarkupDetails] = useState("");
-    // console.log('ClientMarkupDetails', ClientMarkupDetails);
+    // console.log('ClientMarkupDetails', ClientMarkupDetails);f
 
-    const Targetbranch = 'P4451438';
+    const Targetbranch = 'P7206253';
     // console.log(Targetbranch);
     // test TargetBranch: P7206253
     // live TargetBranch: P4451438
@@ -125,7 +126,7 @@ function Home() {
                 </soapenv:Envelope>`;
     
                 const response = await axios.post(
-                    'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest',
+                    `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightRequest`,
                     airlineRequest,
                     { headers: { 'Content-Type': 'text/xml' } }
                 );
@@ -150,7 +151,7 @@ function Home() {
                 </soapenv:Envelope>`;
     
                 const response = await axios.post(
-                    'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest',
+                    `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightRequest`,
                     airportRequest,
                     { headers: { 'Content-Type': 'text/xml' } }
                 );
@@ -786,7 +787,7 @@ function Home() {
             console.log('search data', soapEnvelope);
             // console.time("API Call");
             const response = await axios.post(
-                'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
+                `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, 
                 soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
             );
                 console.log("searchresponse", response);

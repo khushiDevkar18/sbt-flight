@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { parseString } from 'xml2js';
 import './styles.css';
 import Swal from 'sweetalert2';
+import CONFIG from "./config";
 // import ErrorLogger from './ErrorLogger';
 const BookingContinue = () => {
     const location = useLocation();
@@ -23,6 +24,9 @@ const BookingContinue = () => {
     const Airlines = location.state && location.state.bookingCompleteData.Airlines;
     const markup_price = location.state && location.state.bookingCompleteData.markup_price;
     const seat_codes = location.state && location.state.bookingCompleteData.seat_codes;
+    const bookingid = location.state && location.state.bookingCompleteData.booking_id;
+    const flightDetails = location.state && location.state.bookingCompleteData.flightDetails;
+    const segmentlist = sessionStorage.getItem('segmentarray');
     // console.log('seat_codes', seat_codes);
     const request = location.state?.bookingCompleteData || {};
     
@@ -73,6 +77,23 @@ const BookingContinue = () => {
             return ""; 
         }
       }
+
+      const downloadETicket = async () => {
+        try {
+            const response = await axios.post(
+                `${CONFIG.MAIN_API}/api/flights/getBookingEticket`,
+                new URLSearchParams({ booking_id: bookingid }) // Send booking_id as form data
+            );
+    
+            if (response.data.success === "1" && response.data.result?.ticket) {
+                window.open(response.data.result.ticket, "_blank"); // Open ticket in new tab
+            } else {
+                console.error("No ticket found:", response.data);
+            }
+        } catch (error) {
+            console.error("Error downloading e-ticket:", error);
+        }
+    };
     const calculateAge = (birthdate) => {
         const today = new Date();
         const birthDate = new Date(birthdate);
@@ -281,10 +302,26 @@ const BookingContinue = () => {
                                                                                             })()}
                                                                                         </div>
                                                                                         <div className="flight-location">{handleAirport(segmentinfo['$']['Origin'])}</div>
-                                                                                        <div className="flight-terminal">
+                                                                                        {/* <div className="flight-terminal">
                                                                                             {handleApiAirport(segmentinfo['$']['Origin'])} 
                                                                                             {segmentinfo['air:FlightDetails']?.['$']?.['OriginTerminal'] ? `. T-${segmentinfo['air:FlightDetails']['$']['OriginTerminal']}` : ''}
+                                                                                        </div> */}
+                                                                                        <div className="flight-terminal">
+                                                                                            {handleApiAirport(segmentinfo['$']['Origin'])}
+                                                                                            {segmentinfo['air:FlightDetails']?.['$']?.['OriginTerminal']
+                                                                                                ? `. T-${segmentinfo['air:FlightDetails']['$']['OriginTerminal']}`
+                                                                                                : (() => {
+                                                                                                    const matchingFlightDetail = flightDetails.find(
+                                                                                                        (flight) => flight["$"]["Key"] === segmentlist["air:FlightDetailsRef"]?.["$"]?.["Key"]
+                                                                                                    );
+                                                                                                    return matchingFlightDetail?.["$"]?.["OriginTerminal"] 
+                                                                                                        ? `. T-${matchingFlightDetail["$"]["OriginTerminal"]}` 
+                                                                                                        : "";
+                                                                                                })()
+                                                                                            }
                                                                                         </div>
+
+                                                                                        
                                                                                     </div>
 
                                                                                     {/* Flight Duration */}
@@ -315,10 +352,25 @@ const BookingContinue = () => {
                                                                                             })()}
                                                                                         </div>
                                                                                         <div className="flight-location">{handleAirport(segmentinfo['$']['Destination'])}</div>
-                                                                                        <div className="flight-terminal">
+                                                                                        {/* <div className="flight-terminal">
                                                                                             {handleApiAirport(segmentinfo['$']['Destination'])} 
                                                                                             {segmentinfo['air:FlightDetails']?.['$']?.['DestinationTerminal'] ? `. T-${segmentinfo['air:FlightDetails']['$']['DestinationTerminal']}` : ''}
+                                                                                        </div> */}
+                                                                                        <div className="flight-terminal">
+                                                                                            {handleApiAirport(segmentinfo['$']['Destination'])}
+                                                                                            {segmentinfo['air:FlightDetails']?.['$']?.['DestinationTerminal']
+                                                                                                ? `. T-${segmentinfo['air:FlightDetails']['$']['DestinationTerminal']}`
+                                                                                                : (() => {
+                                                                                                    const matchingFlightDetail = flightDetails.find(
+                                                                                                        (flight) => flight["$"]["Key"] === segmentlist["air:FlightDetailsRef"]?.["$"]?.["Key"]
+                                                                                                    );
+                                                                                                    return matchingFlightDetail?.["$"]?.["DestinationTerminal"] 
+                                                                                                        ? `. T-${matchingFlightDetail["$"]["DestinationTerminal"]}` 
+                                                                                                        : "";
+                                                                                                })()
+                                                                                            }
                                                                                         </div>
+
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -759,14 +811,16 @@ const BookingContinue = () => {
                                 <div className="h-help">
                                     <div className="h-help-lbl">Ticket(s)</div>
                                     <div className="h-help-links">
-                                        <div className="h-help-link">
-                                            <img src="/icons/download.png" alt="Download" className="h-help-icon" />
+                                        {/* <div className="h-help-link">
+                                            
                                             <a href="#" className="h-help-text">Download E-ticket(s)</a>
-                                        </div>
+                                        </div> */}
                                         <div className="h-help-link">
-                                            <img src="/icons/download.png" alt="Download" className="h-help-icon" />
-                                            <a href="#" className="h-help-text">Download Invoice(s)</a>
+                                            <a href="#" className="h-help-text" onClick={(e) => { e.preventDefault(); downloadETicket(); }}>
+                                                Download E-ticket(s)
+                                            </a>
                                         </div>
+                                        
                                     </div>
                                 </div>
                                     <div className="h-help">

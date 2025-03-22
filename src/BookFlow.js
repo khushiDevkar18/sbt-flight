@@ -12,6 +12,7 @@ import Slider from 'rc-slider';
 import "rc-slider/assets/index.css";
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import CONFIG from "./config";
 
 const BookFlow = () => {
     // console.log('asdfasdfa');
@@ -35,7 +36,7 @@ const BookFlow = () => {
       const [Airports, setAirportOptions] = useState([]);
       const isPriceLoadingRef = useRef(false);
 const isReservationRef = useRef(false);
-const Targetbranch = 'P4451438';
+const Targetbranch = 'P7206253';
     
     useEffect(() => {
         setLoading(true);
@@ -58,7 +59,7 @@ const Targetbranch = 'P4451438';
             </soapenv:Envelope>`;
             
             const airlineresponse = await axios.post(
-                'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
+                `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightRequest`, 
                 airlineRequest, { headers: { 'Content-Type': 'text/xml'  }}
             );
             airlineResponseData = airlineresponse.data;
@@ -91,7 +92,7 @@ const Targetbranch = 'P4451438';
             </soapenv:Body>
         </soapenv:Envelope>`;
         const airportResponse = await axios.post(
-            'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
+            `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightRequest`, 
             airportRequest, { headers: { 'Content-Type': 'text/xml'  }}
         );
             airportResponseData = airportResponse.data;
@@ -162,7 +163,8 @@ const Targetbranch = 'P4451438';
                     const is_gst_benefit = formtaxivaxiData['is_gst_benefit'];
                     // console.log('log1');
                     const access_token = formtaxivaxiData['access_token'];
-                    const providercode = formtaxivaxiData['provider_code'];
+                    // const providercode = formtaxivaxiData['provider_code'];
+                    const providercode = formtaxivaxiData['provider_code']?.split(",")[0].trim();
                     const no_of_stops = formtaxivaxiData['no_of_stops'];    
                     const carrier = formtaxivaxiData['Carrier']; // Get the first provider code and trim any extra spaces
                     // console.log('carrier', carrier);
@@ -272,7 +274,7 @@ const Targetbranch = 'P4451438';
                         PassengerCodeINF,
                     );
 
-                    // console.log('soapEnvelope', soapEnvelope);
+                    console.log('soapEnvelope', soapEnvelope);
                     isPriceLoadingRef.current = true;
                     isReservationRef.current = false;
                    
@@ -280,7 +282,7 @@ const Targetbranch = 'P4451438';
                     if(segmentRef.current.length === 0){
 
                       const response = await axios.post(
-                          'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
+                          `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, 
                           soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
                       );
                       console.log('call 1');
@@ -455,7 +457,7 @@ const Targetbranch = 'P4451438';
                       if (priceparseRef.current.length === 0){
 
                         const response = await axios.post(
-                          'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest',
+                          `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
                           pricepointXMLpc,
                           { headers: { 'Content-Type': 'text/xml' } }
                         );
@@ -616,7 +618,7 @@ const Targetbranch = 'P4451438';
                   });
 
                   const serviceresponse = axios.post(
-                    'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', servicerequestXML);
+                    `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, servicerequestXML);
       
                   const serviceData = {
                     apiairportsdata: apiairportData,
@@ -783,7 +785,7 @@ const Targetbranch = 'P4451438';
                                     // console.log("in api1")
                                     
                                       const priceresponse = await axios.post(
-                                        'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest',
+                                        `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
                                         pricepointXML);
                                       
                                       const priceResponse = priceresponse.data;
@@ -926,7 +928,7 @@ const Targetbranch = 'P4451438';
                                           });
                                           // console.log('servicerequestXML', servicerequestXML);
                                           const serviceresponse = axios.post(
-                                            'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', servicerequestXML);
+                                            `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, servicerequestXML);
                                           const serviceResponse = serviceresponse.data;
                                           // console.log('serviceResponse', serviceresponse);
                               

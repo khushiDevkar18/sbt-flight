@@ -12,6 +12,7 @@ import Slider from 'rc-slider';
 import "rc-slider/assets/index.css";
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import CONFIG from "./config";
 
 
 const FormTaxivaxi = () => {
@@ -56,7 +57,7 @@ const navigate = useNavigate();
       //     const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
       //     <soapenv:Header/>
       //     <soapenv:Body>
-      //         <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
+      //         <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
       //             <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
       //             <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
       //         </util:ReferenceDataRetrieveReq>
@@ -85,7 +86,7 @@ const navigate = useNavigate();
       //     const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
       //     <soapenv:Header/>
       //     <soapenv:Body>
-      //     <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P7206253" TraceId="AV145ER" TypeCode="CityAirport">
+      //     <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AV145ER" TypeCode="CityAirport">
       //         <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
       //         <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
       //     </util:ReferenceDataRetrieveReq>
@@ -151,13 +152,14 @@ const navigate = useNavigate();
                 //   console.log('searchfrom', searchfrom);
                   const searchfromMatch = searchfrom.match(/\((\w+)\)/);
                   const searchfromCode = searchfromMatch[1];
-                //   console.log('sechfromcode', searchfromCode);
+                  console.log('sechfromcode', searchfromCode);
                   const searchto = formtaxivaxiData['to_city']; 
                   const searchtoMatch = searchto.match(/\((\w+)\)/);
                   const searchtoCode = searchtoMatch[1];
                   const searchdeparture = formtaxivaxiData['departure_date'];       
-                //   const searchdeparture = formtaxivaxiData['departure_date'].split('-').reverse().join('/');
+                  const searchdeparturee = formtaxivaxiData['departure_date'].split('-').reverse().join('/');
                   const formattedsearchdeparture = formatDate(searchdeparture);
+                  console.log('formattedsearchdeparture',formattedsearchdeparture);
                   const spoc_email = formtaxivaxiData['email'];
                   const additional_emails = formtaxivaxiData['additional_emails'];
                   const ccmail = formtaxivaxiData['cc_email'];
@@ -234,7 +236,7 @@ const navigate = useNavigate();
                   
                       return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                     <soap:Body>
-                    <air:LowFareSearchReq TargetBranch="P4451438" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
+                    <air:LowFareSearchReq TargetBranch="P7206253" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
                         <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
                         <air:SearchAirLeg>
                             <air:SearchOrigin>
@@ -276,19 +278,19 @@ const navigate = useNavigate();
                   const password = 'tN=54gT+%Y'; 
                   const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
                   sessionStorage.setItem('searchdata', soapEnvelope);
-                //   console.log('soapenv', soapEnvelope); 
+                  console.log('soapenv', soapEnvelope); 
 
                 const response = await axios.post(
-                    'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
+                    `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, 
                     soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
                   );
-                  // console.log(airlineResponseData);
+                  console.log('search response', response.data);
                   // console.log(airportResponseData);
                   const responseData = {
                       responsedata: response.data,
                       searchfromcity: searchfrom,
                       searchtocity: searchto,
-                      searchdeparture: searchdeparture,
+                      searchdeparture: searchdeparturee,
                       searchreturnd: searchreturnDate,
                       // airlinedata: airlineResponseData,
                       // airportData: airportResponseData,
