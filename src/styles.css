@@ -17933,7 +17933,7 @@ color: #fff;
   background: linear-gradient(145deg, #785eff, #5a42e0);
   box-shadow: 0 5px 10px rgba(120, 94, 255, 0.3);
   color: white;
-  font-size: 20px;
+  /* font-size: 20px; */
   font-weight: bold;
   font-family: 'Raleway', sans-serif;
   text-align: center;
