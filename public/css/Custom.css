@@ -91,7 +91,7 @@
     box-shadow: none;
     padding-left: 12px;
     height: 50px;
-    width: 110%;
+    width: 117%;
 }
   .card-container{
     padding-bottom: 50px;
@@ -529,6 +529,7 @@ html[dir=ltr] .appendRight10 {
   outline: 0;
   padding: 0 10px;
   width: 100%;
+  min-width: 200px;
 }
 .frmTextInputs {
   border: 1px solid #bebebe;
@@ -542,40 +543,7 @@ html[dir=ltr] .appendRight10 {
   width: 100%;
 
 }
-.guestDtls__contact {
-  position: relative;
-  width: 100%;
-  display: flex;
-  align-items: center;
-}
-
-
-.country-code-dropdown {
-  border: 1px solid #bebebe;
-  border-right: none; 
-  border-radius: 4px 0 0 4px;
-  font-size: 14px;
-  font-weight: bold;
-  color: #000;
-  height: 40px;
-  padding: 0 10px;
-  background: #f5f5f5;
-  outline: none;
-  cursor: pointer;
-}
-
-
-.phone-input {
-  border: 1px solid #bebebe;
-  border-radius: 0 4px 4px 0;
-  font-size: 14px;
-  height: 40px;
-  padding: 0 10px;
-  width: 100%;
-  outline: none;
-}
-/* Container for phone input */
-/* Container for the phone input field */
+/* Container for the phone input */
 .phone-container {
   display: flex;
   align-items: center;
@@ -587,117 +555,82 @@ html[dir=ltr] .appendRight10 {
   position: relative;
 }
 
-/* Styling for the country code (Flag + +91) */
-.phone-code {
+/* Country Code Dropdown Styling */
+.react-tel-input .flag-dropdown {
+  width: auto !important;  /* Ensures only country code is visible */
+  border-right: 1px solid #bebebe !important;
+  padding: 0 10px !important;
+  background-color: #f5f5f5 !important;
+  min-width: 70px; /* Adjust width based on country code */
+}
+
+/* Hide Flag in Dropdown */
+.hide-flag .flag-dropdown .selected-flag {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+}
+
+.hide-flag .flag {
+  display: none !important;  /* Hides the flag */
+}
+
+/* Ensure Proper Spacing for Input */
+.react-tel-input .form-control {
+  padding-left: 80px !important; /* Adjust based on country code width */
+  height: 40px !important;
+  width: 100% !important;
+  font-size: 14px !important;
+  /* border: none !important; */
+  /* outline: none !important; */
+}
+.input-wrapper {
+  position: relative; /* Keep the structure intact */
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+.frmTextInput {
+  border: 1px solid #bebebe;
+  border-radius: 4px;
+  font-family: lato, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  height: 40px;
+  outline: 0;
+  padding: 0 10px;
+  width: 100%;
+  min-width: 200px;
+  box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+.error-message {
+  position: absolute;
+  bottom: -18px; /* Positions below the input */
+  left: 0;
+  color: red;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+
+/* Ensure Number Field is in Proper Alignment */
+.selectedCode {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 10px;
-  background: #f5f5f5;
-  border-right: 1px solid #bebebe;
-  height: 100%;
-  border-radius: 4px 0 0 4px;
-  min-width: 65px;
-  position: relative;
-}
-
-/* Hide the default react-phone-input-2 input field */
-.phone-input-hidden .form-control {
-  display: none !important;
-}
-
-/* Display the country code next to the flag */
-.country-code-text {
-  position: absolute;
-  left: 40px; /* Adjust based on flag width */
-  font-size: 14px;
-  font-weight: bold;
-}
-
-/* Phone number input field */
-.phone-number-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 0 10px;
-  font-size: 14px;
-  height: 100%;
-  border-radius: 0 4px 4px 0;
-  background: white;
-  width: 100%;
-}
-
-/* Error message styling */
-.error {
-  color: red;
-  font-size: 12px;
-  margin-top: 5px;
-}
-
-
-.country-dropdown {
-  background: #f5f5f5 !important;
-  border: 1px solid #bebebe !important;
-  border-right: none !important;
-  border-radius: 4px 0 0 4px !important;
-  padding: 0 10px !important;
-}
-
-
-.react-tel-input .flag-dropdown {
-  width: 45px !important; /* Adjust width to prevent overlap */
-  border-right: 1px solid #bebebe !important;
-}
-
-.react-tel-input .form-control {
-  padding-left: 55px !important; /* Ensures number is visible */
-}
-
-.frmTextInput2 {
-  border: 1px solid #bebebe;
-  border-radius: 4px;
-  font-family: lato, sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  height: 30px;
-  outline: 0;
-  padding: 0 10px;
-  width: 100%;
-}
-.passenger-separator {
-  margin: 20px 0;
-  border: 0;
-  border-top: 2px solid #ccc;
-}
-
-.frmTextAreaInput2{
-  border: 1px solid #bebebe;
-  border-radius: 4px;
-  font-family: lato, sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  height: 50px;
-  outline: 0;
-  padding: 0 10px;
-  width: 100%;
-}
-.selectedCode {
-  align-items: center;
-  background-color: #fff;
+  background-color: #f5f5f5;
   border: 1px solid #bebebe;
   border-radius: 4px 0 0 4px;
   color: #000;
-  display: inline-flex
-;
   font-size: 14px;
   height: 40px;
-  max-width: 90px;
   min-width: 70px;
-  overflow: hidden;
-  padding: 0 25px 0 10px;
+  padding: 0 10px;
   pointer-events: auto;
-  transition: all .3s linear;
 }
+
 .makeFlex.spaceBetween {
   justify-content: space-between;
 }
@@ -768,6 +701,6 @@ html[dir=ltr] .appendRight5 {
   width: 224px;
 }
 .hotel_images_final{
-  height: 140px;
+  height: 121px;
   width: 205px;
 }

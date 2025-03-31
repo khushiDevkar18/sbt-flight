@@ -75,7 +75,7 @@ const [personDetails , setPersonDetails]= useState();
   const passengerId2 = formtaxivaxiData["passengerDetailsArray[1][id]"];
   
 //  const search = formtaxivaxiData.request_type;
- sessionStorage.setItem("agent_portal", 1);
+ sessionStorage.setItem("agent_portal", 0);
   
   
 
@@ -183,7 +183,7 @@ const [personDetails , setPersonDetails]= useState();
               Adults: formtaxivaxiData.PassengerADT,
               Children: formtaxivaxiData.Passengerchild,
               ChildAge: formtaxivaxiData.Passengerchildage,
-              CityCode: formtaxivaxiData,
+              CityCode: formtaxivaxiData.city,
               //   "filteredCompany": JSON.parse(sessionStorage.getItem("selectedCompany")) || null, // Retrieve full company data,
               City_name: formtaxivaxiData.city_name,
               spoc_name: formtaxivaxiData.spoc_name,
@@ -193,6 +193,7 @@ const [personDetails , setPersonDetails]= useState();
               booking_id: formtaxivaxiData.booking_id,
               admin_id: formtaxivaxiData.admin_id,
               payment: formtaxivaxiData.is_self_payment,
+              booknow: formtaxivaxiData.booknow,
             
             };
             sessionStorage.setItem(
@@ -266,21 +267,22 @@ const [personDetails , setPersonDetails]= useState();
     } catch (error) {
       console.error("Error fetching hotels:", error);
     } finally {
-      setLoader(false);
+      // setLoader(false);
     }
   };
 
   return (
     <div>
-      {loader && (
-        <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
-          <img
-            src="../img/hotel_loader.gif"
-            alt="Loading..."
-            className="loader_size"
-          />
-        </div>
-      )}
+     {loader && (
+  <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+    <img
+      src="../img/hotel_loader.gif"
+      alt="Loading..."
+      className="loader_size"
+    />
+  </div>
+)}
+
     </div>
   );
 };

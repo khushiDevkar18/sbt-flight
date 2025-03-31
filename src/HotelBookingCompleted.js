@@ -13,7 +13,7 @@ const HotelBookingCompleted = () => {
   const location = useLocation();
   const hotel = location.state?.combinedHotels;
 
-  // console.log(hotel); // This prevents errors if Rooms is undefined or empty
+  console.log(hotel); // This prevents errors if Rooms is undefined or empty
 
   const [hotelBooking, setHotelBooking] = useState([]);
   // // console.log(hotelBooking);
@@ -91,6 +91,7 @@ const HotelBookingCompleted = () => {
 
     const fetchHotelBooking = async () => {
       try {
+        setLoader(true);
         const BookingCode = hotelData.Rooms[0]?.BookingCode;
         const price = hotelData.Rooms[0]?.NetAmount;
 
@@ -170,9 +171,9 @@ const HotelBookingCompleted = () => {
 
   useEffect(() => {
     const fetchVoucherApi = async () => {
-      if (!BookingId || !IP || !Token) {
-        return; // Prevent API call if data is not available
-      }
+      // if (!BookingId || !IP || !Token) {
+      //   return; // Prevent API call if data is not available
+      // }
 
       try {
         const requestBody = {
@@ -199,15 +200,89 @@ const HotelBookingCompleted = () => {
         }
 
         const data = await response.json();
+        setLoader(false);
         // console.log("API Response2:", data);
       } catch (error) {
+        setLoader(false);
         console.error("Error fetching voucher API:", error);
       }
     };
 
     fetchVoucherApi();
   }, [BookingId, IP, Token]); // Runs when these values are set
-
+  useEffect(() => {
+    const FetchBook = async () => {
+      // if(BookingId){
+      try {
+        // if (!hotelData || !hotelData.Rooms || hotelData.Rooms.length === 0) {
+        //   console.error("Hotel data is missing or incomplete.");
+        //   return;
+        // }
+  
+        // Extract required values
+        const roomName = hotelData.Rooms[0].Name?.join(" ") || "";
+        const inclusion = hotelData.Inclusion || "";
+        const mealType = hotelData.MealType || "";
+  
+        // Determine assigned_room_type
+        let assignedRoomType = "";
+        if (/deluxe|superior|Club|classic/i.test(roomName)) {
+          assignedRoomType = roomName;
+        }
+  
+        // Determine daily_breakfast
+        const dailyBreakfast = inclusion.toLowerCase().includes("breakfast") ? "1" : "0";
+  
+        // Determine meal_plan
+        const mealPlan = mealType.toLowerCase() === "breakfast" ? "1" : "0";
+  
+        // Prepare form data
+        const formData = new URLSearchParams();
+        formData.append("access_token", "8aaf1c9d9941e795e5b0c62e5252c537");
+        formData.append("assigned_hotel", hotelData.HotelName);
+        formData.append("booking_id", "62298");
+        formData.append("assigned_hotel_address", hotelData.Address);
+        // formData.append("hotel_contact", hotelData.PhoneNumber);
+        formData.append("assigned_room_type", assignedRoomType);
+        formData.append("daily_breakfast", dailyBreakfast);
+        formData.append("meal_plan", mealPlan);
+        formData.append("portal_used", "sbt");
+        formData.append("is_prepaid_booking", "0");
+        formData.append("is_ac_room", "0");
+        formData.append("room_price", hotelData.Rooms[0].TotalFare);
+        formData.append("hotel_id", hotelData.HotelCode);
+        formData.append("vendor_taxable_amount", "6000");
+        formData.append("vendor_amount_paid_to", "2000");
+        formData.append("vendor_tax_paid_to", "300");
+        formData.append("vendor_room_nights", "2000");
+        formData.append("commission_earned", "1000");
+        formData.append("vendor_invoice_comment", "800");
+        formData.append("is_vendor_gst_applicable ", "1");
+  console.log(formData.toString());
+        const response = await fetch("https://demo.taxivaxi.com/api/hotels/assignSBTHotelBooking", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: formData.toString(),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        console.log("API Response:", data);
+      } 
+    catch (error) {
+        console.error("Error fetching voucher API:", error);
+      }
+    // }
+    };
+  
+    FetchBook();
+  }, [hotelData]);
+  
   const combinedHotels = useMemo(() => {
     if (!hotel && hotelBooking.length === 0) return []; // Return empty if both are missing
 
@@ -293,22 +368,22 @@ const HotelBookingCompleted = () => {
   // // console.log("RateConditions:", hotel[0]?.RateConditions);
 
   const checkInTime =
-    (hotel.length > 0 &&
-      hotel[0]?.RateConditions?.find((condition) =>
+  Array.isArray(hotel) && hotel.length > 0
+    ? hotel[0]?.RateConditions?.find((condition) =>
         condition.startsWith("CheckIn Time-Begin:")
       )
         ?.replace("CheckIn Time-Begin:", "")
-        .trim()) ||
-    "N/A";
+        .trim()
+    : "N/A";
 
-  const checkOutTime =
-    (hotel.length > 0 &&
-      hotel[0]?.RateConditions?.find((condition) =>
+const checkOutTime =
+  Array.isArray(hotel) && hotel.length > 0
+    ? hotel[0]?.RateConditions?.find((condition) =>
         condition.startsWith("CheckOut Time:")
       )
         ?.replace("CheckOut Time:", "")
-        .trim()) ||
-    "N/A";
+        .trim()
+    : "N/A";
 
   const [showDetails, setShowDetails] = useState(false);
   // Calculate number of nights
@@ -564,7 +639,7 @@ const HotelBookingCompleted = () => {
                           </div>
                         ) : (
                           <img
-                            src="./img/image_NA04.png"
+                            src="./img/HNF_05.png"
                             className="hotel_images_final"
                           ></img>
                         )}
@@ -604,11 +679,11 @@ const HotelBookingCompleted = () => {
                   </div>
                   <div className="flex gap-5 mt-3 font-semibold cursor-pointer ">
                     <div className="text-xs text-[#785ef7]  flex">
-                      <img src="./img/voucher_1.svg" className="w-5 h-4"></img>
+                      <img src="./img/voucher_01.svg" className="w-5 h-4"></img>
                       Downolad voucher
                     </div>
                     <div className="text-xs text-[#785ef7] flex ">
-                      <img src="./img/voucher_1.svg" className="w-5 h-4"></img>
+                      <img src="./img/voucher_01.svg" className="w-5 h-4"></img>
                       Email voucher
                     </div>
                   </div>

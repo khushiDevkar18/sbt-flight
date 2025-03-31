@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, Children, useLayoutEffect } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  Children,
+  useLayoutEffect,
+} from "react";
 import axios from "axios";
 import { parseString } from "xml2js";
 import XMLParser from "react-xml-parser";
@@ -863,7 +869,7 @@ function Home() {
       setIsOpen(false); // Close the div
     }
   };
-  const [loader, setLoader]= useState(false);
+  const [loader, setLoader] = useState(false);
   // const [formActual, setformActual] = useState(null);
   // // conaole.log('form', formActual);
   const [activeForm, setActiveForm] = useState("flight"); // Default form is shown initially
@@ -889,8 +895,8 @@ function Home() {
             method: "POST",
             headers: {
               // "Content-Type": "application/json",
-              'Origin': 'http://localhost:3000', // Change to your React app's origin
-              'Access-Control-Request-Method': 'POST', // The method you're going to use
+              Origin: "http://localhost:3000", // Change to your React app's origin
+              "Access-Control-Request-Method": "POST", // The method you're going to use
             },
             body: JSON.stringify({ CountryCode: "IN" }),
           }
@@ -915,8 +921,7 @@ function Home() {
         console.error("Error fetching cities:", error);
       }
     };
-    
-    
+
     const storedCities = sessionStorage.getItem("cityList");
     if (storedCities) {
       const parsedCities = JSON.parse(storedCities);
@@ -927,7 +932,6 @@ function Home() {
     }
   }, []);
 
-  
   // Handle city search and filter
   const handleInputChange = (e) => {
     const searchValue = e.target.value.toLowerCase();
@@ -945,108 +949,113 @@ function Home() {
     setFilteredCities(filtered);
     setShowDropdown(filtered.length > 0);
   };
-    // Handle city selection
-    const handleCitySelect = (cityName) => {
-      setSelectedCity(cityName);
-      setShowDropdown(false);
-    };
+  // Handle city selection
+  const handleCitySelect = (cityName) => {
+    setSelectedCity(cityName);
+    setShowDropdown(false);
+  };
 
-    const [companyList, setCompanyList] = useState([]); // List of companies
-    const [filteredCompany, setFilteredCompany] = useState([]); // Filtered companies for search
-    const [showDropdown2, setShowDropdown2] = useState(false); // Controls dropdown visibility
-    const [selectedCompany, setSelectedCompany] = useState(""); // Selected company
-  
-    useEffect(() => {
-      const fetchCompanies = async () => {
-        try {
-          const response = await fetch("https://demo.taxivaxi.com/api/getAllSBTCompanies", {
+  const [companyList, setCompanyList] = useState([]); // List of companies
+  const [filteredCompany, setFilteredCompany] = useState([]); // Filtered companies for search
+  const [showDropdown2, setShowDropdown2] = useState(false); // Controls dropdown visibility
+  const [selectedCompany, setSelectedCompany] = useState(""); // Selected company
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const response = await fetch(
+          "https://demo.taxivaxi.com/api/getAllSBTCompanies",
+          {
             method: "GET",
             headers: {
               // "Content-Type": "application/json",
-              'Origin': '*', // Change to your React app's origin
-              'Access-Control-Request-Method': 'POST', // The method you're going to use
+              Origin: "*", // Change to your React app's origin
+              "Access-Control-Request-Method": "POST", // The method you're going to use
             },
-          });
-      
-          // console.log("Response Status:", response.status);
-      
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
           }
-      
-          const data = await response.json();
-          // console.log("API Response:", data);
-      
-          if (data.success === "1" && Array.isArray(data.response.Companies)) {
-            setCompanyList(data.response.Companies);
-            setFilteredCompany(data.response.Companies);
-            sessionStorage.setItem("companyList", JSON.stringify(data.response.Companies));
-          } else {
-            console.error("API Error: No companies found or invalid response format");
-          }
-        } catch (error) {
-          console.error("Fetch Error:", error);
-        }
-      };
-      
-  
-      // Check session storage before fetching
-      // const storedCompanies = sessionStorage.getItem("companyList");
-      // if (storedCompanies) {
-      //   setCompanyList(JSON.parse(storedCompanies));
-      //   setFilteredCompany(JSON.parse(storedCompanies));
-      // } else {
-      //   fetchCompanies();
-      // }
-      fetchCompanies();
-    }, []); // Runs only once when component mounts
-  
-    const handleInputChange2 = (e) => {
-      const searchValue = e.target.value;
-      
-      if (!searchValue.trim()) {
-        setFilteredCompany([]);
-        setShowDropdown2(false);
-        return;
-      }
-    
-      const filtered = companyList.filter((company) =>
-        company?.corporate_name?.toLowerCase().includes(searchValue.toLowerCase())
-      );
-    
-      setFilteredCompany(filtered);
-      setShowDropdown2(filtered.length > 0);
-    };
-    
-    const handleSelectCompany = (company) => {
-      setSelectedCompany(company); // Store entire company object
-      sessionStorage.setItem("selectedCompany", JSON.stringify(company)); // Store in sessionStorage
-      setShowDropdown2(false); // Hide dropdown after selection
-    };
-    
-  
-    // const handleCompanySelect = (companyName) => {
-    //   setSelectedCompany(companyName);
-    //   setShowDropdown2(false);
-    // };
-  
-    // console.log("Filtered Companies:", selectedCompany);
+        );
 
-  
+        // console.log("Response Status:", response.status);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        // console.log("API Response:", data);
+
+        if (data.success === "1" && Array.isArray(data.response.Companies)) {
+          setCompanyList(data.response.Companies);
+          setFilteredCompany(data.response.Companies);
+          sessionStorage.setItem(
+            "companyList",
+            JSON.stringify(data.response.Companies)
+          );
+        } else {
+          console.error(
+            "API Error: No companies found or invalid response format"
+          );
+        }
+      } catch (error) {
+        console.error("Fetch Error:", error);
+      }
+    };
+
+    // Check session storage before fetching
+    // const storedCompanies = sessionStorage.getItem("companyList");
+    // if (storedCompanies) {
+    //   setCompanyList(JSON.parse(storedCompanies));
+    //   setFilteredCompany(JSON.parse(storedCompanies));
+    // } else {
+    //   fetchCompanies();
+    // }
+    fetchCompanies();
+  }, []); // Runs only once when component mounts
+
+  const handleInputChange2 = (e) => {
+    const searchValue = e.target.value;
+
+    if (!searchValue.trim()) {
+      setFilteredCompany([]);
+      setShowDropdown2(false);
+      return;
+    }
+
+    const filtered = companyList.filter((company) =>
+      company?.corporate_name?.toLowerCase().includes(searchValue.toLowerCase())
+    );
+
+    setFilteredCompany(filtered);
+    setShowDropdown2(filtered.length > 0);
+  };
+
+  const handleSelectCompany = (company) => {
+    setSelectedCompany(company); // Store entire company object
+    sessionStorage.setItem("selectedCompany", JSON.stringify(company)); // Store in sessionStorage
+    setShowDropdown2(false); // Hide dropdown after selection
+  };
+
+  // const handleCompanySelect = (companyName) => {
+  //   setSelectedCompany(companyName);
+  //   setShowDropdown2(false);
+  // };
+
+  // console.log("Filtered Companies:", selectedCompany);
+
   useLayoutEffect(() => {
     const fetchCity = async () => {
       if (filteredCities.length === 0) return; // Ensure filteredCities has data
 
       const cityCode = filteredCities[0]?.Code; // Get the first city's code
-      
+
       try {
         const response = await fetch(
           "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesList",
           {
             method: "POST",
             headers: {
-              'Origin': '*', // Change to your React app's origin
-              'Access-Control-Request-Method': 'POST', // The method you're going to use
+              Origin: "*", // Change to your React app's origin
+              "Access-Control-Request-Method": "POST", // The method you're going to use
             },
             body: JSON.stringify({
               CityCode: cityCode,
@@ -1087,41 +1096,22 @@ function Home() {
     fetchCity();
   }, [filteredCities]); // Runs whenever `filteredCities` changes
 
-    
-
-
-  
   // // conaole.log(hotelCodes);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Control dropdown visibility
-  const [roomCount, setRoomCount] = useState(1);
-  const [roomadultCount, setRoomAdultCount] = useState(2);
-  const [roomchildCount, setRoomChildCount] = useState(2);
-  const [childrenAges, setChildrenAges] = useState([2, 8]);
+  const [roomCount, setRoomCount] = useState('');
+  const [roomadultCount, setRoomAdultCount] = useState('');
+  const [roomchildCount, setRoomChildCount] = useState('0');
+  const [childrenAges, setChildrenAges] = useState(['']);
 
   const handleToggleHotel = () => {
     setIsDropdownOpen((prev) => !prev); // Toggle dropdown visibility
   };
 
-  const handleSelection = (type, value) => {
-    if (type === "children") {
-      setRoomChildCount(value);
-      setChildrenAges(new Array(value).fill(null)); // Initialize children ages
-    } else if (type === "adults") {
-      setRoomAdultCount(value);
-    } else if (type === "rooms") {
-      setRoomCount(value);
-    }
-  };
-
-  const handleChildAgeChange = (index, age) => {
-    const updatedAges = [...childrenAges];
-    updatedAges[index] = age;
-    setChildrenAges(updatedAges);
-  };
+ 
   const [isCheckInOpen, setCheckInIsOpen] = useState(false);
   const [isCheckOutOpen, setCheckOutIsOpen] = useState(false);
- 
+
   const handleCheckInDateChange = (date) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -1142,124 +1132,231 @@ function Home() {
     return `${year}-${month}-${day}`;
   };
   const [hotelDetails, setHotelDetails] = useState();
+  const handleSelection = (type, value) => {
+    let newRoomCount = roomCount; 
+    let newRoomAdultCount = roomadultCount;
+    let newRoomChildCount = roomchildCount;
+
+    if (type === "adults") {
+        newRoomAdultCount = value;
+        setRoomAdultCount(value);
+    } else if (type === "children") {
+        newRoomChildCount = value;
+        setRoomChildCount(value);
+
+        setChildrenAges((prevAges) => {
+            if (value > prevAges.length) {
+                return [...prevAges, ...new Array(value - prevAges.length).fill("")];
+            } else {
+                return prevAges.slice(0, value);
+            }
+        });
+    } else if (type === "rooms") {
+        newRoomCount = value;
+        setRoomCount(newRoomCount);
+    }
+
+    // Correct room calculation logic
+    let remainingAdults = newRoomAdultCount; // Use updated value
+    let remainingChildren = newRoomChildCount; // Use updated value
+    let calculatedRooms = 0;
+
+    while (remainingAdults > 0 || remainingChildren > 0) {
+        let allocatedAdults = Math.min(remainingAdults, 8); // Max 8 adults per room
+        let allocatedChildren = Math.min(remainingChildren, 4); // Max 4 children per room
+        
+        remainingAdults -= allocatedAdults;
+        remainingChildren -= allocatedChildren;
+        
+        calculatedRooms++; // Each loop creates one room
+    }
+
+    setRoomCount(calculatedRooms);
+};
+
+
+
+  
+  const handleChildAgeChange = (index, age) => {
+    const updatedAges = [...childrenAges];
+    updatedAges[index] = age;
+    setChildrenAges(updatedAges);
+  };
   const handleHotelSearch = async (e) => {
     e.preventDefault();
     setLoader(true);
-  
+
     const checkIn = formData.checkInDate ? formatDate1(formData.checkInDate) : "";
     const checkOut = formData.checkOutDate ? formatDate1(formData.checkOutDate) : "";
-    const Rooms = roomCount;
-    const Adults = roomadultCount;
-    const Children = roomchildCount;
-    const ChildAge = childrenAges;
     const CityCode = hotelCodes.toString();
+
+    let remainingAdults = roomadultCount;
+    let remainingChildren = roomchildCount;
+    let remainingChildrenAges = [...childrenAges]; // Copy children ages array
+    let roomsArray = [];
+
+    // Maximum guests per room constraints
+    const maxAdultsPerRoom = 8;
+    const maxChildrenPerRoom = 4;
+
+    while (remainingAdults > 0 || remainingChildren > 0) {
+      let allocatedAdults = Math.min(remainingAdults, maxAdultsPerRoom);
+      let allocatedChildren = Math.min(remainingChildren, maxChildrenPerRoom);
+      
+      // Get the exact number of children ages
+      let allocatedChildrenAges = remainingChildrenAges.slice(0, allocatedChildren);
   
-    const requestBody = {
-      CheckIn: checkIn,
-      CheckOut: checkOut,
-      HotelCodes: CityCode,
-      GuestNationality: "IN",
-      PaxRooms: [
-        {
-          Adults: Adults,
-          Children: Children,
-          ChildrenAges: ChildAge,
-        },
-      ],
-      ResponseTime: 23.0,
-      IsDetailedResponse: true,
-      Filters: {
-        Refundable: false,
-        NoOfRooms: Rooms,
-        MealType: 0,
-        OrderBy: 0,
-        StarRating: 0,
-        HotelName: null,
-      },
-    };
-  
-    try {
-      const response = await fetch("https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch", {
-        method: "POST",
-        headers: {
-          'Origin': 'http://localhost:3000',
-          'Access-Control-Request-Method': 'POST',
-        },
-        body: JSON.stringify(requestBody),
+      // Push room allocation
+      roomsArray.push({
+          Adults: allocatedAdults,
+          Children: allocatedChildren,
+          ChildrenAges: allocatedChildrenAges.length > 0 ? allocatedChildrenAges : null,
       });
   
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // Update remaining counts
+      remainingAdults -= allocatedAdults;
+      remainingChildren -= allocatedChildren;
+      remainingChildrenAges = remainingChildrenAges.slice(allocatedChildren);
+  }
   
-      const data = await response.json();
+  // Extra loop for remaining adults (ensures additional rooms if needed)
+  while (remainingAdults > 0) {
+      let allocatedAdults = Math.min(remainingAdults, maxAdultsPerRoom);
   
-      if (data.Status.Code === 200) {
-        setHotelCityList(data.HotelResult || []);
-  const payment = '1';
-        const searchParams = {
-          checkIn,
-          checkOut,
-          Rooms,
-          Adults,
-          Children,
-          ChildAge,
-          CityCode,
-          corporate_name: JSON.parse(sessionStorage.getItem("selectedCompany")) || null,
-          filteredCities,
-          payment,
-        };
-        sessionStorage.setItem("agent_portal", 0);
-        sessionStorage.setItem('hotelData_header', JSON.stringify(searchParams));
-        sessionStorage.setItem('hotelSearchData', JSON.stringify({ hotelcityList: data.HotelResult }));
-        // Now immediately call fetchCity
-        fetchCity(data.HotelResult || []);
-      } else {
-        Swal.fire({
-          title: "Error",
-          text: data.Status.Description || "Something went wrong!",
-        });
-        setLoader(false);
-      }
+      roomsArray.push({
+          Adults: allocatedAdults,
+          Children: 0, // No children in this case
+          ChildrenAges: null,
+      });
+  
+      remainingAdults -= allocatedAdults;
+  }
+  
+  
+    const requestBody = {
+        CheckIn: checkIn,
+        CheckOut: checkOut,
+        HotelCodes: CityCode,
+        GuestNationality: "IN",
+        // PaxRooms: roomsArray, // Dynamically populated rooms
+        PaxRooms: [
+          {
+            Adults: 1,
+            Children: 0,
+            ChildrenAges: null,
+          },
+          {
+            Adults: 1,
+            Children: 0,
+            ChildrenAges: null,
+          },
+        ],
+        ResponseTime: 23.0,
+        IsDetailedResponse: true,
+        Filters: {
+            Refundable: false,
+            // NoOfRooms: roomsArray.length,
+            NoOfRooms:2,
+            MealType: 0,
+            OrderBy: 0,
+            StarRating: 0,
+            HotelName: null,
+        },
+    };
+
+    console.log("Request Body:", requestBody);
+
+    try {
+        const response = await fetch(
+            "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
+            {
+                method: "POST",
+                headers: {
+                    Origin: "http://localhost:3000",
+                    "Access-Control-Request-Method": "POST",
+                    // "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestBody),
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.Status.Code === 200) {
+            setHotelCityList(data.HotelResult || []);
+            const payment = "1";
+            const searchParams = {
+                checkIn,
+                checkOut,
+                Rooms: roomsArray.length,
+                Adults: roomadultCount,
+                Children: roomchildCount,
+                ChildAge: childrenAges,
+                CityCode,
+                corporate_name: JSON.parse(sessionStorage.getItem("selectedCompany")) || null,
+                filteredCities,
+                payment,
+            };
+            sessionStorage.setItem("agent_portal", 0);
+            sessionStorage.setItem("hotelData_header", JSON.stringify(searchParams));
+            sessionStorage.setItem("hotelSearchData", JSON.stringify({ hotelcityList: data.HotelResult }));
+            fetchCity(data.HotelResult || []);
+        } else {
+            Swal.fire({
+                title: "Error",
+                text: data.Status.Description || "Something went wrong!",
+            });
+            setLoader(false);
+        }
     } catch (error) {
-      console.error("Error fetching hotels:", error);
+        console.error("Error fetching hotels:", error);
     }
-  };
-  
+};
+
+
   // Function to fetch hotel details
   const fetchCity = async (hotelcityList) => {
     if (!Array.isArray(hotelcityList) || hotelcityList.length === 0) {
       return;
     }
-  
+
     setLoader(true);
     const codes = hotelcityList.map((hotel) => hotel.HotelCode).join(",");
-  
+
     try {
-      const response = await fetch("https://demo.taxivaxi.com/api/hotels/sbtHotelDetails", {
-        method: "POST",
-        headers: {
-          Origin: "*",
-          "Access-Control-Request-Method": "POST",
-        },
-        body: JSON.stringify({
-          Hotelcodes: codes,
-          Language: "EN",
-        }),
-      });
-  
+      const response = await fetch(
+        "https://demo.taxivaxi.com/api/hotels/sbtHotelDetails",
+        {
+          method: "POST",
+          headers: {
+            Origin: "*",
+            "Access-Control-Request-Method": "POST",
+          },
+          body: JSON.stringify({
+            Hotelcodes: codes,
+            Language: "EN",
+          }),
+        }
+      );
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+
       const data = await response.json();
-  
+
       if (data.Status && data.Status.Code === 200) {
         setHotelDetails(data.HotelDetails || []);
-  
-        sessionStorage.setItem("hotelDetails", JSON.stringify(data.HotelDetails || []));
-        
-  
+
+        sessionStorage.setItem(
+          "hotelDetails",
+          JSON.stringify(data.HotelDetails || [])
+        );
+
         navigate("/SearchHotel", {
           state: { hotelcityList: data.HotelResult },
         });
@@ -1272,8 +1369,6 @@ function Home() {
       setLoader(false);
     }
   };
-  
-  
 
   return (
     <div className="yield-content">
@@ -1287,18 +1382,18 @@ function Home() {
             </div>
           </div>
         )}
-          {loader &&(
-            <div className="page-center-loader flex items-center justify-center">
+        {loader && (
+          <div className="page-center-loader flex items-center justify-center">
             <div className="big-loader flex items-center justify-center">
-            <img
-              src="../img/hotel_loader.gif"
-              alt="Loading..."
-              className="loader_size"
-            />
+              <img
+                src="../img/hotel_loader.gif"
+                alt="Loading..."
+                className="loader_size"
+              />
             </div>
           </div>
-)}
-   
+        )}
+
         {/* <div id="loaderone">
                         <img src="img/loader2.gif" alt="Loader" />
                     </div> */}
@@ -1380,7 +1475,7 @@ function Home() {
                               src={
                                 activeForm === "flight"
                                   ? "../img/Flight_Hover.svg" // Image to show when activeForm is "flight"
-                                  : "../img/Flight_01.svg"     // Default image
+                                  : "../img/Flight_01.svg" // Default image
                               }
                               alt="Flight Image"
                               className="w-8 h-8"
@@ -1415,7 +1510,7 @@ function Home() {
                               src={
                                 activeForm === "hotel"
                                   ? "../img/Hotel_Hover.svg" // Image to show when activeForm is "flight"
-                                  : "../img/Hotel_01.svg"     // Default image
+                                  : "../img/Hotel_01.svg" // Default image
                               }
                               // src="../img/Hotel-02.png"
                               alt="Hotel Image"
@@ -2252,19 +2347,26 @@ function Home() {
                               <div className="hotel-container flex flex-cols ">
                                 {/* Input for City, Property, or Location */}
                                 <div className="from-hotel-group">
-      <div className="location-headers">Company Name</div>
-      <div className="location-details relative">
-        <input
-          type="text"
-          className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
-          placeholder="Select Company"
-          value={selectedCompany}
-          onChange={handleInputChange2}
-          onFocus={() => setShowDropdown2(true)}
-          onBlur={() => setTimeout(() => setShowDropdown2(false), 200)}
-        />
+                                  <div className="location-headers">
+                                    Company Name
+                                  </div>
+                                  <div className="location-details relative">
+                                    <input
+                                      type="text"
+                                      className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                      placeholder="Select Company"
+                                      value={selectedCompany}
+                                      onChange={handleInputChange2}
+                                      onFocus={() => setShowDropdown2(true)}
+                                      onBlur={() =>
+                                        setTimeout(
+                                          () => setShowDropdown2(false),
+                                          200
+                                        )
+                                      }
+                                    />
 
-        {/* {showDropdown2 && (
+                                    {/* {showDropdown2 && (
           <div className="dropdown-menu absolute w-full bg-white shadow-md rounded-lg max-h-48 overflow-auto mt-1">
             {filteredCompany.length > 0 ? (
               filteredCompany.map((company) => (
@@ -2281,56 +2383,78 @@ function Home() {
             )}
           </div>
         )} */}
-         {showDropdown2 && (
-    <div className="absolute w-full bg-white shadow-md rounded-lg max-h-48 overflow-auto mt-1 border border-gray-300 z-50">
-      {filteredCompany.length > 0 ? (
-        filteredCompany.map((company, index) => (
-          <div
-            key={company.id || index}
-            className="px-3 py-2 cursor-pointer hover:bg-gray-200"
-            onClick={() => handleSelectCompany(company.corporate_name)}
-          >
-          <div className="text-sm">  {company.corporate_name}</div>
-          <div className="text-xs">  ({company.corporate_code})</div>
-          </div>
-        ))
-      ) : (
-        <div className="px-3 py-2 text-gray-500">No companies found</div>
-      )}
-    </div>
-  )}
-      </div>
-    </div>
+                                    {showDropdown2 && (
+                                      <div className="absolute w-full bg-white shadow-md rounded-lg max-h-48 overflow-auto mt-1 border border-gray-300 z-50">
+                                        {filteredCompany.length > 0 ? (
+                                          filteredCompany.map(
+                                            (company, index) => (
+                                              <div
+                                                key={company.id || index}
+                                                className="px-3 py-2 cursor-pointer hover:bg-gray-200"
+                                                onClick={() =>
+                                                  handleSelectCompany(
+                                                    company.corporate_name
+                                                  )
+                                                }
+                                              >
+                                                <div className="text-sm">
+                                                  {" "}
+                                                  {company.corporate_name}
+                                                </div>
+                                                <div className="text-xs">
+                                                  {" "}
+                                                  ({company.corporate_code})
+                                                </div>
+                                              </div>
+                                            )
+                                          )
+                                        ) : (
+                                          <div className="px-3 py-2 text-gray-500">
+                                            No companies found
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                                 <div className="from-hotel-group">
-        <div className="location-headers">
-          City, Property Name or Location
-        </div>
-        <div className="location-details relative">
-          <input
-            type="text"
-            className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
-            placeholder="Enter City"
-            value={selectedCity}
-            onChange={handleInputChange}
-            onFocus={() => setShowDropdown(true)} // Show dropdown when input is focused
-            onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // Delay hiding to allow click
-          />
-          
-          {showDropdown && filteredCities.length > 0 && (
-            <div className="absolute w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-y-auto z-10 dropdown-size">
-              {filteredCities.map((city) => (
-                <div
-                  key={city.Code}
-                  className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                  onMouseDown={() => handleCitySelect(city.Name)} // Use onMouseDown to prevent blur issue
-                >
-                  {city.Name}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+                                  <div className="location-headers">
+                                    City, Property Name or Location
+                                  </div>
+                                  <div className="location-details relative">
+                                    <input
+                                      type="text"
+                                      className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                      placeholder="Enter City"
+                                      value={selectedCity}
+                                      onChange={handleInputChange}
+                                      onFocus={() => setShowDropdown(true)} // Show dropdown when input is focused
+                                      onBlur={() =>
+                                        setTimeout(
+                                          () => setShowDropdown(false),
+                                          200
+                                        )
+                                      } // Delay hiding to allow click
+                                    />
+
+                                    {showDropdown &&
+                                      filteredCities.length > 0 && (
+                                        <div className="absolute w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-y-auto z-10 dropdown-size">
+                                          {filteredCities.map((city) => (
+                                            <div
+                                              key={city.Code}
+                                              className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                                              onMouseDown={() =>
+                                                handleCitySelect(city.Name)
+                                              } // Use onMouseDown to prevent blur issue
+                                            >
+                                              {city.Name}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                  </div>
+                                </div>
 
                                 {/* Check-In Date */}
                                 <div className="from-hotel-group">
@@ -2349,7 +2473,7 @@ function Home() {
                                   >
                                     <DatePicker
                                       name="searchCheckIn"
-                                        autoComplete="off"
+                                      autoComplete="off"
                                       selected={formData.checkInDate} // Separate variable for Check-In date
                                       dateFormat="dd/MM/yyyy"
                                       placeholderText="Add Check-In Date"
@@ -2400,7 +2524,7 @@ function Home() {
                                   >
                                     <DatePicker
                                       name="searchCheckOut"
-                                        autoComplete="off"
+                                      autoComplete="off"
                                       selected={formData.checkOutDate}
                                       onChange={(date) => {
                                         handleCheckOutDateChange(date);

@@ -8,11 +8,13 @@ import PhoneInput from "react-phone-input-2";
 
 const HotelBooking = () => {
   const [loader, setLoader] = useState(false);
-  const searchParams = JSON.parse(sessionStorage.getItem("hotelData_header")) || {};
+  const searchParams =
+    JSON.parse(sessionStorage.getItem("hotelData_header")) || {};
   const location = useLocation();
   const selectedRoom = location.state?.selectedRoom; // Safe optional chaining
   const hotel = location.state?.hotel;
-  // console.log(selectedRoom);
+
+  console.log(selectedRoom);
   // console.log(hotel);
 
   const [hotelBooking, setHotelBooking] = useState([]);
@@ -20,10 +22,11 @@ const HotelBooking = () => {
   useLayoutEffect(() => {
     if (!hotel || !hotel.Rooms || hotel.Rooms.length === 0) {
       console.error("Hotel or Rooms data is missing!");
-      return; // Exit early if data is invalid
+      return;
     }
 
     const fetchPriBooking = async () => {
+      setLoader(true);
       try {
         const BookingCode = selectedRoom.BookingCode;
         // const  = BookingCode_1?.BookingCode; // Ensure BookingCode exists
@@ -40,8 +43,8 @@ const HotelBooking = () => {
           {
             method: "POST",
             headers: {
-              'Origin': 'http://localhost:3000', // Change to your React app's origin
-              'Access-Control-Request-Method': 'POST',
+              Origin: "http://localhost:3000",
+              "Access-Control-Request-Method": "POST",
             },
             body: JSON.stringify({
               BookingCode: BookingCode,
@@ -59,33 +62,37 @@ const HotelBooking = () => {
 
         if (data.Status?.Code === 200) {
           setHotelBooking(data.HotelResult || []);
+          setLoader(false);
         } else {
+          setLoader(false);
           console.error(
             "Error fetching hotels:",
             data.response?.Status?.Description
           );
         }
       } catch (error) {
+        setLoader(false);
         console.error("Error fetching hotels:", error);
       }
     };
 
     fetchPriBooking();
-  }, []); // Empty dependency array ensures it runs once
+  }, []);
   const combinedHotels = useMemo(() => {
-    if (!hotel && hotelBooking.length === 0) return []; // Return empty if both are missing
+    if (!hotel && hotelBooking.length === 0) return [];
 
-    // Convert `hotel` into an array if it exists
     const hotelArray = hotel ? [hotel] : [];
 
-    // Extract the new Rooms array from the API response (hotelBooking)
     const updatedHotel = hotelArray.map((hotelItem) => {
-      // Find the corresponding hotel in the hotelBooking array
       const matchingHotel = hotelBooking.find(
         (booking) => booking.HotelCode === hotelItem.HotelCode
       );
 
-      if (matchingHotel && matchingHotel.HotelResult && matchingHotel.HotelResult.length > 0) {
+      if (
+        matchingHotel &&
+        matchingHotel.HotelResult &&
+        matchingHotel.HotelResult.length > 0
+      ) {
         // Replace the Rooms array in the hotel object
         return {
           ...hotelItem,
@@ -98,27 +105,30 @@ const HotelBooking = () => {
     });
 
     // Merge updatedHotel and hotelBooking
-    const mergedHotels = [...updatedHotel, ...hotelBooking].reduce((acc, curr) => {
-      const existingIndex = acc.findIndex(
-        (item) => item.HotelCode === curr.HotelCode
-      );
+    const mergedHotels = [...updatedHotel, ...hotelBooking].reduce(
+      (acc, curr) => {
+        const existingIndex = acc.findIndex(
+          (item) => item.HotelCode === curr.HotelCode
+        );
 
-      if (existingIndex !== -1) {
-        // Merge existing hotel with the new data
-        acc[existingIndex] = { ...acc[existingIndex], ...curr };
-      } else {
-        // Add new hotel if not already in the list
-        acc.push(curr);
-      }
+        if (existingIndex !== -1) {
+          // Merge existing hotel with the new data
+          acc[existingIndex] = { ...acc[existingIndex], ...curr };
+        } else {
+          // Add new hotel if not already in the list
+          acc.push(curr);
+        }
 
-      return acc;
-    }, []);
+        return acc;
+      },
+      []
+    );
 
     return mergedHotels;
   }, [hotel, hotelBooking]);
   // console.log(combinedHotels);
   const navigate = useNavigate();
-  const agent_portal = sessionStorage.getItem('1');
+  const agent_portal = sessionStorage.getItem("1");
   const [showGSTDetails, setShowGSTDetails] = useState(false);
   const [showTaxDetails, setShowTaxDetails] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -173,19 +183,19 @@ const HotelBooking = () => {
   const checkInTime =
     combinedHotels.length > 0
       ? combinedHotels[0].RateConditions?.find((condition) =>
-        condition.includes("CheckIn Time-Begin")
-      )
-        ?.replace("CheckIn Time-Begin:", "")
-        .trim()
+          condition.includes("CheckIn Time-Begin")
+        )
+          ?.replace("CheckIn Time-Begin:", "")
+          .trim()
       : "N/A";
 
   const checkOutTime =
     combinedHotels.length > 0
       ? combinedHotels[0].RateConditions?.find((condition) =>
-        condition.includes("CheckOut Time")
-      )
-        ?.replace("CheckOut Time:", "")
-        .trim()
+          condition.includes("CheckOut Time")
+        )
+          ?.replace("CheckOut Time:", "")
+          .trim()
       : "N/A";
 
   const [showDetails, setShowDetails] = useState(false);
@@ -214,8 +224,6 @@ const HotelBooking = () => {
       </>
     );
   };
-  ;
-
   const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [guestDetails, setGuestDetails] = useState({
@@ -276,7 +284,9 @@ const HotelBooking = () => {
 
   const [errors, setErrors] = useState({});
   const fullNumber = person.contact_no || "";
-  const countryCode = fullNumber.startsWith("+") ? fullNumber.split(" ")[0] : "+91"; // Default to India
+  const countryCode = fullNumber.startsWith("+")
+    ? fullNumber.split(" ")[0]
+    : "+91"; // Default to India
   const phoneNumber = fullNumber.replace(countryCode, "").trim(); // Remove country cod
   // Validation function
   // const validateForm = () => {
@@ -297,7 +307,6 @@ const HotelBooking = () => {
   //   setErrors(newErrors);
   //   return Object.keys(newErrors).length === 0;
   // };
-
 
   // Handle input change
   // const handleChange2 = (e) => {
@@ -354,7 +363,9 @@ const HotelBooking = () => {
   //     });
   //   }
   // };
-  const [peopleData, setPeopleData] = useState([{ firstName: "", lastName: "", email: "", contact_no: "", gender: "" }]);
+  const [peopleData, setPeopleData] = useState([
+    { firstName: "", lastName: "", email: "", contact_no: "", gender: "" },
+  ]);
   // const [registerGST, setRegisterGST] = useState([{ firstName: "", lastName: "", email: "", contact_no: "", gender: "" }]);
   useEffect(() => {
     const storedData = sessionStorage.getItem("peopleData");
@@ -387,14 +398,50 @@ const HotelBooking = () => {
       }
       if (!person.contact_no) {
         personErrors.contact_no = "Contact number is required.";
-      } else if (!/^\d{10}$/.test(person.contact_no)) {
-        personErrors.contact_no = "Contact number must be 10 digits.";
-      }
+    } else {
+        // Remove any non-digit characters and extract only the last 10 digits
+        const phoneNumberOnly = person.contact_no.replace(/\D/g, "").slice(-10);
+    
+        if (phoneNumberOnly.length !== 10) {
+            personErrors.contact_no = "Contact number must be 10 digits.";
+        }
+    }
+    
 
       if (Object.keys(personErrors).length > 0) {
         newErrors[index] = personErrors;
       }
     });
+    if (!gstDetails.gstNo) {
+      newErrors.gstNo = "GST Number is required.";
+    } else if (!/^[0-9A-Z]{15}$/i.test(gstDetails.gstNo)) {
+      newErrors.gstNo =
+        "Invalid GST Number. Must be 15 alphanumeric characters.";
+    }
+
+    // Company Name Validation
+    if (!gstDetails.cName) {
+      newErrors.cName = "Company Name is required.";
+    }
+
+    // Company Address Validation
+    if (!gstDetails.cAddr) {
+      newErrors.cAddr = "Company Address is required.";
+    }
+
+    // Contact Number Validation (Only digits, 10-digit format)
+    if (!gstDetails.contactNo) {
+      newErrors.contactNo = "Contact Number is required.";
+    } else if (!/^\d{10}$/.test(gstDetails.contactNo)) {
+      newErrors.contactNo = "Invalid Contact Number. Must be 10 digits.";
+    }
+
+    // Email Validation
+    if (!gstDetails.email) {
+      newErrors.email = "Email is required.";
+    } else if (!/^\S+@\S+\.\S+$/.test(gstDetails.email)) {
+      newErrors.email = "Invalid email format.";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -421,28 +468,31 @@ const HotelBooking = () => {
       return newErrors;
     });
   };
-  const handleNavigate = () => {
-    if (validateForm()) {
-      // Store GST details in sessionStorage
-      sessionStorage.setItem('gstDetails', JSON.stringify(gstDetails));
-
-      // Ensure peopleData is passed correctly
-      const personData = peopleData.length > 0 ? peopleData : [];
-
-      sessionStorage.setItem('personData', JSON.stringify(personData));
-      if (searchParams.payment == '1') {
-        navigate('/HotelPayment', {
-          state: { combinedHotels, personData }, // Pass both arrays
-        });
-      } else if (searchParams.payment == '0') {
-        console.log('hello');
-        navigate("/HotelBookingCompleted", { state: { combinedHotels } });
-
-      }
+  const handleNavigate = (e) => {
+    if (!validateForm()) {
+      // setShowGSTDetails(e.target.checked)
+      setShowGSTDetails(true);
+      return; // Stop execution if there are errors
+    }
+  
+    // Store GST details in sessionStorage
+    sessionStorage.setItem("gstDetails", JSON.stringify(gstDetails));
+  
+    // Ensure peopleData is passed correctly
+    const personData = peopleData.length > 0 ? peopleData : [];
+  
+    sessionStorage.setItem("personData", JSON.stringify(personData));
+  
+    if (searchParams.payment == "1") {
+      navigate("/HotelPayment", {
+        state: { combinedHotels, personData }, // Pass both arrays
+      });
+    } else if (searchParams.payment == "0") {
+      console.log("hello");
+      navigate("/HotelBookingCompleted", { state: { combinedHotels } });
     }
   };
-
-
+  
 
   const [gstDetails, setGstDetails] = useState({
     gstNo: "",
@@ -453,11 +503,18 @@ const HotelBooking = () => {
   });
   const handleInputChange3 = (e) => {
     const { name, value } = e.target;
+
     setGstDetails((prevDetails) => ({
-      ...prevDetails,
-      [name]: value,
+        ...prevDetails,
+        [name]: value,
     }));
-  };
+
+    // Remove the error only for the current field
+    setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: value.trim() ? '' : prevErrors[name], // Clear error if value is entered
+    }));
+};
 
 
   // const handleSubmit2 = (e) => {
@@ -538,7 +595,7 @@ const HotelBooking = () => {
       </div>
       {loader ? (
         <>
-          <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
+          <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
             <img
               src="../img/hotel_loader.gif"
               alt="Loading..."
@@ -556,6 +613,7 @@ const HotelBooking = () => {
                     <h5 className="text-[#3b3f5c] text-xl font-semibold dark:text-white-light">
                       {hotelItem.HotelName}
                     </h5>
+                    
                     <div className="flex items-center space-x-1">
                       {renderStars(hotelItem.HotelRating)}
                     </div>
@@ -570,56 +628,78 @@ const HotelBooking = () => {
                     <div className="flex flex-cols gap-2 mb-3">
                       <div className="max-w-[25rem] w-full border border-white-light dark:border-[#1b2e4b]  box-color ">
                         <div className="py-2 px-6">
-                          <div className="grid grid-cols-3 items-center justify-center  ">
-                            <div>
-                              <h5 className="text-xs">CHECK IN </h5>
+                          <div className="flex items-center justify-between gap-4 p-2">
+                            {/* Check-in Section */}
+                            <div className="text-center">
+                              <h5 className="text-xs text-gray-500">
+                                CHECK IN
+                              </h5>
                               <span className="text-sm font-semibold">
                                 {formatDate1(searchParams.checkIn)}
                               </span>
-                              <p className="text-xs">{checkInTime}</p>
+                              <p className="text-xs text-gray-500">
+                                {checkInTime}
+                              </p>
                             </div>
 
-                            {/* Display number of nights in the button */}
-                            <button className="border-1 w-20 h-5 mb-2 btn-color rounded-full  text-xs transition duration-300 ">
+                            {/* Nights Count */}
+                            <button className="border w-20 h-6 btn-color rounded-full text-xs font-medium transition duration-300">
                               {nights} {nights === 1 ? "Night" : "Nights"}
                             </button>
 
-                            <div>
-                              <h5 className="text-xs">CHECK OUT </h5>
+                            {/* Check-out Section */}
+                            <div className="text-center">
+                              <h5 className="text-xs text-gray-500">
+                                CHECK OUT
+                              </h5>
                               <span className="text-sm font-semibold">
                                 {formatDate1(searchParams.checkOut)}
                               </span>
-                              <p className="text-xs">{checkOutTime}</p>
+                              <p className="text-xs text-gray-500">
+                                {checkOutTime}
+                              </p>
                             </div>
                           </div>
                         </div>
                       </div>
-                      <div className="max-w-[25rem] w-full border border-white-light dark:border-[#1b2e4b]  box-color">
-                        <div className="py-2 px-6 flex justify-center items-center text-center">
-                          <h5 className="text-sm py-6">
+                      <div className="max-w-[25rem] w-full border border-white-light dark:border-[#1b2e4b] box-color p-4">
+                        <div className="flex justify-center items-center text-center">
+                          <h5 className="text-sm py-4 space-x-2">
                             <span className="font-bold">{nights}</span>{" "}
                             {nights === 1 ? "Night" : "Nights"} |
                             <span className="font-bold">
-                              {" "}
                               {searchParams.Adults}
                             </span>{" "}
-                            Adults |
+                            Adults
+                            {/* Show Children only if greater than 0 */}
+                            {searchParams.Children > 0 && (
+                              <>
+                                |{" "}
+                                <span className="font-bold">
+                                  {searchParams.Children}
+                                </span>{" "}
+                                Children
+                                {/* Show ChildAge only if there are valid ages */}
+                                {Array.isArray(searchParams.ChildAge) &&
+                                searchParams.ChildAge.length > 0 ? (
+                                  <>
+                                    {" "}
+                                    |{" "}
+                                    <span className="font-bold">
+                                      {searchParams.ChildAge.map(
+                                        (age) => `${age} yrs`
+                                      ).join(", ")}
+                                    </span>{" "}
+                                  </>
+                                ) : searchParams.ChildAge ? (
+                                  ` | ${searchParams.ChildAge} yrs`
+                                ) : (
+                                  ""
+                                )}
+                              </>
+                            )}
+                            |{" "}
                             <span className="font-bold">
-                              {" "}
-                              {searchParams.Children}
-                            </span>{" "}
-                            Children
-                            {searchParams.ChildAge?.length > 0 && (
-                              <span className="font-bold">
-                                {Array.isArray(searchParams.ChildAge) && searchParams.ChildAge.length > 0
-                                  ? searchParams.ChildAge.map((age) => `${age} yrs`).join(", ")
-                                  : "0"}
-                              </span>
-
-                            )}{" "}
-                            |
-                            <span className="font-bold">
-                              {" "}
                               {searchParams.Rooms}
                             </span>{" "}
                             Rooms
@@ -629,10 +709,24 @@ const HotelBooking = () => {
                     </div>
 
                     <div className="flex justify-between items-center">
+                      {/* <h5 className="text-[#3b3f5c] text-lg font-semibold dark:text-white-light">
+                        {selectedRoom.Name || "No Room Name Available"}
+                      </h5> */}
                       <h5 className="text-[#3b3f5c] text-lg font-semibold dark:text-white-light">
-                        {selectedRoom.Name ||
-                          "No Room Name Available"}
-                      </h5>
+  {(() => {
+    const roomNames = selectedRoom.Name; // Assuming 'hotelItem.Name' is an array
+
+    if (!roomNames || roomNames.length === 0) return "No Room Available";
+
+    // Check if all room names are the same
+    const allSame = roomNames.every(name => name === roomNames[0]);
+
+    return allSame 
+      ? `${roomNames[0]} `
+      : roomNames.join(" | ");
+  })()}
+</h5>
+
                       <h5
                         className="text-[#785ef7] cursor-pointer text-sm font-semibold"
                         onClick={() => setShowModal2(true)}
@@ -652,16 +746,14 @@ const HotelBooking = () => {
                     )}
                     <ul className="list-disc text-black space-y-1">
                       {selectedRoom.Inclusion && (
-                        <li className="text-sm">
-                          {selectedRoom.Inclusion}
-                        </li>
+                        <li className="text-sm">{selectedRoom.Inclusion}</li>
                       )}
                       <li className="text-sm">
                         {selectedRoom.MealType === "Room_Only"
                           ? "No Meals Included"
                           : selectedRoom.MealType === "BreakFast"
-                            ? "Breakfast Included"
-                            : selectedRoom.MealType}
+                          ? "Breakfast Included"
+                          : selectedRoom.MealType}
                       </li>
                     </ul>
 
@@ -689,9 +781,11 @@ const HotelBooking = () => {
 
                     {/* Display First 4 RateConditions */}
                     <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-white-light">
-                      {hotelItem?.RateConditions?.slice(0, 4).map((condition, index) => (
-                        <li key={index}>{stripHtmlTags(condition)}</li>
-                      ))}
+                      {hotelItem?.RateConditions?.slice(0, 4).map(
+                        (condition, index) => (
+                          <li key={index}>{stripHtmlTags(condition)}</li>
+                        )
+                      )}
                       <button
                         className="text-[#785ef7] text-sm font-semibold mt-2 cursor-pointer"
                         onClick={() => setShowModal(true)}
@@ -699,7 +793,6 @@ const HotelBooking = () => {
                         View More
                       </button>
                     </ul>
-
 
                     {/* View More Button */}
                   </div>
@@ -710,169 +803,201 @@ const HotelBooking = () => {
                       Guest Details
                     </h5>
 
-                    <form >
-                      {(peopleData.length > 0 ? peopleData : [{ title: "", firstName: "", lastName: "", email: "", contact_no: "", gender: "" }])
-                        .map((person, index) => (
-                          <div key={index} className="guestForm">
+                    <form>
+                      {(peopleData.length > 0
+                        ? peopleData
+                        : [
+                            {
+                              title: "",
+                              firstName: "",
+                              lastName: "",
+                              email: "",
+                              contact_no: "",
+                              gender: "",
+                            },
+                          ]
+                      ).map((person, index) => (
+                        <div key={index} className="guestForm">
+                          {/* Show "Passenger 1", "Passenger 2", etc., only if there are multiple passengers */}
+                          {peopleData.length > 1 && (
+                            <h6 className="text-sm mb-2">
+                              Passenger {index + 1}
+                            </h6>
+                          )}
 
-                            {/* Show "Passenger 1", "Passenger 2", etc., only if there are multiple passengers */}
-                            {peopleData.length > 1 && (
-                              <h6 className="text-sm mb-2">Passenger {index + 1}</h6>
-                            )}
-
-                            <div className="guestsInfo__row mb-4">
-                              <div className="makeFlex">
-                                <div className="guestDtls__col width70 appendRight10">
-                                  <p className="font11 capText appendBottom10">Title</p>
-                                  <div className="frmSelectCont">
-                                    <select
-                                      id={`title-${index}`}
-                                      name="title"
-                                      className="form-select"
-                                      value={person.gender === "female" ? "Ms" : person.title || "Mr"}
-                                      onChange={(e) => handleChange2(index, e)}
-                                    >
-                                      <option value="Mr">Mr</option>
-                                      <option value="Mrs">Mrs</option>
-                                      <option value="Ms">Ms</option>
-                                    </select>
-                                    {errors[index]?.title && (
-                                      <span className="error text-xs">{errors[index].title}</span>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="makeFlex column flexOne">
-                                  <div className="makeFlex">
-                                    <div className="guestDtls__col width247 appendRight10">
-                                      <div className="textFieldCol">
-                                        <p className="font11 appendBottom10 guestDtlsTextLbl">
-                                          <span className="font11 capText appendBottom10">FIRST NAME</span>
-                                        </p>
-                                        <input
-                                          type="text"
-                                          id={`fName-${index}`}
-                                          name="firstName"
-                                          className="frmTextInput"
-                                          placeholder="First Name"
-                                          value={person.firstName || ""}
-                                          onChange={(e) => handleChange2(index, e)}
-                                        />
-                                        {errors[index]?.firstName && (
-                                          <span className="error text-xs">{errors[index].firstName}</span>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <div className="guestDtls__col width247">
-                                      <div className="textFieldCol">
-                                        <p className="font11 appendBottom10 guestDtlsTextLbl">
-                                          <span className="capText">LAST NAME</span>
-                                        </p>
-                                        <input
-                                          type="text"
-                                          id={`lName-${index}`}
-                                          name="lastName"
-                                          className="frmTextInput"
-                                          placeholder="Last Name"
-                                          value={person.lastName || ""}
-                                          onChange={(e) => handleChange2(index, e)}
-                                        />
-                                        {errors[index]?.lastName && (
-                                          <span className="error text-xs">{errors[index].lastName}</span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
+                          <div className="guestsInfo__row mb-4">
+                            <div className="makeFlex">
+                              <div className="guestDtls__col width70 appendRight10">
+                                <p className="font11 capText appendBottom10">
+                                  Title
+                                </p>
+                                <div className="frmSelectCont">
+                                  <select
+                                    id={`title-${index}`}
+                                    name="title"
+                                    className="form-select"
+                                    value={
+                                      person.gender === "female"
+                                        ? "Ms"
+                                        : person.title || "Mr"
+                                    }
+                                    onChange={(e) => handleChange2(index, e)}
+                                  >
+                                    <option value="Mr">Mr</option>
+                                    <option value="Mrs">Mrs</option>
+                                    <option value="Ms">Ms</option>
+                                  </select>
+                                  {errors[index]?.title && (
+                                    <span className="error text-xs">
+                                      {errors[index].title}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
-                            </div>
-
-                            {/* Email & Mobile Number Section */}
-                            <div className="guestDtls__row mb-4">
-                              <div className="makeFlex">
-                                <div className="guestDtls__col width327 appendRight10">
-                                  <div className="textFieldCol">
-                                    <p className="font11 appendBottom10 guestDtlsTextLbl">
-                                      <span className="capText">Email Address</span>
-                                      <span className="grayText appendLeft3">
-                                        (Booking voucher will be sent to this email ID)
-                                      </span>
-                                    </p>
-                                    <input
-                                      type="text"
-                                      id={`email-${index}`}
-                                      name="email"
-                                      className="frmTextInput"
-                                      placeholder="Email ID"
-                                      value={person.email || ""}
-                                      onChange={(e) => handleChange2(index, e)}
-                                    />
-                                    {errors[index]?.email && (
-                                      <span className="error text-xs">{errors[index].email}</span>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="guestDtls__col width327">
-                                  <p className="font11 capText appendBottom10">Mobile Number</p>
-                                  <div className="makeFlex textLtr">
-                                    <div className="guestDtls__contact phone-container">
-                                      <div className="phone-code">
-                                        <PhoneInput
-                                          country={"in"} // Default country
-                                          value={
-                                            person.contact_no.startsWith("+")
-                                              ? person.contact_no
-                                              : `+91${person.contact_no || ""}`
-                                          } // Ensure E.164 format
-                                          onChange={(value) => {
-                                            const cleanedValue = value.replace(/[+\-()\s]/g, ""); // Remove special characters
-                                            handleChange2(index, {
-                                              target: { name: "contact_no", value: `+${cleanedValue}` }, // Store with "+"
-                                            });
-                                          }}
-                                          inputProps={{
-                                            name: "contact_no",
-                                            id: `mNo-${index}`,
-                                            required: true,
-                                          }}
-                                          containerClass="phone-input-hidden"
-                                          buttonClass="country-dropdown"
-                                        />
-                                      </div>
-
+                              <div className="makeFlex column flexOne">
+                                <div className="makeFlex">
+                                  <div className="guestDtls__col width247 appendRight10">
+                                    <div className="textFieldCol">
+                                      <p className="font11 appendBottom10 guestDtlsTextLbl">
+                                        <span className="font11 capText appendBottom10">
+                                          FIRST NAME
+                                        </span>
+                                      </p>
                                       <input
                                         type="text"
-                                        value={person.contact_no.replace(/^\+\d+\s*/, "") || ""}
+                                        id={`fName-${index}`}
+                                        name="firstName"
+                                        className="frmTextInput"
+                                        placeholder="First Name"
+                                        value={person.firstName || ""}
                                         onChange={(e) =>
-                                          handleChange2(index, { target: { name: "contact_no", value: e.target.value } })
+                                          handleChange2(index, e)
                                         }
-                                        className="phone-number-input"
-                                        placeholder="Enter Mobile Number"
                                       />
-
-                                      {errors[index]?.contact_no && (
-                                        <span className="error text-xs">{errors[index].contact_no}</span>
+                                      {errors[index]?.firstName && (
+                                        <span className="error text-xs">
+                                          {errors[index].firstName}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="guestDtls__col width247">
+                                    <div className="textFieldCol">
+                                      <p className="font11 appendBottom10 guestDtlsTextLbl">
+                                        <span className="capText">
+                                          LAST NAME
+                                        </span>
+                                      </p>
+                                      <input
+                                        type="text"
+                                        id={`lName-${index}`}
+                                        name="lastName"
+                                        className="frmTextInput"
+                                        placeholder="Last Name"
+                                        value={person.lastName || ""}
+                                        onChange={(e) =>
+                                          handleChange2(index, e)
+                                        }
+                                      />
+                                      {errors[index]?.lastName && (
+                                        <span className="error text-xs">
+                                          {errors[index].lastName}
+                                        </span>
                                       )}
                                     </div>
                                   </div>
                                 </div>
-
-
                               </div>
                             </div>
-                            {(index === 0 || index === 1) && peopleData.length > 1 && <hr className="passenger-separator" />}
                           </div>
-                        ))}
 
-
+                          {/* Email & Mobile Number Section */}
+                          <div className="guestDtls__row mb-4">
+                            <div className="makeFlex">
+                              <div className="guestDtls__col width327 appendRight10">
+                                <div className="textFieldCol">
+                                  <p className="font11 appendBottom10 guestDtlsTextLbl">
+                                    <span className="capText">
+                                      Email Address
+                                    </span>
+                                    <span className="grayText appendLeft3">
+                                      (Booking voucher will be sent to this
+                                      email ID)
+                                    </span>
+                                  </p>
+                                  <input
+                                    type="text"
+                                    id={`email-${index}`}
+                                    name="email"
+                                    className="frmTextInput"
+                                    placeholder="Email ID"
+                                    value={person.email || ""}
+                                    onChange={(e) => handleChange2(index, e)}
+                                  />
+                                  {errors[index]?.email && (
+                                    <span className="error text-xs">
+                                      {errors[index].email}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="guestDtls__col width327">
+                                <p className="font11 capText appendBottom10">
+                                  Mobile Number
+                                </p>
+                                <div className="makeFlex textLtr">
+                                  <div className="guestDtls__contact ">
+                                    <div className="country-code-container">
+                                      <PhoneInput
+                                        country={"in"}
+                                        value={person.contact_no}
+                                        onChange={(phone) => {
+                                          handleChange2(index, {
+                                            target: {
+                                              name: "contact_no",
+                                              value: phone,
+                                            },
+                                          });
+                                        }}
+                                        onlyCountries={[
+                                          "us",
+                                          "gb",
+                                          "in",
+                                          "au",
+                                          "de",
+                                          "fr",
+                                          "jp",
+                                        ]}
+                                        disableDropdown={false}
+                                        buttonClass="show-flag"
+                                        containerClass="custom-phone-input"
+                                        inputClass="contact-number-input"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                {errors[index]?.contact_no && (
+                                  <span className="error text-xs">
+                                    {errors[index].contact_no}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          {(index === 0 || index === 1) &&
+                            peopleData.length > 1 && (
+                              <hr className="passenger-separator" />
+                            )}
+                        </div>
+                      ))}
 
                       <div className="guestDtls__row mb-4">
                         <div>
                           <div className="makeFlex hrtlCenter spaceBetween appendBottom15 mt-3 mb-4 ">
-                            <span className="checkmarkOuter gap-2  ">
+                            <span className="checkmarkOuter gap-2">
                               <input
                                 type="checkbox"
                                 id="gstVisible"
-                                data-gtm-form-interact-field-id="0"
                                 className="w-4 h-4"
                                 onChange={(e) =>
                                   setShowGSTDetails(e.target.checked)
@@ -880,11 +1005,11 @@ const HotelBooking = () => {
                               />
                               <label
                                 className="makeFlex hrtlCenter gap-1"
-                                for="gstVisible"
+                                htmlFor="gstVisible"
                               >
                                 <span className="font14 blackText appendRight5">
                                   Enter GST Details
-                                </span>{" "}
+                                </span>
                                 <span className="font11 grayText">
                                   (Optional)
                                 </span>
@@ -892,68 +1017,99 @@ const HotelBooking = () => {
                             </span>
                           </div>
                         </div>
+
                         {showGSTDetails && (
                           <div className="space-y-5">
-                            <><div className="makeFlex ">
+                            <div className="makeFlex">
+                              {/* GST Number */}
                               <div className="guestDtls__col width220 appendRight10">
-                                <div className="textFieldCol ">
+                                <div className="textFieldCol">
                                   <p className="font11 appendBottom10 guestDtlsTextLbl">
                                     <span className="capText">
                                       Registration Number
                                     </span>
                                   </p>
-                                  <input
-                                    type="text"
-                                    name="gstNo"
-                                    className="frmTextInput"
-                                    placeholder="Enter Registration No."
-                                    value={gstDetails.gstNo}
-                                    onChange={handleInputChange3}
-                                  />
-                                </div>
-                              </div>
-                              <div className="guestDtls__col width220 appendRight10">
-                                <div className="textFieldCol ">
-                                  <p className="font11 appendBottom10 guestDtlsTextLbl">
-                                    <span className="capText">
-                                      Registered Company name
-                                    </span>
-                                  </p>
-                                  <input
-                                    type="text"
-                                    name="cName"
-                                    className="frmTextInput"
-                                    placeholder="Enter Company Name"
-                                    value={gstDetails.cName}
-                                    onChange={handleInputChange3}
-                                  />
-                                </div>
-                              </div>
-                              <div className="guestDtls__col width220 appendRight10">
-                                <div className="textFieldCol ">
-                                  <p className="font11 appendBottom10 guestDtlsTextLbl">
-                                    <span className="capText">
-                                      Registered Company address
-                                    </span>
-                                  </p>
-                                  <input
-                                    type="text"
-                                    name="cAddr"
-                                    className="frmTextInput"
-                                    placeholder="Enter Company Address"
-                                    value={gstDetails.cAddr}
-                                    onChange={handleInputChange3}
-                                  />
-                                </div>
-                              </div>
-                            </div><div className="makeFlex">
-                                <div className="guestDtls__col width220 appendRight10">
-                                  <div className="textFieldCol ">
-                                    <p className="font11 appendBottom10 guestDtlsTextLbl">
-                                      <span className="capText">
-                                        Registration Contact Number
+                                  <div className="input-wrapper">
+                                    <input
+                                      type="text"
+                                      name="gstNo"
+                                      className="frmTextInput"
+                                      placeholder="Enter Registration No."
+                                      value={gstDetails.gstNo}
+                                      onChange={handleInputChange3}
+                                    />
+                                    {errors.gstNo && (
+                                      <span className="error text-xs">
+                                        {errors.gstNo}
                                       </span>
-                                    </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Company Name */}
+                              <div className="guestDtls__col width220 appendRight10">
+                                <div className="textFieldCol">
+                                  <p className="font11 appendBottom10 guestDtlsTextLbl">
+                                    <span className="capText">
+                                      Registered Company Name
+                                    </span>
+                                  </p>
+                                  <div className="input-wrapper">
+                                    <input
+                                      type="text"
+                                      name="cName"
+                                      className="frmTextInput"
+                                      placeholder="Enter Company Name"
+                                      value={gstDetails.cName}
+                                      onChange={handleInputChange3}
+                                    />
+                                    {errors.cName && (
+                                      <span className="error text-xs">
+                                        {errors.cName}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Company Address */}
+                              <div className="guestDtls__col width220 appendRight10">
+                                <div className="textFieldCol">
+                                  <p className="font11 appendBottom10 guestDtlsTextLbl">
+                                    <span className="capText">
+                                      Registered Company Address
+                                    </span>
+                                  </p>
+                                  <div className="input-wrapper">
+                                    <input
+                                      type="text"
+                                      name="cAddr"
+                                      className="frmTextInput"
+                                      placeholder="Enter Company Address"
+                                      value={gstDetails.cAddr}
+                                      onChange={handleInputChange3}
+                                    />
+                                    {errors.cAddr && (
+                                      <span className="error text-xs">
+                                        {errors.cAddr}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="makeFlex">
+                              {/* Contact Number */}
+                              <div className="guestDtls__col width220 appendRight10">
+                                <div className="textFieldCol">
+                                  <p className="font11 appendBottom10 guestDtlsTextLbl">
+                                    <span className="capText">
+                                      Registration Contact Number
+                                    </span>
+                                  </p>
+                                  <div className="input-wrapper">
                                     <input
                                       type="text"
                                       name="contactNo"
@@ -962,15 +1118,24 @@ const HotelBooking = () => {
                                       value={gstDetails.contactNo}
                                       onChange={handleInputChange3}
                                     />
+                                    {errors.contactNo && (
+                                      <span className="error text-xs">
+                                        {errors.contactNo}
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
-                                <div className="guestDtls__col width220 appendRight10">
-                                  <div className="textFieldCol ">
-                                    <p className="font11 appendBottom10 guestDtlsTextLbl">
-                                      <span className="capText">
-                                        Registered Company Mail
-                                      </span>
-                                    </p>
+                              </div>
+
+                              {/* Company Email */}
+                              <div className="guestDtls__col width220 appendRight10">
+                                <div className="textFieldCol">
+                                  <p className="font11 appendBottom10 guestDtlsTextLbl">
+                                    <span className="capText">
+                                      Registered Company Mail
+                                    </span>
+                                  </p>
+                                  <div className="input-wrapper">
                                     <input
                                       type="text"
                                       name="email"
@@ -979,13 +1144,17 @@ const HotelBooking = () => {
                                       value={gstDetails.email}
                                       onChange={handleInputChange3}
                                     />
+                                    {errors.email && (
+                                      <span className="error text-xs">
+                                        {errors.email}
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
+                              </div>
+                            </div>
 
-                              </div></>
                           </div>
-
-
                         )}
                       </div>
                       {selectedGuests.length > 0 && (
@@ -1269,41 +1438,33 @@ const HotelBooking = () => {
                         type="checkbox"
                         name="isBelow12"
                         className="form-checkbox w-3 h-auto"
-                      // checked={guestDetails.isBelow12 || false} // Prevents undefined issues
-                      // onChange={handleChange}
+                        // checked={guestDetails.isBelow12 || false} // Prevents undefined issues
+                        // onChange={handleChange}
                       />
                       <span className="text-xs">
-                        By proceeding, I agree to Cotrav's User Agreement,
-                        Terms of Service and Cancellation & Property Booking
-                        Policies.
+                        By proceeding, I agree to Cotrav's User Agreement, Terms
+                        of Service and Cancellation & Property Booking Policies.
                       </span>
                     </label>
                     <div>
-                      {searchParams.payment == '1' && (
-
-
+                      {searchParams.payment == "1" && (
                         <button
                           type="button"
                           className="bg-[#785ef7] button_width h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]"
                           onClick={handleNavigate}
                         >
-
                           Pay To Proceed
                         </button>
                       )}
-                      {searchParams.payment == '0' && (
-
-
+                      {searchParams.payment == "0" && (
                         <button
                           type="button"
                           className="bg-[#785ef7] button_width h-10 text-white px-2 rounded-md font-semibold text-sm transition duration-300 hover:bg-[#5a3ec8]"
                           onClick={handleNavigate}
                         >
-
                           Proceed
                         </button>
                       )}
-
                     </div>
                   </div>
                 </div>
