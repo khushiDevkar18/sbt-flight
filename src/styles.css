@@ -1317,11 +1317,11 @@ cursor: pointer;
 .search-asvanced {
   display: block;
   padding: 15px;
-  background-color: #f9f9f9; /* Light background color */
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  width: 640px; /* Adjust the width as needed */
-  margin-left:38.5%;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 560px;
+  margin-left: 47.5%;
   margin-top: -6%;
   position: absolute;
 }
@@ -2125,12 +2125,12 @@ button.srch-btn {
 
 .input-a {
   padding: 6px 12px 7px 7px;
-  background: #fff none repeat scroll 0 0;
+  /* background: #fff none repeat scroll 0 0; */
   border: 1px solid #e3e3e3;
   border-radius: 3px;
   box-shadow: 0 1px 1px 0 rgba(50, 50, 50, 0.05);
   /* color: red; */
-min-height: 34px;
+min-height: 40px;
 border: none;
 box-shadow:none;
 
@@ -2407,8 +2407,8 @@ padding-left: 12px;
 
 .select-wrapper1 label {
   display: inline-block;
-    width: 35px; /* Adjusted width */
-    height: 35px; /* Adjusted height */
+    width: 30px; /* Adjusted width */
+    height: 30px; /* Adjusted height */
     background-color: #fff;
     border: 1px solid #ced4da;
 
@@ -2418,7 +2418,7 @@ padding-left: 12px;
     position: relative;
     vertical-align: middle;
     text-align: center;
-    line-height: 35px; /* Center the text */
+    line-height: 30px; /* Center the text */
     color: #8a8a8a;
     transition: all 0.3s;
 }
@@ -2435,10 +2435,10 @@ padding-left: 12px;
 }
 
 .select-wrapper2 label {
-  width: 200px;
+  width: 175px;
     text-transform: capitalize;
-    font-size: 13px;
-    height: 30px;
+    font-size: 12px;
+    height: 25px;
 }
 
 .select-wrapper2 label:hover {
@@ -4475,24 +4475,27 @@ nav ul li {
 .side-block .checkbox {
   margin-bottom: 18px;
   height: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .side-block .checkbox label {
   display: block;
-  margin-top: -19px;
-  margin-left: 20px;
+  margin-left: 7px;
   font-family: 'Open Sans';
   cursor: pointer;
   font-weight: 600;
   text-transform: capitalize;
   font-size: 11px;
   color: #848484;
+  gap: 10px;
+  display: flex;
 }
 
 .side-block .checkbox label.active {
   color: #4a90a4;
 }
-
 .side-block .checkbox:last-child {
   margin-bottom: 5px;
 }
@@ -17407,7 +17410,7 @@ input:checked+.slider:before {
   padding: 7px 10px;
   font-size: 12px;
   cursor: pointer;
-  /* width: 23%; */
+  width: 27%;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 5px;
   background: white;
   border: 1px solid #e0e0e0;
@@ -17746,7 +17749,7 @@ color: #fff;
 .booking-left .accordion div{
   margin: 0px;
 }
-.seatprevbutton{
+/* .seatprevbutton{
   margin-top: 35%;
   margin-left: 5%;
   border: 2px solid #bd8100;
@@ -17772,6 +17775,43 @@ color: #fff;
     font-size: 17px;
     color: #fff;
     font-weight: 600;
+} */
+.seatprevbutton, .seatnextbutton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  border: 2px solid #785eff;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #785eff, #5a42e0);
+  box-shadow: 0 5px 10px rgba(120, 94, 255, 0.3);
+  color: white;
+  /* font-size: 20px; */
+  font-weight: bold;
+  font-family: 'Raleway', sans-serif;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+.seatprevbutton:hover, .seatnextbutton:hover {
+  background: #5a42e0;
+  box-shadow: 0 8px 15px rgba(120, 94, 255, 0.5);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.seatprevbutton {
+  /* left: 10px; */
+  left: 26%;
+  top: 53%;
+}
+
+.seatnextbutton {
+  right: 15%;
+  top: 53%;
 }
 .rc-slider-track{
   background-color: #785eff !important; 
@@ -19414,6 +19454,7 @@ button#search-button:hover {
   flex: 1;
   border: 1px solid #D9DFC6;
   height: 93px;
+  max-width: 222px;
 }
 .search-buttonn {
   background-color: #785ef7;
@@ -19424,11 +19465,17 @@ button#search-button:hover {
   font-size: 16px;
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  width:170px;
+  width:160px;
   margin-top: 20px; /* Add spacing above the button */
   margin: auto;
 
  
+}
+.airline-logo {
+  width: 17px; /* Adjust size as needed */
+  height: 17px;
+  object-fit: contain;
+  border-radius: 3px; /* Optional: To make logos look uniform */
 }
 .search-buttonn:hover{
   background-color: #644ed4;
@@ -19436,8 +19483,8 @@ button#search-button:hover {
 .swapbuttonn {
   position: absolute; /* Position the button absolutely */
   top: 42%; /* Center vertically */
-  transform: translateY(-50%); /* Adjust for vertical centering */
-  left: 20%;
+  transform: translateY(-50%);
+  left: 33.5%;
   background: white; /* Make the button background transparent */
   border: none; /* Remove button border */
   z-index: 1;
@@ -19489,6 +19536,19 @@ button#search-button:hover {
   padding: 0;
   margin: 0;
 }
+/* City Name */
+.city-names {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* IATA Code */
+.iata-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
 
 .city-name-input::placeholder {
   color: #ccc;
@@ -19509,13 +19569,13 @@ button#search-button:hover {
   /* margin-top: 5px; */
 }
 
-.dropdown {
+/* .dropdown {
   position: absolute;
   top: 100%;
   left: 0;
   background-color: #fff;
   border: 1px solid #e3e3e3;
-  /* border-radius: 4px; */
+ 
   width: 180px;
   z-index: 9999;
   max-height: 150px;
@@ -19523,33 +19583,290 @@ button#search-button:hover {
   margin-top: 5px;
   padding: 0;
   list-style: none;
+} */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: -10%;
+  width: 120%; 
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  max-height: 280px;
+  overflow-y: auto;
+  margin-top: 5px;
+  padding: 10px 0;
+  list-style: none;
+  border: 1px solid #ddd;
+}
+
+
+/* .dropdown-item:last-child {
+  border-bottom: none;
+} */
+
+
+.dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
 }
 
 .dropdown-item {
-  /* padding: 10px; */
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  /* padding-left: 10px; */
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   font-family: 'Montserrat', sans-serif;
-  color: #4c4c4c;
-  /* border-bottom: 1px solid #e3e3e3; */
+  color: #333;
+  transition: background 0.2s ease-in-out;
+  border-radius: 6px;
+  
+}
+.dropdown-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7a7a7a;
+  padding: 8px 15px;
+  text-transform: uppercase;
 }
 
-.dropdown-item:last-child {
-  border-bottom: none;
-}
-
+/* Hover effect */
 .dropdown-item:hover {
-  background-color: #f1f1f1;
+  background: #f8f9fa;
 }
 
-.dropdown-item .airport-name {
+/* Top row: City name and IATA code */
+.dropdown-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 5px;
+}
+
+/* .dropdown-item .airport-name {
   font-size: 10px;
   color: #7a7a7a;
-}
+} */
 
 .textsize{
   font-size: 11px !important;
 }
 .Select-box{
   width: 50px !important;
+}
+.flight-details-container {
+  background: #f4f4f4;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.accordionfarename .apicircle{
+  width: 3%;
+  font-size: 9px;
+  font-weight: 600;
+  margin: 1%;
+}
+.accordionfarename .airportname{
+  font-size: 14px;
+  width: auto;
+  color: black;
+  font-family: 'Montserrat';
+  font-weight: 600;
+  margin: 1%;
+}
+.accordionfarename .airport{
+  /* font-size: 14px;*/
+   width: auto; 
+  color: black;
+  font-family: 'Montserrat';
+  font-weight: 600;
+  margin: 1%;
+}
+.accordionfarename .vertical_line{
+  border-left: 2px dashed #a0a0a0;
+    height: 22px;
+    margin-left: 2.8%;
+    width: 4.6%;
+}
+.baggage-info {
+  display: flex;
+  /* justify-content: space-between; */
+  padding: 10px 0;
+  font-size: 14px;
+  color: #333;
+  border-top: 1px solid #ddd;
+  gap: 20px;
+}
+.baggage-icon {
+  width: 16px; /* Adjust size as needed */
+  height: 16px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.cabin-baggage {
+  display: inline-flex;
+  align-items: center; /* Aligns the image and text properly */
+  gap: 5px; /* Adds a little space between the image and text */
+}
+.checkin-baggage{
+  display: inline-flex;
+  align-items: center; /* Aligns the image and text properly */
+  gap: 5px; /* Adds a little space between the image and text */
+}
+.table-container {
+  margin-top: 20px;  /* Adjust the top margin as needed */
+  margin-bottom: 20px;  /* Adjust the bottom margin as needed */
+}
+.styled-table {
+  width: 80%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.styled-table th,
+.styled-table td {
+  border: 1px solid rgb(227, 227, 227); 
+  padding: 8px;
+  text-align: left;
+}
+
+.styled-table th {
+  background-color: #f4f4f4;
+}
+
+.styled-table th, .styled-table td {
+  width: 50%;  /* Ensure equal width for both columns */
+  padding-left: 4%;
+}
+.note {
+  font-size: 0.7em;       /* Smaller font size */
+  color: #555;            /* Lighter color for the note */
+  margin-top: 10px;       /* Adds some space above the note */
+  margin-bottom: 10px;    /* Adds space below the note */
+}
+.highlighted-note {
+  font-size: 0.8em;
+  color: #555;
+  margin-top: 20px;
+  width: 80%;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f6e2d5;  
+  border-radius: 5px;         /* Optional: rounded corners */
+}
+.booking-container1 {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Space between rows */
+  margin: 5px;
+}
+.booking-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Individual Field Container */
+.booking-field {
+  flex: 1;
+  min-width: 30%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Labels */
+.booking-field label {
+  font-size: 12px;
+  color: #626262;
+  margin-bottom: 5px;
+  display: inline-flex; /* Keeps text and star on the same line */
+  align-items: center;
+  gap: 4px; /* Adds space between text and star */
+  white-space: nowrap; /* Prevents wrapping */
+}
+
+/* Input and Select Styles */
+.booking-field input,
+.booking-field select {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #e3e3e3;
+  height: 36px;
+  font-size: 13px;
+  color: #626262;
+  border-radius: 4px;
+  outline: none;
+}
+
+/* Select Dropdown Styling */
+.custom-select {
+  appearance: none;
+  background-color: #fff;
+  cursor: pointer;
+}
+.booking-field.booking-mobile {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.mobile-input-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.phone-input {
+  width: 100%;
+}
+
+/* Error Message Styling */
+.error-message {
+  font-size: 11px;
+  color: red;
+  margin-top: 4px;
+  display: none; /* Initially hidden */
+}
+.booking-form-i2 label::after {
+  content: '*';
+  color: red;
+  font-size: 20px;
+  position: relative;
+}
+.loader-gif {
+  width: 130px;
+  height: 130px;
+}
+.airport-flight-container {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Space between image and details */
+  flex-grow: 1;
+}
+.airport-flight-details {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between airline name, number, and aircraft type */
+}
+.airport-cabin-class {
+  margin-left: auto;
+  font-weight: bold;
+  color: #333;
+  margin-right: 2%;
+}
+.airport-flight-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Aligns elements in a row */
+  width: 100%;
+  padding: 8px 12px;
 }

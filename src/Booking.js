@@ -9,8 +9,10 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Swal from 'sweetalert2';
-import IconLoader from './IconLoader';
-// import ErrorLogger from './ErrorLogger';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
+import CONFIG from "./config";
+
 
 const FlightCheckIn = ({ CheckIn, onFlightCheckInChange }) => {
     useEffect(() => {
@@ -27,25 +29,47 @@ const FlightCabin = ({ Cabin, onFlightCabinChange }) => {
     return <span>{Cabin}</span>;
 };
 const Booking = () => {
-
     const location = useLocation();
     const [loading, setLoading] = useState(false);
     const formtaxivaxi = location.state && location.state.serviceData.formtaxivaxi;
     const bookingid = location.state && location.state.serviceData.booking_id;
     const clientid = location.state && location.state.serviceData?.client_id;
     const is_gst_benefit = location.state && location.state.serviceData?.is_gst_benefit;
+    const fareInfoRefKey = location.state && location.state.serviceData?.fareInfoRefKey;
 
+    const segmentParsee = location.state && location.state.serviceData.SegmentPricelist;
+    const packageSelectedd = location.state && location.state.serviceData.packageselected;
+    const [segmentParse, setSegmentParse] = useState(() => segmentParsee); // Initialize only once
+    const hasUpdated = useRef(false);
+    useEffect(() => {
+        if (!hasUpdated.current && segmentParsee) {
+            setSegmentParse(segmentParsee);
+        }
+    }, [segmentParsee]);
+
+    const packageSelectedRef = useRef(null);
+    const segmentParseRef = useRef(null);
+
+    const [packageSelected, setPackageSelected] = useState(packageSelectedd);
+    console.log('asdfasdfkjasdfasd', packageSelected);
+
+    const tripType = formtaxivaxi['trip_type'];
+    const flightType = formtaxivaxi['flight_type'];
+    let seat_type = formtaxivaxi['seat_type'];
     let returns = 0;
     if (formtaxivaxi) {
         returns = formtaxivaxi['trip_type'] === "Round Trip" ? 1 : 0;
     }
-    const segmentParse = location.state && location.state.serviceData.SegmentPricelist;
-    // console.log('segmentParse',segmentParse);
+
+    const segment = Array.isArray(segmentParse) ? segmentParse : [segmentParse];
+    const providerCode = segment[0]['$']['ProviderCode'];
+    const carrier = segment[0]['$']['SupplierCode'];
+
     const apiairports = location.state && location.state.serviceData.apiairportsdata;
     const serviceresponse = location.state && location.state.serviceData.servicedata;
     const request = location.state?.serviceData || {};
 
-    const packageSelected = location.state && location.state.serviceData.packageselected;
+    const fareFamily = packageSelected?.["air:AirPricingInfo"]?.["air:FareInfo"]?.["$"]?.FareFamily;
 
     const Airports = location.state && location.state.serviceData.Airports;
 
@@ -54,6 +78,16 @@ const Booking = () => {
     const Passengerarray = location.state && location.state.serviceData.Passengerarray;
     const [passengereventKeys, setPassengerkey] = useState(Passengerarray[0]['Key']);
     const classType = location.state && location.state.serviceData.classtype;
+    const access_token = location.state && location.state.serviceData.accesstoken;
+    const comHostTokens1 = location.state && location.state.serviceData.comHostTokens1;
+    const segmentArray1 = location.state && location.state.serviceData.segmentArray;
+    const Passengerxml = location.state && location.state.serviceData.Passengerxml;
+    const airPricingCommand = location.state && location.state.serviceData.airPricingCommand;
+    const markup_price = location.state && location.state.serviceData.markup_price;
+    const flightDetails = location.state && location.state.serviceData.flightDetails;
+    const actualFlightDetails = location.state && location.state.serviceData.flightDetails;
+    console.log('flightDetails', flightDetails);
+
     const [accordion1Expanded, setAccordion1Expanded] = useState(true);
     const [accordion5Expanded, setAccordion5Expanded] = useState(false);
     const [flightErrors, setFlighterrors] = useState([]);
@@ -63,6 +97,8 @@ const Booking = () => {
     const [passengerDetailsVisible, setPassengerDetailsVisible] = useState(true);
     const [seattravelerparse, setseattravelerparse] = useState(null);
     const [seatOptionalparse, setseatOptionalparse] = useState(null);
+    const [segmenttaxivaxisData, setsegmenttaxivaxis] = useState(null);
+
     const [checkedInBaggage, setCheckedIn] = useState(null);
     const [cabinBaggage, setCabin] = useState(null);
     const [Passengers, setPassengers] = useState(null);
@@ -76,7 +112,21 @@ const Booking = () => {
     const [activeTab, setActiveTab] = useState(0);
     const [clientGst, setClientGST] = useState([]);
     const [clientFormGst, setClientFormGST] = useState([]);
-      
+    const [pnr_no, setPnrCode] = useState([]);
+    const noOfSeats = formtaxivaxi['no_of_seats'];
+    const [value, setValue] = useState('');
+    const [isseatloading, setSeatloading] = useState(false);
+    const [isreservation, setReservation] = useState(false);
+    const [fareRuleText, setFareRuleText] = useState(null);
+    const [cancellationPolicy, setCancellationPolicy] = useState(null);
+
+    const providerCodeRef = useRef(null);
+    const Targetbranch = 'P7206253';
+
+    const handleChange = (value) => {
+        setValue(value);
+    };
+
 
     const handleCheckIn = (baggage) => {
         setCheckedIn(baggage);
@@ -87,6 +137,8 @@ const Booking = () => {
     }
 
     const mergedData = { ...emptaxivaxi };
+
+
     if (Passengers) {
         Object.keys(Passengers.keys).forEach(index => {
             const taxiInfo = emptaxivaxi[index];
@@ -95,10 +147,12 @@ const Booking = () => {
             }
         });
     }
-    // console.log(mergedData);
-    const employees = Object.keys(formtaxivaxi)
-        .filter(key => key.startsWith("passengerDetailsArray") && key.endsWith("[id]")) // Find all "[id]" keys
-        .map(key => formtaxivaxi[key]);
+
+    const employees = Array.isArray(formtaxivaxi.passengerDetailsArray)
+        ? formtaxivaxi.passengerDetailsArray.map(passenger => passenger.id)
+        : Object.keys(formtaxivaxi)
+            .filter(key => key.startsWith("passengerDetailsArray") && key.endsWith("[id]"))
+            .map(key => formtaxivaxi[key]);
 
     const hasNonEmptyProperties = (obj) => {
         for (let key in obj) {
@@ -113,6 +167,21 @@ const Booking = () => {
         fetchGstData();
     }, []);
 
+    useEffect(() => {
+        const fetchCancellationPolicy = async () => {
+            if (cancellationPolicy) return;
+
+            try {
+                const response = await axios.get(`${CONFIG.MAIN_API}/api/flights/getCancellationDateChangePolicy`);
+                setCancellationPolicy(response.data.data);
+            } catch (error) {
+                console.error("Error fetching cancellation policy:", error);
+            }
+        };
+
+        fetchCancellationPolicy();
+    }, [cancellationPolicy]);
+
     const clearedData = async () => {
         const empIdsArray = Array.isArray(employees) ? employees : [employees]; // Ensure empIdsArray is always an array
         const formData = new URLSearchParams();
@@ -122,7 +191,7 @@ const Booking = () => {
         });
 
         try {
-            const response = await fetch('https://demo.taxivaxi.com/api/flights/employeeByTaxivaxi', {
+            const response = await fetch(`${CONFIG.MAIN_API}/api/flights/employeeByTaxivaxi`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -136,7 +205,7 @@ const Booking = () => {
 
             const responseData = await response.json();
             const data = responseData.result;
-            console.log("data",data)
+
             const organizedData = {};
 
             // Organize the response data
@@ -155,7 +224,7 @@ const Booking = () => {
 
         try {
             if (is_gst_benefit == '1') {
-                const response = await fetch('https://demo.taxivaxi.com/api/flights/getClientGst', {
+                const response = await fetch(`${CONFIG.MAIN_API}/api/flights/getClientGst`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -169,15 +238,15 @@ const Booking = () => {
 
                 const responseData = await response.json();
                 const data = responseData.result;
-  
+
                 const gstData = {
                     gst_id: data.gst_id || '',
                     billing_name: data.billing_name || '',
                     billing_address: data.billing_address_line1 || '',
                     billing_contact: data.billing_contact || ''
                 };
-    
-                setClientGST(gstData); 
+
+                setClientGST(gstData);
             }
             else {
                 const gst_id = '07AAGCB3556P1Z7';
@@ -185,7 +254,7 @@ const Booking = () => {
                 const billing_address = '1 1075 1 2 GF 4/Mehrauli/New Delhi/110030';
                 const billing_contact = '9881102875';
 
-                const gstData= {
+                const gstData = {
                     gst_id,
                     billing_name,
                     billing_address,
@@ -198,7 +267,7 @@ const Booking = () => {
         }
     };
 
-    // console.log(emptaxivaxi);
+    // console.log('emptaxivaxi', emptaxivaxi);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const openModal = () => {
@@ -246,6 +315,53 @@ const Booking = () => {
     const handleNavItemClick = (index) => {
         setActiveTab(index);
     };
+
+    const formatDateTime = (fullDateTime) => {
+        const year = fullDateTime.getFullYear();
+        const month = String(fullDateTime.getMonth() + 1).padStart(2, '0');
+        const day = String(fullDateTime.getDate()).padStart(2, '0');
+
+        // Format as 'yy-mm-dd'
+        return `${year}-${month}-${day}`;
+    };
+
+    const handleEffectiveDateWithTime = (departureDate, pricingInfo, segmentParsee) => {
+        const fareInfoKey = pricingInfo['air:FareInfo']['$']['key'];
+        const bookingInfo = pricingInfo['air:BookingInfo'];
+
+        let departureTime = 'N/A';
+
+        // Handle both object and array cases for BookingInfo
+        const bookingArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
+
+        // Find the matching segment reference
+        const matchingSegment = bookingArray.find(
+            info => info['$']['SegmentRef'] === fareInfoKey
+        );
+
+        if (matchingSegment) {
+            const segmentKey = matchingSegment['$']['SegmentRef'];
+            const matchingSegmentDetails = segmentParsee.find(
+                segment => segment['$']['Key'] === segmentKey
+            );
+
+            if (matchingSegmentDetails) {
+                departureTime = matchingSegmentDetails['$']['DepartureTime'] || 'N/A';
+            }
+        }
+
+        // Format date and time
+        const date = new Date(departureDate);
+        const formattedDate = date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric'
+        });
+
+        return `${formattedDate} | ${departureTime}`;
+    };
+
+
     const formRef = useRef(null);
     useEffect(() => {
         parseString(serviceresponse, { explicitArray: false }, (err, serviceresult) => {
@@ -254,6 +370,7 @@ const Booking = () => {
                 return;
             }
             const serviceRsp = serviceresult['SOAP:Envelope']['SOAP:Body']['air:AirMerchandisingOfferAvailabilityRsp'];
+            // console.log('serviceRsp',serviceRsp);
 
             if (serviceRsp !== null && serviceRsp !== undefined) {
                 if (serviceresult['SOAP:Envelope']['SOAP:Body']['air:AirMerchandisingOfferAvailabilityRsp']['air:OptionalServices']) {
@@ -437,7 +554,7 @@ const Booking = () => {
     }
 
     const handleEffectiveDate1 = (date) => {
-        console.log("date", date);
+        // console.log("date", date);
 
         const arrivalTime = new Date(date);
         const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -448,7 +565,7 @@ const Booking = () => {
         const month = months[arrivalTime.getMonth()];
         const year = arrivalTime.getFullYear();
         const formattedDateString = `${weekday}, ${day} ${month} ${year}`;
-        console.log("formattedDateString", formattedDateString);
+        // console.log("formattedDateString", formattedDateString);
 
         return formattedDateString;
     }
@@ -515,8 +632,886 @@ const Booking = () => {
 
         return true;
     };
+
+    const fetchPriceData = async () => {
+        // try {
+        // setSegmentParse();
+        // console.log('segmentParse', segmentParse);
+        console.log('fetchprice');
+        const tempCodes = [];
+        const optionalServicesXML = {
+            "air:OptionalServices": {
+                "air:OptionalService": seatOptionalparse
+                    .filter(service => previousSelections.some(selection => selection.optionalkey === service["$"].Key))
+                    .map(service => {
+                        const matchedSelection = previousSelections.find(selection => selection.optionalkey === service["$"].Key);
+                        delete service["air:BrandingInfo"]; // Remove air:BrandingInfo
+                        // if (matchedSelection?.code) {
+                        //     setSelectedCodes(prevCodes => [...prevCodes, matchedSelection.code]); 
+                        // }
+                        if (matchedSelection?.code) {
+                            tempCodes.push(matchedSelection.code); // Collect seat codes
+                        }
+
+                        return {
+                            "$": service["$"], // Retain existing attributes
+                            "com:ServiceData": {
+                                "$": {
+                                    "BookingTravelerRef": service["common_v52_0:ServiceData"]["$"].BookingTravelerRef,
+                                    "AirSegmentRef": service["common_v52_0:ServiceData"]["$"].AirSegmentRef,
+                                    "Data": matchedSelection.code // Add Data="1-F"
+                                }
+                            },
+                            "com:ServiceInfo": {
+                                "com:Description": service["common_v52_0:ServiceInfo"]["common_v52_0:Description"] // Change common_v52_0 to com
+                            }
+                        };
+                    })
+            }
+        };
+        const builder = require('xml2js').Builder;
+        var pricepointXMLpc = new builder().buildObject({
+            'soap:Envelope': {
+                '$': {
+                    'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
+                },
+                'soap:Body': {
+                    'air:AirPriceReq': {
+                        '$': {
+                            'AuthorizedBy': 'TAXIVAXI',
+                            'TargetBranch': Targetbranch,
+                            'FareRuleType': 'short',
+                            'TraceId': 'TVSBP001',
+                            'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
+                            'xmlns:com': 'http://www.travelport.com/schema/common_v52_0'
+                        },
+                        'BillingPointOfSaleInfo': {
+                            '$': {
+                                'OriginApplication': 'UAPI',
+                                'xmlns': 'http://www.travelport.com/schema/common_v52_0'
+                            },
+                        },
+                        'air:AirItinerary': {
+                            'air:AirSegment': segmentParsee,
+                            'com:HostToken': comHostTokens1,
+                        },
+                        'air:AirPricingModifiers': {
+                            '$': {
+                                'InventoryRequestType': 'DirectAccess',
+                                'ETicketability': 'Yes',
+                                'FaresIndicator': "AllFares"
+                            },
+                            'air:PermittedCabins': {
+                                'com:CabinClass': {
+                                    '$': {
+                                        'Type': classType,
+                                    },
+                                },
+                            },
+                            'air:BrandModifiers': {
+                                'air:FareFamilyDisplay': {
+                                    '$': {
+                                        'ModifierType': 'FareFamily',
+                                    },
+                                },
+                            },
+                        },
+                        'com:SearchPassenger': Passengerxml,
+                        'air:AirPricingCommand': airPricingCommand,
+                        ...optionalServicesXML,
+                        // 'com:FormOfPayment': {
+                        //     '$': {
+                        //         'Type': "Credit"
+                        //     },
+                        //     'com:CreditCard': {
+                        //         '$': {
+                        //             'BankCountryCode': "IN",
+                        //             'CVV': "737",
+                        //             'ExpDate': "2026-11",
+                        //             'Name': "Pavan Patil",
+                        //             'Number': "4111111111111111",
+                        //             'Type': "VI",
+                        //         },
+                        //         'com:BillingAddress': {
+                        //             'com:AddressName': "Home",
+                        //             'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                        //             'com:City': "Pune",
+                        //             'com:State': "Maharashtra",
+                        //             'com:PostalCode': "411011",
+                        //             'com:Country': "IN",
+                        //         }
+                        //     },
+                        // },
+
+                        'com:FormOfPayment': {
+                            '$': {
+                                'Type': 'AgencyPayment'
+                            },
+                            'com:AgencyPayment': {
+                                '$': {
+                                    'AgencyBillingIdentifier': 'KTDEL283',
+                                    'AgencyBillingPassword': 'Baiinfo@2024'
+                                }
+                            }
+                        },
+                    }
+                }
+            }
+        });
+        console.log('pricepointXMLpc', pricepointXMLpc);
+        const response = await axios.post(
+            `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
+            pricepointXMLpc
+        );
+        console.log('response for data', response.data)
+        // return response.data;
+
+        parseString(response.data, { explicitArray: false }, (err, priceresult) => {
+            if (err) {
+                console.error("Error parsing XML:", err);
+                return;
+            }
+
+            const AirPriceRsp = priceresult["SOAP:Envelope"]["SOAP:Body"]["air:AirPriceRsp"];
+
+            segmentParseRef.current = AirPriceRsp["air:AirItinerary"]["air:AirSegment"];
+            packageSelectedRef.current = AirPriceRsp["air:AirPriceResult"]["air:AirPricingSolution"];
+
+        })
+
+
+        const segmentParse = segmentParseRef.current;
+        const packageSelected = packageSelectedRef.current;
+        console.log('packageSelected in fetchprice', packageSelected);
+        console.log('segmentParse in fetchprice', segmentParse);
+
+
+
+
+        const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = date.toLocaleString('default', { month: 'short' });
+            const year = date.getFullYear().toString().slice(-2);
+            return `${day}${month}${year}`;
+        };
+
+        const segments = Array.isArray(segmentParse) ? segmentParse : [segmentParse];
+
+        for (const segment of segments) {
+            if (segment['$'] && segment['$']['Key']) {
+                if (segment['$']['HostTokenRef']) {
+                    delete segment['$']['HostTokenRef'];
+                }
+                if (Array.isArray(packageSelected['air:AirSegmentRef'])) {
+                    packageSelected['air:AirSegmentRef'] = segments;
+                } else {
+                    if (packageSelected['air:AirSegmentRef']['$']['Key'] === segment['$']['Key']) {
+                        packageSelected['air:AirSegmentRef'] = segment;
+                    }
+                }
+            }
+        }
+        const formseat = [];
+        let tax_k3 = 0;
+        if (Array.isArray(packageSelected['air:AirPricingInfo'])) {
+            packageSelected['air:AirPricingInfo'].forEach(reservationpricinginfo => {
+                if (Array.isArray(reservationpricinginfo['air:TaxInfo'])) {
+                    reservationpricinginfo['air:TaxInfo'].forEach(taxreservationpricinginfo => {
+                        if (taxreservationpricinginfo.$.CarrierDefinedCategory.includes("GST")) {
+                            let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
+                            tax_k3 += Math.floor(amount);
+                            tax_k3 = tax_k3 * noOfSeats;
+                        }
+                    });
+                } else {
+                    if (reservationpricinginfo['air:TaxInfo'].$.CarrierDefinedCategory.includes("GST")) {
+                        let amount = parseFloat(reservationpricinginfo['air:TaxInfo'].$.Amount.replace("INR", "").trim());
+                        tax_k3 += Math.floor(amount);
+                        tax_k3 = tax_k3 * noOfSeats;
+                    }
+                }
+            });
+        } else {
+            if (Array.isArray(packageSelected['air:AirPricingInfo']['air:TaxInfo'])) {
+                packageSelected['air:AirPricingInfo']['air:TaxInfo'].forEach(taxreservationpricinginfo => {
+                    if (taxreservationpricinginfo.$.CarrierDefinedCategory.includes("GST")) {
+                        let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
+                        tax_k3 += Math.floor(amount);
+                        tax_k3 = tax_k3 * noOfSeats;
+                    }
+                });
+            } else {
+                if (packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.CarrierDefinedCategory.includes("GST")) {
+                    let amount = parseFloat(packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount.replace("INR", "").trim());
+                    tax_k3 += Math.floor(amount);
+                    tax_k3 = tax_k3 * noOfSeats;
+                }
+            }
+        }
+
+        let total_price = 0;
+        let base_price = 0;
+        let total_tax = 0;
+        let fare_type = '';
+
+
+        if (packageSelected['air:AirPricingInfo']) {
+            if (packageSelected['air:AirPricingInfo']['$']['TotalPrice']) {
+                total_price = Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['$']['TotalPrice'].replace("INR", "").trim()));
+                total_price = total_price * noOfSeats;
+            }
+            if (packageSelected['air:AirPricingInfo']['$']['Taxes']) {
+                total_tax = Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['$']['Taxes'].replace("INR", "").trim()));
+                total_tax = total_tax * noOfSeats;
+            }
+            if (packageSelected["air:AirPricingInfo"]["$"]["BasePrice"]) {
+                base_price = Math.floor(parseFloat(packageSelected["air:AirPricingInfo"]["$"]["BasePrice"].replace("INR", "").trim()));
+                base_price = base_price * noOfSeats;
+                console.log("base_price c",base_price);
+            }
+            if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
+                fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable'] == 'true' ? 'Refundable' : 'Non Refundable';
+            }
+
+        }
+        let assignTax = 0; // Initialize assignTax
+
+        if (Array.isArray(packageSelected['air:AirPricingInfo'])) {
+            packageSelected['air:AirPricingInfo'].forEach(reservationpricinginfo => {
+                let taxInfoArray = reservationpricinginfo['air:TaxInfo'];
+
+                // Handle cases where 'air:TaxInfo' is not an array
+                if (!Array.isArray(taxInfoArray)) {
+                    taxInfoArray = taxInfoArray ? [taxInfoArray] : [];
+                }
+
+                taxInfoArray.forEach(taxreservationpricinginfo => {
+                    const category = taxreservationpricinginfo?.$?.CarrierDefinedCategory;
+
+                    if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
+                        let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
+                        amount = amount * noOfSeats;
+                        assignTax += Math.floor(amount);
+                    }
+                });
+            });
+        } else if (Array.isArray(packageSelected['air:AirPricingInfo']['air:TaxInfo'])) {
+            packageSelected['air:AirPricingInfo']['air:TaxInfo'].forEach(taxreservationpricinginfo => {
+                const category = taxreservationpricinginfo?.$?.CarrierDefinedCategory;
+
+                if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
+                    let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
+                    amount = amount * noOfSeats;
+                    assignTax += Math.floor(amount);
+                }
+            });
+        } else if (packageSelected['air:AirPricingInfo']['air:TaxInfo']?.$?.CarrierDefinedCategory) {
+            const category = packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.CarrierDefinedCategory;
+
+            if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
+                let amount = parseFloat(packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount.replace("INR", "").trim());
+                amount = amount * noOfSeats;
+                assignTax += Math.floor(amount);
+            }
+        }
+        console.log('base_price', base_price);
+        console.log('assignTax', assignTax);
+        previousSelections.forEach(seatselect => {
+            const segmentseat = seatselect.segment;
+            let seat_price = '0';
+            if (seatselect['optionalkey'] !== 'free') {
+                seatOptionalparse.forEach(seatOptionalparseinfo => {
+                    if (seatselect.optionalkey === seatOptionalparseinfo['$']['Key']) {
+                        seat_price = seatOptionalparseinfo['$']['TotalPrice'];
+                    }
+
+                });
+            }
+
+            const segmentArray = Array.isArray(segmentParse) ? segmentParse : [segmentParse];
+
+            segmentArray.forEach(segment => {
+                if (segmentseat === segment['$']['Key']) {
+                    let segmentseatData = {
+                        'seat_no': seatselect.code,
+                        'seat-price': seat_price,
+                        'passenger': seatselect.passenger,
+                        'segment_key': segment['$'].Key,
+                    };
+                    formseat.push(segmentseatData);
+                }
+            });
+
+        });
+        let stopCounts = 0;
+        let returnstopCounts = 0;
+        const segmentss = Array.isArray(segmentParse) ? segmentParse : [segmentParse];
+
+        segmentss.forEach(segment => {
+            const groupNumber = parseInt(segment['$']['Group']);
+            if (groupNumber === 0) {
+                stopCounts++;
+            }
+            if (groupNumber === 1) {
+                returnstopCounts++;
+            }
+        });
+
+        const segmenttaxivaxis = [];
+        segmentss.forEach(segment => {
+            let segmenttaxivaxi = {
+                'Key': segment['$'].Key,
+                'FlightNumber': segment['$'].FlightNumber,
+                'Carrier': segment['$'].Carrier,
+                'Origin': segment['$'].Origin,
+                'Destination': segment['$'].Destination,
+                'DepartureTime': segment['$'].DepartureTime,
+                'ArrivalTime': segment['$'].ArrivalTime,
+                'Group': segment['$'].Group,
+            };
+            segmenttaxivaxis.push(segmenttaxivaxi);
+        });
+        setsegmenttaxivaxis(segmenttaxivaxis);
+        if (stopCounts > 0) {
+            stopCounts = stopCounts - 1;
+        }
+        if (returnstopCounts > 0) {
+            returnstopCounts = returnstopCounts - 1;
+        }
+        function generateUniqueKey() {
+            const characters = '0123456789ABCDEF';
+            let key = '';
+
+            for (let i = 0; i < 6; i++) {
+                const index = Math.floor(Math.random() * characters.length);
+                key += characters[index];
+            }
+            return key;
+        }
+        const passengersreservation = Passengers.keys.map((key, index) => {
+            const bookingTraveler = {
+                '$': {
+                    'Age': calculateAge(Passengers.ageNames[index]),
+                    'Gender': Passengers.genderNames[index],
+                    'Key': key,
+                    'TravelerType': Passengers.codes[index]
+                },
+                'com:BookingTravelerName': {
+                    '$': {
+                        'First': Passengers.firstNames[index],
+                        'Last': Passengers.lastNames[index],
+                        'Prefix': Passengers.genderNames[index] === 'F' ? 'Miss' : 'Mr'
+                    }
+                },
+                'com:PhoneNumber': {
+                    '$': {
+                        'Number': Passengers.contactNo,
+                        'Type': "Mobile"
+                    }
+                },
+                'com:Email': {
+                    '$': {
+                        'EmailID': Passengers.email,
+                    }
+                },
+                'com:SSR': [
+                    {
+                        '$': {
+                            'Carrier': carrier,
+                            'FreeText': "/IND/" + clientFormGst.GSTIN + "/" + clientFormGst.company_gst_name,
+                            'Key': generateUniqueKey(),
+                            'Status': "HK",
+                            'Type': "GSTN"
+                        }
+                    },
+                    {
+                        '$': {
+                            'Carrier': carrier,
+                            'FreeText': "/IND/demo//taxivaxi.com",
+                            'Key': generateUniqueKey(),
+                            'Status': "HK",
+                            'Type': "GSTE"
+                        }
+                    },
+                    {
+                        '$': {
+                            'Carrier': carrier,
+                            'FreeText': "/IND/" + clientFormGst.company_gst_contact,
+                            'Key': generateUniqueKey(),
+                            'Status': "HK",
+                            'Type': "GSTP"
+                        }
+                    },
+                    {
+                        '$': {
+                            'Carrier': carrier,
+                            'FreeText': "/IND/" + clientFormGst.company_gst_address,
+                            'Key': generateUniqueKey(),
+                            'Status': "HK",
+                            'Type': "GSTA"
+                        }
+                    }
+                ],
+                ...(Passengers.codes[index] === 'CNN' || Passengers.codes[index] === 'INF' ? {
+                    'com:NameRemark': {
+                        'com:RemarkData': Passengers.codes[index] === 'CNN' ? `PC-${calculateAge(Passengers.ageNames[index])} ${formatDate(Passengers.ageNames[index])}` : formatDate(Passengers.ageNames[index])
+                    }
+                } : {}),
+                'com:Address': {
+                    'com:AddressName': Passengers.address,
+                    'com:Street': Passengers.street,
+                    'com:City': Passengers.city,
+                    'com:State': Passengers.state,
+                    'com:PostalCode': Passengers.postalCode,
+                    'com:Country': Passengers.country,
+                }
+            };
+
+            return bookingTraveler;
+        });
+
+        let passengerTypeIndex = 0;
+
+        if (Array.isArray(packageSelected['air:AirPricingInfo'])) {
+            packageSelected['air:AirPricingInfo'].forEach(reservationpricinginfo => {
+                if (Array.isArray(reservationpricinginfo['air:PassengerType'])) {
+                    reservationpricinginfo['air:PassengerType'].forEach(passengerType => {
+                        passengerType['$']['BookingTravelerRef'] = Passengers.keys[passengerTypeIndex];
+                        passengerTypeIndex++;
+                    });
+                } else {
+                    reservationpricinginfo['air:PassengerType']['$']['BookingTravelerRef'] = Passengers.keys[passengerTypeIndex];
+                    passengerTypeIndex++;
+                }
+            });
+        } else {
+            if (Array.isArray(packageSelected['air:AirPricingInfo']['air:PassengerType'])) {
+                packageSelected['air:AirPricingInfo']['air:PassengerType'].forEach(passengerType => {
+                    passengerType['$']['BookingTravelerRef'] = Passengers.keys[passengerTypeIndex];
+                    passengerTypeIndex++;
+                });
+            } else {
+                packageSelected['air:AirPricingInfo']['air:PassengerType']['$']['BookingTravelerRef'] = Passengers.keys[passengerTypeIndex];
+            }
+        }
+        if (packageSelected['air:OptionalServices']) {
+            delete packageSelected['air:OptionalServices']['air:OptionalService'];
+            delete packageSelected['air:OptionalServices']['air:OptionalServiceRules'];
+
+        }
+        const specificSeatAssignments = [];
+        if (previousSelections.length !== 0) {
+            previousSelections.forEach(seatSelection => {
+                if (seatSelection.optionalkey === "free") {
+                    const SeatId = seatSelection.code;
+                    const BookingTravelerRef = seatSelection.passenger;
+                    const SegmentRef = seatSelection.segment;
+                    const specificSeatAssignment = {
+                        '$': {
+                            'SeatId': SeatId,
+                            'BookingTravelerRef': BookingTravelerRef,
+                            'SegmentRef': SegmentRef
+                        }
+                    };
+                    specificSeatAssignments.push(specificSeatAssignment);
+                }
+            });
+        }
+
+        var xml2js = require('xml2js');
+        var reservationRequestEnvelope = {
+            'soapenv:Envelope': {
+                '$': {
+                    'xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/'
+                },
+                'soapenv:Body': {
+                    'univ:AirCreateReservationReq': {
+                        '$': {
+                            'AuthorizedBy': 'TAXIVAXI',
+                            'RetainReservation': 'Both',
+                            'TargetBranch': Targetbranch,
+                            'TraceId': 'ac191f0b9c0546659065f29389eae552',
+                            'RestrictWaitlist': 'true',
+                            'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
+                            'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
+                            'xmlns:com': 'http://www.travelport.com/schema/common_v52_0',
+                            'xmlns:common_v52_0': 'http://www.travelport.com/schema/common_v52_0'
+                        },
+                        'com:BillingPointOfSaleInfo': {
+                            '$': {
+                                'OriginApplication': 'UAPI',
+                            },
+                        },
+                        'com:BookingTraveler': passengersreservation,
+                        'com:OSI': {
+                            '$': {
+                                'Carrier': carrier,
+                                'Key': "1",
+                                'Text': "INDA 6576899966 PAX",
+                                'ProviderCode': providerCode,
+                                'xmlns:com': "http://www.travelport.com/schema/common_v52_0"
+                            }
+                        },
+                        'com:ContinuityCheckOverride': true,
+                        'com:AgencyContactInfo': {
+                            'com:PhoneNumber': {
+                                '$': {
+                                    'CountryCode': "91",
+                                    'AreaCode': "011",
+                                    'Number': "9881102875",
+                                    'Location': "DEL",
+                                    'Type': "Agency"
+                                }
+                            }
+                        },
+                        'com:EmailNotification': {
+                            '$': {
+                                'Recipients': "All"
+                            }
+                        },
+
+                        'com:FormOfPayment': {
+                            '$': {
+                                'Type': 'AgencyPayment'
+                            },
+                            'com:AgencyPayment': {
+                                '$': {
+                                    'AgencyBillingIdentifier': 'KTDEL283',
+                                    'AgencyBillingPassword': 'Baiinfo@2024'
+                                }
+                            }
+                        },
+
+                        // 'com:FormOfPayment': {
+                        //     '$': {
+                        //         'Type': "Credit"
+                        //     },
+                        //     'com:CreditCard': {
+                        //         '$': {
+                        //             'BankCountryCode': "IN",
+                        //             'CVV': "737",
+                        //             'ExpDate': "2026-11",
+                        //             'Name': "Pavan Patil",
+                        //             'Number': "4111111111111111",
+                        //             'Type': "VI",
+                        //         },
+                        //         'com:BillingAddress': {
+                        //             'com:AddressName': "Home",
+                        //             'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                        //             'com:City': "Pune",
+                        //             'com:State': "Maharashtra",
+                        //             'com:PostalCode': "411011",
+                        //             'com:Country': "IN",
+                        //         }
+                        //     },
+                        // },
+                        'air:AirPricingSolution': packageSelected,
+                        'com:ActionStatus': {
+                            '$': {
+                                'ProviderCode': providerCode,
+                                'TicketDate': "T*",
+                                'Type': "ACTIVE"
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        if (specificSeatAssignments.length > 0) {
+            // specificSeatAssignments.forEach(specificSeatAssignment => {
+            reservationRequestEnvelope['soapenv:Envelope']['soapenv:Body']['univ:AirCreateReservationReq']['air:SpecificSeatAssignment'] = specificSeatAssignments;
+            // });
+        }
+        var xmlBuilder = new xml2js.Builder();
+        var reservationRequestXML = xmlBuilder.buildObject(reservationRequestEnvelope);
+
+
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(reservationRequestXML, 'text/xml');
+        var allElements = xmlDoc.getElementsByTagName('*');
+        for (let i = 0; i < allElements.length; i++) {
+            var element = allElements[i];
+            if (element.tagName === 'air:AirSegmentRef') {
+                var newElement = xmlDoc.createElement('air:AirSegment');
+
+                // Copy all attributes from the original element
+                for (let j = 0; j < element.attributes.length; j++) {
+                    var attr = element.attributes[j];
+                    newElement.setAttribute(attr.nodeName, attr.nodeValue);
+                }
+
+                let segmentKey = newElement.getAttribute("Key");
+                let providerCode = newElement.getAttribute("ProviderCode"); // Get ProviderCode from newElement
+                providerCodeRef.current = providerCode;
+
+                let bookingInfoArray = packageSelected['air:AirPricingInfo']['air:BookingInfo'];
+
+                if (!Array.isArray(bookingInfoArray)) {
+                    bookingInfoArray = [bookingInfoArray];
+                }
+
+                let matchingBookingInfo = bookingInfoArray.find(info => info["$"]["SegmentRef"] === segmentKey);
+
+                if (matchingBookingInfo && providerCode === "ACH") {
+                    // Add HostTokenRef only if ProviderCode is "ACH"
+                    let hostTokenRef = matchingBookingInfo["$"]["HostTokenRef"];
+                    newElement.setAttribute("HostTokenRef", hostTokenRef);
+                }
+
+
+                for (let j = 0; j < element.childNodes.length; j++) {
+                    var childNode = element.childNodes[j].cloneNode(true);
+                    newElement.appendChild(childNode);
+                }
+
+                element.parentNode.replaceChild(newElement, element);
+            }
+        }
+
+        const providerCodeValue = providerCode;
+        // console.log('providerCodeValue', providerCodeValue);
+
+        var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
+        console.log('modifiedXmlString ACH', modifiedXmlString);
+
+
+        const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
+        const reservationResponse = reservationresponse.data;
+        
+        console.log('reservationResponse', reservationResponse);
+        let matchesDataInfo;
+        console.log("re packageSelected",packageSelected);
+        const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo'])? packageSelected['air:AirPricingInfo']['air:FareInfo'][0]: packageSelected['air:AirPricingInfo']['air:FareInfo'];
+
+        fareInfoList['air:Brand']['air:Text'].map((textinfor, textindex) => {
+            if (
+                textinfor['$'] &&
+                textinfor['$']['Type'] === "MarketingConsumer"
+            ) {
+                const infoText = textinfor['_'];
+                const matches = infoText.match(/\b\d+\s?(kgs?|kg)\b/gi);
+
+                if (matches) {
+                    matchesDataInfo = matches
+                }
+            }
+        })
+
+        parseString(reservationResponse, { explicitArray: false }, async (err, reservationresult) => {
+            if (err) {
+                console.error('Error parsing XML:', err);
+                return;
+            }
+            const soapFault = reservationresult?.['SOAP:Envelope']?.['SOAP:Body']?.['SOAP:Fault'];
+            if (soapFault) {
+                navigate('/tryagainlater');
+                return;
+
+            }
+            const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
+            const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
+
+            var UniversalRecordRequest = {
+                "soap:Envelope": {
+                    '$': {
+                        "@xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
+                    },
+                    "soap:Body": {
+                        "univ:UniversalRecordRetrieveReq": {
+                            '$': {
+                                "@TargetBranch": Targetbranch,
+                                "@TraceId": "TVSBP001",
+                                "@AuthorizedBy": "TAXIVAXI",
+                                "@RetrieveProviderReservationDetails": "true",
+                                "@xmlns:univ": "http://www.travelport.com/schema/universal_v52_0",
+                                "@xmlns:com": "http://www.travelport.com/schema/common_v52_0",
+                            },
+                            "com:BillingPointOfSaleInfo": {
+                                '$': {
+                                    "@OriginApplication": "UAPI"
+                                }
+                            },
+                            "univ:ProviderReservationInfo": {
+                                '$': {
+                                    "@ProviderCode": "ACH",
+                                    "@ProviderLocatorCode": flightpnrCode
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // const UniversalRecordResponse = await axios.post('${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
+
+
+            const flightDetails = {};
+           
+            const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis]
+            console.log("formattedsegmenttaxivaxis",formattedsegmenttaxivaxis);
+            if (Array.isArray(formattedsegmenttaxivaxis)) {
+                formattedsegmenttaxivaxis.forEach((segment, index) => {
+                    console.log("segment.DepartureDate",segment.DepartureDate);
+                    console.log("segment.ArrivalDate",segment.ArrivalDate);
+                    console.log("segment.DepartureTime",segment.DepartureTime);
+                    console.log("segment.ArrivalTime",segment.ArrivalTime);
+                    const departureDate = new Date(segment.DepartureTime);
+                    const arrivalDate = new Date(segment.ArrivalTime);
+
+                    const formattedDate = formatDateTime(departureDate);
+                    const formattedDeparture = new Date(segment.DepartureTime).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: false,
+                    });
+                    const concatDeptDateTime = formattedDate + " " + formattedDeparture;
+
+                    const formattedArrivalDate = formatDateTime(arrivalDate);
+                    
+                    const formattedArrival = new Date(segment.ArrivalTime).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: false,
+                    });
+                    const concatArrivalDateTime = formattedArrivalDate + " " + formattedArrival;
+
+                    const matchedFlightDetail = actualFlightDetails.find(flight =>
+                        flight.$?.Origin === segment.Origin &&
+                        flight.$?.Destination === segment.Destination &&
+                        flight.$?.DepartureTime == (segment.DepartureTime) &&
+                        flight.$?.ArrivalTime == (segment.ArrivalTime)
+                    );
+
+                    if (fareFamily == 'Corporate Fare') {
+                        seat_type='Corporate Economy'
+                    } else {
+                        seat_type = seat_type;
+                    }
+                    
+                    flightDetails[`from_${index}`] = segment.Origin;
+                    flightDetails[`to_${index}`] = segment.Destination;
+                    flightDetails[`depart_${index}`] = concatDeptDateTime;
+                    flightDetails[`arrival_${index}`] = concatArrivalDateTime;
+                    flightDetails[`flight_name_${index}`] = handleAirline(segment.Carrier) + " (" + flightType + ")";
+                    flightDetails[`flight_no_${index}`] = segment.Carrier + " " + segment.FlightNumber;
+                    flightDetails[`seat_type_${index}`] = seat_type;
+                    flightDetails[`pnr_no_${index}`] = flightpnrCode;
+                    flightDetails[`checked_bg_${index}`] = matchesDataInfo?.[0] || 'NA';
+                    flightDetails[`cabin_bg_${index}`] = matchesDataInfo?.[1] || 'NA';
+                    flightDetails[`OriginTerminal_${index}`] = matchedFlightDetail?.$?.OriginTerminal ? `T-${matchedFlightDetail.$.OriginTerminal}` : "";
+                    flightDetails[`DestinationTerminal_${index}`] = matchedFlightDetail?.$?.DestinationTerminal ? `T-${matchedFlightDetail.$.DestinationTerminal}` : "";
+                });
+            }
+
+            const formatedmergedData = Array.isArray(mergedData) ? mergedData : [mergedData];
+            const passengerDetailsFormatted = {};
+            if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formatedmergedData)) {
+                formattedsegmenttaxivaxis.forEach((segment, flightIndex) => {
+                    formatedmergedData.forEach((passenger, passengerIndex) => {
+                        passengerDetailsFormatted[`people_id_${flightIndex}_${passengerIndex}`] = passenger.id || "NA";
+                        passengerDetailsFormatted[`ticket_no_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
+                        passengerDetailsFormatted[`meal_include_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
+                    });
+                });
+            }
+
+            const seatDetailsFormatted = {};
+            console.log("formseat", formseat)
+            if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formseat)) {
+                segmenttaxivaxis.forEach((segment, flightIndex) => {
+                    formseat.forEach((seat, passengerIndex) => {
+                        seatDetailsFormatted[`seat_no_${flightIndex}_${passengerIndex}`] = seat.seat_no || "NA";
+                    });
+                });
+            }
+
+            const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3)-parseFloat(assignTax);
+
+            const formtaxivaxiData = {
+                // ...formtaxivaxi,
+                access_token: access_token,
+                booking_id: bookingid,
+                trip_type: tripType,
+                fare_type: 'Refundable',
+                is_extra_baggage_included: 0,
+                flight_type: flightType,
+                total_ex_tax_fees: base_price + assignTax,
+                total_price: total_price,
+                tax_and_fees: tax_excluding_k3,
+                gst_k3: tax_k3,
+                mark_up_price: 0,
+                no_of_stops: stopCounts,
+                no_of_stops_return: returnstopCounts,
+                no_of_seats: noOfSeats,
+                people_id: 'NULL',
+                date_change_charges: 0,
+                seat_charges: 0,
+                meal_charges: 0,
+                extra_baggage_charges: 0,
+                fast_forward_charges: 0,
+                vip_service_charges: 0,
+                pnrcode: flightpnrCode,
+                applied_markup: markup_price,
+                actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
+                // flightDetails: segmenttaxivaxis,
+                ...flightDetails,
+                extrabaggage: 'NA',
+                // seatdetails: formseat,
+                checkedInBaggage: checkedInBaggage,
+                cabinBaggage: cabinBaggage,
+                returns: returns,
+                ...passengerDetailsFormatted,
+                ...seatDetailsFormatted
+            };
+
+            console.log('assignFlightPayloadData', formtaxivaxiData);
+
+            const apiLink = `${CONFIG.MAIN_API}/api/flights/assignSbtCotravFlightBooking`;
+
+            axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            }).then((response) => {
+                console.log("responseData", response)
+            })
+
+            console.log("Condition met, navigating... now in the reservationresult");
+            const bookingCompleteData = {
+                reservationdata: reservationresponse.data,
+                segmentParse: segmentParse,
+                Passengers: Passengers,
+                PackageSelected: packageSelected,
+                Airports: Airports,
+                Airlines: Airlines,
+                adult: request.adult,
+                child: request.child,
+                infant: request.infant,
+                apiairportsdata: apiairports,
+                markup_price: markup_price,
+                seat_codes: tempCodes,
+                booking_id: bookingid,
+                flightDetails: actualFlightDetails,
+                // ticketdata: ticketresponse.data 
+            };
+            console.log('bookingCompleteData', bookingCompleteData);
+            navigate('/bookingCompleted', { state: { bookingCompleteData } });
+            return;
+        })
+
+
+    };
+
+    // } catch (error) {
+    //     console.error("Error fetching price data:", error);
+    // }
+
+
+
     const handleCompleteBooking = async (event) => {
-         event.preventDefault();
+        setSeatloading(false);
+        setReservation(true);
+        event.preventDefault();
 
         let isValidpassenger = true;
 
@@ -544,33 +1539,6 @@ const Booking = () => {
             } else {
                 const lastNameError = document.querySelector(`.adult_last_name-message[data-index="${passengerindex}"]`);
                 lastNameError.style.display = 'none';
-            }
-
-            if (passengerinfo.Code === 'ADT' && !(age >= 12)) {
-                isValidpassenger = false;
-                const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
-                ageError1.style.display = 'block';
-            } else if (passengerinfo.Code === 'CNN' && !(age >= 2 && age <= 12)) {
-                isValidpassenger = false;
-                const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
-                ageError2.style.display = 'block';
-            } else if (passengerinfo.Code === 'INF' && !(age >= 0 && age <= 2)) {
-                isValidpassenger = false;
-                const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
-                ageError3.style.display = 'block';
-            } else if (birthdate.trim() === '') {
-                isValidpassenger = false;
-                const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
-                ageError.style.display = 'block';
-            } else {
-                const ageError = document.querySelector(`.adult_age-message[data-index="${passengerindex}"]`);
-                const ageError1 = document.querySelector(`.adult_age-message1[data-index="${passengerindex}"]`);
-                const ageError2 = document.querySelector(`.adult_age-message2[data-index="${passengerindex}"]`);
-                const ageError3 = document.querySelector(`.adult_age-message3[data-index="${passengerindex}"]`);
-                ageError.style.display = 'none';
-                ageError1.style.display = 'none';
-                ageError2.style.display = 'none';
-                ageError3.style.display = 'none';
             }
 
             if (isValidpassenger) {
@@ -652,10 +1620,15 @@ const Booking = () => {
                 }
             });
         }
-        function handleconfirmedbooked() {
+
+        async function handleconfirmedbooked() {
+            console.log("in func");
             setLoading(true)
-            
-            
+
+            if (previousSelections.length > 0 && airPricingCommand) {
+                fetchPriceData();
+                return;
+            }
 
 
             const formatDate = (dateString) => {
@@ -685,48 +1658,172 @@ const Booking = () => {
 
             const formseat = [];
             let tax_k3 = 0;
+
             if (Array.isArray(packageSelected['air:AirPricingInfo'])) {
                 packageSelected['air:AirPricingInfo'].forEach(reservationpricinginfo => {
-                    if (Array.isArray(reservationpricinginfo['air:TaxInfo'])) {
-                        reservationpricinginfo['air:TaxInfo'].forEach(taxreservationpricinginfo => {
-                            if (taxreservationpricinginfo.$.Category === 'K3') {
-                                tax_k3 += parseInt((taxreservationpricinginfo.$.Amount).replace(/[^0-9]/g, ''));
+                    let taxInfoArray = reservationpricinginfo['air:TaxInfo'];
+
+                    if (Array.isArray(taxInfoArray)) {
+                        let found = false;
+
+                        taxInfoArray.forEach(taxreservationpricinginfo => {
+                            let category = taxreservationpricinginfo?.$?.CarrierDefinedCategory || taxreservationpricinginfo?.Category || "";
+                            let amountStr = taxreservationpricinginfo?.$?.Amount || taxreservationpricinginfo?.Amount || "0";
+
+                            if (category && category.includes("GST")) {
+                                tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
+                                tax_k3=tax_k3*noOfSeats;
+                                found = true;
                             }
                         });
+
+                        // If GST was not found, search for K3
+                        if (!found) {
+                            taxInfoArray.forEach(taxreservationpricinginfo => {
+                                let category = taxreservationpricinginfo?.$?.CarrierDefinedCategory || taxreservationpricinginfo?.Category || "";
+                                let amountStr = taxreservationpricinginfo?.$?.Amount || taxreservationpricinginfo?.Amount || "0";
+
+                                if (category && category.includes("K3")) {
+                                    tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
+                                    tax_k3=tax_k3*noOfSeats;
+                                }
+                            });
+                        }
                     } else {
-                        if (reservationpricinginfo['air:TaxInfo'].$.Category === 'K3') {
-                            tax_k3 += parseInt((reservationpricinginfo['air:TaxInfo'].$.Amount).replace(/[^0-9]/g, ''));
+                        let category = taxInfoArray?.$?.CarrierDefinedCategory || taxInfoArray?.Category || "";
+                        let amountStr = taxInfoArray?.$?.Amount || taxInfoArray?.Amount || "0";
+
+                        if (category && category.includes("GST")) {
+                            tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
+                            tax_k3=tax_k3*noOfSeats;
+                        } else if (category && category.includes("K3")) {
+                            tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
+                            tax_k3=tax_k3*noOfSeats;
                         }
                     }
                 });
             } else {
-                if (Array.isArray(packageSelected['air:AirPricingInfo']['air:TaxInfo'])) {
-                    packageSelected['air:AirPricingInfo']['air:TaxInfo'].forEach(taxreservationpricinginfo => {
-                        if (taxreservationpricinginfo.$.Category === 'K3') {
-                            tax_k3 += parseInt((taxreservationpricinginfo.$.Amount).replace(/[^0-9]/g, ''));
+                let taxInfoArray = packageSelected['air:AirPricingInfo']?.['air:TaxInfo'];
+
+                if (Array.isArray(taxInfoArray)) {
+                    let found = false;
+
+                    taxInfoArray.forEach(taxreservationpricinginfo => {
+                        let category = taxreservationpricinginfo?.$?.CarrierDefinedCategory || taxreservationpricinginfo?.Category || "";
+                        let amountStr = taxreservationpricinginfo?.$?.Amount || taxreservationpricinginfo?.Amount || "0";
+
+                        if (category && category.includes("GST")) {
+                            tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
+                            tax_k3=tax_k3*noOfSeats;
+                            found = true;
                         }
                     });
+
+                    // If GST was not found, search for K3
+                    if (!found) {
+                        taxInfoArray.forEach(taxreservationpricinginfo => {
+                            let category = taxreservationpricinginfo?.$?.CarrierDefinedCategory || taxreservationpricinginfo?.Category || "";
+                            let amountStr = taxreservationpricinginfo?.$?.Amount || taxreservationpricinginfo?.Amount || "0";
+
+                            if (category && category.includes("K3")) {
+                                tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
+                                tax_k3=tax_k3*noOfSeats;
+                            }
+                        });
+                    }
                 } else {
-                    if (packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Category === 'K3') {
-                        tax_k3 += parseInt((packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount).replace(/[^0-9]/g, ''));
+                    let category = taxInfoArray?.$?.CarrierDefinedCategory || taxInfoArray?.Category || "";
+                    let amountStr = taxInfoArray?.$?.Amount || taxInfoArray?.Amount || "0";
+
+                    if (category && category.includes("GST")) {
+                        tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
+                        tax_k3=tax_k3*noOfSeats;
+                    } else if (category && category.includes("K3")) {
+                        tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
+                        tax_k3=tax_k3*noOfSeats;
                     }
                 }
             }
 
+
+            console.log("Total GST Tax:", tax_k3);
+
             let total_price = 0;
             let base_price = 0;
             let total_tax = 0;
+            let fare_type = '';
+
+            console.log("packageSelected at re",packageSelected);
+
             if (packageSelected['air:AirPricingInfo']) {
                 if (packageSelected['air:AirPricingInfo']['$']['TotalPrice']) {
-                    total_price = packageSelected['air:AirPricingInfo']['$']['TotalPrice'].replace(/[^0-9]/g, '');
+                    total_price = Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['$']['TotalPrice'].replace("INR", "").trim()));
+                    total_price = total_price * noOfSeats;
                 }
                 if (packageSelected['air:AirPricingInfo']['$']['Taxes']) {
-                    total_tax = packageSelected['air:AirPricingInfo']['$']['Taxes'].replace(/[^0-9]/g, '');
+                    total_tax = Math.floor(parseFloat(packageSelected['air:AirPricingInfo']['$']['Taxes'].replace("INR", "").trim()));
+                    total_tax = total_tax * noOfSeats;
                 }
-                if (packageSelected['air:AirPricingInfo']['$']['BasePrice']) {
-                    base_price = packageSelected['air:AirPricingInfo']['$']['BasePrice'].replace(/[^0-9]/g, '');
+                if (packageSelected["air:AirPricingInfo"]["$"]["BasePrice"]) {
+                    base_price = Math.floor(parseFloat(packageSelected["air:AirPricingInfo"]["$"]["BasePrice"].replace("INR", "").trim()));
+                    base_price = base_price * noOfSeats;
+                    console.log("base_price c",base_price);
+                    
+                }
+                if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
+                    fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable'] == 'true' ? 'Refundable' : 'Non Refundable';
+                }
+
+            }
+            let assignTax = 0; // Initialize assignTax
+
+            if (Array.isArray(packageSelected['air:AirPricingInfo'])) {
+                packageSelected['air:AirPricingInfo'].forEach(reservationpricinginfo => {
+                    let taxInfoArray = reservationpricinginfo['air:TaxInfo'];
+
+                    // Handle cases where 'air:TaxInfo' is not an array
+                    if (!Array.isArray(taxInfoArray)) {
+                        taxInfoArray = taxInfoArray ? [taxInfoArray] : [];
+                    }
+
+                    taxInfoArray.forEach(taxreservationpricinginfo => {
+                        const category = taxreservationpricinginfo?.$?.CarrierDefinedCategory;
+
+                        if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
+                            let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
+                            console.log("before amount",amount);
+                            amount = amount * noOfSeats;
+                            console.log("amount",amount);
+                            
+                            assignTax += Math.floor(amount);
+                        }
+                    });
+                });
+            } else if (Array.isArray(packageSelected['air:AirPricingInfo']['air:TaxInfo'])) {
+                packageSelected['air:AirPricingInfo']['air:TaxInfo'].forEach(taxreservationpricinginfo => {
+                    const category = taxreservationpricinginfo?.$?.CarrierDefinedCategory;
+
+                    if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
+                        let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
+                        console.log("before amount",amount);
+                        amount = amount * noOfSeats;
+                        console.log("amount",amount);
+                        assignTax += Math.floor(amount);
+                    }
+                });
+            } else if (packageSelected['air:AirPricingInfo']['air:TaxInfo']?.$?.CarrierDefinedCategory) {
+                const category = packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.CarrierDefinedCategory;
+
+                if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
+                    let amount = parseFloat(packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount.replace("INR", "").trim());
+                    console.log("before amount",amount);
+                    amount = amount * noOfSeats;
+                    console.log("amount",amount);
+                    assignTax += Math.floor(amount);
                 }
             }
+            console.log('base_price', base_price);
+            console.log('assignTax', assignTax);
             previousSelections.forEach(seatselect => {
                 const segmentseat = seatselect.segment;
                 let seat_price = '0';
@@ -739,22 +1836,27 @@ const Booking = () => {
                     });
                 }
 
-                segmentParse.forEach(segment => {
+                const segmentArray = Array.isArray(segmentParse) ? segmentParse : [segmentParse];
+
+                segmentArray.forEach(segment => {
                     if (segmentseat === segment['$']['Key']) {
-                        let segmentseat = {
+                        let segmentseatData = {
                             'seat_no': seatselect.code,
                             'seat-price': seat_price,
                             'passenger': seatselect.passenger,
                             'segment_key': segment['$'].Key,
                         };
-                        formseat.push(segmentseat);
+                        formseat.push(segmentseatData);
                     }
                 });
+
             });
-            
+
             let stopCounts = 0;
             let returnstopCounts = 0;
-            segmentParse.forEach(segment => {
+            const segmentss = Array.isArray(segmentParse) ? segmentParse : [segmentParse];
+
+            segmentss.forEach(segment => {
                 const groupNumber = parseInt(segment['$']['Group']);
                 if (groupNumber === 0) {
                     stopCounts++;
@@ -763,8 +1865,9 @@ const Booking = () => {
                     returnstopCounts++;
                 }
             });
+
             const segmenttaxivaxis = [];
-            segmentParse.forEach(segment => {
+            segmentss.forEach(segment => {
                 let segmenttaxivaxi = {
                     'Key': segment['$'].Key,
                     'FlightNumber': segment['$'].FlightNumber,
@@ -777,6 +1880,7 @@ const Booking = () => {
                 };
                 segmenttaxivaxis.push(segmenttaxivaxi);
             });
+
             if (stopCounts > 0) {
                 stopCounts = stopCounts - 1;
             }
@@ -822,8 +1926,8 @@ const Booking = () => {
                     'com:SSR': [
                         {
                             '$': {
-                                'Carrier': "AI",
-                                'FreeText': "IND/"+clientFormGst.GSTIN+"/"+clientFormGst.company_gst_name,
+                                'Carrier': carrier,
+                                'FreeText': "/IND/" + clientFormGst.GSTIN + "/" + clientFormGst.company_gst_name,
                                 'Key': generateUniqueKey(),
                                 'Status': "HK",
                                 'Type': "GSTN"
@@ -831,8 +1935,8 @@ const Booking = () => {
                         },
                         {
                             '$': {
-                                'Carrier': "AI",
-                                'FreeText': "IND/corporate//taxivaxi.com",
+                                'Carrier': carrier,
+                                'FreeText': "/IND/demo//taxivaxi.com",
                                 'Key': generateUniqueKey(),
                                 'Status': "HK",
                                 'Type': "GSTE"
@@ -840,8 +1944,8 @@ const Booking = () => {
                         },
                         {
                             '$': {
-                                'Carrier': "AI",
-                                'FreeText': "IND/"+clientFormGst.company_gst_contact,
+                                'Carrier': carrier,
+                                'FreeText': "/IND/" + clientFormGst.company_gst_contact,
                                 'Key': generateUniqueKey(),
                                 'Status': "HK",
                                 'Type': "GSTP"
@@ -849,8 +1953,8 @@ const Booking = () => {
                         },
                         {
                             '$': {
-                                'Carrier': "AI",
-                                'FreeText': "IND/"+clientFormGst.company_gst_address,
+                                'Carrier': carrier,
+                                'FreeText': "/IND/" + clientFormGst.company_gst_address,
                                 'Key': generateUniqueKey(),
                                 'Status': "HK",
                                 'Type': "GSTA"
@@ -899,6 +2003,11 @@ const Booking = () => {
                     packageSelected['air:AirPricingInfo']['air:PassengerType']['$']['BookingTravelerRef'] = Passengers.keys[passengerTypeIndex];
                 }
             }
+            if (packageSelected['air:OptionalServices']) {
+                delete packageSelected['air:OptionalServices']['air:OptionalService'];
+                delete packageSelected['air:OptionalServices']['air:OptionalServiceRules'];
+
+            }
             const specificSeatAssignments = [];
             if (previousSelections.length !== 0) {
                 previousSelections.forEach(seatSelection => {
@@ -917,13 +2026,11 @@ const Booking = () => {
                     }
                 });
             }
+            // console.log('packageSelected', packageSelected);
 
-            
             const passengerAges = Passengers.ageNames.map(calculateAge);
             const makeReservationRequest = async () => {
-                const username = 'Universal API/uAPI8645980109-af7494fa';
-                const password = 'N-k29Z}my5';
-                const authHeader = `Basic ${btoa(`${username}:${password}`)}`
+
                 var xml2js = require('xml2js');
                 var reservationRequestEnvelope = {
                     'soapenv:Envelope': {
@@ -935,7 +2042,7 @@ const Booking = () => {
                                 '$': {
                                     'AuthorizedBy': 'TAXIVAXI',
                                     'RetainReservation': 'Both',
-                                    'TargetBranch': 'P4451438',
+                                    'TargetBranch': Targetbranch,
                                     'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                     'RestrictWaitlist': 'true',
                                     'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
@@ -951,10 +2058,10 @@ const Booking = () => {
                                 'com:BookingTraveler': passengersreservation,
                                 'com:OSI': {
                                     '$': {
-                                        'Carrier': "AI",
+                                        'Carrier': carrier,
                                         'Key': "1",
                                         'Text': "INDA 6576899966 PAX",
-                                        'ProviderCode': "1G",
+                                        'ProviderCode': providerCode,
                                         'xmlns:com': "http://www.travelport.com/schema/common_v52_0"
                                     }
                                 },
@@ -964,7 +2071,7 @@ const Booking = () => {
                                         '$': {
                                             'CountryCode': "91",
                                             'AreaCode': "011",
-                                            'Number': "40108586",
+                                            'Number': "9881102875",
                                             'Location': "DEL",
                                             'Type': "Agency"
                                         }
@@ -977,31 +2084,43 @@ const Booking = () => {
                                 },
                                 'com:FormOfPayment': {
                                     '$': {
-                                        'Type': "Credit"
+                                        'Type': 'AgencyPayment'
                                     },
-                                    'com:CreditCard': {
+                                    'com:AgencyPayment': {
                                         '$': {
-                                            'BankCountryCode': "IN",
-                                            'CVV': "737",
-                                            'ExpDate': "2024-11",
-                                            'Name': "Pavan Patil",
-                                            'Number': "4111111111111111",
-                                            'Type': "VI",
-                                        },
-                                        'com:BillingAddress': {
-                                            'com:AddressName': "Home",
-                                            'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
-                                            'com:City': "Pune",
-                                            'com:State': "Maharashtra",
-                                            'com:PostalCode': "411011",
-                                            'com:Country': "IN",
+                                            'AgencyBillingIdentifier': 'KTDEL283',
+                                            'AgencyBillingPassword': 'Baiinfo@2024'
                                         }
-                                    },
+                                    }
                                 },
+
+                                // 'com:FormOfPayment': {
+                                //     '$': {
+                                //         'Type': "Credit"
+                                //     },
+                                //     'com:CreditCard': {
+                                //         '$': {
+                                //             'BankCountryCode': "IN",
+                                //             'CVV': "737",
+                                //             'ExpDate': "2026-11",
+                                //             'Name': "Pavan Patil",
+                                //             'Number': "4111111111111111",
+                                //             'Type': "VI",
+                                //         },
+                                //         'com:BillingAddress': {
+                                //             'com:AddressName': "Home",
+                                //             'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                                //             'com:City': "Pune",
+                                //             'com:State': "Maharashtra",
+                                //             'com:PostalCode': "411011",
+                                //             'com:Country': "IN",
+                                //         }
+                                //     },
+                                // },
                                 'air:AirPricingSolution': packageSelected,
                                 'com:ActionStatus': {
                                     '$': {
-                                        'ProviderCode': "1G",
+                                        'ProviderCode': providerCode,
                                         'TicketDate': "T*",
                                         'Type': "ACTIVE"
                                     }
@@ -1010,6 +2129,7 @@ const Booking = () => {
                         }
                     }
                 };
+                // console.log()
                 if (specificSeatAssignments.length > 0) {
                     // specificSeatAssignments.forEach(specificSeatAssignment => {
                     reservationRequestEnvelope['soapenv:Envelope']['soapenv:Body']['univ:AirCreateReservationReq']['air:SpecificSeatAssignment'] = specificSeatAssignments;
@@ -1017,7 +2137,7 @@ const Booking = () => {
                 }
                 var xmlBuilder = new xml2js.Builder();
                 var reservationRequestXML = xmlBuilder.buildObject(reservationRequestEnvelope);
-                console.log('reservationRequestXML',reservationRequestXML);
+
 
                 var parser = new DOMParser();
                 var xmlDoc = parser.parseFromString(reservationRequestXML, 'text/xml');
@@ -1026,10 +2146,31 @@ const Booking = () => {
                     var element = allElements[i];
                     if (element.tagName === 'air:AirSegmentRef') {
                         var newElement = xmlDoc.createElement('air:AirSegment');
+
+                        // Copy all attributes from the original element
                         for (let j = 0; j < element.attributes.length; j++) {
                             var attr = element.attributes[j];
                             newElement.setAttribute(attr.nodeName, attr.nodeValue);
                         }
+
+                        let segmentKey = newElement.getAttribute("Key");
+                        let providerCode = newElement.getAttribute("ProviderCode"); // Get ProviderCode from newElement
+                        providerCodeRef.current = providerCode;
+
+                        let bookingInfoArray = packageSelected['air:AirPricingInfo']['air:BookingInfo'];
+
+                        if (!Array.isArray(bookingInfoArray)) {
+                            bookingInfoArray = [bookingInfoArray];
+                        }
+
+                        let matchingBookingInfo = bookingInfoArray.find(info => info["$"]["SegmentRef"] === segmentKey);
+
+                        if (matchingBookingInfo && providerCode === "ACH") {
+                            // Add HostTokenRef only if ProviderCode is "ACH"
+                            let hostTokenRef = matchingBookingInfo["$"]["HostTokenRef"];
+                            newElement.setAttribute("HostTokenRef", hostTokenRef);
+                        }
+
 
                         for (let j = 0; j < element.childNodes.length; j++) {
                             var childNode = element.childNodes[j].cloneNode(true);
@@ -1039,55 +2180,217 @@ const Booking = () => {
                         element.parentNode.replaceChild(newElement, element);
                     }
                 }
+                const providerCodeValue = providerCode;
+                // console.log('providerCodeValue', providerCodeValue);
 
                 var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
+                console.log('modifiedXmlString', modifiedXmlString);
 
                 try {
-                    const reservationresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', modifiedXmlString, {
-                        headers: {
-                            'Content-Type': 'text/xml',
-                            'Authorization': authHeader,
-                        },
-                    });
+                    const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
                     const reservationResponse = reservationresponse.data;
-                    // console.log('reservationResponse',reservationResponse);
-                    // alert("resp", reservationResponse);
-                    parseString(reservationResponse, { explicitArray: false }, (err, reservationresult) => {
+                    console.log('reservationResponse', reservationResponse);
+
+                    parseString(reservationResponse, { explicitArray: false }, async (err, reservationresult) => {
                         if (err) {
                             console.error('Error parsing XML:', err);
                             return;
                         }
+                        let matchesDataInfo;
+
                         const ReservationRsp = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp'];
                         if (ReservationRsp !== null && ReservationRsp !== undefined) {
                             const locatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['universal:ProviderReservationInfo']['$']['LocatorCode'];
                             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
                             const universallocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
                             const segmentreservation = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
-                            if (hasNonEmptyProperties(emptaxivaxi)) {
-                                // const sessiondata = async () => {
+                            const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
+                            console.log("packageSelected['air:AirPricingInfo'][0]", packageSelected);
+                            
+                            const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo'])? packageSelected['air:AirPricingInfo']['air:FareInfo'][0]: packageSelected['air:AirPricingInfo']['air:FareInfo'];
+console.log("fareInfoList",fareInfoList);
+
+                            fareInfoList['air:Brand']['air:Text'].map((textinfor, textindex) => {
+                                if (
+                                    textinfor['$'] &&
+                                    textinfor['$']['Type'] === "MarketingConsumer"
+                                ) {
+                                    const infoText = textinfor['_'];
+                                    const matches = infoText.match(/\b\d+\s?(kgs?|kg)\b/gi);
+
+                                    if (matches) {
+                                        matchesDataInfo = matches
+                                    }
+                                }
+                            })
+
+                            const flightDetails = {};
+
+                            const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis];
+                            console.log("formattedsegmenttaxivaxis",formattedsegmenttaxivaxis);
+                            
+                            if (Array.isArray(formattedsegmenttaxivaxis)) {
+                                formattedsegmenttaxivaxis.forEach((segment, index) => {
+                                    console.log("segment.DepartureTime",segment.DepartureTime);
+                                    console.log("segment.ArrivalTime", segment.ArrivalTime);
+                                    
+                                    const departureDate = new Date(segment.DepartureTime);
+                                    const arrivalDate = new Date(segment.ArrivalTime);
+
+                                    const formattedDate = formatDateTime(departureDate);
+                                    
+                                    const formattedDeparture = new Date(segment.DepartureTime).toLocaleTimeString('en-US', {
+                                        hour: 'numeric',
+                                        minute: 'numeric',
+                                        hour12: false,
+                                    });
+
+                                    const concatDeptDateTime = formattedDate + " " + formattedDeparture;
+
+                                    const formattedArrivalDate = formatDateTime(arrivalDate);
+                                    
+                                    const formattedArrival = new Date(segment.ArrivalTime).toLocaleTimeString('en-US', {
+                                        hour: 'numeric',
+                                        minute: 'numeric',
+                                        hour12: false,
+                                    });
+                                    const concatArrivalDateTime = formattedArrivalDate + " " + formattedArrival;
+
+
+                                    const matchedFlightDetail = actualFlightDetails.find(flight =>
+                                        flight.$?.Origin === segment.Origin &&
+                                        flight.$?.Destination === segment.Destination &&
+                                        flight.$?.DepartureTime == (segment.DepartureTime) &&
+                                        flight.$?.ArrivalTime == (segment.ArrivalTime)
+                                    );
+
+
+                                    console.log("actualFlightDetails", actualFlightDetails)
+                                    console.log("matchedFlightDetail", matchedFlightDetail)
+                                    console.log("concatDeptDateTime", concatDeptDateTime);
+                                    if (fareFamily == 'Corporate Fare') {
+                                        seat_type='Corporate Economy'
+                                    } else {
+                                        seat_type = seat_type;
+                                    }
+                                    flightDetails[`from_${index}`] = segment.Origin;
+                                    flightDetails[`to_${index}`] = segment.Destination;
+                                    flightDetails[`depart_${index}`] = concatDeptDateTime;
+                                    flightDetails[`arrival_${index}`] = concatArrivalDateTime;
+                                    flightDetails[`flight_name_${index}`] = handleAirline(segment.Carrier) + " (" + flightType + ")";
+                                    flightDetails[`flight_no_${index}`] = segment.Carrier + " " + segment.FlightNumber;
+                                    flightDetails[`seat_type_${index}`] = seat_type;
+                                    flightDetails[`pnr_no_${index}`] = flightpnrCode;
+                                    flightDetails[`checked_bg_${index}`] = matchesDataInfo?.[0] || 'NA';
+                                    flightDetails[`cabin_bg_${index}`] = matchesDataInfo?.[1] || 'NA';
+                                    flightDetails[`OriginTerminal_${index}`] = matchedFlightDetail?.$?.OriginTerminal ? `T-${matchedFlightDetail.$.OriginTerminal}` : "";
+                                    flightDetails[`DestinationTerminal_${index}`] = matchedFlightDetail?.$?.DestinationTerminal ? `T-${matchedFlightDetail.$.DestinationTerminal}` : "";
+
+                                });
+                            }
+
+                            const formatedmergedData = Array.isArray(mergedData) ? mergedData : [mergedData];
+
+                            const passengerDetailsFormatted = {};
+                            if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formatedmergedData)) {
+                                formattedsegmenttaxivaxis.forEach((segment, flightIndex) => {
+                                    formatedmergedData.forEach((passenger, passengerIndex) => {
+                                        passengerDetailsFormatted[`people_id_${flightIndex}_${passengerIndex}`] = passenger.id || "NA";
+                                        passengerDetailsFormatted[`ticket_no_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
+                                        passengerDetailsFormatted[`meal_include_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
+                                    });
+                                });
+                            }
+
+                            const seatDetailsFormatted = {};
+                            if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formseat)) {
+                                segmenttaxivaxis.forEach((segment, flightIndex) => {
+                                    formseat.forEach((seat, passengerIndex) => {
+                                        seatDetailsFormatted[`seat_no_${flightIndex}_${passengerIndex}`] = seat.seat_no || "NA";
+                                    });
+                                });
+                            }
+
+                            if (providerCodeValue?.trim() === "ACH") {
+                                console.log("Condition met, navigating...");
+                                const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3)-parseFloat(assignTax);
                                 const formtaxivaxiData = {
-                                    ...formtaxivaxi,
-                                    pnrcode: pnrCode,
-                                    flightDetails: segmenttaxivaxis,
-                                    extrabaggage: extractedData,
-                                    stopCount: stopCounts,
-                                    returnstopCount: returnstopCounts,
-                                    seatdetails: formseat,
+                                    access_token: access_token,
+                                    booking_id: bookingid,
+                                    trip_type: tripType,
+                                    fare_type: 'Refundable',
+                                    is_extra_baggage_included: 0,
+                                    flight_type: flightType,
+                                    total_ex_tax_fees: base_price + assignTax,
                                     total_price: total_price,
-                                    base_price: base_price,
-                                    total_tax: total_tax,
-                                    tax_k3: tax_k3,
+                                    tax_and_fees: tax_excluding_k3,
+                                    gst_k3: tax_k3,
+                                    no_of_stops: stopCounts,
+                                    no_of_stops_return: returnstopCounts,
+                                    no_of_seats: noOfSeats,
+                                    people_id: 'NULL',
+                                    date_change_charges: 0,
+                                    seat_charges: 0,
+                                    meal_charges: 0,
+                                    extra_baggage_charges: 0,
+                                    fast_forward_charges: 0,
+                                    vip_service_charges: 0,
+                                    pnrcode: flightpnrCode,
+                                    applied_markup: markup_price,
+                                    actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
+                                    ...flightDetails,
+                                    extrabaggage: 'NA',
                                     checkedInBaggage: checkedInBaggage,
                                     cabinBaggage: cabinBaggage,
                                     returns: returns,
-                                    passengerdetails: mergedData
+                                    ...passengerDetailsFormatted,
+                                    ...seatDetailsFormatted
                                 };
 
-                                const formDataString = JSON.stringify(formtaxivaxiData);
-                                const encodedFormDataString = encodeURIComponent(formDataString);
-                                const redirectUrl = 'http://cotrav.tv/taxivaxi/add-flight-booking?formtaxivaxi=' + encodedFormDataString;
-                                window.location.href = redirectUrl;
-                            } else {
+                                console.log('assignFlightPayloadData', formtaxivaxiData);
+
+                                const apiLink = `${CONFIG.MAIN_API}/api/flights/assignSbtCotravFlightBooking`;
+
+                                axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                    },
+                                }).then((response) => {
+                                    console.log("responseData", response)
+                                })
+
+                                var UniversalRecordRequest = {
+                                    "soap:Envelope": {
+                                        '$': {
+                                            "@xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
+                                        },
+                                        "soap:Body": {
+                                            "univ:UniversalRecordRetrieveReq": {
+                                                '$': {
+                                                    "@TargetBranch": Targetbranch,
+                                                    "@TraceId": "TVSBP001",
+                                                    "@AuthorizedBy": "TAXIVAXI",
+                                                    "@RetrieveProviderReservationDetails": "true",
+                                                    "@xmlns:univ": "http://www.travelport.com/schema/universal_v52_0",
+                                                    "@xmlns:com": "http://www.travelport.com/schema/common_v52_0",
+                                                },
+                                                "com:BillingPointOfSaleInfo": {
+                                                    '$': {
+                                                        "@OriginApplication": "UAPI"
+                                                    }
+                                                },
+                                                "univ:ProviderReservationInfo": {
+                                                    '$': {
+                                                        "@ProviderCode": "ACH",
+                                                        "@ProviderLocatorCode": flightpnrCode
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                // const UniversalRecordResponse = await axios.post('${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
+
                                 const bookingCompleteData = {
                                     reservationdata: reservationresponse.data,
                                     segmentParse: segmentParse,
@@ -1099,10 +2402,17 @@ const Booking = () => {
                                     child: request.child,
                                     infant: request.infant,
                                     apiairportsdata: apiairports,
-                                    // ticketdata: ticketresponse.data
+                                    markup_price: markup_price,
+                                    booking_id: bookingid,
+                                    flightDetails: actualFlightDetails,
+                                    // ticketdata: ticketresponse.data 
                                 };
+                                console.log('bookingCompleteData', bookingCompleteData);
                                 navigate('/bookingCompleted', { state: { bookingCompleteData } });
+                                return;
                             }
+
+                            const tax_and_fees = parseFloat(base_price);
 
                             const makeGetUnversalCodeRequest = async () => {
                                 const username = 'Universal API/uAPI8645980109-af7494fa';
@@ -1118,7 +2428,7 @@ const Booking = () => {
                                         'soap:Body': {
                                             'univ:UniversalRecordRetrieveReq': {
                                                 '$': {
-                                                    'TargetBranch': 'P4451438',
+                                                    'TargetBranch': Targetbranch,
                                                     'RetrieveProviderReservationDetails': 'true',
                                                     'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
                                                     'xmlns:com': 'http://www.travelport.com/schema/common_v52_0',
@@ -1130,7 +2440,7 @@ const Booking = () => {
                                                 },
                                                 'univ:ProviderReservationInfo': {
                                                     '$': {
-                                                        'ProviderCode': "1G",
+                                                        'ProviderCode': providerCode,
                                                         'ProviderLocatorCode': locatorCode
                                                     }
                                                 }
@@ -1138,26 +2448,16 @@ const Booking = () => {
                                         }
                                     }
                                 });
-                                // try {
-                                //     const getUnversalCoderesponse = await axios.post('https://cors-anywhere.herokuapp.com/https://apac.universal-api.pp.travelport.com/B2BGateway/connect/uAPI/AirService/UniversalRecordService', GetUnversalCodeXML, {
-                                //         headers: {
-                                //             'Content-Type': 'text/xml',
-                                //             'Authorization': authHeader,
-                                //         },
-                                //     });
-                                //     const GetUnversalCodeResponse = getUnversalCoderesponse.data;
-
-
-                                // } catch (error) {
-                                //     console.error(error);
-                                // }
+                                try {
+                                    const getUnversalCoderesponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, GetUnversalCodeXML);
+                                    const GetUnversalCodeResponse = getUnversalCoderesponse.data;
+                                    console.log("getUnversalCoderesponse", getUnversalCoderesponse)
+                                } catch (error) {
+                                    console.error(error);
+                                }
                             };
 
                             const makeTicketRequest = async () => {
-                                const username = 'Universal API/uAPI8645980109-af7494fa';
-                                const password = 'N-k29Z}my5';
-                                const authHeader = `Basic ${btoa(`${username}:${password}`)}`
-
                                 const builder = require('xml2js').Builder;
                                 var TicketXML = new builder().buildObject({
                                     'soapenv:Envelope': {
@@ -1171,7 +2471,7 @@ const Booking = () => {
                                                     'AuthorizedBy': 'TAXIVAXI',
                                                     'RetrieveProviderReservationDetails': 'true',
                                                     'ReturnInfoOnFail': 'true',
-                                                    'TargetBranch': 'P4451438',
+                                                    'TargetBranch': Targetbranch,
                                                     'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
                                                     'xmlns:common': 'http://www.travelport.com/schema/common_v52_0',
@@ -1188,40 +2488,137 @@ const Booking = () => {
                                         }
                                     }
                                 });
-                                // console.log(TicketXML);
-                                try {
-                                    const ticketresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', TicketXML, {
-                                        headers: {
-                                            'Content-Type': 'text/xml',
-                                            'Authorization': authHeader,
-                                        },
-                                    });
-                                    const TicketResponse = ticketresponse.data;
-                                    // console.log(TicketResponse);
 
+                                console.log(TicketXML);
+
+                                try {
+                                    const ticketresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, TicketXML);
+                                    const TicketResponse = ticketresponse.data;
+                                    console.log("ticketresponse1", TicketResponse);
+                                    return TicketResponse; // ✅ Returning the response
                                 } catch (error) {
                                     console.error(error);
-                                    // ErrorLogger.logError('ticket_api',TicketXML,error);
+                                    return null; // ✅ Return null in case of error
                                 }
                             };
+
                             const executeCodeTicketSequentially = async () => {
                                 let getUnversalCoderesponse, ticketresponse;
+                                // let ticketresponse;
 
                                 try {
                                     getUnversalCoderesponse = await makeGetUnversalCodeRequest();
+                                    // shall i apply condition for provider code only call for 1G not for ACH
                                     ticketresponse = await makeTicketRequest();
+                                    console.log('ticketresponse2', ticketresponse);
 
-                                    // const bookingCompleteData = {
-                                    //     reservationdata: reservationresponse.data,
-                                    //     getuniversaldata: getUnversalCoderesponse.data,
-                                    //     ticketdata: ticketresponse.data
-                                    // };
-                                    // navigate('/bookingCompleted', { state: { bookingCompleteData } });
+                                    // if (hasNonEmptyProperties(emptaxivaxi)) {
+                                    // const sessiondata = async () => {   
+                                    const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3)-parseFloat(assignTax);
+                                    const formtaxivaxiData = {
+                                        // ...formtaxivaxi,
+                                        access_token: access_token,
+                                        booking_id: bookingid,
+                                        trip_type: tripType,
+                                        fare_type: 'Refundable',
+                                        is_extra_baggage_included: 0,
+                                        flight_type: flightType,
+                                        total_ex_tax_fees: base_price + assignTax,
+                                        total_price: total_price,
+                                        tax_and_fees: tax_excluding_k3,
+                                        gst_k3: tax_k3,
+                                        mark_up_price: 0,
+                                        no_of_stops: stopCounts,
+                                        no_of_stops_return: returnstopCounts,
+                                        no_of_seats: noOfSeats,
+                                        people_id: 'NULL',
+                                        date_change_charges: 0,
+                                        seat_charges: 0,
+                                        meal_charges: 0,
+                                        extra_baggage_charges: 0,
+                                        fast_forward_charges: 0,
+                                        vip_service_charges: 0,
+                                        pnrcode: flightpnrCode,
+                                        applied_markup: markup_price,
+                                        actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
+                                        // flightDetails: segmenttaxivaxis,
+                                        ...flightDetails,
+                                        extrabaggage: 'NA',
+                                        // seatdetails: formseat,
+                                        checkedInBaggage: checkedInBaggage,
+                                        cabinBaggage: cabinBaggage,
+                                        returns: returns,
+                                        // passengerdetails: mergedData
+                                        ...passengerDetailsFormatted,
+                                        ...seatDetailsFormatted
+                                    };
+
+                                    console.log("ticketresponse.data", ticketresponse)
+
+                                    console.log('assignFlightPayloadData', JSON.stringify(formtaxivaxiData));
+
+                                    const apiLink = `${CONFIG.MAIN_API}/api/flights/assignSbtCotravFlightBooking`;
+
+                                    axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
+                                        headers: {
+                                            'Content-Type': 'application/x-www-form-urlencoded',
+                                        },
+                                    })
+                                        .then((response) => {
+                                            console.log("responseData", response)
+                                            if (response.data.success === "1") {
+                                                Swal.fire({
+                                                    title: "Success!",
+                                                    text: "Booking Confirmed.",
+                                                    icon: "success",
+                                                    confirmButtonText: "OK",
+                                                });
+                                            } else {
+                                                Swal.fire({
+                                                    title: "Error!",
+                                                    text: response.data.error || "Something went wrong.",
+                                                    icon: "error",
+                                                    confirmButtonText: "Retry",
+                                                });
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            Swal.fire({
+                                                title: "Error!",
+                                                text: "Something went wrong while creating the booking.",
+                                                icon: "error",
+                                                confirmButtonText: "Retry",
+                                            });
+                                        });
+                                    const bookingCompleteData = {
+                                        reservationdata: reservationresponse.data,
+                                        segmentParse: segmentParse,
+                                        Passengers: Passengers,
+                                        PackageSelected: packageSelected,
+                                        Airports: Airports,
+                                        Airlines: Airlines,
+                                        adult: request.adult,
+                                        child: request.child,
+                                        infant: request.infant,
+                                        apiairportsdata: apiairports,
+                                        ticketdata: ticketresponse,
+                                        markup_price: markup_price,
+                                        booking_id: bookingid,
+                                        flightDetails: actualFlightDetails,
+                                    };
+                                    console.log('bookingCompleteData', bookingCompleteData);
+                                    navigate('/bookingCompleted', { state: { bookingCompleteData } });
+
+
                                 } catch (error) {
                                     console.error('Error executing requests:', error);
                                 }
                             };
                             executeCodeTicketSequentially();
+
+
+
+
                             if (Array.isArray(segmentreservation)) {
                                 segmentreservation.forEach(objs => {
                                     if (objs['common_v52_0:SellMessage']) {
@@ -1285,7 +2682,7 @@ const Booking = () => {
                                                 },
                                                 'univ:AirMerchandisingFulfillmentReq': {
                                                     '$': {
-                                                        'TargetBranch': 'P4451438'
+                                                        'TargetBranch': Targetbranch
                                                     },
                                                     'com:BillingPointOfSaleInfo': {
                                                         '$': {
@@ -1296,7 +2693,7 @@ const Booking = () => {
                                                         '$': {
                                                             'Carrier': 'UK',
                                                             'CarrierLocatorCode': pnrCode,
-                                                            'ProviderCode': '1G',
+                                                            'ProviderCode': providerCode,
                                                             'ProviderLocatorCode': locatorCode,
                                                             'UniversalLocatorCode': universallocatorCode
                                                         },
@@ -1316,9 +2713,9 @@ const Booking = () => {
                                             }
                                         }
                                     });
-                                    // console.log(MerchandisingrequestXML1);
+                                    console.log('1', MerchandisingrequestXML1);
                                     try {
-                                        const Merchandisingresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', MerchandisingrequestXML1, {
+                                        const Merchandisingresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, MerchandisingrequestXML1, {
                                             headers: {
                                                 'Content-Type': 'text/xml',
                                                 'Authorization': authHeader,
@@ -1357,7 +2754,7 @@ const Booking = () => {
                                                 },
                                                 'univ:AirMerchandisingFulfillmentReq': {
                                                     '$': {
-                                                        'TargetBranch': 'P4451438'
+                                                        'TargetBranch': Targetbranch
                                                     },
                                                     'com:BillingPointOfSaleInfo': {
                                                         '$': {
@@ -1368,7 +2765,7 @@ const Booking = () => {
                                                         '$': {
                                                             'Carrier': 'UK',
                                                             'CarrierLocatorCode': pnrCode,
-                                                            'ProviderCode': '1G',
+                                                            'ProviderCode': providerCode,
                                                             'ProviderLocatorCode': locatorCode,
                                                             'UniversalLocatorCode': universallocatorCode
                                                         },
@@ -1389,11 +2786,11 @@ const Booking = () => {
                                         }
                                     });
 
-                                    // console.log(MerchandisingrequestXML2);
+                                    console.log('2', MerchandisingrequestXML2);
 
 
                                     try {
-                                        const Merchandisingresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', MerchandisingrequestXML2, {
+                                        const Merchandisingresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, MerchandisingrequestXML2, {
                                             headers: {
                                                 'Content-Type': 'text/xml',
                                                 'Authorization': authHeader,
@@ -1428,22 +2825,24 @@ const Booking = () => {
                 }
             };
             makeReservationRequest();
+            // setLoading(false);
         }
     }
 
     const navigate = useNavigate();
 
     const handlePassengerSubmit = async (event) => {
+        setSeatloading(true);
         event.preventDefault();
         const email = event.target.email.value.trim();
         const contactDetails = event.target.contact_details.value.trim();
-        let address = event.target.address.value.trim();
-        let street = event.target.street.value.trim();
-        let city = event.target.city.value.trim();
-        let state = event.target.state.value.trim();
-        let postal_code = event.target.postal_code.value.trim();
-        let country = event.target.country.value.trim();
-        
+        let address = event.target.address ? event.target.address.value.trim() : "NA";
+        let street = event.target.street ? event.target.street.value.trim() : "NA";
+        let city = event.target.city ? event.target.city.value.trim() : "NA";
+        let state = event.target.state ? event.target.state.value.trim() : "NA";
+        let postal_code = event.target.postal_code ? event.target.postal_code.value.trim() : "NA";
+        let country = event.target.country ? event.target.country.value.trim() : "NA";
+
         let GSTIN = event.target.gst_registration_no.value.trim();
         let company_gst_name = event.target.company_gst_name.value.trim();
         let company_gst_address = event.target.company_gst_address.value.trim();
@@ -1504,9 +2903,12 @@ const Booking = () => {
             const passengerKeys = Array.from(formData.getAll('passengerkey[]'));
             const passengerCode = Array.from(formData.getAll('passengercode[]'));
             const passengerFirstNames = Array.from(formData.getAll('adult_first_name[]'));
+            // console.log('passengerFirstNames',passengerFirstNames);
             const passengerLastNames = Array.from(formData.getAll('adult_last_name[]'));
             const passengerAgeNames = Array.from(formData.getAll('adult_age[]'));
             const passengerGenderNames = Array.from(formData.getAll('adult_gender[]'));
+            // const passengeremail = Array.from(formData.getAll('email'));
+            // const passengercontact = Array.from(formData.getAll('contact_details'));
 
             const passengerNamesWithPrefix = passengerGenderNames.map(gender => {
                 if (gender === 'F') {
@@ -1540,6 +2942,40 @@ const Booking = () => {
                 postalCode: passengerPostalCode,
                 country: passengerCountry
             };
+            // console.log('passengerDetails',passengerDetails);
+            const passenger_details = passengerDetails.firstNames.map((firstName, index) => ({
+                name: firstName,
+                contact: passengerDetails.contactNo, // Assuming the same contact applies to all
+                email: passengerDetails.email, // Assuming the same email applies to all
+            }));
+            if (formtaxivaxi['search_query_id']) {
+                const requestData = {
+                    access_token,
+                    clientid, // Ensure this variable is defined somewhere
+                    search_query_id: formtaxivaxi['search_query_id'],
+                    passenger_details,
+                };
+
+                console.log("requestData", requestData);
+
+                // Define the async function
+                const addSearchQueryAsBooking = async () => {
+                    try {
+                        const response = await axios.post(
+                            `${CONFIG.MAIN_API}/api/flights/addSearchQueryAsBooking`,
+                            requestData
+                        );
+                        console.log("API Response:", response.data);
+                    } catch (error) {
+                        console.error("Error calling API:", error);
+                    }
+                };
+
+                // Call the async function
+                addSearchQueryAsBooking();
+            }
+
+
             setPassengers(passengerDetails);
             const passengerDetailss = {
                 keys: [],
@@ -1547,7 +2983,9 @@ const Booking = () => {
                 firstNames: [],
                 lastNames: [],
                 gender: [],
-                age: []
+                age: [],
+                contact: [],
+                email: []
             };
 
             for (let i = 0; i < passengerKeys.length; i++) {
@@ -1557,6 +2995,8 @@ const Booking = () => {
                     passengerDetailss.firstNames.push(passengerFirstNames[i]);
                     passengerDetailss.lastNames.push(passengerLastNames[i]);
                     passengerDetailss.gender.push(passengerGenderNames[i]);
+                    passengerDetailss.email.push(passengerEmail[i]);
+                    passengerDetailss.contact.push(passengerContactNo[i]);
                     passengerDetailss.age.push(passengerAgeNames[i]);
                 }
             }
@@ -1569,10 +3009,26 @@ const Booking = () => {
             const formattedDetails = passengerDetails.keys.map((key, index) => {
                 const firstName = passengerFirstNames[index];
                 const lastName = passengerLastNames[index];
+                const email = passengerEmail;  // Handle cases where email might be missing
+                const contactNo = passengerContactNo;
                 return `
-                    Passenger ${index + 1}:
-                    ${firstName} ${lastName}
-                    ${passengerGenderNames[index] === 'F' ? '(Female)' : '(Male)'}
+                    <div style="border-bottom: 1px solid #ddd; padding: 10px; font-size: 13px; color: #555;">
+        <div style="font-weight: bold; font-size: 14px; color: #333; margin-bottom: 5px;">
+            Passenger ${index + 1}
+        </div>
+        <div style="display: flex; gap: 50px;"> 
+            <div style="width: 100px; font-weight: 600;">Name:</div>
+            <div style="flex: 1;">${firstName} ${lastName} ${passengerGenderNames[index] === 'F' ? '(Female)' : '(Male)'}</div>
+        </div>
+        <div style="display: flex; gap: 50px;">
+            <div style="width: 100px; font-weight: 600;">Email:</div>
+            <div style="flex: 1;">${email}</div>
+        </div>
+        <div style="display: flex; gap: 50px;">
+            <div style="width: 100px; font-weight: 600;">Contact No:</div>
+            <div style="flex: 1;">${contactNo}</div>
+        </div>
+    </div>
                 `;
             }).join('<br><br>');
 
@@ -1612,7 +3068,7 @@ const Booking = () => {
                                         '$': {
                                             'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                             'AuthorizedBy': 'TAXIVAXI',
-                                            'TargetBranch': 'P4451438',
+                                            'TargetBranch': Targetbranch,
                                             'ReturnSeatPricing': 'true',
                                             'ReturnBrandingInfo': 'true'
                                         },
@@ -1641,9 +3097,11 @@ const Booking = () => {
                                 }
                             }
                         });
+                        console.log('seatMapRequestXML', seatMapRequestXML);
 
                         try {
-                            const seatresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', seatMapRequestXML, {
+
+                            const seatresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, seatMapRequestXML, {
                                 headers: {
                                     'Content-Type': 'text/xml',
                                     'Authorization': authHeader,
@@ -1720,14 +3178,21 @@ const Booking = () => {
     }
 
     const validateSavePassenger = (Passengerarray) => {
+        // console.log('Passengerarray', Passengerarray);
         let isValid = true;
 
         const updatepassengerarray = Passengerarray.map((passengerinfo, passengerindex) => {
             const firstName = document.querySelector(`input[name="adult_first_name[]"][data-index="${passengerindex}"]`).value;
+            // console.log('firstName', firstName);
+            const email1 = document.querySelector(`input[name="email1"][data-index="${passengerindex}"]`).value;
+            // console.log('email1', email1); 
+            const cnct = document.querySelector(`input[name="contact_details1"][data-index="${passengerindex}"]`).value;
+            // console.log('cnct', cnct); 
             const lastName = document.querySelector(`input[name="adult_last_name[]"][data-index="${passengerindex}"]`).value;
             const birthdate = document.querySelector(`input[name="adult_age[]"][data-index="${passengerindex}"]`).value;
             const gender = document.querySelector(`select[name="adult_gender[]"][data-index="${passengerindex}"]`).value;
             const age = calculateAge(birthdate);
+            // console.log('age', age);
 
             if (firstName.trim() === '') {
                 isValid = false;
@@ -1815,6 +3280,7 @@ const Booking = () => {
     const prevSlide = () => {
         setCurrentIndex((prevIndex) => (prevIndex === 0 ? seatresponseparse.length - 1 : prevIndex - 1));
     };
+
     const [passengereventindexs, setPassengereventindexs] = useState(0);
     const handlePassengerevent = (key, index) => {
         setPassengerkey(key);
@@ -1826,8 +3292,11 @@ const Booking = () => {
     const [seatsegmentselected, setseatsegmentselected] = useState(null);
     const [seatoptionalkeyselected, setseatoptionalkeyselected] = useState(null);
     const [previousSelections, setPreviousSelections] = useState([]);
+    // console.log('previousSelections',previousSelections);
 
     const handleseatSelectiondisplay = (seatpassenger, seatsegment, seatcode, optionalservicekey) => {
+        setCurrentIndex((prevIndex) => (prevIndex === seatresponseparse.length - 1 ? 0 : prevIndex + 1));
+        // console.log('seat detail ', seatpassenger, seatsegment, seatcode, optionalservicekey);
         setseatcodeselected(seatcode);
         setseatpassengerselected(seatpassenger);
         setseatsegmentselected(seatsegment);
@@ -1907,7 +3376,6 @@ const Booking = () => {
     }, [navigate]);
 
     var sessionData = () => {
-
         (async () => {
             try {
                 const keys = Object.keys(sessionStorage);
@@ -1923,12 +3391,7 @@ const Booking = () => {
                 const password = 'N-k29Z}my5';
                 const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
 
-                const eresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', soapEnvelope, {
-                    headers: {
-                        'Content-Type': 'text/xml',
-                        'Authorization': authHeader,
-                    },
-                });
+                const eresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, soapEnvelope);
 
                 const eResponse = eresponse.data;
 
@@ -2064,18 +3527,14 @@ const Booking = () => {
                                                 segmentArray.push(segmentfoundItem);
                                             }
                                         }
-
                                     }
-
                                 }
                             });
                             const segmentArrayjson = JSON.parse(sessionStorage.getItem('segmentarray'));
 
                             const resultArray = [];
 
-
                             for (const item1 of segmentArray) {
-
                                 for (const item2 of segmentArrayjson) {
                                     if (item1.$.Origin === item2.$.Origin && item1.$.Destination === item2.$.Destination) {
                                         if (item1.$.Carrier === item2.$.Carrier && item1.$.FlightNumber === item2.$.FlightNumber) {
@@ -2083,14 +3542,11 @@ const Booking = () => {
                                         }
                                     }
                                 }
-
-
                             }
-
 
                             resultArray.forEach(segment => {
                                 if (segment['$']) {
-                                    segment['$'].ProviderCode = '1G';
+                                    segment['$'].ProviderCode = providerCode;
                                 }
                                 delete segment['air:FlightDetailsRef'];
                             });
@@ -2121,7 +3577,7 @@ const Booking = () => {
                                             'air:AirPriceReq': {
                                                 '$': {
                                                     'AuthorizedBy': 'TAXIVAXI',
-                                                    'TargetBranch': 'P4451438',
+                                                    'TargetBranch': Targetbranch,
                                                     'FareRuleType': 'short',
                                                     'TraceId': 'TVSBP001',
                                                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
@@ -2165,7 +3621,7 @@ const Booking = () => {
                                 });
 
                                 try {
-                                    const priceresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', pricepointXML, {
+                                    const priceresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, pricepointXML, {
                                         headers: {
                                             'Content-Type': 'text/xml',
                                             'Authorization': authHeader,
@@ -2290,7 +3746,7 @@ const Booking = () => {
                                                             },
                                                             'air:AirMerchandisingOfferAvailabilityReq': {
                                                                 '$': {
-                                                                    'TargetBranch': 'P4451438',
+                                                                    'TargetBranch': Targetbranch,
                                                                     'TraceId': 'ac191f0b9c0546659065f29389eae552'
                                                                 },
                                                                 'com:BillingPointOfSaleInfo': {
@@ -2309,7 +3765,7 @@ const Booking = () => {
                                                 });
 
                                                 try {
-                                                    const serviceresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', servicerequestXML, {
+                                                    const serviceresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, servicerequestXML, {
                                                         headers: {
                                                             'Content-Type': 'text/xml',
                                                             'Authorization': authHeader,
@@ -2357,7 +3813,7 @@ const Booking = () => {
                                                                         '$': {
                                                                             'TraceId': 'ac191f0b9c0546659065f29389eae552',
                                                                             'AuthorizedBy': 'TAXIVAXI',
-                                                                            'TargetBranch': 'P4451438',
+                                                                            'TargetBranch': Targetbranch,
                                                                             'ReturnSeatPricing': 'true',
                                                                             'ReturnBrandingInfo': 'true'
                                                                         },
@@ -2388,7 +3844,7 @@ const Booking = () => {
                                                         });
 
                                                         try {
-                                                            const seatresponse = await axios.post('https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', seatMapRequestXML, {
+                                                            const seatresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, seatMapRequestXML, {
                                                                 headers: {
                                                                     'Content-Type': 'text/xml',
                                                                     'Authorization': authHeader,
@@ -2496,10 +3952,7 @@ const Booking = () => {
                 console.error('Error:', error);
             }
         })();
-
-
     }
-
 
     const [prices, setPrices] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
@@ -2549,52 +4002,75 @@ const Booking = () => {
         }
     }, [totalCount]);
 
-    useEffect(() => {
-        const priceItemsContainer = document.getElementById('price-items');
-        setTotalCount(prices.length);
-        priceItemsContainer.innerHTML = '';
-        // console.log(prices);
-        prices.forEach((price, index) => {
-            const priceItem = document.createElement('div');
-            priceItem.classList.add('price-item');
-            priceItem.style.width = `${(1 / totalCount) * 100}%`;
+    // useEffect(() => {
+    //     const priceItemsContainer = document.getElementById('price-items');
+    //     setTotalCount(prices.length);
+    //     priceItemsContainer.innerHTML = '';
+    //     // console.log(prices);
+    //     prices.forEach((price, index) => {
+    //         const priceItem = document.createElement('div');
+    //         priceItem.classList.add('price-item');
+    //         priceItem.style.width = `${(1 / totalCount) * 100}%`;
 
-            const conditionSpan = document.createElement('span');
-            conditionSpan.textContent = price.condition;
-            conditionSpan.classList.add('conditionSpan');
-            priceItem.appendChild(conditionSpan);
+    //         const conditionSpan = document.createElement('span');
+    //         conditionSpan.textContent = price.condition;
+    //         conditionSpan.classList.add('conditionSpan');
+    //         priceItem.appendChild(conditionSpan);
 
-            const conditionSpanprice = document.createElement('span');
-            conditionSpanprice.textContent = price.price;
-            conditionSpanprice.classList.add('conditionSpanprice');
-            priceItem.appendChild(conditionSpanprice);
+    //         const conditionSpanprice = document.createElement('span');
+    //         conditionSpanprice.textContent = price.price;
+    //         conditionSpanprice.classList.add('conditionSpanprice');
+    //         priceItem.appendChild(conditionSpanprice);
 
-            priceItemsContainer.appendChild(priceItem);
-        });
-    }, [prices, totalCount]);
+    //         priceItemsContainer.appendChild(priceItem);
+    //     });
+    // }, [prices, totalCount]);
 
     return (
 
-        <div className="yield-content">
+        <div className="yield-content" style={{ background: '#e8e4ff' }}>
+            {/* <header className="search-barr" id="widgetHeader">
+            <p style={{ color: 'white'}}>Complete Your Booking</p>
+        </header> */}
             {loading &&
                 <div className="page-center-loader flex items-center justify-center">
                     <div className="big-loader flex items-center justify-center">
-                        <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" />
-                        <p className="text-center ml-4 text-gray-600 text-lg">
-                            Retrieving flight details. Please wait a moment.
-                        </p>
+                        {/* <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" /> */}
+                        <img className="loader-gif" src="/img/cotravloader.gif" alt="Loader" />
+                        {(() => {
+                            switch (true) {
+                                case isseatloading:
+                                    return (
+                                        <p className="text-center ml-4 text-gray-600 text-lg">
+                                            Retrieving Seat details. Please wait a moment.
+                                        </p>
+                                    );
+                                case isreservation:
+                                    return (
+                                        <p className="text-center ml-4 text-gray-600" >
+                                            Processing your reservation. Please wait...
+                                        </p>
+                                    );
+
+                                default:
+                                    return (
+                                        <p className="text-center ml-4 text-gray-600 text-lg">
+                                            Retrieving flight details. Please wait a moment.
+                                        </p>
+                                    )
+                            }
+                        })()}
+
                     </div>
                 </div>
             }
 
             <div className="main-cont" id="main_cont">
                 <div className="body-wrapper">
+
                     <div className="wrapper-padding">
-                        <div className="page-head">
-                            <div className="page-title" />
-                            <div className="breadcrumbs"></div>
-                            <div className="clear" />
-                        </div>
+                        <span class="bgGradient"></span>
+
                         <div className="sp-page">
                             <div className="sp-page-a">
                                 <div className="sp-page-l">
@@ -2616,17 +4092,17 @@ const Booking = () => {
                                                                                         {fareIndex === 0 &&
                                                                                             <>
                                                                                                 <span className='headingpolicies'>
-                                                                                                    Selected Package Details
+                                                                                                    Flight Details
                                                                                                     <span
                                                                                                     >
-                                                                                                        <button
+                                                                                                        {/* <button
                                                                                                             type="button"
                                                                                                             className="packagemore"
                                                                                                             data-toggle="modal"
                                                                                                             data-target=".bd-example-modal-lg"
                                                                                                         >
                                                                                                             Package Details
-                                                                                                        </button>
+                                                                                                        </button> */}
 
                                                                                                     </span>
                                                                                                 </span>
@@ -2644,7 +4120,7 @@ const Booking = () => {
                                                                                                                     className="modal-title"
                                                                                                                     id="exampleModalLabel"
                                                                                                                 >
-                                                                                                                    Selected Package Details
+                                                                                                                    Flight Details
                                                                                                                 </h5>
                                                                                                                 <button
                                                                                                                     type="button"
@@ -2872,10 +4348,7 @@ const Booking = () => {
                                                                                             </>
                                                                                         }
                                                                                         <div className='row' style={{ border: '1px solid #e3e3e3', margin: '0% 0%' }}>
-                                                                                            <div
-                                                                                                className="booking-form bagg-form-details"
-
-                                                                                            >
+                                                                                            <div className="booking-form bagg-form-details">
 
                                                                                                 {Array.isArray(fareInfo['air:Brand']['air:Text'])
                                                                                                     ? (
@@ -2887,87 +4360,122 @@ const Booking = () => {
 
                                                                                                                 const infoText = textinfor['_'];
                                                                                                                 const matches = infoText.match(/\b\d+\s?(kgs?|kg)\b/gi);
-                                                                                                    
+
                                                                                                                 return (
                                                                                                                     <div key={textindex}>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <span className='airportcabin'>
-                                                                                                                                {(() => {
-                                                                                                                                    const uniqueCarriers1 = new Set();
+                                                                                                                        <div className="airport-flight-row">
+                                                                                                                            {(() => {
+                                                                                                                                const uniqueCarriers1 = new Set();
+                                                                                                                                segmentParse.forEach(segmentinfo => uniqueCarriers1.add(segmentinfo['$']['Carrier']));
 
-                                                                                                                                    segmentParse && segmentParse.forEach(segmentinfo => {
-                                                                                                                                        uniqueCarriers1.add(segmentinfo['$']['Carrier']);
-                                                                                                                                    });
-                                                                                                                                    return (
-                                                                                                                                        segmentParse && Array.from(uniqueCarriers1).map((carrier, index) => (
+                                                                                                                                return (
+                                                                                                                                    Array.from(uniqueCarriers1).map((carrier, index) => (
+                                                                                                                                        <div key={index} className="airport-flight-container">
+                                                                                                                                            {/* Airline Logo */}
+                                                                                                                                            <img
+                                                                                                                                                className="airport-airline-img"
+                                                                                                                                                src={`${CONFIG.DEV_API}/airline_logo_images/${carrier}.png`}
+                                                                                                                                                alt="Airline logo"
+                                                                                                                                            />
 
-                                                                                                                                            <div key={index}>
-                                                                                                                                                <img
-                                                                                                                                                    className={`airportairlineimg`}
-                                                                                                                                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
-                                                                                                                                                    alt="Airline logo"
-                                                                                                                                                    width="30px"
-                                                                                                                                                />
-
-
-                                                                                                                                                {segmentParse
-                                                                                                                                                    .filter(segmentinfo => segmentinfo['$']['Carrier'] === carrier)
-                                                                                                                                                    .map((segmentinfo, segmentindex) => {
-                                                                                                                                                        if (fareIndex === segmentindex) {
-                                                                                                                                                            return (
-                                                                                                                                                                <span key={segmentindex} className='airportflightnumber'>
-                                                                                                                                                                    <span className='airportairline'>{handleAirline(segmentinfo['$']['Carrier'])} </span>
-                                                                                                                                                                    {segmentindex > 0 && ', '}
+                                                                                                                                            {/* Airline Name, Flight Number, and Aircraft Type */}
+                                                                                                                                            <div className="airport-flight-details">
+                                                                                                                                                <span className="airport-airline-name">{handleAirline(carrier)}
+                                                                                                                                                    {segmentParse
+                                                                                                                                                        .filter(segmentinfo => segmentinfo['$']['Carrier'] === carrier)
+                                                                                                                                                        .map((segmentinfo, segmentindex) => (
+                                                                                                                                                            fareIndex === segmentindex && (
+                                                                                                                                                                <span key={segmentindex} className="airport-flight-number">
                                                                                                                                                                     {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
                                                                                                                                                                 </span>
-                                                                                                                                                            );
-                                                                                                                                                        }
-                                                                                                                                                        return null;
-                                                                                                                                                    })
-                                                                                                                                                }
-
+                                                                                                                                                            )
+                                                                                                                                                        ))
+                                                                                                                                                    }
+                                                                                                                                                </span>
 
                                                                                                                                             </div>
-                                                                                                                                        ))
-                                                                                                                                    );
-                                                                                                                                })()}
 
-                                                                                                                            </span>
+                                                                                                                                            {/* Cabin Class */}
+                                                                                                                                            <div className="airport-cabin-class">{classType}</div>
+                                                                                                                                        </div>
+                                                                                                                                    ))
+                                                                                                                                );
+                                                                                                                            })()}
                                                                                                                         </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <div className='col-md-5'>
+                                                                                                                        <div className="flight-details-container">
+                                                                                                                            <div className='row accordionfarename apiairportname'>
                                                                                                                                 <span className='apicircle'>◯</span>
                                                                                                                                 <span className='airportname'>
                                                                                                                                     {handleAirport(fareInfo['$']['Origin'])}
                                                                                                                                 </span>
-                                                                                                                                {handleApiAirport(fareInfo['$']['Origin'])}
+                                                                                                                                <span className='airport'>
+                                                                                                                                    {handleApiAirport(fareInfo['$']['Origin'])}
+                                                                                                                                    {(
+                                                                                                                                    (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
+                                                                                                                                           
+                                                                                                                                            const bookingInfo = packageSelected['air:AirPricingInfo']['air:BookingInfo'].find(
+                                                                                                                                                info => info['$']['FareInfoRef'] === fareInfo['$']['Key']
+                                                                                                                                            );
+
+                                                                                                                                            // Check if the segment's key matches the booking info's SegmentRef
+                                                                                                                                            return bookingInfo && segment['$']['Key'] === bookingInfo['$']['SegmentRef'];
+                                                                                                                                        }) .map(segment => {
+                                                                                                                                            const matchedFlightDetail = actualFlightDetails.find(flight =>
+                                                                                                                                                flight.$?.Origin === segment['$']['Origin'] &&
+                                                                                                                                                flight.$?.Destination === segment['$']['Destination'] &&
+                                                                                                                                                flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
+                                                                                                                                                flight.$?.ArrivalTime === segment['$']['ArrivalTime']
+                                                                                                                                            );
+
+                                                                                                                                            return matchedFlightDetail?.$?.OriginTerminal ? ` T-${matchedFlightDetail.$.OriginTerminal}` : null;
+                                                                                                                                        })
+                                                                                                                                        .filter(Boolean)
+                                                                                                                                        .join("") 
+                                                                                                                                )}</span>
                                                                                                                             </div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinclass'>Cabin Class</div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinbag'>Check-In Baggage</div>
-                                                                                                                            <div className='col-md-2 accordionfarehandbag'>Cabin Baggage</div>
-                                                                                                                        </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <span className='vertical_line'></span>
-                                                                                                                            {handleEffectiveDate(fareInfo['$']['Origin']['DepartureDate'])}
-                                                                                                                        </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <div className='col-md-5'>
+                                                                                                                            <div className='row accordionfarename apiairportname'>
+                                                                                                                                <span className='vertical_line'></span>
+                                                                                                                                {handleEffectiveDate(fareInfo['$']['Origin']['DepartureDate'])}
+                                                                                                                                {/* {(segmentParsee['$']['DepartureTime'])} */}
+                                                                                                                            </div>
+                                                                                                                            <div className='row accordionfarename apiairportname'>
                                                                                                                                 <span className='apicircle'>◯</span>
                                                                                                                                 <span className='airportname'>
                                                                                                                                     {handleAirport(fareInfo['$']['Destination'])}
                                                                                                                                 </span>
-                                                                                                                                {handleApiAirport(fareInfo['$']['Destination'])}
+                                                                                                                                <span className='airport'>
+                                                                                                                                    {handleApiAirport(fareInfo['$']['Destination'])}
+                                                                                                                                    {(
+                                                                                                                                    (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
+                                                                                                                                         
+                                                                                                                                            const bookingInfo = packageSelected['air:AirPricingInfo']['air:BookingInfo'].find(
+                                                                                                                                                info => info['$']['FareInfoRef'] === fareInfo['$']['Key']
+                                                                                                                                            );
+
+                                                                                                                                          
+                                                                                                                                            return bookingInfo && segment['$']['Key'] === bookingInfo['$']['SegmentRef'];
+                                                                                                                                        }) .map(segment => {
+                                                                                                                                        
+                                                                                                                                            const matchedFlightDetail = actualFlightDetails.find(flight =>
+                                                                                                                                                flight.$?.Origin === segment['$']['Origin'] &&
+                                                                                                                                                flight.$?.Destination === segment['$']['Destination'] &&
+                                                                                                                                                flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
+                                                                                                                                                flight.$?.ArrivalTime === segment['$']['ArrivalTime']
+                                                                                                                                            );
+
+                                                                                                                                            return matchedFlightDetail?.$?.DestinationTerminal ? ` T-${matchedFlightDetail.$.DestinationTerminal}` : null;
+                                                                                                                                        })
+                                                                                                                                        .filter(Boolean)
+                                                                                                                                        .join("") 
+                                                                                                                                )}</span>
                                                                                                                             </div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinbag1'>
-                                                                                                                                <ul>
-                                                                                                                                    <li><FlightCheckIn CheckIn={matches && matches[0] ? matches[0] : 'NA'} onFlightCheckInChange={handleCheckIn} /></li>
-                                                                                                                                </ul>
-                                                                                                                            </div>
-                                                                                                                            <div className='col-md-2 accordionfarehandbag1 '>
-                                                                                                                                <ul>
-                                                                                                                                    <li><FlightCabin Cabin={matches && matches[1] ? matches[1] : 'NA'} onFlightCabinChange={handleCabin} /></li>
-                                                                                                                                </ul>
+                                                                                                                            <div className='baggage-info'>
+                                                                                                                                <span className="cabin-baggage">
+                                                                                                                                    <img src="/img/cabin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Cabin Baggage:</strong> {matches && matches[1] ? matches[1] : 'NA'}
+                                                                                                                                </span>
+                                                                                                                                <span className="checkin-baggage">
+                                                                                                                                    <img src="/img/checkin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Check-In Baggage:</strong> {matches && matches[0] ? matches[0] : 'NA'}
+                                                                                                                                </span>
                                                                                                                             </div>
                                                                                                                         </div>
                                                                                                                     </div>
@@ -2998,16 +4506,16 @@ const Booking = () => {
                                                                         packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['air:Brand']['air:Text'] ? (
                                                                             <div className="baggagae_policy">
                                                                                 <span className='headingpolicies' >
-                                                                                    Selected Package Details
+                                                                                    Flight Details
                                                                                     <span>
-                                                                                        <button
+                                                                                        {/* <button
                                                                                             type="button"
                                                                                             className="packagemore"
                                                                                             data-toggle="modal"
                                                                                             data-target=".bd-example-modal-lg"
                                                                                         >
                                                                                             Package Details
-                                                                                        </button>
+                                                                                        </button> */}
                                                                                     </span>
                                                                                 </span>
                                                                                 <div
@@ -3024,7 +4532,7 @@ const Booking = () => {
                                                                                                     className="modal-title"
                                                                                                     id="exampleModalLabel"
                                                                                                 >
-                                                                                                    Selected Package Details
+                                                                                                    Flight Details
                                                                                                 </h5>
                                                                                                 <button
                                                                                                     type="button"
@@ -3268,76 +4776,74 @@ const Booking = () => {
                                                                                                         console.log("matches1", matches);
                                                                                                         return (
                                                                                                             <div key={textindex}>
-                                                                                                                <div className='row accordionfarename apiairportname'>
-                                                                                                                    <span className='airportcabin'>
-                                                                                                                        {(() => {
-                                                                                                                            const uniqueCarriers1 = new Set();
+                                                                                                                <div className="airport-flight-row">
+                                                                                                                    {(() => {
+                                                                                                                        const uniqueCarriers = new Set();
+                                                                                                                        segmentParse.forEach(segmentinfo => uniqueCarriers.add(segmentinfo['$']['Carrier']));
 
-                                                                                                                            segmentParse && segmentParse.forEach(segmentinfo => {
-                                                                                                                                uniqueCarriers1.add(segmentinfo['$']['Carrier']);
-                                                                                                                            });
+                                                                                                                        return Array.from(uniqueCarriers).map((carrier, index) => (
+                                                                                                                            <div key={index} className="airport-flight-container">
+                                                                                                                                {/* Airline Logo */}
+                                                                                                                                <img
+                                                                                                                                    className="airportairlineimg"
+                                                                                                                                    src={`${CONFIG.DEV_API}/airline_logo_images/${carrier}.png`}
+                                                                                                                                    alt="Airline logo"
+                                                                                                                                    width="30px"
+                                                                                                                                />
 
-                                                                                                                            return (
-                                                                                                                                segmentParse && Array.from(uniqueCarriers1).map((carrier, index) => (
-                                                                                                                                    <div key={index}>
-                                                                                                                                        <img
-                                                                                                                                            className={`airportairlineimg`}
-                                                                                                                                            src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
-                                                                                                                                            alt="Airline logo"
-                                                                                                                                            width="30px"
-                                                                                                                                        />
-
-
-                                                                                                                                        {segmentParse.map((segmentinfo, segmentindex) => (
-                                                                                                                                            segmentinfo['$']['Carrier'] === carrier && (
-                                                                                                                                                <span key={segmentindex} className='airportflightnumber'>
-                                                                                                                                                    <span className='airportairline'>{handleAirline(segmentinfo['$']['Carrier'])} </span>
+                                                                                                                                {/* Flight Details */}
+                                                                                                                                <div className="airport-flight-details">
+                                                                                                                                    <span className="airportairline">{handleAirline(carrier)}
+                                                                                                                                        {segmentParse
+                                                                                                                                            .filter(segmentinfo => segmentinfo['$']['Carrier'] === carrier)
+                                                                                                                                            .map((segmentinfo, segmentindex) => (
+                                                                                                                                                <span key={segmentindex}>
+                                                                                                                                                    {segmentindex > 0 && ', '}
                                                                                                                                                     {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
                                                                                                                                                 </span>
-                                                                                                                                            )
-                                                                                                                                        ))}
+                                                                                                                                            ))}
+                                                                                                                                    </span>
+                                                                                                                                </div>
+                                                                                                                            </div>
+                                                                                                                        ));
+                                                                                                                    })()}
 
-                                                                                                                                    </div>
-                                                                                                                                ))
-                                                                                                                            );
-                                                                                                                        })()}
-
-                                                                                                                    </span>
+                                                                                                                    {/* Cabin Class (Aligned to the Right) */}
+                                                                                                                    <span className="airport-cabin-class">{classType}</span>
                                                                                                                 </div>
-                                                                                                                <div className='row accordionfarename apiairportname'>
-                                                                                                                    <div className='col-md-5'>
+                                                                                                                <div className="flight-details-container">
+                                                                                                                    <div className='row accordionfarename apiairportname'>
                                                                                                                         <span className='apicircle'>◯</span>
                                                                                                                         <span className='airportname'>
                                                                                                                             {handleAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Origin'])}
                                                                                                                         </span>
-                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Origin'])}
+                                                                                                                        <span className='airport'>
+                                                                                                                            {handleApiAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Origin'])}
+                                                                                                                            {console.log("test1")}</span>
                                                                                                                     </div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinclass'>Cabin Class</div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinbag'>Check-In Baggage</div>
-                                                                                                                    <div className='col-md-2 accordionfarehandbag'>Cabin Baggage</div>
-                                                                                                                </div>
-                                                                                                                <div className='row accordionfarename apiairportname'>
-                                                                                                                    <span className='vertical_line'></span>
-                                                                                                                    {handleEffectiveDate(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['DepartureDate'])}
-                                                                                                                </div>
-                                                                                                                <div className='row accordionfarename apiairportname'>
-                                                                                                                    <div className='col-md-5'>
+                                                                                                                    <div className='row accordionfarename apiairportname'>
+                                                                                                                        <span className='vertical_line'></span>
+                                                                                                                        {handleEffectiveDate(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['DepartureDate'])}
+                                                                                                                        {/* {(segmentParsee['$']['DepartureTime'])} */}
+
+
+                                                                                                                    </div>
+                                                                                                                    <div className='row accordionfarename apiairportname'>
                                                                                                                         <span className='apicircle'>◯</span>
                                                                                                                         <span className='airportname'>
                                                                                                                             {handleAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Destination'])}
                                                                                                                         </span>
-                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Destination'])}
+                                                                                                                        <span className='airport'>
+                                                                                                                            {handleApiAirport(packageSelected['air:AirPricingInfo'][0]['air:FareInfo']['$']['Destination'])}
+                                                                                                                            {console.log("test2")}</span>
                                                                                                                     </div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinbag1'>
-                                                                                                                        <ul>
-                                                                                                                            <li><FlightCheckIn CheckIn={matches && matches[0] ? matches[0] : 'NA'} onFlightCheckInChange={handleCheckIn} /></li>
-                                                                                                                        </ul>
-                                                                                                                    </div>
-                                                                                                                    <div className='col-md-2 accordionfarehandbag1 '>
-                                                                                                                        <ul>
-                                                                                                                            <li><FlightCabin Cabin={matches && matches[1] ? matches[1] : 'NA'} onFlightCabinChange={handleCabin} /></li>
-                                                                                                                        </ul>
+                                                                                                                    <div className='baggage-info'>
+                                                                                                                        <span className="cabin-baggage">
+                                                                                                                            <img src="/img/cabin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Cabin Baggage:</strong> {matches && matches[1] ? matches[1] : 'NA'}
+                                                                                                                        </span>
+                                                                                                                        <span className="checkin-baggage">
+                                                                                                                            <img src="/img/checkin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Check-In Baggage:</strong> {matches && matches[0] ? matches[0] : 'NA'}
+                                                                                                                        </span>
                                                                                                                     </div>
                                                                                                                 </div>
                                                                                                             </div>
@@ -3376,16 +4882,16 @@ const Booking = () => {
                                                                                         {fareIndex === 0 &&
                                                                                             <>
                                                                                                 <span className='headingpolicies' >
-                                                                                                    Selected Package Details
+                                                                                                    Flight Details
                                                                                                     <span>
-                                                                                                        <button
+                                                                                                        {/* <button
                                                                                                             type="button"
                                                                                                             className="packagemore"
                                                                                                             data-toggle="modal"
                                                                                                             data-target=".bd-example-modal-lg"
                                                                                                         >
                                                                                                             Package Details
-                                                                                                        </button>
+                                                                                                        </button> */}
                                                                                                     </span>
                                                                                                 </span>
                                                                                                 <div
@@ -3645,11 +5151,11 @@ const Booking = () => {
 
                                                                                                                 const infoText = textinfor['_'];
                                                                                                                 const matches = infoText.match(/\b\d+\s?(kgs?|kg)\b/gi);
-                                                                                                 
+
                                                                                                                 return (
                                                                                                                     <div key={textindex}>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <span className='airportcabin'>
+                                                                                                                        <div className="row accordionfarename apiairportname">
+                                                                                                                            <div className="airport-flight-row">
                                                                                                                                 {(() => {
                                                                                                                                     const uniqueCarriers1 = new Set();
 
@@ -3658,72 +5164,119 @@ const Booking = () => {
                                                                                                                                     });
 
                                                                                                                                     return (
-                                                                                                                                        segmentParse && Array.from(uniqueCarriers1).map((carrier, index) => (
-                                                                                                                                            <div key={index}>
+                                                                                                                                        segmentParse &&
+                                                                                                                                        Array.from(uniqueCarriers1).map((carrier, index) => (
+                                                                                                                                            <div key={index} className="airport-flight-container">
                                                                                                                                                 <img
-                                                                                                                                                    className={`airportairlineimg`}
-                                                                                                                                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
+                                                                                                                                                    className="airportairlineimg"
+                                                                                                                                                    src={`${CONFIG.DEV_API}/airline_logo_images/${carrier}.png`}
                                                                                                                                                     alt="Airline logo"
                                                                                                                                                     width="30px"
                                                                                                                                                 />
 
-
-                                                                                                                                                {segmentParse
-                                                                                                                                                    .filter(segmentinfo => segmentinfo['$']['Carrier'] === carrier)
-                                                                                                                                                    .map((segmentinfo, segmentindex) => {
-                                                                                                                                                        if (fareIndex === segmentindex) {
-                                                                                                                                                            return (
-                                                                                                                                                                <span key={segmentindex} className='airportflightnumber'>
-                                                                                                                                                                    <span className='airportairline'>{handleAirline(segmentinfo['$']['Carrier'])} </span>
-                                                                                                                                                                    {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
-                                                                                                                                                                </span>
-                                                                                                                                                            );
-                                                                                                                                                        }
-                                                                                                                                                        return null;
-                                                                                                                                                    })
-                                                                                                                                                }
-
+                                                                                                                                                <div className="airport-flight-details">
+                                                                                                                                                    {(Array.isArray(segmentParse) ? segmentParse : [segmentParse])
+                                                                                                                                                        .filter(segmentinfo => segmentinfo?.['$']?.['Carrier'] === carrier)
+                                                                                                                                                        .map((segmentinfo, segmentindex) => {
+                                                                                                                                                            if (fareIndex === segmentindex) {
+                                                                                                                                                                return (
+                                                                                                                                                                    <span key={segmentindex} className="airportflightnumber">
+                                                                                                                                                                        <span className="airportairline">
+                                                                                                                                                                            {handleAirline(segmentinfo['$']['Carrier'])}{" "}
+                                                                                                                                                                            {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
+                                                                                                                                                                        </span>
+                                                                                                                                                                    </span>
+                                                                                                                                                                );
+                                                                                                                                                            }
+                                                                                                                                                            return null;
+                                                                                                                                                        })}
+                                                                                                                                                </div>
                                                                                                                                             </div>
                                                                                                                                         ))
                                                                                                                                     );
                                                                                                                                 })()}
 
-                                                                                                                            </span>
+                                                                                                                                {/* Right-aligned cabin class */}
+                                                                                                                                <span className="airport-cabin-class">{classType}</span>
+                                                                                                                            </div>
                                                                                                                         </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <div className='col-md-5'>
+                                                                                                                        <div className="flight-details-container">
+                                                                                                                            <div className='row accordionfarename apiairportname'>
                                                                                                                                 <span className='apicircle'>◯</span>
                                                                                                                                 <span className='airportname'>
                                                                                                                                     {handleAirport(fareInfo['$']['Origin'])}
                                                                                                                                 </span>
-                                                                                                                                {handleApiAirport(fareInfo['$']['Origin'])}
+                                                                                                                                <span className='airport'>
+                                                                                                                                    {handleApiAirport(fareInfo['$']['Origin'])}
+                                                                                                                                    {(
+                                                                                                                                    (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
+                                                                                                                                            // Find the booking info that matches the FareInfoRef
+                                                                                                                                            const bookingInfo = packageSelected['air:AirPricingInfo']['air:BookingInfo'].find(
+                                                                                                                                                info => info['$']['FareInfoRef'] === fareInfo['$']['Key']
+                                                                                                                                            );
+
+                                                                                                                                            // Check if the segment's key matches the booking info's SegmentRef
+                                                                                                                                            return bookingInfo && segment['$']['Key'] === bookingInfo['$']['SegmentRef'];
+                                                                                                                                        }) .map(segment => {
+                                                                                                                                            // Find the matching flight details
+                                                                                                                                            const matchedFlightDetail = actualFlightDetails.find(flight =>
+                                                                                                                                                flight.$?.Origin === segment['$']['Origin'] &&
+                                                                                                                                                flight.$?.Destination === segment['$']['Destination'] &&
+                                                                                                                                                flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
+                                                                                                                                                flight.$?.ArrivalTime === segment['$']['ArrivalTime']
+                                                                                                                                            );
+
+                                                                                                                                            return matchedFlightDetail?.$?.OriginTerminal ? ` T-${matchedFlightDetail.$.OriginTerminal}` : null;
+                                                                                                                                        })
+                                                                                                                                        .filter(Boolean)
+                                                                                                                                        .join("") 
+                                                                                                                                )}</span>
                                                                                                                             </div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinclass'>Cabin Class</div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinbag'>Check-In Baggage</div>
-                                                                                                                            <div className='col-md-2 accordionfarehandbag'>Cabin Baggage</div>
-                                                                                                                        </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <span className='vertical_line'></span>
-                                                                                                                            {handleEffectiveDate(fareInfo['$']['DepartureDate'])}
-                                                                                                                        </div>
-                                                                                                                        <div className='row accordionfarename apiairportname'>
-                                                                                                                            <div className='col-md-5'>
+                                                                                                                            <div className='row accordionfarename apiairportname'>
+                                                                                                                                <span className='vertical_line'></span>
+                                                                                                                                {handleEffectiveDate(fareInfo['$']['DepartureDate'])}
+                                                                                                                                {/* {(segmentParsee['$']['DepartureTime'])} */}
+
+                                                                                                                            </div>
+                                                                                                                            <div className='row accordionfarename apiairportname'>
                                                                                                                                 <span className='apicircle'>◯</span>
                                                                                                                                 <span className='airportname'>
                                                                                                                                     {handleAirport(fareInfo['$']['Destination'])}
                                                                                                                                 </span>
-                                                                                                                                {handleApiAirport(fareInfo['$']['Destination'])}
+                                                                                                                                <span className='airport'>
+                                                                                                                                    {handleApiAirport(fareInfo['$']['Destination'])}
+                                                                                                                                    
+                                                                                                                                    {(
+                                                                                                                                    (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
+                                                                                                                                            // Find the booking info that matches the FareInfoRef
+                                                                                                                                            const bookingInfo = packageSelected['air:AirPricingInfo']['air:BookingInfo'].find(
+                                                                                                                                                info => info['$']['FareInfoRef'] === fareInfo['$']['Key']
+                                                                                                                                            );
+
+                                                                                                                                            // Check if the segment's key matches the booking info's SegmentRef
+                                                                                                                                            return bookingInfo && segment['$']['Key'] === bookingInfo['$']['SegmentRef'];
+                                                                                                                                        }) .map(segment => {
+                                                                                                                                            // Find the matching flight details
+                                                                                                                                            const matchedFlightDetail = actualFlightDetails.find(flight =>
+                                                                                                                                                flight.$?.Origin === segment['$']['Origin'] &&
+                                                                                                                                                flight.$?.Destination === segment['$']['Destination'] &&
+                                                                                                                                                flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
+                                                                                                                                                flight.$?.ArrivalTime === segment['$']['ArrivalTime']
+                                                                                                                                            );
+
+                                                                                                                                            return matchedFlightDetail?.$?.DestinationTerminal ? ` T-${matchedFlightDetail.$.DestinationTerminal}` : null;
+                                                                                                                                        })
+                                                                                                                                        .filter(Boolean)
+                                                                                                                                        .join("") 
+                                                                                                                                )}</span>
                                                                                                                             </div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
-                                                                                                                            <div className='col-md-2 accordionfarecabinbag1'>
-                                                                                                                                <ul>
-                                                                                                                                    <li><FlightCheckIn CheckIn={matches && matches[0] ? matches[0] : 'NA'} onFlightCheckInChange={handleCheckIn} /></li>
-                                                                                                                                </ul>
-                                                                                                                            </div>
-                                                                                                                            <div className='col-md-2 accordionfarehandbag1 '>
-                                                                                                                                <ul>
-                                                                                                                                    <li><FlightCabin Cabin={matches && matches[1] ? matches[1] : 'NA'} onFlightCabinChange={handleCabin} /></li>
-                                                                                                                                </ul>
+                                                                                                                            <div className='baggage-info'>
+                                                                                                                                <span className="cabin-baggage">
+                                                                                                                                    <img src="/img/cabin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Cabin Baggage:</strong> {matches && matches[1] ? matches[1] : 'NA'}
+                                                                                                                                </span>
+                                                                                                                                <span className="checkin-baggage">
+                                                                                                                                    <img src="/img/checkin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Check-In Baggage:</strong> {matches && matches[0] ? matches[0] : 'NA'}
+                                                                                                                                </span>
                                                                                                                             </div>
                                                                                                                         </div>
                                                                                                                     </div>
@@ -3754,16 +5307,16 @@ const Booking = () => {
                                                                         packageSelected['air:AirPricingInfo']['air:FareInfo']['air:Brand']['air:Text'] ? (
                                                                             <div className="baggagae_policy">
                                                                                 <span className='headingpolicies' >
-                                                                                    Selected Package Details
+                                                                                    Flight Details
                                                                                     <span>
-                                                                                        <button
+                                                                                        {/* <button
                                                                                             type="button"
                                                                                             className="packagemore"
                                                                                             data-toggle="modal"
                                                                                             data-target=".bd-example-modal-lg"
                                                                                         >
                                                                                             Package Details
-                                                                                        </button>
+                                                                                        </button> */}
                                                                                     </span>
                                                                                 </span>
                                                                                 <div
@@ -3780,7 +5333,7 @@ const Booking = () => {
                                                                                                     className="modal-title"
                                                                                                     id="exampleModalLabel"
                                                                                                 >
-                                                                                                    Selected Package Details
+                                                                                                    Flight Details
                                                                                                 </h5>
                                                                                                 <button
                                                                                                     type="button"
@@ -4022,8 +5575,8 @@ const Booking = () => {
 
                                                                                                         return (
                                                                                                             <div key={textindex}>
-                                                                                                                <div className='row accordionfarename apiairportname'>
-                                                                                                                    <span className='airportcabin'>
+                                                                                                                <div className="row accordionfarename apiairportname">
+                                                                                                                    <div className="airport-flight-row">
                                                                                                                         {(() => {
                                                                                                                             const uniqueCarriers1 = new Set();
 
@@ -4036,72 +5589,114 @@ const Booking = () => {
                                                                                                                             }
 
                                                                                                                             return (
-                                                                                                                                segmentParse && Array.from(uniqueCarriers1).map((carrier, index) => (
-                                                                                                                                    <div key={index}>
+                                                                                                                                segmentParse &&
+                                                                                                                                Array.from(uniqueCarriers1).map((carrier, index) => (
+                                                                                                                                    <div key={index} className="airport-flight-container">
                                                                                                                                         <img
-                                                                                                                                            className={`airportairlineimg`}
-                                                                                                                                            src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
+                                                                                                                                            className="airportairlineimg"
+                                                                                                                                            src={`${CONFIG.DEV_API}/airline_logo_images/${carrier}.png`}
                                                                                                                                             alt="Airline logo"
                                                                                                                                             width="30px"
                                                                                                                                         />
 
-                                                                                                                                        {Array.isArray(segmentParse)
-                                                                                                                                            ? segmentParse.map((segmentinfo, segmentindex) => (
-                                                                                                                                                segmentinfo['$']['Carrier'] === carrier && (
-                                                                                                                                                    <span key={segmentindex} className='airportflightnumber'>
-                                                                                                                                                        <span className='airportairline'>{handleAirline(segmentinfo['$']['Carrier'])} </span>
-                                                                                                                                                        {segmentindex > 0 && ', '}
-                                                                                                                                                        {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
+                                                                                                                                        <div className="airport-flight-details">
+                                                                                                                                            {Array.isArray(segmentParse)
+                                                                                                                                                ? segmentParse
+                                                                                                                                                    .filter(segmentinfo => segmentinfo['$']['Carrier'] === carrier)
+                                                                                                                                                    .map((segmentinfo, segmentindex) => (
+                                                                                                                                                        <span key={segmentindex} className="airportflightnumber">
+                                                                                                                                                            <span className="airportairline">
+                                                                                                                                                                {handleAirline(segmentinfo['$']['Carrier'])}
+                                                                                                                                                            </span>{" "}
+                                                                                                                                                            {segmentindex > 0 && ", "}
+                                                                                                                                                            {segmentinfo['$']['Carrier']} {segmentinfo['$']['FlightNumber']}
+                                                                                                                                                        </span>
+                                                                                                                                                    ))
+                                                                                                                                                : segmentParse['$']['Carrier'] === carrier && (
+                                                                                                                                                    <span className="airportflightnumber">
+                                                                                                                                                        <span className="airportairline">
+                                                                                                                                                            {handleAirline(segmentParse['$']['Carrier'])}
+                                                                                                                                                            {" "}
+                                                                                                                                                            {segmentParse['$']['Carrier']} {segmentParse['$']['FlightNumber']}
+                                                                                                                                                        </span>
+
                                                                                                                                                     </span>
-                                                                                                                                                )
-                                                                                                                                            ))
-                                                                                                                                            : segmentParse['$']['Carrier'] === carrier && (
-                                                                                                                                                <span className='airportflightnumber'>
-                                                                                                                                                    <span className='airportairline'>{handleAirline(segmentParse['$']['Carrier'])} </span>
-                                                                                                                                                    {segmentParse['$']['Carrier']} {segmentParse['$']['FlightNumber']}
-                                                                                                                                                </span>
-                                                                                                                                            )}
+                                                                                                                                                )}
+                                                                                                                                        </div>
                                                                                                                                     </div>
                                                                                                                                 ))
                                                                                                                             );
                                                                                                                         })()}
 
-                                                                                                                    </span>
+                                                                                                                        {/* Right-aligned cabin class */}
+                                                                                                                        <span className="airport-cabin-class">{classType}</span>
+                                                                                                                    </div>
                                                                                                                 </div>
-                                                                                                                <div className='row accordionfarename apiairportname'>
-                                                                                                                    <div className='col-md-5'>
+                                                                                                                <div className="flight-details-container">
+                                                                                                                    <div className='row accordionfarename apiairportname'>
                                                                                                                         <span className='apicircle'>◯</span>
                                                                                                                         <span className='airportname'>
                                                                                                                             {handleAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Origin'])}
                                                                                                                         </span>
-                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Origin'])}
+                                                                                                                        <span className='airport'>
+                                                                                                                            {handleApiAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Origin'])}
+                                                                                                                            {(Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).map((segment, index) => {
+                                                                                                                        const isSegmentMatched = segment['$']['Key'] === packageSelected['air:AirSegmentRef']['$']['Key'];
+                                                                                                                        if (isSegmentMatched) {
+
+                                                                                                                            const matchedFlightDetail = actualFlightDetails.find(flight =>
+                                                                                                                                flight.$?.Origin === segment['$']['Origin'] &&
+                                                                                                                                flight.$?.Destination === segment['$']['Destination'] &&
+                                                                                                                                flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
+                                                                                                                                flight.$?.ArrivalTime === segment['$']['ArrivalTime']
+                                                                                                                            );
+
+                                                                                                                            console.log("Matched Flight Detail:", matchedFlightDetail);
+
+                                                                                                                            return matchedFlightDetail?.$?.OriginTerminal ? `T-${matchedFlightDetail.$.OriginTerminal}` : null;
+                                                                                                                        } else {
+                                                                                                                            return null; 
+                                                                                                                        }
+                                                                                                                    })}
+
+                                                                                                                        </span>
                                                                                                                     </div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinclass'>Cabin Class</div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinbag'>Check-In Baggage</div>
-                                                                                                                    <div className='col-md-2 accordionfarehandbag'>Cabin Baggage</div>
-                                                                                                                </div>
-                                                                                                                <div className='row accordionfarename apiairportname'>
-                                                                                                                    <span className='vertical_line'></span>
-                                                                                                                    {handleEffectiveDate(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['DepartureDate'])}
-                                                                                                                </div>
-                                                                                                                <div className='row accordionfarename apiairportname'>
-                                                                                                                    <div className='col-md-5'>
+                                                                                                                    <div className='row accordionfarename apiairportname'>
+                                                                                                                        <span className='vertical_line'>  </span>
+                                                                                                                        {handleEffectiveDate(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['DepartureDate'])}
+                                                                                                                        {/* {(segmentParsee['$']['DepartureTime'])} */}
+
+                                                                                                                    </div>
+
+                                                                                                                    <div className='row accordionfarename apiairportname'>
                                                                                                                         <span className='apicircle'>◯</span>
                                                                                                                         <span className='airportname'>
                                                                                                                             {handleAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Destination'])}
                                                                                                                         </span>
-                                                                                                                        {handleApiAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Destination'])}
+                                                                                                                        <span className='airport'>
+                                                                                                                            {handleApiAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Destination'])}
+                                                                                                                            {(Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).map((segment, index) => {
+                                                                                                                        const isSegmentMatched = segment['$']['Key'] === packageSelected['air:AirSegmentRef']['$']['Key'];
+                                                                                                                        if (isSegmentMatched) {
+                                                                                                                            const matchedFlightDetail = actualFlightDetails.find(flight =>
+                                                                                                                                flight.$?.Origin === segment['$']['Origin'] &&
+                                                                                                                                flight.$?.Destination === segment['$']['Destination'] &&
+                                                                                                                                flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
+                                                                                                                                flight.$?.ArrivalTime === segment['$']['ArrivalTime']
+                                                                                                                            );
+                                                                                                                            return matchedFlightDetail?.$?.DestinationTerminal ? ` T-${matchedFlightDetail.$.DestinationTerminal}` : null;
+                                                                                                                        } else {
+                                                                                                                            return null; 
+                                                                                                                        }
+                                                                                                                    })}</span>
                                                                                                                     </div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinclass1'>{classType}</div>
-                                                                                                                    <div className='col-md-2 accordionfarecabinbag1'>
-                                                                                                                        <ul>
-                                                                                                                            <li><FlightCheckIn CheckIn={matches && matches[0] ? matches[0] : 'NA'} onFlightCheckInChange={handleCheckIn} /></li>
-                                                                                                                        </ul>
-                                                                                                                    </div>
-                                                                                                                    <div className='col-md-2 accordionfarehandbag1 '>
-                                                                                                                        <ul>
-                                                                                                                            <li><FlightCabin Cabin={matches && matches[1] ? matches[1] : 'NA'} onFlightCabinChange={handleCabin} /></li>
-                                                                                                                        </ul>
+                                                                                                                    <div className='baggage-info'>
+                                                                                                                        <span className="cabin-baggage">
+                                                                                                                            <img src="/img/cabin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Cabin Baggage:</strong> {matches && matches[1] ? matches[1] : 'NA'}
+                                                                                                                        </span>
+                                                                                                                        <span className="checkin-baggage">
+                                                                                                                            <img src="/img/checkin_bag.svg" alt="Cabin Baggage" className="baggage-icon" /><strong>Check-In Baggage:</strong> {matches && matches[0] ? matches[0] : 'NA'}
+                                                                                                                        </span>
                                                                                                                     </div>
                                                                                                                 </div>
                                                                                                             </div>
@@ -4126,9 +5721,261 @@ const Booking = () => {
                                                             )
                                                         )
                                                 )}
+                                                <div className="table-container">
+                                                    <h1>Cancellation / Date Change Charges</h1>
+                                                    <table className="styled-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>
+                                                                    Cancellation <br />
+                                                                    {/* <span className="sub-header">(From Scheduled flight departure)</span> */}
+                                                                </th>
+                                                                <th>
+                                                                    Date Change <br />
+                                                                    {/* <span className="sub-header">(Per passenger)</span> */}
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    {cancellationPolicy?.Cancellation?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"}
+                                                                </td>
+                                                                <td>
+                                                                    {cancellationPolicy?.Date_Change?.find((policy) => policy.fare_name === fareFamily)?.fee || "N/A"}
+                                                                </td>
+                                                            </tr>
+
+                                                        </tbody>
+                                                    </table>
+                                                    <p className="note">* From the Time of Departure</p>
+                                                </div>
+
+                                                {/* <div className="table-container">
+                                                    <h1>Cancellation Charges</h1>
+                                                    <table className="styled-table">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>
+                                                            Time frame <br />
+                                                            <span className="sub-header">(From Scheduled flight departure)</span>
+                                                            </th>
+                                                            <th>
+                                                            Airline fee <br />
+                                                            <span className="sub-header">(Per passenger)</span>
+                                                            </th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        {Array.isArray(packageSelected['air:AirPricingInfo']) ? (
+                                                            packageSelected['air:AirPricingInfo'].flatMap((pricingInfo) =>
+                                                            Array.isArray(pricingInfo['air:CancelPenalty']) ? (
+                                                                pricingInfo['air:CancelPenalty'].map((cancelpolicy, cancelindex) => (
+                                                                <tr key={cancelindex}>
+                                                                    <td>
+                                                                    {cancelpolicy?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                    </td>
+                                                                    <td>
+                                                                    {(cancelpolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                    {(cancelpolicy?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                    </td>
+                                                                </tr>
+                                                                ))
+                                                            ) : (
+                                                                <tr key={'single'}>
+                                                                <td>
+                                                                    {pricingInfo?.['air:CancelPenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                </td>
+                                                                <td>
+                                                                    {(pricingInfo?.['air:CancelPenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                    {(pricingInfo?.['air:CancelPenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                </td>
+                                                                </tr>
+                                                            )
+                                                            )
+                                                        ) : (
+                                                            Array.isArray(packageSelected['air:AirPricingInfo']['air:CancelPenalty']) ? (
+                                                            packageSelected['air:AirPricingInfo']['air:CancelPenalty'].map((cancelpolicy, cancelindex) => (
+                                                                <tr key={cancelindex}>
+                                                                <td>
+                                                                    {cancelpolicy?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                </td>
+                                                                <td>
+                                                                    {(cancelpolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                    {(cancelpolicy?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                </td>
+                                                                </tr>
+                                                            ))
+                                                            ) : (
+                                                            <tr key={'single'}>
+                                                                <td>
+                                                                {packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                </td>
+                                                                <td>
+                                                                {(packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                {(packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                </td>
+                                                            </tr>
+                                                            )
+                                                        )}
+                                                        </tbody>
+                                                    </table>
+                                                    <p className="note">* From the Time of Departure</p>
+                                                </div> */}
+                                                {/* <p className="highlighted-note">
+                                                <strong>*Important:</strong> The airline fee is indicative. Cotrav does not guarantee the accuracy of this information.
+                                                    All fees mentioned are per passenger. All Refunds are airline approval.
+                                                </p>
+                                                <div className="bg-orange-100 border-l-4 border-orange-500 p-3 rounded-md shadow-sm text-sm">
+                                                    <p className="text-orange-700 font-bold text-xs">IMPORTANT INFORMATION</p>
+                                                    <ul className="mt-1 text-gray-700 text-xs pl-4">
+                                                        <li className="flex items-start">
+                                                            <span className="text-xs leading-5">●</span>
+                                                            <div className="pl-2">
+                                                                <span className="font-semibold">Valid ID proof needed :</span>
+                                                                <span className="ml-1">
+                                                                    Carry a valid photo identification proof (Driver Licence, Aadhar Card, Pan Card, or any other Government-recognized photo identification)
+                                                                </span>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <div className="booking-devider" />
+                                                <div className="cancellation-container">
+            <p className="cancellation-title">CANCELLATION</p>
+            <p className="cancellation-info">
+                You are eligible for full cancellation with just <strong>INR 315.0</strong> + convenience fees (per passenger) being charged as airline refund applicable fee if you cancel within <strong>05:07 hrs</strong>
+            </p>
+
+            <div className="flight-info">
+                <p style={{ marginBottom:'0'}}><strong>Mumbai ➝ Delhi</strong> 18 Feb, AIR INDIA</p>
+                
+            </div>
+
+            
+            <table className="cancellation-table">
+    <tbody>
+        <tr>
+            <td className="bullet black">&#9679;</td>
+            <td>
+                <p className="rule-header">Booking Date - 24 Hr(s) to Departure</p>
+                <p className="rule-time">Till Mon Feb 17 21:00:00 2025 (Departure City TimeZone)</p>
+            </td>
+            <td className="charges">Cancellation Charges: ₹ 262.0/Adult</td>
+        </tr>
+        <tr>
+            <td className="bullet orange">&#9679;</td>
+            <td>
+                <p className="rule-header">24 Hr(s) - 2 Hr(s) to Departure</p>
+                <p className="rule-time">Till Tue Feb 18 19:00:00 2025 (Departure City TimeZone)</p>
+            </td>
+            <td className="charges">Cancellation Charges: ₹ 524.0/Adult</td>
+        </tr>
+        <tr>
+            <td className="bullet red">&#9679;</td>
+            <td>
+                <p className="rule-header">2 Hr(s) - Departure time</p>
+                <p className="rule-time">Till Tue Feb 18 21:00:00 2025 (Departure City TimeZone)</p>
+            </td>
+            <td>
+                <p className="rule-header" style={{ marginLeft: '59%', color: 'red'}}>Non-Refundable</p>
+                <p className="rule-details" style={{ marginLeft: '40%'}}>The airline does not allow cancellation during this time window.</p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+            <ul className="policy-list">
+                <li>The airline cancellation penalty is subject to change and will be based on the policy in effect at the time of cancellation.</li>
+                <li>Airline charges a cancellation fees when you cancel in a particular time window.</li>
+                <li>Insurance, donation and convenience fees are non-refundable.</li>
+            </ul>
+
+            <div className="cancellation-buttons">
+                <button className="full-cancel-btn">FULL CANCELLATION</button>
+                <button className="partial-cancel-btn">PARTIAL CANCELLATION</button>
+            </div>
+        </div> */}
 
 
+                                                {/* <div className="table-container">
+                                                    <h1>Date Change Charges</h1>
+                                                    <table className="styled-table">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>
+                                                            Time frame <br />
+                                                            <span className="sub-header">(From Scheduled flight departure)</span>
+                                                            </th>
+                                                            <th>
+                                                            Airline fee + Fare difference<br />
+                                                            <span className="sub-header">(Per passenger)</span>
+                                                            </th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {Array.isArray(packageSelected['air:AirPricingInfo']) ? (
+                                                                packageSelected['air:AirPricingInfo'].flatMap((pricingInfo) =>
+                                                                Array.isArray(pricingInfo['air:ChangePenalty']) ? (
+                                                                    pricingInfo['air:ChangePenalty'].map((changepolicy, changeindex) => (
+                                                                    <tr key={changeindex}>
+                                                                        <td>
+                                                                        {changepolicy?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                        </td>
+                                                                        <td>
+                                                                        {(changepolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                        {(changepolicy?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                        </td>
+                                                                    </tr>
+                                                                    ))
+                                                                ) : (
+                                                                    <tr key={'single-change'}>
+                                                                    <td>
+                                                                        {pricingInfo?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                    </td>
+                                                                    <td>
+                                                                        {(pricingInfo?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                        {(pricingInfo?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                    </td>
+                                                                    </tr>
+                                                                )
+                                                                )
+                                                            ) : (
+                                                                Array.isArray(packageSelected['air:AirPricingInfo']['air:ChangePenalty']) ? (
+                                                                packageSelected['air:AirPricingInfo']['air:ChangePenalty'].map((changepolicy, changeindex) => (
+                                                                    <tr key={changeindex}>
+                                                                    <td>
+                                                                        {changepolicy?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                    </td>
+                                                                    <td>
+                                                                        {(changepolicy?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                        {(changepolicy?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                    </td>
+                                                                    </tr>
+                                                                ))
+                                                                ) : (
+                                                                <tr key={'single-change'}>
+                                                                    <td>
+                                                                    {packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
+                                                                    </td>
+                                                                    <td>
+                                                                    {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
+                                                                    {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
+                                                                    </td>
+                                                                </tr>
+                                                                )
+                                                            )}
+                                                            </tbody>
 
+                                                    </table>
+                                                </div>
+                                                <p className="highlighted-note">
+                                                <strong>*Important:</strong>The airline fee is indicative. Cotrav does not guarantee the accuracy of this information.
+                                                    All fees mentioned are per passenger. Date change charges are applicable only on selecting the same airline on
+                                                    a new date. The difference in fares between the old & the new booking will also be payable by the user.
+                                                    Please refer to the date change charges section above for details on the number of allowd free date changes
+                                                    if applicable
+                                                </p> */}
                                                 {/* <div className="booking-devider" /> */}
                                                 <form ref={formRef} onSubmit={(e) => handlePassengerSubmit(e)} style={{ marginTop: '1%' }}>
                                                     <input
@@ -4162,152 +6009,180 @@ const Booking = () => {
                                                                             <h1 style={{ backgroundColor: "#fff", marginLeft: 5, marginTop: 10 }}>
                                                                                 {passengerinfo.Code === "ADT" ? `Adult (${passengerindex + 1})` : passengerinfo.Code === "INF" ? `Infant (${passengerindex + 1})` : `Child (${passengerindex + 1})`}
                                                                             </h1>
-                                                                            <div className="booking-form" style={{ marginLeft: 5, marginRight: 5, marginBottom: 0 }}>
-                                                                                <div className="booking-form-i booking-form-i2">
-                                                                                    <div className='row'>
-                                                                                        <div className='col-md-3'>
-                                                                                            <label>Prefix</label>
-                                                                                            <div className="form-calendar-a">
-                                                                                                <select
-                                                                                                    className="custom-select1"
-                                                                                                    name="adult_prefix[]"
-                                                                                                    style={{
-                                                                                                        padding: "6px 10px 6px 10px",
-                                                                                                        width: "100%",
-                                                                                                        border: "1px solid #e3e3e3",
-                                                                                                        height: 36,
-                                                                                                        fontFamily: '"Raleway"',
-                                                                                                        cursor: "pointer",
-                                                                                                        color: "#626262",
-                                                                                                        fontSize: 11
-                                                                                                    }}
-                                                                                                    data-index={passengerindex}
-                                                                                                    readOnly={bookingid}
-                                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male" ? 'Mr' : 'Mrs'}
-                                                                                                >
-                                                                                                    <option value="Mr" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male"}>Mr.</option>
-                                                                                                    <option value="Mrs" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Female"}>Mrs.</option>
-                                                                                                </select>
-                                                                                            </div>
-                                                                                        </div>
+                                                                            <div className="booking-container1">
+                                                                                {/* First Row: Prefix, First Name, Last Name */}
+                                                                                <div className="booking-row">
+                                                                                    <div className="booking-field booking-prefix">
+                                                                                        <label>Prefix</label>
+                                                                                        <div className="form-calendar1">
+                                                                                            <select
 
-                                                                                        <div className='col-md-9'>
-                                                                                            <label>First Name</label>
-                                                                                            <div className="input">
-                                                                                                <input
-                                                                                                    type="text"
-                                                                                                    name="adult_first_name[]"
-                                                                                                    onKeyPress={handleKeyPress}
-                                                                                                    data-index={passengerindex}
-                                                                                                    readOnly={bookingid}
-                                                                                                    // defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
-                                                                                                    //     emptaxivaxi[passengerindex]['people_name'].split(' ')[0].trim()
-                                                                                                    // }
-                                                                                                    Value={
-                                                                                                        emptaxivaxi[passengerindex]?.people_name
-                                                                                                            ? (() => {
-                                                                                                                const nameParts = emptaxivaxi[passengerindex].people_name.trim().split(' ');
-                                                                                                                return nameParts.length > 1
-                                                                                                                    ? nameParts.slice(0, nameParts.length - 1).join(' ').trim()
-                                                                                                                    : nameParts[0] || '';
-                                                                                                            })(): ''
-                                                                                                    }
-                                                                                                />
-                                                                                            </div>
-                                                                                            <span className="error-message adult_first_name-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                                Please enter the First name.
-                                                                                            </span>
+                                                                                                name="adult_prefix[]"
+                                                                                                data-index={passengerindex}
+                                                                                                readOnly={bookingid}
+                                                                                                defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Female" ? "Mrs" : "Mr"}
+                                                                                            >
+                                                                                                <option value="Mr" selected={emptaxivaxi?.[passengerindex]?.gender === "Male"}>Mr.</option>
+                                                                                                <option value="Mrs" selected={emptaxivaxi?.[passengerindex]?.gender === "Female"}>Mrs.</option>
+                                                                                            </select>
                                                                                         </div>
                                                                                     </div>
-                                                                                </div>
-                                                                                <div className="booking-form-i booking-form-i2">
-                                                                                    <label>Last Name</label>
-                                                                                    <div className="input">
+
+                                                                                    <div className="booking-field booking-name">
+                                                                                        <label>First Name<span className="mandatory-star">*</span></label>
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            name="adult_first_name[]"
+                                                                                            onKeyPress={handleKeyPress}
+                                                                                            data-index={passengerindex}
+                                                                                            readOnly={bookingid}
+                                                                                            defaultValue={
+                                                                                                emptaxivaxi?.[passengerindex]?.people_name
+                                                                                                    ? (emptaxivaxi[passengerindex].people_name.trim().includes(' ')
+                                                                                                        ? emptaxivaxi[passengerindex].people_name.trim().split(' ').slice(0, -1).join(' ').trim()
+                                                                                                        : emptaxivaxi[passengerindex].people_name.trim()) // If only one word, use the same for first name
+                                                                                                    : ''
+                                                                                            }
+                                                                                        // defaultValue={
+                                                                                        //     emptaxivaxi?.[passengerindex]?.people_name
+                                                                                        //         ? emptaxivaxi[passengerindex].people_name.trim().split(' ').slice(0, -1).join(' ').trim()
+                                                                                        //         : ''
+                                                                                        // }
+                                                                                        />
+                                                                                        <span className="error-message adult_first_name-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
+                                                                                            Please enter the First name.
+                                                                                        </span>
+                                                                                    </div>
+
+                                                                                    <div className="booking-field booking-name">
+                                                                                        <label>Last Name<span className="mandatory-star">*</span></label>
                                                                                         <input
                                                                                             type="text"
                                                                                             name="adult_last_name[]"
                                                                                             onKeyPress={handleKeyPress}
                                                                                             data-index={passengerindex}
                                                                                             readOnly={bookingid}
-                                                                                            // defaultValue={
-                                                                                            //     emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['people_name'] &&
-                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ')[1] ?
-                                                                                            //         emptaxivaxi[passengerindex]['people_name'].split(' ').slice(1).join(' ').trim() : 'NA'
-                                                                                            // }
-                                                                                            Value={
-                                                                                                emptaxivaxi[passengerindex]?.people_name
-                                                                                                    ? (() => {
-                                                                                                        const nameParts = emptaxivaxi[passengerindex].people_name.trim().split(' ');
-                                                                                                        // If there is more than one name part, return the last name, else empty string
-                                                                                                        return nameParts.length > 1
-                                                                                                            ? nameParts[nameParts.length - 1].trim()
-                                                                                                            : nameParts[0]; // If only one part, leave it empty (or customize)
-                                                                                                    })()
-                                                                                                    : '' // If no name exists, return 'NA'
+                                                                                            defaultValue={
+                                                                                                emptaxivaxi?.[passengerindex]?.people_name
+                                                                                                    ? (emptaxivaxi[passengerindex].people_name.trim().includes(' ')
+                                                                                                        ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
+                                                                                                        : emptaxivaxi[passengerindex].people_name.trim()) // If only one word, use the same for last name
+                                                                                                    : ''
                                                                                             }
+                                                                                        // defaultValue={
+                                                                                        //     emptaxivaxi?.[passengerindex]?.people_name
+                                                                                        //         ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
+                                                                                        //         : ''
+                                                                                        // }
                                                                                         />
+                                                                                        <span className="error-message adult_last_name-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
+                                                                                            Please enter the last name.
+                                                                                        </span>
                                                                                     </div>
-                                                                                    <span className="error-message adult_last_name-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                        Please enter the last name.
-                                                                                    </span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="booking-form" style={{ marginLeft: 5, marginRight: 5, marginBottom: 0 }}>
-                                                                                <div className="booking-form-i">
-                                                                                    <label style={{ paddingTop: '9px' }}>Date of Birth</label>
-                                                                                    <div className="input">
+                                                                                    <div className="booking-form-i" style={{ display: "none" }}> {/* Hide the entire field */}
                                                                                         <input
                                                                                             type="date"
-                                                                                            placeholder="mm/dd/yyyy"
                                                                                             name="adult_age[]"
                                                                                             max={maxDate}
                                                                                             data-index={passengerindex}
                                                                                             readOnly={bookingid}
-                                                                                            defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['date_of_birth'] &&
-                                                                                                emptaxivaxi[passengerindex]['date_of_birth']
+                                                                                            defaultValue={
+                                                                                                emptaxivaxi &&
+                                                                                                    emptaxivaxi[passengerindex] &&
+                                                                                                    emptaxivaxi[passengerindex]['date_of_birth']
+                                                                                                    ? emptaxivaxi[passengerindex]['date_of_birth']
+                                                                                                    : new Date(new Date().setFullYear(new Date().getFullYear() - 99))
+                                                                                                        .toISOString()
+                                                                                                        .split("T")[0] // Converts to YYYY-MM-DD format
                                                                                             }
                                                                                         />
                                                                                     </div>
-                                                                                    <span className="error-message adult_age-message" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                        Please enter Age.
-                                                                                    </span>
-                                                                                    <span className="error-message adult_age-message1" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                        Adult age should be 12y+ .
-                                                                                    </span>
-                                                                                    <span className="error-message adult_age-message2" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                        Child age should be 2y - 12y.
-                                                                                    </span>
-                                                                                    <span className="error-message adult_age-message3" data-index={passengerindex} style={{ display: "none", color: "red", fontWeight: "normal" }}>
-                                                                                        Infant age should be below 2y.
-                                                                                    </span>
+
                                                                                 </div>
-                                                                                <div className="booking-form-i booking-form-i2">
-                                                                                    <label>Gender</label>
-                                                                                    <div className="form-calendar-a">
-                                                                                        <select
-                                                                                            className="custom-select1"
-                                                                                            name="adult_gender[]"
-                                                                                            // disabled={bookingid}
-                                                                                            style={{
-                                                                                                padding: "6px 10px 6px 10px",
-                                                                                                width: "100%",
-                                                                                                border: "1px solid #e3e3e3",
-                                                                                                height: 36,
-                                                                                                fontFamily: '"Raleway"',
-                                                                                                cursor: "pointer",
-                                                                                                color: "#626262",
-                                                                                                fontSize: 11
-                                                                                            }}
+
+                                                                                {/* Second Row: Email, Mobile, Gender */}
+                                                                                <div className="booking-row">
+                                                                                    <div className="booking-field booking-email">
+                                                                                        <label>Email ID</label>
+                                                                                        <input
+                                                                                            type="email"
+                                                                                            name="email1"
                                                                                             data-index={passengerindex}
+                                                                                            placeholder=""
                                                                                             readOnly={bookingid}
-                                                                                            defaultValue={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male" ? 'M' : 'F'}
-                                                                                        >
-                                                                                            <option value="M" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Male"}>Male</option>
-                                                                                            <option value="F" selected={emptaxivaxi && emptaxivaxi[passengerindex] && emptaxivaxi[passengerindex]['gender'] === "Female"}>Female</option>
-                                                                                        </select>
+                                                                                            defaultValue={emptaxivaxi?.[0]?.people_email || ''}
+                                                                                        />
+                                                                                        <span className="error-message">Please enter Email ID.</span>
+                                                                                    </div>
+
+                                                                                    <div className="booking-field booking-mobile">
+                                                                                        <label>Mobile Number</label>
+                                                                                        <div className="mobile-input-wrapper">
+                                                                                            <PhoneInput
+                                                                                                international
+                                                                                                defaultCountry="IN" // Default country set to India
+                                                                                                value={value || (emptaxivaxi?.[0]?.people_contact ? `+91${emptaxivaxi[0].people_contact}` : '')} // Ensure +91 prefix
+                                                                                                data-index={passengerindex}
+                                                                                                onChange={handleChange}
+                                                                                                className="phone-input"
+                                                                                                placeholder="Enter phone number"
+                                                                                                readOnly={bookingid}
+                                                                                                name="contact_details1"
+                                                                                            />
+                                                                                        </div>
+                                                                                        <span className="error-message">
+                                                                                            {value && !isValidPhoneNumber(value) && "Please enter a valid Mobile Number."}
+                                                                                        </span>
+                                                                                    </div>
+
+                                                                                    <div className="booking-field booking-gender">
+                                                                                        <label>Gender</label>
+                                                                                        <div className="form-calendar1">
+                                                                                            <select
+                                                                                                name="adult_gender[]"
+                                                                                                data-index={passengerindex}
+                                                                                                // disabled = {bookingid}
+                                                                                                style={{ pointerEvents: bookingid ? 'none' : 'auto' }}
+                                                                                                defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Female" ? 'F' : 'M'}
+                                                                                            >
+                                                                                                <option value="">Select Gender</option>
+                                                                                                <option value="M" selected={emptaxivaxi?.[passengerindex]?.gender === "Male"}>Male</option>
+                                                                                                <option value="F" selected={emptaxivaxi?.[passengerindex]?.gender === "Female"}>Female</option>
+                                                                                            </select>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
+
                                                                             </div>
+                                                                            <div style={{ display: 'flex', gap: '5px' }}>
+                                                                                <img src="/img/checkin_bag.svg" alt="Cabin Baggage" className="baggage-icon" />
+                                                                                <span style={{ color: '#000000', fontSize: 'small', fontWeight: 'bold' }}>Frequent Flyer Number</span>
+                                                                                <span style={{ color: '#757575', fontSize: 'small' }}>(Avail extra benefits & earn points)</span>
+                                                                            </div>
+                                                                            <div className="booking-row" style={{ marginTop: '10px' }}>
+                                                                                <div className="booking-field booking-email">
+                                                                                    <label>Frequent Flyer Airline</label>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        name="flyername"
+                                                                                        data-index={passengerindex}
+                                                                                        placeholder=""
+
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="booking-field booking-email">
+                                                                                    <label>Frequent Flyer No</label>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        name="flyernumber"
+                                                                                        data-index={passengerindex}
+                                                                                        placeholder=""
+
+                                                                                    />
+                                                                                </div>
+
+                                                                            </div>
+
                                                                             <div className="booking-form-append" />
                                                                         </div>
                                                                     ))}
@@ -4316,7 +6191,7 @@ const Booking = () => {
                                                                             type="button"
                                                                             id="save-passenger-btn"
                                                                             className="passenger-submit"
-                                                                            onClick={handleSavePassenger} // Invoke the validation function on button click
+                                                                            onClick={handleSavePassenger}
                                                                         >
                                                                             Save Passenger
                                                                         </button>
@@ -4438,7 +6313,7 @@ const Booking = () => {
                                                                                 Please enter GST Contact.
                                                                             </span>
                                                                         </div>
-                                                                        
+
                                                                     </div>
                                                                     <div className="add-passenger">
                                                                         <button
@@ -4470,7 +6345,7 @@ const Booking = () => {
                                                                     src="img/taxivaxi/meal_seats/user_icon.svg"
                                                                     width="15px"
                                                                 />&nbsp;
-                                                                Address details
+                                                                Contact details
                                                             </AccordionSummary>
                                                             <AccordionDetails>
 
@@ -4491,9 +6366,7 @@ const Booking = () => {
                                                                                     name="email"
                                                                                     placeholder=""
                                                                                     // readOnly={bookingid}
-                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['people_email'] &&
-                                                                                        emptaxivaxi[0]['people_email']
-                                                                                    }
+                                                                                    defaultValue='flight@cotrav.co'
                                                                                 />
 
                                                                             </div>
@@ -4536,7 +6409,7 @@ const Booking = () => {
                                                                             </span>
                                                                         </div>
                                                                     </div>
-                                                                    <div
+                                                                    {/* <div
                                                                         className="booking-form"
                                                                         style={{
                                                                             marginLeft: 5,
@@ -4593,8 +6466,8 @@ const Booking = () => {
                                                                                 Please enter Street.
                                                                             </span>
                                                                         </div>
-                                                                    </div>
-                                                                    <div
+                                                                    </div> */}
+                                                                    {/* <div
                                                                         className="booking-form"
                                                                         style={{
                                                                             marginLeft: 5,
@@ -4653,8 +6526,8 @@ const Booking = () => {
                                                                                 Please enter State.
                                                                             </span>
                                                                         </div>
-                                                                    </div>
-                                                                    <div
+                                                                    </div> */}
+                                                                    {/* <div
                                                                         className="booking-form"
                                                                         style={{
                                                                             marginLeft: 5,
@@ -4712,72 +6585,8 @@ const Booking = () => {
                                                                                 Please enter Country.
                                                                             </span>
                                                                         </div>
-                                                                    </div>
-                                                                    {/* <div className="booking-form">
-                                                                            <div className="booking-form-i  booking-form-i3" style={{width:'100%',height:'30px',marginLeft:'1%'}}>
-                                                                                
-                                                                                <input type='checkbox' onChange={handleCheckboxChange} checked={isChecked} />
-                                                                                <label className='confirmtocontinue' style={{display:'inline'}}>
-                                                                                    I have a GST number (Optional)
-                                                                                </label>
-                                                                            </div>
-                                                                            
-                                                                        </div> */}
-                                                                    {/* {isChecked && (
-                                                                            <div
-                                                                                className="booking-form gstblock"
-                                                                                style={{
-                                                                                    marginLeft: 5,
-                                                                                    marginRight: 5,
-                                                                                    marginBottom: 0
-                                                                                }}
-                                                                            >
-                                                                                <div className="booking-form-i booking-form-i3">
-                                                                                    <label>Comapany Name</label>
-                                                                                    <div className="input">
-                                                                                        <input
-                                                                                            type="text"
-                                                                                            name="company_gst_name"
-                                                                                            defaultValue=""
-                                                                                            placeholder=""
-                                                                                        />
-                                                                                    </div>
-                                                                                    <span
-                                                                                        className="error-message company_gst_name-message"
-                                                                                        style={{
-                                                                                            display: "none",
-                                                                                            color: "red",
-                                                                                            fontWeight: "normal"
-                                                                                        }}
-                                                                                    >
-                                                                                        Please enter Company Name.
-                                                                                    </span>
-                                                                                </div>
-                                                                                <div className="booking-form-i booking-form-i3">
-                                                                                    <label>Registration Number</label>
-                                                                                    <div className="input">
-                                                                                        <input
-                                                                                            type="text"
-                                                                                            name="gst_registration_no"
-                                                                                            placeholder=""
-                                                                                            value={gstRegistrationNo}
-                                                                                            onChange={(e) => setGstRegistrationNo(e.target.value)}
-                                                                                            onKeyPress={handleGstKeyPress}
-                                                                                        />
-                                                                                    </div>
-                                                                                    <span
-                                                                                        className="error-message gst_registration_no-message"
-                                                                                        style={{
-                                                                                            display: "none",
-                                                                                            color: "red",
-                                                                                            fontWeight: "normal"
-                                                                                        }}
-                                                                                    >
-                                                                                        Please enter Registration Number.
-                                                                                    </span>
-                                                                                </div>
-                                                                            </div>
-                                                                        )} */}
+                                                                    </div> */}
+
                                                                     <div className="booking-form-append" />
                                                                     <div className="add-passenger">
                                                                         <div
@@ -4847,11 +6656,20 @@ const Booking = () => {
                                                             expandIcon={<ExpandMoreIcon />}
                                                             aria-controls="panel3-content"
                                                             id="panel3-header"
-                                                            className={`accordion ${emptyseatmap ? 'emptyseatmap' : ''}`}                                                                >
-                                                            <img
-                                                                src="/img/taxivaxi/meal_seats/seat 3.svg"
-                                                                width="20px"
-                                                            />&nbsp;Choose Seats
+                                                            className={`accordion ${emptyseatmap ? 'emptyseatmap' : ''}`}
+                                                        >
+                                                            <img src="/img/taxivaxi/meal_seats/seat3.svg" width="20px" />&nbsp;Choose Seats
+
+                                                            {/* Conditionally render seat number and price */}
+                                                            {previousSelections.some(selection => selection.passenger === passengereventKeys) && (
+                                                                <span style={{ marginLeft: '20px' }}>
+                                                                    Seat No. {previousSelections
+                                                                        .filter(selection => selection.passenger === passengereventKeys)
+                                                                        .map(selection => selection.code)
+                                                                        .join(', ')}
+
+                                                                </span>
+                                                            )}
                                                         </AccordionSummary>
                                                         <AccordionDetails>
                                                             <div className='panel' id="panel2" style={{ maxHeight: "450px" }}>
@@ -4868,7 +6686,15 @@ const Booking = () => {
                                                                                         onClick={() => handlePassengerevent(key, index)}
                                                                                     >
                                                                                         {Passengers.namesWithPrefix[index]}. {Passengers.firstNames[index]}<br />
-                                                                                        <span>Seat No. {previousSelections.some(selection => selection.passenger === key) && `${previousSelections.filter(selection => selection.passenger === key).map(selection => selection.code).join(', ')}`}</span>
+                                                                                        <span>
+                                                                                            Seat No. {previousSelections.some(selection => selection.passenger === key) &&
+                                                                                                `${previousSelections.filter(selection => selection.passenger === key).map(selection => selection.code).join(', ')}`}
+                                                                                        </span>
+                                                                                        <br />
+                                                                                        <span>
+                                                                                            {previousSelections.some(selection => selection.passenger === key) &&
+                                                                                                `Price - ${previousSelections.filter(selection => selection.passenger === key).map(selection => handleOptional(selection.optionalkey)).join(', ')}`}
+                                                                                        </span>
                                                                                     </button>
                                                                                 )
                                                                             ))
@@ -4878,14 +6704,22 @@ const Booking = () => {
                                                                                     Passengers.codes[0] !== 'INF' && (
                                                                                         <button type="button" className="seatleftli tablinkseat active" id="defaultopen" onClick={() => handlePassengerevent(Passengers.keys[0], 0)}>
                                                                                             {Passengers.namesWithPrefix[0]}. {Passengers.firstNames[0]}<br />
-                                                                                            <span>Seat No. {previousSelections.some(selection => selection.passenger === Passengers.keys[0]) && `${previousSelections.filter(selection => selection.passenger === Passengers.keys[0]).map(selection => selection.code).join(', ')}`}</span>
+                                                                                            <span>
+                                                                                                Seat No. {previousSelections.some(selection => selection.passenger === Passengers.keys[0]) &&
+                                                                                                    `${previousSelections.filter(selection => selection.passenger === Passengers.keys[0]).map(selection => selection.code).join(', ')}`}
+                                                                                            </span>
+                                                                                            <br />
+                                                                                            <span>
+                                                                                                {previousSelections.some(selection => selection.passenger === Passengers.keys[0]) &&
+                                                                                                    `Price - ${previousSelections.filter(selection => selection.passenger === Passengers.keys[0]).map(selection => handleOptional(selection.optionalkey)).join(', ')}`}
+                                                                                            </span>
                                                                                         </button>
                                                                                     )
                                                                                 )}
                                                                             </>
                                                                         )}
-
                                                                     </div>
+
                                                                 </div>
                                                                 <div className='tabcontentseat'>
                                                                     <div className='seatright'>
@@ -5307,168 +7141,12 @@ const Booking = () => {
                                                         <AccordionActions>
                                                         </AccordionActions>
                                                     </Accordion>
-                                                    <div className="booking-devider" />
-                                                    <div className="baggagae_policy">
-                                                        <span className='headingpolicies' style={{ display: 'flex' }}>
-                                                            <img src="img\taxivaxi\meal_seats\cancellation.svg"
-                                                                width="20px"
-                                                            />&nbsp;
-                                                            Cancellation Policy
-                                                            <button
-                                                                type="button"
-                                                                className="farerules"
-                                                                data-toggle="modal"
-                                                                data-target=".bd-example-modal-sm">View Fare Rules &nbsp;<img src="img/info_icon.svg" width='15px' /></button>
-                                                            <div className="modal fade bd-example-modal-sm multipleflight"
-                                                                tabIndex={-1}
-                                                                role="dialog"
-                                                                aria-labelledby="myLargeModalLabel"
-                                                                aria-hidden="true">
-                                                                <div className="modal-dialog modal-lg">
-                                                                    <div className="modal-content">
-                                                                        <div className="modal-header">
-                                                                            <h5 className="modal-title" id="exampleModalLabel">
-                                                                                Fare Rules
-                                                                            </h5>
-                                                                            <button
-                                                                                type="button"
-                                                                                className="close"
-                                                                                data-dismiss="modal"
-                                                                                aria-label="Close"
-                                                                            >
-                                                                                <span style={{ width: '9px', height: '10px', display: 'block' }}
-                                                                                    aria-hidden="true">×</span>
-                                                                            </button>
-                                                                        </div>
-                                                                        <div className="modal-body">
-                                                                            <div className="booking-form-i booking-form-i4">
-                                                                                <h1>
-                                                                                    <img
-                                                                                        src="img\taxivaxi\meal_seats\cancellation_policy.svg"
-                                                                                        width="20px"
-                                                                                    />
-                                                                                    &nbsp;Cancellation Policy
-                                                                                </h1>
-                                                                                <div className="booking-form-i booking-form-i6" style={{ color: "red", padding: "0px 0px 10px 0px", opacity: "0.6" }}>
-                                                                                    {Array.isArray(packageSelected['air:AirPricingInfo']) ? (
-                                                                                        Array.isArray(packageSelected['air:AirPricingInfo'][0]['air:CancelPenalty']) ? (
-                                                                                            packageSelected['air:AirPricingInfo'][0]['air:CancelPenalty'].map((cancelpolicy, cancelindex) => (
-                                                                                                <>
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.includes('INR') ? '₹ ' : ''}
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.replace('INR', '')}
-                                                                                                </>
-                                                                                            ))
-                                                                                        ) : (
-                                                                                            <>
-                                                                                                {(packageSelected['air:AirPricingInfo']?.[0]?.['air:CancelPenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-                                                                                                {(packageSelected['air:AirPricingInfo']?.[0]?.['air:CancelPenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
-                                                                                            </>
-                                                                                        )
-                                                                                    ) : (
-                                                                                        Array.isArray(packageSelected['air:AirPricingInfo']['air:CancelPenalty']) ? (
-                                                                                            packageSelected['air:AirPricingInfo']['air:CancelPenalty'].map((cancelpolicy, cancelindex) => (
-                                                                                                <>
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.includes('INR') ? '₹ ' : ''}
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.replace('INR', '')}
-                                                                                                </>
-                                                                                            ))
-                                                                                        ) : (
-                                                                                            <>
-                                                                                                {(packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-                                                                                                {(packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
-                                                                                            </>
-                                                                                        )
-                                                                                    )}
-                                                                                </div>
 
-                                                                                <div
-                                                                                    className="booking-form-i booking-form-i5"
-                                                                                    style={{
-                                                                                        padding: "0px 0px 10px 25px",
-                                                                                        float: "left"
-                                                                                    }}
-                                                                                >
-                                                                                    {packageSelected['air:AirPricingInfo']?.['air:CancelPenalty']?.['$']?.['PenaltyApplies'] || packageSelected['air:AirPricingInfo']?.[0]?.['air:CancelPenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
-                                                                                </div>
-                                                                            </div>
-
-                                                                            <div className="booking-form-i booking-form-i4">
-                                                                                <h1>
-                                                                                    <img
-                                                                                        src="img\taxivaxi\meal_seats\date_change.svg"
-                                                                                        width="20px"
-                                                                                    />
-                                                                                    &nbsp;Date Change Policy
-                                                                                </h1>
-                                                                                <div className="booking-form-i booking-form-i6" style={{ color: "red", padding: "0px 0px 10px 0px", opacity: "0.6" }}>
-                                                                                    {Array.isArray(packageSelected['air:AirPricingInfo']) ? (
-                                                                                        Array.isArray(packageSelected['air:AirPricingInfo'][0]['air:ChangePenalty']) ? (
-                                                                                            packageSelected['air:AirPricingInfo'][0]['air:ChangePenalty'].map((cancelpolicy, cancelindex) => (
-                                                                                                <>
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.includes('INR') ? '₹ ' : ''}
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.replace('INR', '')}
-                                                                                                </>
-                                                                                            ))
-                                                                                        ) : (
-                                                                                            <>
-                                                                                                {(packageSelected['air:AirPricingInfo']?.[0]?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-                                                                                                {(packageSelected['air:AirPricingInfo']?.[0]?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
-                                                                                            </>
-                                                                                        )
-                                                                                    ) : (
-                                                                                        Array.isArray(packageSelected['air:AirPricingInfo']['air:ChangePenalty']) ? (
-                                                                                            packageSelected['air:AirPricingInfo']['air:ChangePenalty'].map((cancelpolicy, cancelindex) => (
-                                                                                                <>
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.includes('INR') ? '₹ ' : ''}
-                                                                                                    {cancelpolicy?.['air:Amount'] || 'NA'.replace('INR', '')}
-                                                                                                </>
-                                                                                            ))
-                                                                                        ) : (
-                                                                                            <>
-                                                                                                {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').includes('INR') ? '₹ ' : ''}
-                                                                                                {(packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['air:Amount'] || 'NA').replace('INR', '')}
-                                                                                            </>
-                                                                                        )
-                                                                                    )}
-                                                                                </div>
-
-                                                                                <div
-                                                                                    className="booking-form-i booking-form-i5"
-                                                                                    style={{
-                                                                                        padding: "0px 0px 10px 25px",
-                                                                                        float: "left"
-                                                                                    }}
-                                                                                >
-                                                                                    {packageSelected['air:AirPricingInfo']?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || packageSelected['air:AirPricingInfo']?.[0]?.['air:ChangePenalty']?.['$']?.['PenaltyApplies'] || 'NA'}
-                                                                                </div>
-
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-
-                                                        </span>
-
-                                                        <div
-                                                            className="booking-form policydetails2"
-                                                            style={{ padding: '1%', marginTop: '0% !important', marginBottom: 0, width: '100%', border: '1px solid #e3e3e3', display: 'inline-block' }}
-                                                        >
-                                                            <div className="booking-form-i booking-form-i4">
-                                                                <div id="grad1">
-                                                                    <div className="price-item-container" id="price-items">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                        </div>
-                                                    </div>
                                                     <div className="booking-devider" />
                                                     <div>
                                                         <input type='checkbox' /><label className='confirmtocontinue'>I confirm that I have read and I accept the <a href="#">Fare Rules</a> , the <a href="#">Privacy Policy</a> , the <a href="#">User Agreement</a> and <a href="#">Terms of Service</a> of Taxivaxi</label>
                                                     </div>
-                                                    <button type="button" id="back_button" onClick={handleBackButtonClick}>
+                                                    <button type="button" id="back_button" onClick={() => window.history.back()}>
                                                         Back
                                                     </button>
 
@@ -5517,7 +7195,7 @@ const Booking = () => {
                                                             <div key={index}>
                                                                 <img
                                                                     className={`airlineimg${index}`}
-                                                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${carrier}.png`}
+                                                                    src={`${CONFIG.DEV_API}/airline_logo_images/${carrier}.png`}
                                                                     alt="Airline logo"
                                                                     width="40px"
                                                                 />
@@ -5675,22 +7353,103 @@ const Booking = () => {
                                                         </div>
                                                     )
                                             )}
+
+                                            {/* <div className="chk-line">
+                                                {Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                    ? packageSelected["air:AirPricingInfo"]["air:TaxInfo"].map((tax, index) => (
+                                                        <div key={index} className="chk-line-item">
+                                                        <div className="chk-l">
+                                                            {tax["$"]["Category"]} 
+                                                        </div>
+                                                        <div className="chk-r">
+                                                            {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                            {tax["$"]["Amount"].replace("INR", "")}
+                                                        </div>
+                                                        </div>
+                                                    ))
+                                                    : packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"] && (
+                                                        <div className="chk-line-item">
+                                                        <div className="chk-l">
+                                                            {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"]} 
+                                                        </div>
+                                                        <div className="chk-r">
+                                                            {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                            {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                        </div>
+                                                        </div>
+                                                    )}
+                                                </div> */}
                                             <div className="chk-line">
-                                                <span className="chk-l">Total Taxes</span>
+                                                {Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])
+                                                    ? packageSelected["air:AirPricingInfo"]["air:TaxInfo"]
+
+                                                        .filter((tax) => tax["$"]["CarrierDefinedCategory"]?.includes("GST"))
+                                                        .map((tax, index) => (
+                                                            <div key={index} className="chk-line-item">
+                                                                <div className="chk-l">{tax["$"]["CarrierDefinedCategory"]}</div>
+                                                                <div className="chk-r">
+                                                                    {tax["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                    {tax["$"]["Amount"].replace("INR", "")}
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    : packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"] &&
+
+                                                    packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"]?.["$"]["CarrierDefinedCategory"]?.includes("GST") && ( // Check single object case
+                                                        <div className="chk-line-item">
+                                                            <div className="chk-l">
+                                                                {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Category"]}
+                                                            </div>
+                                                            <div className="chk-r">
+                                                                {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].includes("INR") ? "₹ " : ""}
+                                                                {packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "")}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                            </div>
+
+
+                                            <div className="chk-line">
+                                                <span className="chk-l">Others</span>
                                                 <span className="chk-r">
-                                                    {packageSelected.$.ApproximateTaxes.includes('INR') ? '₹ ' : ''}
-                                                    {packageSelected.$.ApproximateTaxes.replace('INR', '')}
+                                                    {packageSelected.$.ApproximateTaxes.includes("INR") ? "₹ " : ""}
+                                                    {(() => {
+                                                        // Convert ApproximateTaxes to a number, default to 0 if NaN
+                                                        const approximateTaxes = parseFloat(packageSelected.$.ApproximateTaxes.replace("INR", "").trim()) || 0;
+
+                                                        // Check if TaxInfo is an array and filter for GST taxes
+                                                        let k3Tax = 0;
+                                                        if (Array.isArray(packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"])) {
+                                                            k3Tax = packageSelected["air:AirPricingInfo"]["air:TaxInfo"]
+                                                                .filter((tax) => tax["$"]["CarrierDefinedCategory"]?.includes("GST"))
+                                                                .reduce((sum, tax) => sum + (parseFloat(tax["$"]["Amount"].replace("INR", "").trim()) || 0), 0);
+                                                        } else if (
+                                                            packageSelected["air:AirPricingInfo"]?.["air:TaxInfo"]?.["$"]["CarrierDefinedCategory"]?.includes("GST")
+                                                        ) {
+                                                            k3Tax = parseFloat(packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "").trim()) || 0;
+                                                        }
+
+                                                        // Ensure the final tax is non-negative and only subtract GST if it exists
+                                                        const finalTax = approximateTaxes - (k3Tax > 0 ? k3Tax : 0) + markup_price;
+
+                                                        return finalTax >= 0 ? finalTax : 0; // Ensure we don’t return negative values
+                                                    })()}
                                                 </span>
                                                 <div className="clear" />
                                             </div>
+
+
 
                                         </div>
                                         <div className="chk-total">
                                             <div className="chk-total-l">Total Price</div>
                                             <div className="chk-total-r" style={{ fontWeight: 700 }}>
                                                 {/* ₹ 6521 */}
+                                                {/* {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
+                                                {packageSelected.$.TotalPrice.replace('INR', '')} */}
                                                 {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                {packageSelected.$.TotalPrice.replace('INR', '')}
+                                                {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price)}
+
                                             </div>
                                             <div className="clear" />
                                         </div>
