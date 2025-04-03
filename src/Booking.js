@@ -121,7 +121,7 @@ const Booking = () => {
     const [cancellationPolicy, setCancellationPolicy] = useState(null);
 
     const providerCodeRef = useRef(null);
-    const Targetbranch = 'P4451438';
+    const Targetbranch = 'P7206253';
 
     const handleChange = (value) => {
         setValue(value);
@@ -5214,7 +5214,6 @@ console.log("fareInfoList",fareInfoList);
                                                                                                                                             const bookingInfo = packageSelected['air:AirPricingInfo']['air:BookingInfo'].find(
                                                                                                                                                 info => info['$']['FareInfoRef'] === fareInfo['$']['Key']
                                                                                                                                             );
-
                                                                                                                                             // Check if the segment's key matches the booking info's SegmentRef
                                                                                                                                             return bookingInfo && segment['$']['Key'] === bookingInfo['$']['SegmentRef'];
                                                                                                                                         }) .map(segment => {
@@ -5225,7 +5224,6 @@ console.log("fareInfoList",fareInfoList);
                                                                                                                                                 flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
                                                                                                                                                 flight.$?.ArrivalTime === segment['$']['ArrivalTime']
                                                                                                                                             );
-
                                                                                                                                             return matchedFlightDetail?.$?.OriginTerminal ? ` T-${matchedFlightDetail.$.OriginTerminal}` : null;
                                                                                                                                         })
                                                                                                                                         .filter(Boolean)
@@ -7444,9 +7442,7 @@ console.log("fareInfoList",fareInfoList);
                                         <div className="chk-total">
                                             <div className="chk-total-l">Total Price</div>
                                             <div className="chk-total-r" style={{ fontWeight: 700 }}>
-                                                {/* ₹ 6521 */}
-                                                {/* {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                {packageSelected.$.TotalPrice.replace('INR', '')} */}
+
                                                 {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                 {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price)}
 

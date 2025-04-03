@@ -19560,7 +19560,7 @@ button#search-button:hover {
 .swapbuttonn {
   position: absolute; /* Position the button absolutely */
   top: 42%; /* Center vertically */
-  transform: translateY(-50%); /* Adjust for vertical centering */
+  transform: translateY(-50%);
   left: 32.8%;
   background: white; /* Make the button background transparent */
   border: none; /* Remove button border */
@@ -19568,22 +19568,7 @@ button#search-button:hover {
   box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);
   border-radius: 30px;
 }
- /* .location-info {
-  width: 100%;
-  height: 60%;
-  font-size: large;
-  font-weight: bold;
 
-}
-
-.location-info input {
-  width: 100%;
-  height: 100%;
-  border: none;
-  outline: none;
-  padding: 10px;
-  box-sizing: border-box;
-} */
 
 .location-info {
   font-family: 'Montserrat', sans-serif;
@@ -19630,7 +19615,7 @@ button#search-button:hover {
   position: absolute;
   top: 100%;
   left: -10%;
-  width: 120%; /* Matches the width of .form-groupp */
+  width: 120%; 
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
