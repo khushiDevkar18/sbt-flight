@@ -121,7 +121,7 @@ const Booking = () => {
     const [cancellationPolicy, setCancellationPolicy] = useState(null);
 
     const providerCodeRef = useRef(null);
-    const Targetbranch = 'P7206253';
+    const Targetbranch = 'P4451438';
 
     const handleChange = (value) => {
         setValue(value);
@@ -1311,6 +1311,7 @@ const Booking = () => {
             }
             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
             const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
+            const mainlocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
 
             var UniversalRecordRequest = {
                 "soap:Envelope": {
@@ -1451,6 +1452,7 @@ const Booking = () => {
                 fast_forward_charges: 0,
                 vip_service_charges: 0,
                 pnrcode: flightpnrCode,
+                universallocatorCode: mainlocatorCode,
                 applied_markup: markup_price,
                 actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
                 // flightDetails: segmenttaxivaxis,
@@ -2336,6 +2338,7 @@ console.log("fareInfoList",fareInfoList);
                                     fast_forward_charges: 0,
                                     vip_service_charges: 0,
                                     pnrcode: flightpnrCode,
+                                    universallocatorCode: universallocatorCode,
                                     applied_markup: markup_price,
                                     actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
                                     ...flightDetails,
@@ -2539,6 +2542,7 @@ console.log("fareInfoList",fareInfoList);
                                         fast_forward_charges: 0,
                                         vip_service_charges: 0,
                                         pnrcode: flightpnrCode,
+                                        universallocatorCode: universallocatorCode,
                                         applied_markup: markup_price,
                                         actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
                                         // flightDetails: segmenttaxivaxis,

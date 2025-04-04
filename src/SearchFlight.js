@@ -64,6 +64,8 @@ const SearchFlight = () => {
   const [BrandList, setBrandlist] = useState([]);
   // console.log('flightOptions', flightOptions);
   const [flightairoption, setFlightAirOptions] = useState([]);
+  const [flightairoptionarray, setFlightAirOptionsArray] = useState([]);
+  // console.log('flightairoptionarray', flightairoptionarray);
   const [flightDetails, setFlightDetails] = useState([]);
   const [actualFlightDetails, setActualFlightDetails] = useState([]);
   
@@ -78,7 +80,7 @@ const SearchFlight = () => {
   const [showModal, setShowModal] = useState(false);
   const [newpayload, setPayload] = useState("");
   const contentRef = useRef(null);
-  const Targetbranch = 'P7206253';
+  const Targetbranch = 'P4451438';
   // console.log('TaxList', TaxList);
 
   const getFareDetails = (brandName) => {
@@ -309,11 +311,34 @@ const SearchFlight = () => {
   // console.log('taxesRef', taxesRef);
 
   const handleSegmentKeyMatch = (segmentKey) => {
+    console.log('segmentKey', segmentKey);
     setFareInfoRefsState([]);
-    const matchedBookingInfo = flightairoption.filter(
-      (bookingInfo) => bookingInfo['SegmentRef'] === segmentKey
-    );
-    setFareInfoRefsState([...matchedBookingInfo]);
+    const segmentKeys = Array.isArray(segmentKey) ? segmentKey : [segmentKey];
+    const matchedBookingInfo = flightairoptionarray.filter((option) => {
+      const bookingInfos = option["air:BookingInfo"];
+      const normalizedBookingInfos = Array.isArray(bookingInfos) ? bookingInfos : [bookingInfos];
+  
+      // Must match length
+      if (normalizedBookingInfos.length !== segmentKeys.length) return false;
+  
+      const segmentRefsInOption = normalizedBookingInfos.map(
+        (b) => b?.["$"]?.SegmentRef
+      );
+  
+      // Must contain exactly the same SegmentRefs as the segmentKeys (unordered match)
+      const isExactMatch =
+        segmentRefsInOption.every((ref) => segmentKeys.includes(ref)) &&
+        segmentKeys.every((ref) => segmentRefsInOption.includes(ref));
+  
+      return isExactMatch;
+    });
+    // console.log('matchedBookingInfo', matchedBookingInfo);
+    const firstBookingInfos = matchedBookingInfo.map((item) => {
+      const bookingInfos = item["air:BookingInfo"];
+      const normalizedBookingInfos = Array.isArray(bookingInfos) ? bookingInfos : [bookingInfos];
+      return normalizedBookingInfos[0]?.["$"] || {}; // Flatten the $
+    });
+    setFareInfoRefsState([...firstBookingInfos]);
   };
   // console.log('hello');
 
@@ -847,48 +872,58 @@ const SearchFlight = () => {
 
           const extractedBookingInfo = [];
           const extractedTaxInfo = [];
+          const extractedOptionsArray = []; // <-- This is what you're asking for
+
           const pricepointlistArray = Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist];
+
           // Iterate through the AirPricePoint list
           pricepointlistArray.forEach((airPricePoint) => {
             const airPricingInfo = airPricePoint['air:AirPricingInfo'];
-            if (!airPricingInfo) return; // Skip if no AirPricingInfo is found
+            if (!airPricingInfo) return;
+
+            // Tax Info extraction
             const taxInfoList = airPricingInfo['air:TaxInfo'];
             const taxInfoArray = Array.isArray(taxInfoList) ? taxInfoList : taxInfoList ? [taxInfoList] : [];
 
             taxInfoArray.forEach((taxInfo) => {
-              if (taxInfo && taxInfo["$"] && taxInfo["$"].SupplierCode === "6E") {
-                extractedTaxInfo.push(taxInfo["$"]); // Only push if SupplierCode is "6E"
+              if (taxInfo?.["$"]?.SupplierCode === "6E") {
+                extractedTaxInfo.push(taxInfo["$"]);
               }
             });
 
             const flightOptionsList = airPricingInfo['air:FlightOptionsList'];
-            if (!flightOptionsList) return; // Skip if no FlightOptionsList is found
+            if (!flightOptionsList) return;
 
             const flightOptions = flightOptionsList['air:FlightOption'];
-            const flightOptionArray = Array.isArray(flightOptions) ? flightOptions : [flightOptions]; // Normalize to array
+            const flightOptionArray = Array.isArray(flightOptions) ? flightOptions : [flightOptions];
 
-            // Iterate through each air:FlightOption
             flightOptionArray.forEach((flightOption) => {
               const options = flightOption['air:Option'];
-              const optionsArray = Array.isArray(options) ? options : [options]; // Normalize to array
+              const optionsArray = Array.isArray(options) ? options : [options];
 
-              // Iterate through each air:Option
               optionsArray.forEach((airOption) => {
                 const bookingInfo = airOption['air:BookingInfo'];
-                const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo]; // Normalize to array
+                const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
 
-                // Extract the "$" part from each bookingInfo
                 bookingInfoArray.forEach((info) => {
                   if (info && info["$"]) {
-                    extractedBookingInfo.push(info["$"]); // Push the extracted info into the result array
+                    extractedBookingInfo.push(info["$"]);
                   }
+                });
+
+                // 💡 Push only the 'air:BookingInfo' for each option (no '$' field)
+                extractedOptionsArray.push({
+                  "air:BookingInfo": Array.isArray(airOption["air:BookingInfo"])
+                    ? airOption["air:BookingInfo"]
+                    : [airOption["air:BookingInfo"]]
                 });
               });
             });
           });
 
-          // console.log("Extracted Booking Info:", extractedBookingInfo);
 
+          // console.log("extractedOptionsArray:", extractedOptionsArray);
+          setFlightAirOptionsArray(extractedOptionsArray)
           const Segmentlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirSegmentList']['air:AirSegment'];
           const flightdetailist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FlightDetailsList']['air:FlightDetails'];
           const hosttokenlist = result?.['SOAP:Envelope']?.['SOAP:Body']?.['air:LowFareSearchRsp']?.['air:HostTokenList']?.['common_v52_0:HostToken'] || [];
@@ -1442,7 +1477,7 @@ const SearchFlight = () => {
           const segmentKeys = segmentArray.map((segment) => segment["$"]["Key"]); // Get all segment keys
           setAllSegmentKeys(segmentKeys);
           const key = segmentArray[0]["$"]["Key"];
-          handleSegmentKeyMatch(key);
+          handleSegmentKeyMatch(segmentKeys);
           setLoading(false);
           return;
 
@@ -1610,7 +1645,7 @@ const SearchFlight = () => {
 
     const SegmentParse = segmentpriceParse;
     // console.log('HostToken',HostToken);
-    // console.log('SegmentParse',SegmentParse);
+    console.log('SegmentParse',SegmentParse);
     let finaldeparturedate = '';
     let finalreturndate = '';
     let finalarrivaldate = '';
@@ -1733,6 +1768,7 @@ const SearchFlight = () => {
           fareInfoRefKey: fareInfoRefKey,
           markup_price: markup_price,
           flightDetails: actualFlightDetails,
+          segmentArray: SegmentParse
 
         };
         setLoading(false);
@@ -2100,7 +2136,8 @@ const SearchFlight = () => {
         const dynamicDestinationCode = searchtoCode;
         const dynamicDepTime = formattedsearchdeparture;
         const returndynamicDepTime = formattedsearchreturnDate;
-        const dynamicCabinType = cabinclass;
+        // const dynamicCabinType = cabinclass;
+        const dynamicCabinType = cabinclass || 'Economy';
         const PassengerCodeADT = adult;
         const PassengerCodeCNN = child;
         const PassengerCodeINF = infant;
@@ -16743,7 +16780,7 @@ const SearchFlight = () => {
                                                                       </div>
                                                                     </div>
                                                                   </div>
-                                                                  {/* {agent_id  && (  */}
+                                                                  {agent_id  && ( 
 
                                                                   <div className='buttonbook' >
 
@@ -16754,7 +16791,7 @@ const SearchFlight = () => {
                                                                       Book Now
                                                                     </button>
                                                                   </div>
-                                                                  {/* )}   */}
+                                                                  )}  
 
                                                                   <button
                                                                     className="add-btn"
@@ -17378,7 +17415,7 @@ const SearchFlight = () => {
                                                                 )}
                                                               </div>
 
-                                                              {/* {agent_id && ( */}
+                                                              {agent_id && (
                                                               <div className='buttonbook' >
                                                                 <button type='button' className="continuebutton"
                                                                   style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }}
@@ -17386,7 +17423,7 @@ const SearchFlight = () => {
                                                                   Book Now
                                                                 </button>
                                                               </div>
-                                                              {/* )} */}
+                                                              )}
                                                               <button
                                                                 className="add-btn"
                                                                 type="button"

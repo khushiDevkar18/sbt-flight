@@ -57,7 +57,7 @@ function Home() {
     const [ClientMarkupDetails, setClientMarkupDetails] = useState("");
     // console.log('ClientMarkupDetails', ClientMarkupDetails);f
 
-    const Targetbranch = 'P7206253';
+    const Targetbranch = 'P4451438';
     // console.log(Targetbranch);
     // test TargetBranch: P7206253
     // live TargetBranch: P4451438
@@ -311,54 +311,76 @@ function Home() {
     const handleToggle = () => {
         setIsOpen(prevIsOpen => !prevIsOpen);
     };
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchDestinationTerm, setSearchDestinationTerm] = useState('');
+    useEffect(() => {
+        const debounceTimeout = setTimeout(() => {
+            if (searchTerm.trim() === '') {
+                setOrigin([]);
+                return;
+            }
     
-    const handleOriginChange = (inputValue) => {
-        setInputOrigin(inputValue);
-        const filteredOptions = allAirportsOrigin
-            .filter((airport) =>
-                airport.$.Name.toLowerCase().includes(inputValue.toLowerCase())
-            )
-            .map((airport) => {
-                const matchedAirport = apiairports.find(
-                    (apiAirport) => apiAirport.airport_iata_code === airport.$.Code
-                );
-                return {
-                    value: airport.$.Code,
-                    label: airport.$.Name,
-                    airportName: matchedAirport ? matchedAirport.airport_name : '' // Add airport name from apiairports
-                };
-            })
-            .sort((a, b) => a.label.localeCompare(b.label));
-        setOrigin(filteredOptions);
-        setShowOriginDropdown(true);
-    };
+            const filteredOptions = allAirportsOrigin
+                .filter((airport) =>
+                    airport.$.Name.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((airport) => {
+                    const matchedAirport = apiairports.find(
+                        (apiAirport) => apiAirport.airport_iata_code === airport.$.Code
+                    );
+                    return {
+                        value: airport.$.Code,
+                        label: airport.$.Name,
+                        airportName: matchedAirport ? matchedAirport.airport_name : ''
+                    };
+                })
+                .sort((a, b) => a.label.localeCompare(b.label));
+    
+            setOrigin(filteredOptions);
+            setShowOriginDropdown(true);
+        }, 300); // Debounce delay
+    
+        return () => clearTimeout(debounceTimeout); // Cleanup
+    }, [searchTerm, allAirportsOrigin, apiairports]);
+
+    useEffect(() => {
+        const debounceTimeout = setTimeout(() => {
+            if (searchDestinationTerm.trim() === '') {
+                setDestination([]);
+                return;
+            }
+    
+            const filteredOptions = allAirportsDestination
+                .filter((airport) =>
+                    airport.$.Name.toLowerCase().includes(searchDestinationTerm.toLowerCase())
+                )
+                .map((airport) => {
+                    const matchedAirport = apiairports.find(
+                        (apiAirport) => apiAirport.airport_iata_code === airport.$.Code
+                    );
+                    return {
+                        value: airport.$.Code,
+                        label: airport.$.Name,
+                        airportName: matchedAirport ? matchedAirport.airport_name : ''
+                    };
+                })
+                .sort((a, b) => a.label.localeCompare(b.label));
+    
+            setDestination(filteredOptions);
+            setShowDestinationDropdown(true);
+        }, 300); // 300ms debounce
+    
+        return () => clearTimeout(debounceTimeout);
+    }, [searchDestinationTerm, allAirportsDestination, apiairports]);
+    
+    
     
     const handleOrigin = (value,airportName) => {
         setInputOrigin(`${airportOriginCodes[value]} (${value}) ${airportName}`);
         setShowOriginDropdown(false);
     };
 
-    const handleDestinationChange = (inputValue) => {
-        setInputDestination(inputValue);
-
-        const filteredOptions = allAirportsDestination
-            .filter((airport) =>
-                airport.$.Name.toLowerCase().includes(inputValue.toLowerCase())
-            )
-            .map((airport) => {
-                const matchedAirport = apiairports.find(
-                    (apiAirport) => apiAirport.airport_iata_code === airport.$.Code
-                );
-                return {
-                    value: airport.$.Code,
-                    label: airport.$.Name,
-                    airportName: matchedAirport ? matchedAirport.airport_name : '' 
-                };
-            })
-            .sort((a, b) => a.label.localeCompare(b.label));
-        setDestination(filteredOptions);
-        setShowDestinationDropdown(true);
-    };
     const handleDestination = (value,airportName) => {
         setInputDestination(`${airportDestinationCodes[value]} (${value}) ${airportName}`);
         setShowDestinationDropdown(false);
@@ -704,7 +726,8 @@ function Home() {
             const dynamicDestinationCode = searchtoCode; 
             const dynamicDepTime = formattedsearchdeparture;
             const returndynamicDepTime = formattedsearchreturnDate;
-            const dynamicCabinType = cabinclass; 
+            // const dynamicCabinType = cabinclass;
+            const dynamicCabinType = cabinclass || 'Economy'; 
             const PassengerCodeADT = adult; 
             const PassengerCodeCNN = child; 
             const PassengerCodeINF = infant; 
@@ -1070,16 +1093,17 @@ return (
                                                 value={inputOrigin} // Display only the city name
                                                 onChange={(e) => {
                                                     const value = e.target.value;
-                                                    handleOriginChange(value);
-                                                    setShowOriginDropdown(true); // Show dropdown when typing or emptying the field
+                                                    setSearchTerm(value);
+                                                    setInputOrigin(value); // Update UI instantly
 
-                                                    // Hide error if value is not empty
                                                     const errorElement = document.querySelector('.redorigin');
                                                     if (value.trim() !== '') {
                                                         errorElement.style.display = 'none';
                                                     } else {
                                                         errorElement.style.display = 'block';
                                                     }
+
+                                                    setShowOriginDropdown(true);
                                                 }}
                                                 placeholder="Enter city"
                                                 onFocus={() => setShowOriginDropdown(true)} // Show dropdown when focused
@@ -1154,10 +1178,10 @@ return (
                                                     value={inputDestination} // Display only the city name  .split('(')[0].trim()
                                                     onChange={(e) => {
                                                         const value = e.target.value;
-                                                        handleDestinationChange(value);
-                                                        setShowDestinationDropdown(true); // Show dropdown when typing or emptying the field
+                                                        setSearchDestinationTerm(value);       // Update search term for debounced logic
+                                                        setInputDestination(value);            // Still show user input instantly
+                                                        setShowDestinationDropdown(true);
 
-                                                        // Hide error if value is not empty
                                                         const errorElement = document.querySelector('.redestination');
                                                         if (value.trim() !== '') {
                                                             errorElement.style.display = 'none';
