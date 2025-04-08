@@ -763,9 +763,10 @@ const SearchFlight = () => {
           } else {
             const error = priceresult['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
             // ErrorLogger.logError('price_api',pricepointXML,error);
+            console.log('errror', error);
             Swal.fire({
               title: 'Something Went Wrong !',
-              text: 'Please try again later',
+              text: error,
               confirmButtonText: 'OK'
             });
           }
@@ -1511,9 +1512,12 @@ const SearchFlight = () => {
                 setsegmentpriceparse(Array.isArray(segmentpricereponse) ? segmentpricereponse : [segmentpricereponse]);
                 // setShow(true);
               } else {
+                const error = priceresult['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
+            // ErrorLogger.logError('price_api',pricepointXML,error);
+                console.log('errror', error);
                 Swal.fire({
                   title: 'Something Went Wrong !',
-                  text: 'Please try again later',
+                  text: error,
                   confirmButtonText: 'OK'
                 });
               }
@@ -16780,7 +16784,7 @@ const SearchFlight = () => {
                                                                       </div>
                                                                     </div>
                                                                   </div>
-                                                                  {agent_id  && ( 
+                                                                  {/* {agent_id  && (  */}
 
                                                                   <div className='buttonbook' >
 
@@ -16791,7 +16795,7 @@ const SearchFlight = () => {
                                                                       Book Now
                                                                     </button>
                                                                   </div>
-                                                                  )}  
+                                                                  {/* )}   */}
 
                                                                   <button
                                                                     className="add-btn"
@@ -17415,15 +17419,15 @@ const SearchFlight = () => {
                                                                 )}
                                                               </div>
 
-                                                              {agent_id && (
-                                                              <div className='buttonbook' >
+                                                              {/* {agent_id && ( */}
+                                                              <div className='buttonbook'>
                                                                 <button type='button' className="continuebutton"
                                                                   style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }}
                                                                   onClick={() => handleselectedContinue(priceParseindex)}>
                                                                   Book Now
                                                                 </button>
                                                               </div>
-                                                              )}
+                                                              {/* )} */}
                                                               <button
                                                                 className="add-btn"
                                                                 type="button"
@@ -17440,11 +17444,6 @@ const SearchFlight = () => {
                                                                   ), // Ensure calculatedPrice is computed here
                                                                   extractFareName(priceParseData)
                                                                 )}
-                                                              // onClick={() => {
-                                                              //   const fareName = extractFareName(priceParseData);
-                                                              //   const farePrice = priceParseData['$']['TotalPrice']
-                                                              //   handleCheckboxChange(pricepoint["air:AirPricingInfo"], farePrice, fareName)
-                                                              // }}
                                                               >
                                                                 {
                                                                   selectedFlights.some((flight) => {

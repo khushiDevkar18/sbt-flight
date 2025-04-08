@@ -609,6 +609,7 @@ function Home() {
         const searchreturnerror1 = document.querySelector('.redsearchreturn1');
         const passengererror = document.querySelector('.redpassenger');
         const infanterror = document.querySelector('.infantmore');
+        console.log('searchdeparture:', searchdeparture);
         
         let totalpassenger = parseInt(adultCount) + parseInt(childCount) + parseInt(infantCount);
         let isValidPassenger = true;
@@ -648,12 +649,26 @@ function Home() {
         if (!searchdeparture) {
             isValidPassenger = false;
             searchdepartureerror.style.display = 'block';
-        }else if(!dateFormatPattern.test(searchdeparture)){
+        }else if (!dateFormatPattern.test(searchdeparture)) {
             isValidPassenger = false;
             searchdepartureerror1.style.display = 'block';
-        }else{
-            searchdepartureerror.style.display = 'none';
-            searchdepartureerror1.style.display = 'none';
+        } else {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Strip time
+        
+            const [day, month, year] = searchdeparture.split('/');
+            const selectedDate = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+            selectedDate.setHours(0, 0, 0, 0); // Strip time
+        
+            console.log('Parsed selected date:', selectedDate);
+        
+            if (selectedDate < today) {
+                isValidPassenger = false;
+                searchdepartureerror1.style.display = 'block';
+            } else {
+                searchdepartureerror.style.display = 'none';
+                searchdepartureerror1.style.display = 'none';
+            }
         }
         if(formData.bookingType === 'Return'){
             if (!searchreturnDate) {
