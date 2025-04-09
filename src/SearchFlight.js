@@ -499,8 +499,7 @@ const SearchFlight = () => {
           pricepointXML);
 
         const priceResponse = priceresponse.data;
-
-       
+      
         console.log('priceResponse', priceResponse);
         parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
           if (err) {
@@ -1483,7 +1482,8 @@ const SearchFlight = () => {
               pricepointXML, { headers: { 'Content-Type': 'text/xml' } }
             );
             const priceResponse = priceresponse.data;
-        
+
+     
             console.log('priceResponse', priceResponse);
 
             parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {

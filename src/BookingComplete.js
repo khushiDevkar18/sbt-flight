@@ -23,6 +23,8 @@ const BookingContinue = () => {
     const Airports = location.state && location.state.bookingCompleteData.Airports;
     const Airlines = location.state && location.state.bookingCompleteData.Airlines;
     const markup_price = location.state && location.state.bookingCompleteData.markup_price;
+    const discount = location.state && location.state.bookingCompleteData.discount;
+    
     const seat_codes = location.state && location.state.bookingCompleteData.seat_codes;
     const bookingid = location.state && location.state.bookingCompleteData.booking_id;
     const flightDetails = location.state && location.state.bookingCompleteData.flightDetails;
@@ -877,7 +879,7 @@ const BookingContinue = () => {
                                                             <div className="reasons-i-lbl">
                                                                 <strong>
                                                                     {packageSelected && packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                    {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price)}</strong>
+                                                                    {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price + discount)}</strong>
                                                                 {/* {packageSelected && packageSelected.$.TotalPrice.replace('INR', '')} */}
                                                             </div>
                                                         </div>
@@ -957,7 +959,7 @@ const BookingContinue = () => {
                                                             <div className="reasons-i-lbl">
                                                                 {packageSelected && packageSelected.$.ApproximateTaxes.includes('INR') ? '₹ ' : ''}
                                                                 {/* {packageSelected && packageSelected.$.ApproximateTaxes.replace('INR', '')} */}
-                                                                {(parseFloat(packageSelected.$.ApproximateTaxes.replace('INR', '').trim()) + markup_price)}
+                                                                {(parseFloat(packageSelected.$.ApproximateTaxes.replace('INR', '').trim()) + markup_price + discount)}
                                                             </div>
                                                         </div>
                                                     </div>

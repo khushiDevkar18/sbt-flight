@@ -869,19 +869,21 @@ const Booking = () => {
             if (packageSelected["air:AirPricingInfo"]["$"]["BasePrice"]) {
                 base_price = Math.floor(parseFloat(packageSelected["air:AirPricingInfo"]["$"]["BasePrice"].replace("INR", "").trim()));
                 base_price = base_price * noOfSeats;
-                console.log("base_price c",base_price);
+                console.log("base_price c", base_price);
             }
             if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
                 fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable'] == 'true' ? 'Refundable' : 'Non Refundable';
             }
-            if (packageSelected["air:AirPricingInfo"]['air:FeeInfo']["$"]["Text"] == 'PromotionDiscount') {
-                discount = Math.floor(Math.abs(parseFloat(packageSelected["air:AirPricingInfo"]['air:FeeInfo']["$"]["Fees"].replace("INR", "").trim())));
-                console.log("b_noOfSeats",noOfSeats);
-                console.log("b_discount",discount);
-                discount = discount * noOfSeats;   
-                console.log("discount",discount);
-                             
+            const feeInfo = packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo'];
+
+            if (feeInfo?.["$"]?.["Text"] === 'PromotionDiscount') {
+                const feesRaw = feeInfo?.["$"]?.["Amount"];
+                if (feesRaw) {
+                    const feeAmount = parseFloat(feesRaw.replace("INR", "").trim());
+                    discount = Math.floor(Math.abs(feeAmount)) * parseFloat(noOfSeats || 1);
+                }
             }
+console.log("discount",discount);
 
         }
         let assignTax = 0; // Initialize assignTax
@@ -1287,11 +1289,11 @@ const Booking = () => {
 
         const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
         const reservationResponse = reservationresponse.data;
-
+ 
         console.log('reservationResponse', reservationResponse);
         let matchesDataInfo;
-        console.log("re packageSelected",packageSelected);
-        const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo'])? packageSelected['air:AirPricingInfo']['air:FareInfo'][0]: packageSelected['air:AirPricingInfo']['air:FareInfo'];
+        console.log("re packageSelected", packageSelected);
+        const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo']) ? packageSelected['air:AirPricingInfo']['air:FareInfo'][0] : packageSelected['air:AirPricingInfo']['air:FareInfo'];
 
         fareInfoList['air:Brand']['air:Text'].map((textinfor, textindex) => {
             if (
@@ -1321,7 +1323,7 @@ const Booking = () => {
             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
             const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
             const mainlocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
-         
+
             var UniversalRecordRequest = {
                 "soap:Envelope": {
                     '$': {
@@ -1356,15 +1358,15 @@ const Booking = () => {
 
 
             const flightDetails = {};
-           
+
             const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis]
-            console.log("formattedsegmenttaxivaxis",formattedsegmenttaxivaxis);
+            console.log("formattedsegmenttaxivaxis", formattedsegmenttaxivaxis);
             if (Array.isArray(formattedsegmenttaxivaxis)) {
                 formattedsegmenttaxivaxis.forEach((segment, index) => {
-                    console.log("segment.DepartureDate",segment.DepartureDate);
-                    console.log("segment.ArrivalDate",segment.ArrivalDate);
-                    console.log("segment.DepartureTime",segment.DepartureTime);
-                    console.log("segment.ArrivalTime",segment.ArrivalTime);
+                    console.log("segment.DepartureDate", segment.DepartureDate);
+                    console.log("segment.ArrivalDate", segment.ArrivalDate);
+                    console.log("segment.DepartureTime", segment.DepartureTime);
+                    console.log("segment.ArrivalTime", segment.ArrivalTime);
                     const departureDate = new Date(segment.DepartureTime);
                     const arrivalDate = new Date(segment.ArrivalTime);
 
@@ -1377,7 +1379,7 @@ const Booking = () => {
                     const concatDeptDateTime = formattedDate + " " + formattedDeparture;
 
                     const formattedArrivalDate = formatDateTime(arrivalDate);
-                    
+
                     const formattedArrival = new Date(segment.ArrivalTime).toLocaleTimeString('en-US', {
                         hour: 'numeric',
                         minute: 'numeric',
@@ -1393,11 +1395,11 @@ const Booking = () => {
                     );
 
                     if (fareFamily == 'Corporate Fare') {
-                        seat_type='Corporate Economy'
+                        seat_type = 'Corporate Economy'
                     } else {
                         seat_type = seat_type;
                     }
-                    
+
                     flightDetails[`from_${index}`] = segment.Origin;
                     flightDetails[`to_${index}`] = segment.Destination;
                     flightDetails[`depart_${index}`] = concatDeptDateTime;
@@ -1435,7 +1437,7 @@ const Booking = () => {
                 });
             }
 
-            const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3)-parseFloat(assignTax);
+            const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3) - parseFloat(assignTax);
             const passenger_markup_price = parseFloat(markup_price) * parseFloat(noOfSeats);
             const formtaxivaxiData = {
                 // ...formtaxivaxi,
@@ -1445,9 +1447,9 @@ const Booking = () => {
                 fare_type: 'Refundable',
                 is_extra_baggage_included: 0,
                 flight_type: flightType,
-                total_ex_tax_fees: base_price + assignTax,
+                total_ex_tax_fees: (base_price + assignTax)-discount,
                 total_price: total_price,
-                tax_and_fees: tax_excluding_k3,
+                tax_and_fees: tax_excluding_k3 + discount,
                 gst_k3: tax_k3,
                 mark_up_price: 0,
                 no_of_stops: stopCounts,
@@ -1461,10 +1463,10 @@ const Booking = () => {
                 fast_forward_charges: 0,
                 vip_service_charges: 0,
                 pnrcode: flightpnrCode,
-                universallocatorCode:mainlocatorCode,
+                universallocatorCode: mainlocatorCode,
                 applied_markup: passenger_markup_price,
                 actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
-                discount:discount,
+                discount: discount,
                 ...flightDetails,
                 extrabaggage: 'NA',
                 checkedInBaggage: checkedInBaggage,
@@ -1487,7 +1489,7 @@ const Booking = () => {
             })
 
             console.log("Condition met, navigating... now in the reservationresult");
-            
+
             const bookingCompleteData = {
                 reservationdata: reservationResponse,
                 segmentParse: segmentParse,
@@ -1503,6 +1505,7 @@ const Booking = () => {
                 seat_codes: tempCodes,
                 booking_id: bookingid,
                 flightDetails: actualFlightDetails,
+                discount: discount,
                 // ticketdata: ticketresponse.data 
             };
             console.log('bookingCompleteData', bookingCompleteData);
@@ -1683,7 +1686,7 @@ const Booking = () => {
 
                             if (category && category.includes("GST")) {
                                 tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                                tax_k3=tax_k3*noOfSeats;
+                                tax_k3 = tax_k3 * noOfSeats;
                                 found = true;
                             }
                         });
@@ -1696,7 +1699,7 @@ const Booking = () => {
 
                                 if (category && category.includes("K3")) {
                                     tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                                    tax_k3=tax_k3*noOfSeats;
+                                    tax_k3 = tax_k3 * noOfSeats;
                                 }
                             });
                         }
@@ -1706,10 +1709,10 @@ const Booking = () => {
 
                         if (category && category.includes("GST")) {
                             tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                            tax_k3=tax_k3*noOfSeats;
+                            tax_k3 = tax_k3 * noOfSeats;
                         } else if (category && category.includes("K3")) {
                             tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                            tax_k3=tax_k3*noOfSeats;
+                            tax_k3 = tax_k3 * noOfSeats;
                         }
                     }
                 });
@@ -1725,7 +1728,7 @@ const Booking = () => {
 
                         if (category && category.includes("GST")) {
                             tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                            tax_k3=tax_k3*noOfSeats;
+                            tax_k3 = tax_k3 * noOfSeats;
                             found = true;
                         }
                     });
@@ -1738,7 +1741,7 @@ const Booking = () => {
 
                             if (category && category.includes("K3")) {
                                 tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                                tax_k3=tax_k3*noOfSeats;
+                                tax_k3 = tax_k3 * noOfSeats;
                             }
                         });
                     }
@@ -1748,10 +1751,10 @@ const Booking = () => {
 
                     if (category && category.includes("GST")) {
                         tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                        tax_k3=tax_k3*noOfSeats;
+                        tax_k3 = tax_k3 * noOfSeats;
                     } else if (category && category.includes("K3")) {
                         tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                        tax_k3=tax_k3*noOfSeats;
+                        tax_k3 = tax_k3 * noOfSeats;
                     }
                 }
             }
@@ -1765,7 +1768,7 @@ const Booking = () => {
             let fare_type = '';
             let discount = 0;
 
-            console.log("packageSelected at re",packageSelected);
+            console.log("packageSelected at re", packageSelected);
 
             if (packageSelected['air:AirPricingInfo']) {
                 if (packageSelected['air:AirPricingInfo']['$']['TotalPrice']) {
@@ -1779,19 +1782,23 @@ const Booking = () => {
                 if (packageSelected["air:AirPricingInfo"]["$"]["BasePrice"]) {
                     base_price = Math.floor(parseFloat(packageSelected["air:AirPricingInfo"]["$"]["BasePrice"].replace("INR", "").trim()));
                     base_price = base_price * noOfSeats;
-                    console.log("base_price c",base_price);
-                    
+                    console.log("base_price c", base_price);
+
                 }
                 if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
                     fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable'] == 'true' ? 'Refundable' : 'Non Refundable';
                 }
-                if (packageSelected["air:AirPricingInfo"]['air:FeeInfo']["$"]["Text"] == 'PromotionDiscount') {
-                    discount = Math.floor(Math.abs(parseFloat(packageSelected["air:AirPricingInfo"]['air:FeeInfo']["$"]["Fees"].replace("INR", "").trim())));
-                    console.log("b_noOfSeats",noOfSeats);
-                    console.log("b_discount",discount);
-                    discount = discount * noOfSeats;   
-                    console.log("discount",discount);
+                const feeInfo = packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo'];
+
+                if (feeInfo?.["$"]?.["Text"] === 'PromotionDiscount') {
+                    const feesRaw = feeInfo?.["$"]?.["Amount"];
+                    if (feesRaw) {
+                        const feeAmount = parseFloat(feesRaw.replace("INR", "").trim());
+                        discount = Math.floor(Math.abs(feeAmount)) * parseFloat(noOfSeats || 1);
+                    }
                 }
+console.log("discount",discount);
+
 
             }
             let assignTax = 0; // Initialize assignTax
@@ -1810,10 +1817,10 @@ const Booking = () => {
 
                         if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
                             let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
-                            console.log("before amount",amount);
+                            console.log("before amount", amount);
                             amount = amount * noOfSeats;
-                            console.log("amount",amount);
-                            
+                            console.log("amount", amount);
+
                             assignTax += Math.floor(amount);
                         }
                     });
@@ -1824,9 +1831,9 @@ const Booking = () => {
 
                     if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
                         let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
-                        console.log("before amount",amount);
+                        console.log("before amount", amount);
                         amount = amount * noOfSeats;
-                        console.log("amount",amount);
+                        console.log("amount", amount);
                         assignTax += Math.floor(amount);
                     }
                 });
@@ -1835,9 +1842,9 @@ const Booking = () => {
 
                 if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
                     let amount = parseFloat(packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount.replace("INR", "").trim());
-                    console.log("before amount",amount);
+                    console.log("before amount", amount);
                     amount = amount * noOfSeats;
-                    console.log("amount",amount);
+                    console.log("amount", amount);
                     assignTax += Math.floor(amount);
                 }
             }
@@ -2208,7 +2215,7 @@ const Booking = () => {
                 try {
                     const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
                     const reservationResponse = reservationresponse.data;
-         
+                    
                     console.log('reservationResponse', reservationResponse);
 
                     parseString(reservationResponse, { explicitArray: false }, async (err, reservationresult) => {
@@ -2226,8 +2233,8 @@ const Booking = () => {
                             const segmentreservation = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
                             const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
                             console.log("packageSelected['air:AirPricingInfo'][0]", packageSelected);
-                            
-                            const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo'])? packageSelected['air:AirPricingInfo']['air:FareInfo'][0]: packageSelected['air:AirPricingInfo']['air:FareInfo'];
+
+                            const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo']) ? packageSelected['air:AirPricingInfo']['air:FareInfo'][0] : packageSelected['air:AirPricingInfo']['air:FareInfo'];
 
 
                             fareInfoList['air:Brand']['air:Text'].map((textinfor, textindex) => {
@@ -2247,18 +2254,18 @@ const Booking = () => {
                             const flightDetails = {};
 
                             const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis];
-                            console.log("formattedsegmenttaxivaxis",formattedsegmenttaxivaxis);
-                            
+                            console.log("formattedsegmenttaxivaxis", formattedsegmenttaxivaxis);
+
                             if (Array.isArray(formattedsegmenttaxivaxis)) {
                                 formattedsegmenttaxivaxis.forEach((segment, index) => {
-                                    console.log("segment.DepartureTime",segment.DepartureTime);
+                                    console.log("segment.DepartureTime", segment.DepartureTime);
                                     console.log("segment.ArrivalTime", segment.ArrivalTime);
-                                    
+
                                     const departureDate = new Date(segment.DepartureTime);
                                     const arrivalDate = new Date(segment.ArrivalTime);
 
                                     const formattedDate = formatDateTime(departureDate);
-                                    
+
                                     const formattedDeparture = new Date(segment.DepartureTime).toLocaleTimeString('en-US', {
                                         hour: 'numeric',
                                         minute: 'numeric',
@@ -2268,7 +2275,7 @@ const Booking = () => {
                                     const concatDeptDateTime = formattedDate + " " + formattedDeparture;
 
                                     const formattedArrivalDate = formatDateTime(arrivalDate);
-                                    
+
                                     const formattedArrival = new Date(segment.ArrivalTime).toLocaleTimeString('en-US', {
                                         hour: 'numeric',
                                         minute: 'numeric',
@@ -2289,7 +2296,7 @@ const Booking = () => {
                                     console.log("matchedFlightDetail", matchedFlightDetail)
                                     console.log("concatDeptDateTime", concatDeptDateTime);
                                     if (fareFamily == 'Corporate Fare') {
-                                        seat_type='Corporate Economy'
+                                        seat_type = 'Corporate Economy'
                                     } else {
                                         seat_type = seat_type;
                                     }
@@ -2342,9 +2349,9 @@ const Booking = () => {
                                     fare_type: 'Refundable',
                                     is_extra_baggage_included: 0,
                                     flight_type: flightType,
-                                    total_ex_tax_fees: base_price + assignTax,
+                                    total_ex_tax_fees: (base_price + assignTax)-discount,
                                     total_price: total_price,
-                                    tax_and_fees: tax_excluding_k3,
+                                    tax_and_fees: tax_excluding_k3 + discount,
                                     gst_k3: tax_k3,
                                     no_of_stops: stopCounts,
                                     no_of_stops_return: returnstopCounts,
@@ -2357,10 +2364,10 @@ const Booking = () => {
                                     fast_forward_charges: 0,
                                     vip_service_charges: 0,
                                     pnrcode: flightpnrCode,
-                                    universallocatorCode:universallocatorCode,
+                                    universallocatorCode: universallocatorCode,
                                     applied_markup: passenger_markup_price,
                                     actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
-                                    discount:discount,
+                                    discount: discount,
                                     ...flightDetails,
                                     extrabaggage: 'NA',
                                     checkedInBaggage: checkedInBaggage,
@@ -2428,6 +2435,7 @@ const Booking = () => {
                                     markup_price: passenger_markup_price,
                                     booking_id: bookingid,
                                     flightDetails: actualFlightDetails,
+                                    discount: discount,
                                     // ticketdata: ticketresponse.data 
                                 };
                                 console.log('bookingCompleteData', bookingCompleteData);
@@ -2547,9 +2555,9 @@ const Booking = () => {
                                         fare_type: 'Refundable',
                                         is_extra_baggage_included: 0,
                                         flight_type: flightType,
-                                        total_ex_tax_fees: base_price + assignTax,
+                                        total_ex_tax_fees: (base_price + assignTax)-discount,
                                         total_price: total_price,
-                                        tax_and_fees: tax_excluding_k3,
+                                        tax_and_fees: tax_excluding_k3 + discount,
                                         gst_k3: tax_k3,
                                         mark_up_price: 0,
                                         no_of_stops: stopCounts,
@@ -2563,10 +2571,10 @@ const Booking = () => {
                                         fast_forward_charges: 0,
                                         vip_service_charges: 0,
                                         pnrcode: flightpnrCode,
-                                        universallocatorCode:universallocatorCode,
+                                        universallocatorCode: universallocatorCode,
                                         applied_markup: passenger_markup_price,
                                         actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
-                                        discount:discount,
+                                        discount: discount,
                                         ...flightDetails,
                                         extrabaggage: 'NA',
                                         // seatdetails: formseat,
@@ -2630,6 +2638,7 @@ const Booking = () => {
                                         markup_price: passenger_markup_price,
                                         booking_id: bookingid,
                                         flightDetails: actualFlightDetails,
+                                        discount: discount,
                                     };
                                     console.log('bookingCompleteData', bookingCompleteData);
                                     navigate('/bookingCompleted', { state: { bookingCompleteData } });
@@ -4436,15 +4445,15 @@ const Booking = () => {
                                                                                                                                 <span className='airport'>
                                                                                                                                     {handleApiAirport(fareInfo['$']['Origin'])}
                                                                                                                                     {(
-                                                                                                                                    (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
-                                                                                                                                           
+                                                                                                                                        (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
+
                                                                                                                                             const bookingInfo = packageSelected['air:AirPricingInfo']['air:BookingInfo'].find(
                                                                                                                                                 info => info['$']['FareInfoRef'] === fareInfo['$']['Key']
                                                                                                                                             );
 
                                                                                                                                             // Check if the segment's key matches the booking info's SegmentRef
                                                                                                                                             return bookingInfo && segment['$']['Key'] === bookingInfo['$']['SegmentRef'];
-                                                                                                                                        }) .map(segment => {
+                                                                                                                                        }).map(segment => {
                                                                                                                                             const matchedFlightDetail = actualFlightDetails.find(flight =>
                                                                                                                                                 flight.$?.Origin === segment['$']['Origin'] &&
                                                                                                                                                 flight.$?.Destination === segment['$']['Destination'] &&
@@ -4454,9 +4463,9 @@ const Booking = () => {
 
                                                                                                                                             return matchedFlightDetail?.$?.OriginTerminal ? ` T-${matchedFlightDetail.$.OriginTerminal}` : null;
                                                                                                                                         })
-                                                                                                                                        .filter(Boolean)
-                                                                                                                                        .join("") 
-                                                                                                                                )}</span>
+                                                                                                                                            .filter(Boolean)
+                                                                                                                                            .join("")
+                                                                                                                                    )}</span>
                                                                                                                             </div>
                                                                                                                             <div className='row accordionfarename apiairportname'>
                                                                                                                                 <span className='vertical_line'></span>
@@ -4471,16 +4480,16 @@ const Booking = () => {
                                                                                                                                 <span className='airport'>
                                                                                                                                     {handleApiAirport(fareInfo['$']['Destination'])}
                                                                                                                                     {(
-                                                                                                                                    (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
-                                                                                                                                         
+                                                                                                                                        (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
+
                                                                                                                                             const bookingInfo = packageSelected['air:AirPricingInfo']['air:BookingInfo'].find(
                                                                                                                                                 info => info['$']['FareInfoRef'] === fareInfo['$']['Key']
                                                                                                                                             );
 
-                                                                                                                                          
+
                                                                                                                                             return bookingInfo && segment['$']['Key'] === bookingInfo['$']['SegmentRef'];
-                                                                                                                                        }) .map(segment => {
-                                                                                                                                        
+                                                                                                                                        }).map(segment => {
+
                                                                                                                                             const matchedFlightDetail = actualFlightDetails.find(flight =>
                                                                                                                                                 flight.$?.Origin === segment['$']['Origin'] &&
                                                                                                                                                 flight.$?.Destination === segment['$']['Destination'] &&
@@ -4490,9 +4499,9 @@ const Booking = () => {
 
                                                                                                                                             return matchedFlightDetail?.$?.DestinationTerminal ? ` T-${matchedFlightDetail.$.DestinationTerminal}` : null;
                                                                                                                                         })
-                                                                                                                                        .filter(Boolean)
-                                                                                                                                        .join("") 
-                                                                                                                                )}</span>
+                                                                                                                                            .filter(Boolean)
+                                                                                                                                            .join("")
+                                                                                                                                    )}</span>
                                                                                                                             </div>
                                                                                                                             <div className='baggage-info'>
                                                                                                                                 <span className="cabin-baggage">
@@ -5234,7 +5243,7 @@ const Booking = () => {
                                                                                                                                 <span className='airport'>
                                                                                                                                     {handleApiAirport(fareInfo['$']['Origin'])}
                                                                                                                                     {(
-                                                                                                                                    (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
+                                                                                                                                        (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
                                                                                                                                             // Find the booking info that matches the FareInfoRef
                                                                                                                                             const bookingInfo = packageSelected['air:AirPricingInfo']['air:BookingInfo'].find(
                                                                                                                                                 info => info['$']['FareInfoRef'] === fareInfo['$']['Key']
@@ -5242,7 +5251,7 @@ const Booking = () => {
 
                                                                                                                                             // Check if the segment's key matches the booking info's SegmentRef
                                                                                                                                             return bookingInfo && segment['$']['Key'] === bookingInfo['$']['SegmentRef'];
-                                                                                                                                        }) .map(segment => {
+                                                                                                                                        }).map(segment => {
                                                                                                                                             // Find the matching flight details
                                                                                                                                             const matchedFlightDetail = actualFlightDetails.find(flight =>
                                                                                                                                                 flight.$?.Origin === segment['$']['Origin'] &&
@@ -5253,9 +5262,9 @@ const Booking = () => {
 
                                                                                                                                             return matchedFlightDetail?.$?.OriginTerminal ? ` T-${matchedFlightDetail.$.OriginTerminal}` : null;
                                                                                                                                         })
-                                                                                                                                        .filter(Boolean)
-                                                                                                                                        .join("") 
-                                                                                                                                )}</span>
+                                                                                                                                            .filter(Boolean)
+                                                                                                                                            .join("")
+                                                                                                                                    )}</span>
                                                                                                                             </div>
                                                                                                                             <div className='row accordionfarename apiairportname'>
                                                                                                                                 <span className='vertical_line'></span>
@@ -5270,9 +5279,9 @@ const Booking = () => {
                                                                                                                                 </span>
                                                                                                                                 <span className='airport'>
                                                                                                                                     {handleApiAirport(fareInfo['$']['Destination'])}
-                                                                                                                                    
+
                                                                                                                                     {(
-                                                                                                                                    (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
+                                                                                                                                        (Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).filter(segment => {
                                                                                                                                             // Find the booking info that matches the FareInfoRef
                                                                                                                                             const bookingInfo = packageSelected['air:AirPricingInfo']['air:BookingInfo'].find(
                                                                                                                                                 info => info['$']['FareInfoRef'] === fareInfo['$']['Key']
@@ -5280,7 +5289,7 @@ const Booking = () => {
 
                                                                                                                                             // Check if the segment's key matches the booking info's SegmentRef
                                                                                                                                             return bookingInfo && segment['$']['Key'] === bookingInfo['$']['SegmentRef'];
-                                                                                                                                        }) .map(segment => {
+                                                                                                                                        }).map(segment => {
                                                                                                                                             // Find the matching flight details
                                                                                                                                             const matchedFlightDetail = actualFlightDetails.find(flight =>
                                                                                                                                                 flight.$?.Origin === segment['$']['Origin'] &&
@@ -5291,9 +5300,9 @@ const Booking = () => {
 
                                                                                                                                             return matchedFlightDetail?.$?.DestinationTerminal ? ` T-${matchedFlightDetail.$.DestinationTerminal}` : null;
                                                                                                                                         })
-                                                                                                                                        .filter(Boolean)
-                                                                                                                                        .join("") 
-                                                                                                                                )}</span>
+                                                                                                                                            .filter(Boolean)
+                                                                                                                                            .join("")
+                                                                                                                                    )}</span>
                                                                                                                             </div>
                                                                                                                             <div className='baggage-info'>
                                                                                                                                 <span className="cabin-baggage">
@@ -5666,23 +5675,23 @@ const Booking = () => {
                                                                                                                         <span className='airport'>
                                                                                                                             {handleApiAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Origin'])}
                                                                                                                             {(Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).map((segment, index) => {
-                                                                                                                        const isSegmentMatched = segment['$']['Key'] === packageSelected['air:AirSegmentRef']['$']['Key'];
-                                                                                                                        if (isSegmentMatched) {
+                                                                                                                                const isSegmentMatched = segment['$']['Key'] === packageSelected['air:AirSegmentRef']['$']['Key'];
+                                                                                                                                if (isSegmentMatched) {
 
-                                                                                                                            const matchedFlightDetail = actualFlightDetails.find(flight =>
-                                                                                                                                flight.$?.Origin === segment['$']['Origin'] &&
-                                                                                                                                flight.$?.Destination === segment['$']['Destination'] &&
-                                                                                                                                flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
-                                                                                                                                flight.$?.ArrivalTime === segment['$']['ArrivalTime']
-                                                                                                                            );
+                                                                                                                                    const matchedFlightDetail = actualFlightDetails.find(flight =>
+                                                                                                                                        flight.$?.Origin === segment['$']['Origin'] &&
+                                                                                                                                        flight.$?.Destination === segment['$']['Destination'] &&
+                                                                                                                                        flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
+                                                                                                                                        flight.$?.ArrivalTime === segment['$']['ArrivalTime']
+                                                                                                                                    );
 
-                                                                                                                            console.log("Matched Flight Detail:", matchedFlightDetail);
+                                                                                                                                    console.log("Matched Flight Detail:", matchedFlightDetail);
 
-                                                                                                                            return matchedFlightDetail?.$?.OriginTerminal ? `T-${matchedFlightDetail.$.OriginTerminal}` : null;
-                                                                                                                        } else {
-                                                                                                                            return null; 
-                                                                                                                        }
-                                                                                                                    })}
+                                                                                                                                    return matchedFlightDetail?.$?.OriginTerminal ? `T-${matchedFlightDetail.$.OriginTerminal}` : null;
+                                                                                                                                } else {
+                                                                                                                                    return null;
+                                                                                                                                }
+                                                                                                                            })}
 
                                                                                                                         </span>
                                                                                                                     </div>
@@ -5701,19 +5710,19 @@ const Booking = () => {
                                                                                                                         <span className='airport'>
                                                                                                                             {handleApiAirport(packageSelected['air:AirPricingInfo']['air:FareInfo']['$']['Destination'])}
                                                                                                                             {(Array.isArray(segmentArray1) ? segmentArray1 : [segmentArray1]).map((segment, index) => {
-                                                                                                                        const isSegmentMatched = segment['$']['Key'] === packageSelected['air:AirSegmentRef']['$']['Key'];
-                                                                                                                        if (isSegmentMatched) {
-                                                                                                                            const matchedFlightDetail = actualFlightDetails.find(flight =>
-                                                                                                                                flight.$?.Origin === segment['$']['Origin'] &&
-                                                                                                                                flight.$?.Destination === segment['$']['Destination'] &&
-                                                                                                                                flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
-                                                                                                                                flight.$?.ArrivalTime === segment['$']['ArrivalTime']
-                                                                                                                            );
-                                                                                                                            return matchedFlightDetail?.$?.DestinationTerminal ? ` T-${matchedFlightDetail.$.DestinationTerminal}` : null;
-                                                                                                                        } else {
-                                                                                                                            return null; 
-                                                                                                                        }
-                                                                                                                    })}</span>
+                                                                                                                                const isSegmentMatched = segment['$']['Key'] === packageSelected['air:AirSegmentRef']['$']['Key'];
+                                                                                                                                if (isSegmentMatched) {
+                                                                                                                                    const matchedFlightDetail = actualFlightDetails.find(flight =>
+                                                                                                                                        flight.$?.Origin === segment['$']['Origin'] &&
+                                                                                                                                        flight.$?.Destination === segment['$']['Destination'] &&
+                                                                                                                                        flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
+                                                                                                                                        flight.$?.ArrivalTime === segment['$']['ArrivalTime']
+                                                                                                                                    );
+                                                                                                                                    return matchedFlightDetail?.$?.DestinationTerminal ? ` T-${matchedFlightDetail.$.DestinationTerminal}` : null;
+                                                                                                                                } else {
+                                                                                                                                    return null;
+                                                                                                                                }
+                                                                                                                            })}</span>
                                                                                                                     </div>
                                                                                                                     <div className='baggage-info'>
                                                                                                                         <span className="cabin-baggage">
@@ -7454,14 +7463,22 @@ const Booking = () => {
                                                             k3Tax = parseFloat(packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "").trim()) || 0;
                                                         }
                                                         let discount = 0;
-                                                        if (packageSelected["air:AirPricingInfo"]['air:FeeInfo']["$"]["Text"] == 'PromotionDiscount') {
-                                                            discount = Math.floor(Math.abs(parseFloat(packageSelected["air:AirPricingInfo"]['air:FeeInfo']["$"]["Fees"].replace("INR", "").trim())));
-                                                          
-                                                            discount = discount * noOfSeats;   
-                                                                         
+
+                                                        const feeInfo = packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo']?.["$"];
+                                                
+                                                        if (feeInfo?.["Text"] === 'PromotionDiscount' && feeInfo?.["Amount"]) {
+                                                          const feeAmount = parseFloat(feeInfo["Amount"].replace("INR", "").trim());
+                                                          discount = Math.floor(Math.abs(feeAmount)) * parseFloat(noOfSeats || 1);
                                                         }
+                                                        console.log("other discount", discount);
+                                                        console.log("approximateTaxes:", approximateTaxes);
+                                                        console.log("k3Tax:", k3Tax);
+                                                        console.log("markup_price:", markup_price);
+                                                        console.log("noOfSeats:", noOfSeats);
+                                                        console.log("k3Tax",k3Tax);
+                                                        
                                                         // Ensure the final tax is non-negative and only subtract GST if it exists
-                                                        const finalTax = approximateTaxes - (k3Tax > 0 ? k3Tax : 0) + (parseFloat(markup_price)*parseFloat(noOfSeats)) + discount;
+                                                        const finalTax = approximateTaxes - (k3Tax > 0 ? k3Tax : 0) + (parseFloat(markup_price) * parseFloat(noOfSeats));
 
                                                         return finalTax >= 0 ? finalTax : 0; // Ensure we don’t return negative values
                                                     })()}
@@ -7475,32 +7492,30 @@ const Booking = () => {
                                         <div className="chk-total">
                                             <div className="chk-total-l">Total Price</div>
                                             <div className="chk-total-r" style={{ fontWeight: 700 }}>
-                                                {/* ₹ 6521 */}
-                                                {/* {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                {packageSelected.$.TotalPrice.replace('INR', '')} */}
+                                             
                                                 {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                               
+
                                                 {/* {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + (parseFloat(markup_price)*parseFloat(noOfSeats)))} */}
                                                 {
-  '₹ ' +
-  (
-    parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) +
-    parseFloat(markup_price) * parseFloat(noOfSeats) +
-    (
-      packageSelected["air:AirPricingInfo"]['air:FeeInfo']["$"]["Text"] === 'PromotionDiscount'
-        ? Math.floor(
-            Math.abs(
-              parseFloat(
-                packageSelected["air:AirPricingInfo"]['air:FeeInfo']["$"]["Fees"]
-                  .replace("INR", "")
-                  .trim()
-              )
-            )
-          ) * parseFloat(noOfSeats)
-        : 0
-    )
-  ).toFixed(2)
-}
+                                                    (
+                                                        parseFloat(packageSelected?.$?.TotalPrice?.replace('INR', '').trim() || 0) +
+                                                        parseFloat(markup_price || 0) * parseFloat(noOfSeats || 1) +
+                                                        (
+                                                        packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo']?.["$"]?.["Text"] === 'PromotionDiscount'
+                                                            ? Math.floor(
+                                                                Math.abs(
+                                                                parseFloat(
+                                                                    packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo']?.["$"]?.["Amount"]
+                                                                    ?.replace("INR", "")
+                                                                    .trim() || 0
+                                                                )
+                                                                )
+                                                            ) * parseFloat(noOfSeats || 1)
+                                                            : 0
+                                                        )
+                                                    ).toFixed(2)
+                                                    }
+
 
                                             </div>
                                             <div className="clear" />
