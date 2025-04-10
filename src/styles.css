@@ -7865,9 +7865,9 @@ preferences-list-alt li {
   font-family: 'Raleway';
   margin-bottom: 0px;
   padding: 9px;
-  background-color: #bd8100;
-  font-size: 16px;
-  color: #fff;
+  /* background-color: #bd8100; */
+  font-size: 17px;
+  color: #000;
 }
 
 .booking-left h1 {
