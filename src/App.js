@@ -16,9 +16,11 @@ import TryAgainLater from './TryAgainLater';
 import HotelSearch from './HotelSearch';
 import HotelRoom from './HotelRoom';
 import RowPage from './RowPage';
+import SearchCab from './SearchCab';
 import HotelBookingCompleted from './HotelBookingCompleted';
 import ResultNotFound from './ResultNotFound';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import CabResultNotFound from "./CabResultNotFound";
 
 const App = () => {
   return (
@@ -35,6 +37,7 @@ const App = () => {
           <Route path="/BookFlow" element={<BookFlow />}/>
           <Route path="/pagenotfound" element={<PageNotFound />}/>
           <Route path="/ResultNotFound" element={<ResultNotFound />}/>
+          <Route path="/CabResultNotFound" element={<CabResultNotFound />}/>
           <Route path="/tryagainlater" element={<TryAgainLater />}/>
           <Route path="/SearchHotel" element={<SearchHotel />}/>
           <Route path="/HotelDetail" element={<HotelDetail />}/>
@@ -43,6 +46,7 @@ const App = () => {
           <Route path="/HotelRoom" element={<HotelRoom />}/>
           <Route path="/HotelSearch" element={<HotelSearch />}/>
           <Route path="/RowPage" element={<RowPage />}/>
+          <Route path="/SearchCab" element={<SearchCab />}/>
           <Route path="/HotelBookingCompleted" element={<HotelBookingCompleted />}/>
           <Route path="*" element={<PageNotFound />} />
         </Routes>

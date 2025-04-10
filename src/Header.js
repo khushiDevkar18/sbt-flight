@@ -117,7 +117,7 @@ const Header = () => {
           </div>
 
           <div
-  className={`wrapper-padding transition-all duration-300 ${
+  className={`wrapper-padding transition-all duration-300 px-5 ${
     showHeader ? "opacity-100 visible" : "opacity-0 invisible"
   }`}
 >
@@ -127,17 +127,17 @@ const Header = () => {
               </a>
             </div>
             <div className="header-right">
-              <div className="hdr-srch">
+              {/* <div className="hdr-srch">
                 <a href="#" className="hdr-srch-btn"></a>
-              </div>
-              <div className="hdr-srch-overlay">
+              </div> */}
+              {/* <div className="hdr-srch-overlay">
                 <div className="hdr-srch-overlay-a">
                   <input type="text" placeholder="Start typing..." />
                   <a href="#" className="srch-close"></a>
                   <div className="clear"></div>
                 </div>
-              </div>
-              <div className="hdr-srch-devider"></div>
+              </div> */}
+              {/* <div className="hdr-srch-devider"></div> */}
               <a href="#" className="menu-btn"></a>
               <nav className="header-nav">
                 <ul>

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import DatePicker from "react-datepicker";
@@ -331,9 +331,8 @@ const SearchHotel = () => {
   const [formData, setFormData] = useState({
     clientName: searchParams.corporate_name,
     spocName: searchParams.spoc_name || "",
-    spocEmail: `${searchParams.approver1 || ""}, ${
-      searchParams.approver2 || ""
-    }`,
+    spocEmail: `${searchParams.approver1 || ""}, ${searchParams.approver2 || ""
+      }`,
     remark: "",
     toEmail: "",
     ccEmail: "",
@@ -510,8 +509,8 @@ const SearchHotel = () => {
     setCheckOutDate(date);
     setCheckOutIsOpen(false);
   };
-    const [errorMessage, setErrorMessage] = useState("");
-  
+  const [errorMessage, setErrorMessage] = useState("");
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [roomCount, setRoomCount] = useState(searchParams.Rooms);
   const [roomadultCount, setRoomAdultCount] = useState(searchParams.Adults);
@@ -523,9 +522,9 @@ const SearchHotel = () => {
     // - Max 4 children AND
     // - Max 12 total people
 
-    const roomsBasedOnAdults = Math.ceil(adults / 8);
-    const roomsBasedOnChildren = Math.ceil(children / 4);
-    const roomsBasedOnTotal = Math.ceil((adults + children) / 12);
+    const roomsBasedOnAdults = Math.ceil(adults / 2);
+    const roomsBasedOnChildren = Math.ceil(children / 2);
+    const roomsBasedOnTotal = Math.ceil((adults + children) / 4);
 
     return Math.max(roomsBasedOnAdults, roomsBasedOnChildren, roomsBasedOnTotal);
   };
@@ -618,24 +617,21 @@ const SearchHotel = () => {
     e.preventDefault();
     if (errorMessage) {
       console.warn("Form contains errors, submission stopped.");
-      return; // Prevent API call if there's an error
-  }
-    setLoader(true); // ✅ Start loader before any API calls
+      return;
+    }
+    setLoader(true);
 
     let selectedCity = cities.find((c) => city.trim() === c.Name.trim());
 
     if (!selectedCity && searchParams.filteredCities?.length > 0) {
-      selectedCity = searchParams.filteredCities[0]; // Use default city from searchParams
+      selectedCity = searchParams.filteredCities[0];
     }
 
-    // console.log("Selected City:", selectedCity);
     const cityCode = selectedCity ? selectedCity.Code : "";
-
-    // console.log("City Code:", cityCode);
 
     if (!cityCode) {
       console.error("City code not found for selected city:", city);
-      setLoader(false); // ❌ Stop loader if no city code is found
+      setLoader(false);
       return;
     }
 
@@ -655,8 +651,7 @@ const SearchHotel = () => {
         }
       );
 
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
       const data = await response.json();
       if (data.Status.Code === 200) {
@@ -666,75 +661,62 @@ const SearchHotel = () => {
         if (hotels.length > 0) {
           const codes = hotels.map((hotel) => hotel.HotelCode);
           setHotelCodes(codes);
-
-          // ✅ Wait for both API calls to finish before stopping the loader
           await fetchSearchApi(codes);
-          await fetchCitys(hotels);
         } else {
           console.warn("No hotels found in response.");
+          setLoader(false);
         }
       } else {
         console.error("Error fetching hotels:", data.Status.Description);
+        setLoader(false);
       }
     } catch (error) {
       console.error("Error fetching hotels:", error);
-    } finally {
-      setLoader(false); 
+      setLoader(false);
     }
   };
+
+  const isFetchCitysCalled = useRef(false);
 
   const fetchSearchApi = async (hotelCodes) => {
     if (!hotelCodes || hotelCodes.length < 3) {
       console.warn("Skipping search: Not enough hotel codes.");
       return;
     }
-  
+
     const formattedCheckInDate = new Date(checkInDate).toISOString().split("T")[0];
     const formattedCheckOutDate = new Date(checkOutDate).toISOString().split("T")[0];
-  
+
     let remainingAdults = roomadultCount;
     let remainingChildren = roomchildCount;
-    let remainingChildrenAges = [...childrenAges]; 
+    let remainingChildrenAges = [...childrenAges];
     let roomsArray = [];
-  
+
     const maxAdultsPerRoom = 8;
     const maxChildrenPerRoom = 4;
-  
+
     while (remainingAdults > 0 || remainingChildren > 0) {
       let allocatedAdults = Math.min(remainingAdults, maxAdultsPerRoom);
       let allocatedChildren = Math.min(remainingChildren, maxChildrenPerRoom);
-  
       let allocatedChildrenAges = remainingChildrenAges.slice(0, allocatedChildren);
-  
+
       roomsArray.push({
         Adults: allocatedAdults,
         Children: allocatedChildren,
         ChildrenAges: allocatedChildrenAges.length > 0 ? allocatedChildrenAges : null,
       });
-  
+
       remainingAdults -= allocatedAdults;
       remainingChildren -= allocatedChildren;
       remainingChildrenAges = remainingChildrenAges.slice(allocatedChildren);
     }
-  
-    while (remainingAdults > 0) {
-      let allocatedAdults = Math.min(remainingAdults, maxAdultsPerRoom);
-  
-      roomsArray.push({
-        Adults: allocatedAdults,
-        Children: 0,
-        ChildrenAges: null,
-      });
-  
-      remainingAdults -= allocatedAdults;
-    }
-  
+
     const requestBody = {
       CheckIn: formattedCheckInDate,
       CheckOut: formattedCheckOutDate,
       HotelCodes: hotelCodes.toString(),
       GuestNationality: "IN",
-      PaxRooms: roomsArray, 
+      PaxRooms: roomsArray,
       ResponseTime: 23.0,
       IsDetailedResponse: true,
       Filters: {
@@ -746,7 +728,7 @@ const SearchHotel = () => {
         HotelName: null,
       },
     };
-  
+
     try {
       const response = await fetch(
         "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
@@ -756,28 +738,26 @@ const SearchHotel = () => {
           body: JSON.stringify(requestBody),
         }
       );
-  
+
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-  
+
       const data = await response.json();
-  
+
       if (data.Status.Code === 200) {
         const hotels = data.HotelResult || [];
         setHotelCityLists(hotels);
-  
+
         const hotelCodesForDetails = hotels
-          .map((hotel) => hotel.HotelCode)
-          .filter((code) => code);
-  
-        // console.log("Hotel Codes for Details API:", hotelCodesForDetails);
-  
-        setSearchHotelCodes(hotelCodesForDetails);
-  
-        // ✅ Call fetchCitys **only** if Code is not 201
-        if (hotelCodesForDetails.length > 0) {
+          .map((hotel) => hotel.HotelCode?.toString())
+          .filter(code => code && code !== '[object Object]');
+
+        if (!isFetchCitysCalled.current && hotelCodesForDetails.length > 0) {
+          isFetchCitysCalled.current = true;  // Mark as called
           await fetchCitys(hotelCodesForDetails);
         }
-  
+
+        setSearchHotelCodes(hotelCodesForDetails);
+
         sessionStorage.setItem(
           "hotelData_header",
           JSON.stringify({
@@ -793,32 +773,28 @@ const SearchHotel = () => {
             payment: 1,
           })
         );
+
         sessionStorage.setItem(
           "hotelSearchData",
           JSON.stringify({ hotelcityList: data.HotelResult })
         );
-  
+
       } else if (data.Status.Code === 201) {
-      setLoader(false);
-      
-        // console.warn("API returned Code 201 - Stopping further execution.");
-        
+        setLoader(false);
+
         Swal.fire({
           title: "Error",
           text: data.Status.Description || "Something went wrong!",
-          // icon: "error",
           confirmButtonText: "OK"
         }).then((result) => {
           if (result.isConfirmed) {
-            window.location.reload(); // Reload the page after clicking OK
+            window.location.reload();
           }
         });
-        
-  
-       
-        setHotelCityLists([]); 
-        setSearchHotelCodes([]); 
-  
+
+        setHotelCityLists([]);
+        setSearchHotelCodes([]);
+
       } else {
         navigate("/ResultNotFound");
       }
@@ -826,17 +802,17 @@ const SearchHotel = () => {
       console.error("Error fetching hotels:", error);
     }
   };
-  
-  
 
-  
+
+
+
   const fetchCitys = async (SearchHotelCodes) => {
     // Validate input and ensure it's a non-empty array of strings/numbers
     if (!Array.isArray(SearchHotelCodes)) {
       console.error("Invalid hotel codes format - expected array");
       return;
     }
-  
+
     // Filter out any invalid codes and convert to strings
     const validCodes = SearchHotelCodes
       .map(code => {
@@ -846,15 +822,15 @@ const SearchHotel = () => {
         return code.toString();
       })
       .filter(code => code && code !== '[object Object]'); // Filter out invalid codes
-  
+
     if (validCodes.length === 0) {
       console.warn("No valid hotel codes to fetch details for");
       return;
     }
-  
+
     // Join the valid codes with commas
     const codesString = validCodes.join(',');
-  
+
     try {
       const response = await fetch(
         "https://demo.taxivaxi.com/api/hotels/sbtHotelDetails",
@@ -870,13 +846,13 @@ const SearchHotel = () => {
           }),
         }
       );
-  
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+
       const data = await response.json();
-  
+
       if (data.Status?.Code === 200) {
         setHotelDetails(data.HotelDetails || []);
         sessionStorage.setItem(
@@ -892,21 +868,21 @@ const SearchHotel = () => {
     } catch (error) {
       console.error("Error fetching hotel details:", error);
     }
-    
-  };
- 
 
-  
+  };
+
+
+
 
   return (
     <>
       {loader ? (
         <>
-         <div className="page-center-loader flex items-center justify-center">
+          <div className="page-center-loader flex items-center justify-center">
             <div className="big-loader flex items-center justify-center">
               <img
                 className="loader-gif"
-               src="../img/hotel_loader.gif"
+                src="../img/hotel_loader.gif"
                 alt="Loader"
               />
             </div>
@@ -919,125 +895,125 @@ const SearchHotel = () => {
               <div id="search-widget" className="hsw v2">
                 <div className="hsw_inner px-2">
                   <div className="hsw_inputBox tripTypeWrapper grid grid-cols-6 gap-10">
-                  <div className="hotel-form-box">
-  <div className="flex gap-2">
-    <h6 className="text-xs hotel-form-text-color">
-      COMPANY
-    </h6>
-    <img
-      src="../img/downarrow.svg"
-      className="w-3 h-4 cursor-pointer"
-      alt="Dropdown"
-      onClick={() => {
-        if (!showDropdown) fetchCompanies();
-        setShowDropdown(!showDropdown);
-      }}
-    />
-  </div>
+                    <div className="hotel-form-box">
+                      <div className="flex gap-2">
+                        <h6 className="text-xs hotel-form-text-color">
+                          COMPANY
+                        </h6>
+                        <img
+                          src="../img/downarrow.svg"
+                          className="w-3 h-4 cursor-pointer"
+                          alt="Dropdown"
+                          onClick={() => {
+                            if (!showDropdown) fetchCompanies();
+                            setShowDropdown(!showDropdown);
+                          }}
+                        />
+                      </div>
 
-  <div className="hotel-city-name-2 relative">
-    <input
-      type="text"
-      className="font-semibold hotel-city"
-      value={company}
-      placeholder="Search Company"
-      onChange={(e) => {
-        setCompany(e.target.value);
-        setShowDropdown(true);
-      }}
-      onClick={() => {
-        fetchCompanies();
-        setShowDropdown(true);
-      }}
-    />
+                      <div className="hotel-city-name-2 relative">
+                        <input
+                          type="text"
+                          className="font-semibold hotel-city"
+                          value={company}
+                          placeholder="Search Company"
+                          onChange={(e) => {
+                            setCompany(e.target.value);
+                            setShowDropdown(true);
+                          }}
+                          onClick={() => {
+                            fetchCompanies();
+                            setShowDropdown(true);
+                          }}
+                        />
 
-    {showDropdown && (
-      <ul className="absolute w-full bg-white shadow-md rounded-lg max-h-48 overflow-y-auto mt-1 border border-gray-300 z-50">
-        {loading ? (
-          <li className="p-2 text-gray-500">Loading...</li>
-        ) : companies.length === 0 ? (
-          <li className="p-2 text-gray-500">No companies found</li>
-        ) : (
-          companies
-            .filter(comp => 
-              comp.toLowerCase().includes(company.toLowerCase())
-            )
-            .map((comp) => (
-              <li
-                key={comp}
-                className="px-3 py-2 cursor-pointer hover:bg-gray-200"
-                onClick={() => {
-                  setCompany(comp);
-                  setShowDropdown(false);
-                }}
-              >
-                {comp}
-              </li>
-            ))
-        )}
-      </ul>
-    )}
-  </div>
-</div>
+                        {showDropdown && (
+                          <ul className="absolute w-full bg-white shadow-md rounded-lg max-h-48 overflow-y-auto mt-1 border border-gray-300 z-50">
+                            {loading ? (
+                              <li className="p-2 text-gray-500">Loading...</li>
+                            ) : companies.length === 0 ? (
+                              <li className="p-2 text-gray-500">No companies found</li>
+                            ) : (
+                              companies
+                                .filter(comp =>
+                                  comp.toLowerCase().includes(company.toLowerCase())
+                                )
+                                .map((comp) => (
+                                  <li
+                                    key={comp}
+                                    className="px-3 py-2 cursor-pointer hover:bg-gray-200"
+                                    onClick={() => {
+                                      setCompany(comp);
+                                      setShowDropdown(false);
+                                    }}
+                                  >
+                                    {comp}
+                                  </li>
+                                ))
+                            )}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
 
                     <div className="hotel-form-box">
-  <div className="flex gap-2">
-    <h6 className="text-xs hotel-form-text-color">
-      CITY OR AREA
-    </h6>
-    <img
-      src="../img/downarrow.svg"
-      className="w-3 h-4 cursor-pointer"
-      alt="Dropdown"
-      onClick={() => {
-        if (!showDropdown) fetchCities();
-        setShowDropdown2(!showDropdown);
-      }}
-    />
-  </div>
+                      <div className="flex gap-2">
+                        <h6 className="text-xs hotel-form-text-color">
+                          CITY OR AREA
+                        </h6>
+                        <img
+                          src="../img/downarrow.svg"
+                          className="w-3 h-4 cursor-pointer"
+                          alt="Dropdown"
+                          onClick={() => {
+                            if (!showDropdown) fetchCities();
+                            setShowDropdown2(!showDropdown);
+                          }}
+                        />
+                      </div>
 
-  <div className="hotel-city-name-2 relative">
-    <input
-      type="text"
-      className="font-semibold hotel-city"
-      value={city}
-      placeholder="Search City"
-      onChange={(e) => {
-        setCity(e.target.value);
-        setShowDropdown2(true); // Show dropdown when typing
-      }}
-      onClick={() => {
-        fetchCities();
-        setShowDropdown2(true);
-      }}
-    />
+                      <div className="hotel-city-name-2 relative">
+                        <input
+                          type="text"
+                          className="font-semibold hotel-city"
+                          value={city}
+                          placeholder="Search City"
+                          onChange={(e) => {
+                            setCity(e.target.value);
+                            setShowDropdown2(true); // Show dropdown when typing
+                          }}
+                          onClick={() => {
+                            fetchCities();
+                            setShowDropdown2(true);
+                          }}
+                        />
 
-    {showDropdown2 && (
-      <ul className="absolute top-full left-0 w-full bg-white border shadow-md max-h-60 overflow-auto z-10">
-        {loading ? (
-          <li className="p-2 text-gray-500">Loading...</li>
-        ) : (
-          cities
-            .filter(c => 
-              c.Name.toLowerCase().includes(city.toLowerCase())
-            )
-            .map((c) => (
-              <li
-                key={c.Code}
-                className="p-2 cursor-pointer hover:bg-gray-200"
-                onClick={() => {
-                  setCity(c.Name);
-                  setShowDropdown2(false);
-                }}
-              >
-                {c.Name}
-              </li>
-            ))
-        )}
-      </ul>
-    )}
-  </div>
-</div>
+                        {showDropdown2 && (
+                          <ul className="absolute top-full left-0 w-full bg-white border shadow-md max-h-60 overflow-auto z-10">
+                            {loading ? (
+                              <li className="p-2 text-gray-500">Loading...</li>
+                            ) : (
+                              cities
+                                .filter(c =>
+                                  c.Name.toLowerCase().includes(city.toLowerCase())
+                                )
+                                .map((c) => (
+                                  <li
+                                    key={c.Code}
+                                    className="p-2 cursor-pointer hover:bg-gray-200"
+                                    onClick={() => {
+                                      setCity(c.Name);
+                                      setShowDropdown2(false);
+                                    }}
+                                  >
+                                    {c.Name}
+                                  </li>
+                                ))
+                            )}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
                     <div className="hotel-form-box">
                       {/* Header - Click to Open Date Picker */}
                       <div
@@ -1140,143 +1116,160 @@ const SearchHotel = () => {
                       </p>
 
                       {isDropdownOpen && (
-                                      <div className="absolute right-0 bg-white rounded-lg mt-1 p-3 z-10 shadow-lg hotel_forms_home">
-                                        {/* Room Selector */}
-                                        {/* Rooms Selector */}
-                                        {/* Rooms Selector */}
-                                        <div className="mb-2 flex items-center justify-between">
-                                          <h6 className="textsizes">Rooms</h6>
-                                          <select
-                                            className="border border-gray-300 px-3 py-1 focus:outline-none"
-                                            value={roomCount}
-                                            onChange={(e) => handleSelection("rooms", parseInt(e.target.value))}
-                                          >
-                                            {Array.from({ length: 21 }, (_, i) => i).map((num) => (
-                                              <option key={num} value={num}>
-                                                {num}
-                                              </option>
-                                            ))}
-                                          </select>
-                                        </div>
+                        <div className="absolute right-0 bg-white rounded-lg mt-1 p-3 z-10 shadow-lg hotel_forms_home">
+                          <div className="mb-2 flex items-center justify-between">
+                            <h6 className="textsizes">Rooms</h6>
+                            <select
+                              className="border border-gray-300 px-3 py-1 focus:outline-none"
+                              value={roomCount}
+                              onChange={(e) =>
+                                handleSelection(
+                                  "rooms",
+                                  parseInt(e.target.value)
+                                )
+                              }
+                            >
+                              {Array.from(
+                                { length: 21 },
+                                (_, i) => i
+                              ).map((num) => (
+                                <option
+                                  key={num}
+                                  value={num}
+                                  className="max-h-[2px]"
+                                >
+                                  {num}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
 
-                                        {/* Show error message if not enough rooms */}
-                                        {errorMessage && <p className="text-red-500 text-xs">{errorMessage}</p>}
+                          {/* Show error message if not enough rooms */}
+                          {errorMessage && (
+                            <p className="text-red-500 text-xs px-2">
+                              {errorMessage}
+                            </p>
+                          )}
 
+                          {/* Adults Selector */}
+                          <div className="mb-2 flex items-center justify-between">
+                            <h6 className="textsizes">Adults</h6>
+                            <select
+                              className="border border-gray-300  px-3 py-1 focus:outline-none"
+                              value={roomadultCount}
+                              onChange={(e) =>
+                                handleSelection(
+                                  "adults",
+                                  parseInt(e.target.value)
+                                )
+                              }
+                            >
+                              {Array.from(
+                                { length: 41 },
+                                (_, i) => i
+                              ).map((num) => (
+                                <option key={num} value={num}>
+                                  {num}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
 
-                                        {/* Adults Selector */}
-                                        <div className="mb-2 flex items-center justify-between">
-                                          <h6 className="textsizes">Adults</h6>
-                                          <select
-                                            className="border border-gray-300  px-3 py-1 focus:outline-none"
-                                            value={roomadultCount}
-                                            onChange={(e) =>
-                                              handleSelection(
-                                                "adults",
-                                                parseInt(e.target.value)
-                                              )
-                                            }
-                                          >
-                                            {Array.from(
-                                              { length: 41 },
-                                              (_, i) => i
-                                            ).map((num) => (
-                                              <option key={num} value={num}>
-                                                {num}
-                                              </option>
-                                            ))}
-                                          </select>
-                                        </div>
+                          {/* Children Selector */}
+                          <div className="mb-2 flex items-center justify-between">
+                            <div>
+                              <h6 className="textsizes">
+                                Children{" "}
+                              </h6>{" "}
+                              <p className="text-xs ">0-17 yrs</p>
+                            </div>
 
-                                        {/* Children Selector */}
-                                        <div className="mb-2 flex items-center justify-between">
-                                          <div>
-                                            <h6 className="textsizes">
-                                              Children{" "}
-                                            </h6>{" "}
-                                            <p className="text-xs ">0-17 yrs</p>
-                                          </div>
+                            <select
+                              className="border border-gray-300 px-3 py-1 focus:outline-none"
+                              value={roomchildCount}
+                              onChange={(e) =>
+                                handleSelection(
+                                  "children",
+                                  parseInt(e.target.value)
+                                )
+                              }
+                            >
+                              {Array.from(
+                                { length: 41 },
+                                (_, i) => i
+                              ).map((num) => (
+                                <option key={num} value={num}>
+                                  {num}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
 
-                                          <select
-                                            className="border border-gray-300 px-3 py-1 focus:outline-none"
-                                            value={roomchildCount}
-                                            onChange={(e) =>
-                                              handleSelection(
-                                                "children",
-                                                parseInt(e.target.value)
-                                              )
-                                            }
-                                          >
-                                            {Array.from(
-                                              { length: 41 },
-                                              (_, i) => i
-                                            ).map((num) => (
-                                              <option key={num} value={num}>
-                                                {num}
-                                              </option>
-                                            ))}
-                                          </select>
-                                        </div>
+                          {/* Horizontal Line */}
+                          <p className="textcolor ">
+                            Please provide the correct number of
+                            children along with their ages for the
+                            best options and prices.
+                          </p>
+                          <hr className="my-4 border-gray-500" />
 
-                                        {/* Horizontal Line */}
-                                        <p className="textcolor ">
-                                          Please provide the correct number of
-                                          children along with their ages for the
-                                          best options and prices.
-                                        </p>
-                                        <hr className="my-4 border-gray-500" />
-
-                                        {/* Children Ages Dropdowns */}
-                                        <div
-                                          className="overflow-y-auto grid grid-cols-2 gap-4"
-                                          style={{
-                                            maxHeight: "150px", // Scrollable height for child age section
-                                          }}
+                          {/* Children Ages Dropdowns */}
+                          {/* Children Ages Dropdowns - Only show if children count > 0 */}
+                          {roomchildCount > 0 && (
+                            <div
+                              className="overflow-y-auto grid grid-cols-2 gap-4"
+                              style={{ maxHeight: "150px" }}
+                            >
+                              {childrenAges
+                                .slice(0, roomchildCount)
+                                .map((age, index) => (
+                                  <div
+                                    key={index}
+                                    className="mb-4 flex items-center gap-4 justify-between"
+                                  >
+                                    <h6 className="textsizes">
+                                      Child&nbsp;{index + 1}
+                                    </h6>
+                                    <select
+                                      className="border border-gray-300 rounded-sm py-1 px-2 w-full focus:outline-none text-xs"
+                                      value={age || ""}
+                                      onChange={(e) =>
+                                        handleChildAgeChange(
+                                          index,
+                                          parseInt(e.target.value)
+                                        )
+                                      }
+                                    >
+                                      <option value="" disabled>
+                                        Select
+                                      </option>
+                                      {Array.from(
+                                        { length: 18 },
+                                        (_, i) => i
+                                      ).map((num) => (
+                                        <option
+                                          key={num}
+                                          value={num}
                                         >
-                                          {childrenAges.map((age, index) => (
-                                            <div
-                                              key={index}
-                                              className="mb-4 flex items-center gap-4 justify-between"
-                                            >
-                                              <h6 className="textsizes">
-                                                Child&nbsp;{index + 1}
-                                              </h6>
-                                              <select
-                                                className="border border-gray-300 rounded-sm py-1 px-2 w-full focus:outline-none text-xs"
-                                                value={age || ""}
-                                                onChange={(e) =>
-                                                  handleChildAgeChange(
-                                                    index,
-                                                    parseInt(e.target.value)
-                                                  )
-                                                }
-                                              >
-                                                <option value="" disabled>
-                                                  Select
-                                                </option>
-                                                {Array.from(
-                                                  { length: 18 },
-                                                  (_, i) => i
-                                                ).map((num) => (
-                                                  <option key={num} value={num}>
-                                                    {num} Yrs
-                                                  </option>
-                                                ))}
-                                              </select>
-                                            </div>
-                                          ))}
-                                        </div>
+                                          {num} Yrs
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                ))}
+                            </div>
+                          )}
 
-                                        {/* Apply Button */}
-                                        <button
-                                          className="search-buttonn item-center justify-between"
-                                          style={{ marginLeft: "25%" }}
-                                          onClick={handleApply} // Validate before closing
-                                        >
-                                          Apply
-                                        </button>
-
-                                      </div>
-                                    )}
+                          {/* Apply Button */}
+                          <button
+                            className="search-buttonn item-center justify-between"
+                            style={{ marginLeft: "25%" }}
+                            onClick={handleApply} // Validate before closing
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <button className="search-buttonn rounded-lg">
                       Search
@@ -1470,7 +1463,7 @@ const SearchHotel = () => {
                         <div className="py-3 px-3 w-1/3">
                           <div className="photos-container">
                             {Array.isArray(hotel.Images) &&
-                            hotel.Images.length > 0 ? (
+                              hotel.Images.length > 0 ? (
                               <>
                                 <img
                                   src={hotel.Images[0]}
@@ -1487,9 +1480,8 @@ const SearchHotel = () => {
                                         <img
                                           src={image}
                                           alt={`Hotel ${index + 1}`}
-                                          className={`hotel-photos ${
-                                            index === 3 ? "blur-sm" : ""
-                                          }`}
+                                          className={`hotel-photos ${index === 3 ? "blur-sm" : ""
+                                            }`}
                                         />
                                         {index === 3 && (
                                           <div className="absolute top-0 left-0 right-0 bottom-0 flex justify-center items-center">
@@ -1674,67 +1666,66 @@ const SearchHotel = () => {
                               fees
                             </span>
                             {hoveredHotel === hotel.HotelCode && hotel.Rooms?.[0] && (
-  <div className="fixed right-0 mt-2 w-80 bg-white shadow-lg rounded-lg p-3 border border-gray-300 z-50">
-    {/* Get Room[0] Details */}
-    {hotel.Rooms[0].DayRates?.map((dayRateArray, index) => {
-      // Calculate total base fare for this dayRate array
-      const totalBaseFare = dayRateArray.reduce(
-        (total, rate) => total + (rate?.BasePrice || 0),
-        0
-      );
+                              <div className="fixed right-0 mt-2 w-80 bg-white shadow-lg rounded-lg p-3 border border-gray-300 z-50">
+                                {/* Get Room[0] Details */}
+                                {hotel.Rooms[0].DayRates?.map((dayRateArray, index) => {
+                                  // Calculate total base fare for this dayRate array
+                                  const totalBaseFare = dayRateArray.reduce(
+                                    (total, rate) => total + (rate?.BasePrice || 0),
+                                    0
+                                  );
 
-      return (
-        <div key={index}>
-          {/* Title & Total Price Section */}
-          <div className="flex justify-between items-center pb-2">
-            <h6 className="font-semibold text-gray-700 text-xs">
-              Room {index + 1} price × {dayRateArray.length} Days
-            </h6>
-            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-md font-medium text-xs">
-              ₹ {totalBaseFare.toFixed(2)}
-            </span>
-          </div>
-        </div>
-      );
-    })}
-  </div>
-)}
+                                  return (
+                                    <div key={index}>
+                                      {/* Title & Total Price Section */}
+                                      <div className="flex justify-between items-center pb-2">
+                                        <h6 className="font-semibold text-gray-700 text-xs">
+                                          Room {index + 1} price × {dayRateArray.length} Days
+                                        </h6>
+                                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded-md font-medium text-xs">
+                                          ₹ {totalBaseFare.toFixed(2)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
 
                           </div>
 
                           <div className="flex mt-5 justify-end gap-2 w-full">
                             {booknow === 0 && (
 
-                           
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleHotelSelect(hotel);
-                              }}
-                              className={`bg-[#785ef7] w-[91px] h-7 text-white px-2 rounded-md font-semibold text-xs transition duration-300 hover:bg-[#5a3ec8] ${
-                                selectedHotels.some(
+
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleHotelSelect(hotel);
+                                }}
+                                className={`bg-[#785ef7] w-[91px] h-7 text-white px-2 rounded-md font-semibold text-xs transition duration-300 hover:bg-[#5a3ec8] ${selectedHotels.some(
                                   (h) => h.name === hotel.HotelName
                                 )
-                                  ? ""
-                                  : ""
-                              }`}
-                            >
-                              {selectedHotels.some(
-                                (h) => h.name === hotel.HotelName
-                              ) ? (
-                                <span className="flex items-center gap-2 text-xs">
-                                  Added{" "}
-                                  <img
-                                    src="../img/cros.png"
-                                    className="w-3 h-3"
-                                    alt="Remove"
-                                  />
-                                </span>
-                              ) : (
-                                "Add to Share"
-                              )}
-                            </button>
+                                    ? ""
+                                    : ""
+                                  }`}
+                              >
+                                {selectedHotels.some(
+                                  (h) => h.name === hotel.HotelName
+                                ) ? (
+                                  <span className="flex items-center gap-2 text-xs">
+                                    Added{" "}
+                                    <img
+                                      src="../img/cros.png"
+                                      className="w-3 h-3"
+                                      alt="Remove"
+                                    />
+                                  </span>
+                                ) : (
+                                  "Add to Share"
+                                )}
+                              </button>
                             )}
                             {/* Conditionally show "Book Now" button */}
                             {agent_portal === "0" && (
@@ -1844,7 +1835,7 @@ const SearchHotel = () => {
                                 placeholder="Enter Client Name"
                                 className="frmTextInput2"
                                 value={searchParams.corporate_name}
-                                // onChange={handleChange}
+                              // onChange={handleChange}
                               />
                               {errors.clientName && (
                                 <p className="text-red-500 text-xs">

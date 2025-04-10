@@ -905,7 +905,8 @@ textarea {
 }
 
 .page-search.full-width-search .search-tab-content {
-  height: 250px !important;
+height: auto;
+  min-height: 250px !important;
   width: 100%;
 }
 

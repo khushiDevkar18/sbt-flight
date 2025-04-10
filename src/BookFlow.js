@@ -15,29 +15,34 @@ import Cookies from 'js-cookie';
 import CONFIG from "./config";
 
 const BookFlow = () => {
-    // console.log('asdfasdfa');
+    console.log('asdfasdfahello1');
     const [loading, setLoading] = useState(false);
     const searchParams = new URLSearchParams(window.location.search);
     const taxivaxidata = searchParams.get('taxivaxidata');
     const navigate = useNavigate();
     const [SegmentList, setSegment] = useState([]);
     const segmentRef = useRef([]);
+    console.log('segmentRef', segmentRef);
     const [HostList, setHostlist] = useState([]);
     const hostRef = useRef([]);
+    console.log('hostRef', hostRef);
     const [FareList, setFarelist] = useState([]);
     const fareRef = useRef([]);
+    console.log('fareRef', fareRef);
+    const flightdetailRef = useRef([]);
     const [priceParse, setpriceparse] = useState([]);
     const priceparseRef = useRef([]);
     const [segmentpriceParse, setsegmentpriceparse] = useState([]);
     const segmentpriceparseRef = useRef([]);
     const [flightairoption, setFlightAirOptions] = useState([]);
     const flightairoptionRef = useRef([]);
+    console.log('flightairoptionRef', flightairoptionRef);
     const [Airlines, setAirlineOptions] = useState([]);
       const [Airports, setAirportOptions] = useState([]);
       const isPriceLoadingRef = useRef(false);
 const isReservationRef = useRef(false);
-const Targetbranch = 'P4451438';
-    
+const Targetbranch = 'P7206253';
+   
     useEffect(() => {
         setLoading(true);
         let airlineResponseData;
@@ -45,7 +50,7 @@ const Targetbranch = 'P4451438';
         let apiairportData;
 
         const makeAirlineRequest = async () => {
-            // console.log('hi1');
+            console.log('hi1');
         try {
              
             const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
@@ -57,9 +62,9 @@ const Targetbranch = 'P4451438';
                 </util:ReferenceDataRetrieveReq>
             </soapenv:Body>
             </soapenv:Envelope>`;
-            
+           
             const airlineresponse = await axios.post(
-                `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightRequest`, 
+                `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightRequest`,
                 airlineRequest, { headers: { 'Content-Type': 'text/xml'  }}
             );
             airlineResponseData = airlineresponse.data;
@@ -71,17 +76,17 @@ const Targetbranch = 'P4451438';
                     const airlinelist = airlineresult['SOAP:Envelope']['SOAP:Body']['util:ReferenceDataRetrieveRsp']['util:ReferenceDataItem'];
                     setAirlineOptions(airlinelist);
                   });
-            
+           
         } catch (error) {
             console.error(error);
             // navigate('/tryagainlater');
             }
-            
+           
         };
 
         const makeAirportRequest = async () => {
         try {
-            
+           
             const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
             <soapenv:Body>
@@ -92,7 +97,7 @@ const Targetbranch = 'P4451438';
             </soapenv:Body>
         </soapenv:Envelope>`;
         const airportResponse = await axios.post(
-            `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightRequest`, 
+            `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightRequest`,
             airportRequest, { headers: { 'Content-Type': 'text/xml'  }}
         );
             airportResponseData = airportResponse.data;
@@ -103,14 +108,14 @@ const Targetbranch = 'P4451438';
                     }
                     const airportlist = airportresult['SOAP:Envelope']['SOAP:Body']['util:ReferenceDataRetrieveRsp']['util:ReferenceDataItem'];
                     setAirportOptions(airportlist);
-                    
+                   
                   });
 
         } catch (error) {
             console.error(error);
                 // navigate('/tryagainlater');
                 }
-                
+               
         };
 
         const apiairportss = async () => {
@@ -123,14 +128,14 @@ const Targetbranch = 'P4451438';
                 console.error('Error fetching data:', error);
                 }
         };
-        
+       
         const fetchData = async () => {
           // console.log('mayank');
 
                 try {
                     // setLoading(true);
                     const formatDate = (inputDate) => {
-                        const parsedDate = parseISO(inputDate); 
+                        const parsedDate = parseISO(inputDate);
                         if (!isValid(parsedDate)) {
                             return null;
                         } else {
@@ -143,18 +148,18 @@ const Targetbranch = 'P4451438';
                     const searchfromMatch = searchfrom.match(/\((\w+)\)/);
                     const searchfromCode = searchfromMatch[1];
                     //   console.log('sechfromcode', searchfromCode);
-                    const searchto = formtaxivaxiData['to_city']; 
+                    const searchto = formtaxivaxiData['to_city'];
                     const searchtoMatch = searchto.match(/\((\w+)\)/);
                     const searchtoCode = searchtoMatch[1];
                          
-                    const departureDateTime = formtaxivaxiData['departure_time']; 
+                    const departureDateTime = formtaxivaxiData['departure_time'];
                     const arrivalDateTime = formtaxivaxiData['arrival_time'];
                     // console.log('departureDateTime', departureDateTime);
                     // console.log('arrivalDateTime', arrivalDateTime);
                     const dateObj = new Date(departureDateTime);
                     const departureDate = dateObj.toLocaleDateString('en-CA'); // 'YYYY-MM-DD' format in local time
                     // console.log('departureDate', departureDate);
-                    const departureTime = dateObj.toISOString().split('T')[1].slice(0, 5); 
+                    const departureTime = dateObj.toISOString().split('T')[1].slice(0, 5);
                     const fare_type = formtaxivaxiData['fare_type'];
                     const booking_id = formtaxivaxiData['booking_id'];
                     const no_of_seats = formtaxivaxiData['no_of_seats'];
@@ -165,11 +170,15 @@ const Targetbranch = 'P4451438';
                     const access_token = formtaxivaxiData['access_token'];
                     // const providercode = formtaxivaxiData['provider_code'];
                     const providercode = formtaxivaxiData['provider_code']?.split(",")[0].trim();
-                    const no_of_stops = formtaxivaxiData['no_of_stops'];    
-                    const carrier = formtaxivaxiData['Carrier']; // Get the first provider code and trim any extra spaces
-                    // console.log('carrier', carrier);
-                    const flightNumber = formtaxivaxiData['flight_no'].split(',')[0].replace(new RegExp(`^${carrier}`, 'i'), '').trim();  // Remove the provider code from the flight number
+                    const no_of_stops = formtaxivaxiData['no_of_stops'];  
+                    const markup_price = formtaxivaxiData['fare_markup'][0] || 0;
+                    // console.log('markup_price', markup_price);
+                    // const carrier = formtaxivaxiData['carrier'];
+                    // const flightNumber = formtaxivaxiData['flight_no'].split(',')[0].replace(new RegExp(`^${carrier}`, 'i'), '').trim();  // Remove the provider code from the flight number
                     // console.log('helo', flightNumber);
+                    const carrier = formtaxivaxiData?.carrier?.split(',')[0]?.trim(); // Ensure valid data and pick the first carrier
+                    const flightNumber = formtaxivaxiData?.flight_no?.split(', ').map(flight => flight.replace(carrier, '').trim());
+                    console.log('helo', flightNumber);  
                     const adult = no_of_seats;
                     const child = 0;
                     const infant = 0;
@@ -187,21 +196,21 @@ const Targetbranch = 'P4451438';
                         searchreturnDate = formtaxivaxiData['return_date'];
                         formattedsearchreturnDate = searchreturnDate ? formatDate(searchreturnDate) : null;
 
-                        const arrivalDateTime = formtaxivaxiData['arrival_time']; 
+                        const arrivalDateTime = formtaxivaxiData['arrival_time'];
                         const arrivalDateObj = new Date(arrivalDateTime);
-                        arrivalTime = arrivalDateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); 
+                        arrivalTime = arrivalDateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
                     }
 
-                    
-                    
-                    const dynamicCityCode = searchfromCode; 
-                    const dynamicDestinationCode = searchtoCode; 
+                   
+                   
+                    const dynamicCityCode = searchfromCode;
+                    const dynamicDestinationCode = searchtoCode;
                     const dynamicDepTime = departureDate;
                     const returndynamicDepTime = formattedsearchreturnDate;
-                    const dynamicCabinType = cabinclass; 
-                    const PassengerCodeADT = adult; 
-                    const PassengerCodeCNN = child; 
-                    const PassengerCodeINF = infant; 
+                    const dynamicCabinType = cabinclass;
+                    const PassengerCodeADT = adult;
+                    const PassengerCodeCNN = child;
+                    const PassengerCodeINF = infant;
                       // console.log('helo');
                     const createSoapEnvelope = (
                         cityCode,
@@ -213,7 +222,7 @@ const Targetbranch = 'P4451438';
                         passengerCodeCNN,
                         passengerCodeINF
                     ) => {
-                    
+                   
                         const generatePassengerElements = (age, count,type) => {
                         return Array.from({ length: count }, (_, index) => `<com:SearchPassenger Code="${type}"${age ? ` Age="${age}"` : ''}/>`).join('');
                         };
@@ -232,7 +241,7 @@ const Targetbranch = 'P4451438';
                             <air:SearchDepTime PreferredTime="${returnDepTime}"/>
                         </air:SearchAirLeg>`
                         : '';
-                    
+                   
                         return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                         <soap:Body>
                         <air:LowFareSearchReq TargetBranch="${Targetbranch}" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
@@ -278,36 +287,40 @@ const Targetbranch = 'P4451438';
                     isPriceLoadingRef.current = true;
                     isReservationRef.current = false;
                    
-                      console.log('segmentRef.current.length', segmentRef.current.length); 
+                      console.log('segmentRef.current.length', segmentRef.current.length);
                     if(segmentRef.current.length === 0){
 
                       const response = await axios.post(
-                          `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, 
+                          `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
                           soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
                       );
                       console.log('call 1');
                       const eResponse = response.data;
                       console.log('eResponse',eResponse);
-                      return ;
+                     
                       parseString(eResponse, { explicitArray: false }, (err, result) => {
                           if (err) {
                               console.error("XML Parsing Error:", err);
                               return;
                           }
-                          
+                         
                           const Segmentlist = result?.["SOAP:Envelope"]?.["SOAP:Body"]?.["air:LowFareSearchRsp"]?.["air:AirSegmentList"]?.["air:AirSegment"];
-                          // console.log('seg',Segmentlist);
+                          console.log('seg',Segmentlist);
                           if(carrier.includes("6E")){
                             const hosttokenlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:HostTokenList']['common_v52_0:HostToken'];
                             const hostdata = Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist];
                             hostRef.current = hostdata;
                             setHostlist(hostdata);
                           }
+                          console.log('outside1');
                           const fareinfolist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FareInfoList']['air:FareInfo'];
                           const pricepointlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirPricePointList']['air:AirPricePoint'];
+                          const flightdetailist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FlightDetailsList']['air:FlightDetails'];
                           const pricepointlistArray = Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist];
                           const extractedBookingInfo = [];
+                          console.log('outside2');
                           pricepointlistArray.forEach((airPricePoint) => {
+                            console.log('inside1');
                               const airPricingInfo = airPricePoint['air:AirPricingInfo'];
                               if (!airPricingInfo) return; // Skip if no AirPricingInfo is found
 
@@ -333,22 +346,26 @@ const Targetbranch = 'P4451438';
                                         extractedBookingInfo.push(info["$"]); // Push the extracted info into the result array
                                       }
                                     });
-                                    
+                                   
                                   });
                                 });
-                              
+                             
                               });
                           });
-                          
+                         
                           const flightairoptiondata = Array.isArray(extractedBookingInfo) ? extractedBookingInfo : [extractedBookingInfo];
                           flightairoptionRef.current = flightairoptiondata;
                           setFlightAirOptions(flightairoptiondata);
                           const segmentData = Array.isArray(Segmentlist) ? Segmentlist : [Segmentlist];
-                          segmentRef.current = segmentData; // Store immediately
+                          console.log('segmentData', segmentData);
+                          segmentRef.current = segmentData; // Store immediately    flightdetailRef
                           setSegment(segmentData);
                           const faredata = Array.isArray(fareinfolist) ? fareinfolist : [fareinfolist];
+                          console.log('faredata',faredata);
                           fareRef.current = faredata;
                           setFarelist(faredata);
+                          const flightdetaildata = Array.isArray(flightdetailist) ? flightdetailist : [flightdetailist];
+                          flightdetailRef.current = flightdetaildata;
                       });
                     }
                     // console.log('helkasdjfi');
@@ -359,7 +376,7 @@ const Targetbranch = 'P4451438';
                     };
                     const generatePassengerKeys = (adultCount) => {
                         const keys = [];
-              
+             
                         for (let i = 0; i < adultCount; i++) {
                           keys.push({
                             Key: generateRandomKey(),
@@ -378,14 +395,14 @@ const Targetbranch = 'P4451438';
                       }));
 
                     if (carrier.includes("AI")) {
-                      
+                     
                       isPriceLoadingRef.current = false;
                       isReservationRef.current = true;
                       if (!segmentRef.current) {
                         console.error("Missing required flight data.");
                         return;
                       }
-                
+               
                     console.log("Matched 1G");
                     console.log("SegmentList:", segmentRef.current);
                     const matchedSegment = segmentRef.current.find(segment => {
@@ -393,7 +410,7 @@ const Targetbranch = 'P4451438';
                       return segmentData.FlightNumber === flightNumber &&
                              segmentData.DepartureTime === departureDateTime;
                   }) || null;
-              
+             
                   if (matchedSegment) {
                       delete matchedSegment["air:FlightDetailsRef"];
                       matchedSegment["$"].ProviderCode = "1G";
@@ -462,16 +479,16 @@ const Targetbranch = 'P4451438';
                           { headers: { 'Content-Type': 'text/xml' } }
                         );
                         console.log('call 2');
-                
+               
                         const priceResponse = response.data;
                         console.log('priceResponse', priceResponse);
-                
+               
                         parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
                             if (err) {
                                 console.error('Error parsing XML:', err);
                                 return;
                             }
-                
+               
                             const AirPriceRsp = priceresult?.['SOAP:Envelope']?.['SOAP:Body']?.['air:AirPriceRsp'];
                             if (!AirPriceRsp) {
                                 Swal.fire({
@@ -481,10 +498,10 @@ const Targetbranch = 'P4451438';
                                 });
                                 return;
                             }
-                            
+                           
                             const priceData = AirPriceRsp?.['air:AirPriceResult']?.['air:AirPricingSolution'];
                             const segmentData = AirPriceRsp?.['air:AirItinerary']?.['air:AirSegment'];
-                
+               
                             const priceparsedata = Array.isArray(priceData) ? priceData : [priceData];
                             priceparseRef.current = priceparsedata;
                             setpriceparse(priceparsedata);
@@ -493,17 +510,17 @@ const Targetbranch = 'P4451438';
                             setsegmentpriceparse(segmentpricedata);
                         });
                     }
-              
+             
                     const selectedPrice = priceparseRef.current.find(price => {
                       const name = price?.["air:AirPricingInfo"]?.["air:FareInfo"]?.["air:Brand"]?.["$"]?.["Name"];
                       console.log("Found Name:", name);
-                  
+                 
                       const targetFareType = Array.isArray(fare_type) ? fare_type[0] : fare_type; // Handle array case
                       return name === targetFareType;
                   });
-                  
+                 
                   console.log('selectedPrice:', selectedPrice);
-                  
+                 
                   const fareInfoRefKey = selectedPrice['air:AirPricingInfo']['air:FareInfo']['air:FareRuleKey']
                   sessionStorage.setItem('packageselectedPrice', selectedPrice['$']['TotalPrice']);
                   const airPricingInfo = selectedPrice['air:AirPricingInfo'];
@@ -619,7 +636,7 @@ const Targetbranch = 'P4451438';
 
                   const serviceresponse = axios.post(
                     `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, servicerequestXML);
-      
+     
                   const serviceData = {
                     apiairportsdata: apiairportData,
                     servicedata: serviceresponse.data,
@@ -639,42 +656,50 @@ const Targetbranch = 'P4451438';
                     booking_id: booking_id,
                     client_id: client_id,
                     is_gst_benefit: is_gst_benefit,
-                    accesstoken: access_token
-      
+                    accesstoken: access_token,
+                    markup_price: markup_price,
+                    // segmentArray: segmentArray,
+                    flightDetails: flightdetailRef.current,
+     
                   };
                   console.log('servicedata1', serviceData);
                   navigate('/bookingProcess', { state: { serviceData }});
                  
 
-                        
+                       
                     }
                     else if (carrier.includes("6E")) {
                       isPriceLoadingRef.current = false;
                       isReservationRef.current = true;
+                      console.log('in 6E')
                         // Iterate over the segment list and check for the match
-                        const matchedSegment = segmentRef.current.find(segment => {
-                            const segmentData = segment['$'];
-                            return segmentData.FlightNumber === flightNumber &&
-                                   segmentData.DepartureTime === departureDateTime;
-                        })?.['$'].Key || null;
-                        // console.log('matchedsegment', matchedSegment);
-                        
+                        if(flightNumber.length === 1){
+                        const matchedSegment = flightNumber
+                          .flatMap(flight =>
+                              segmentRef.current
+                                  .filter(segment => segment['$'].FlightNumber === flight && segment['$'].DepartureTime === departureDateTime)
+                                  .map(segment => segment['$'].Key)
+                          )[0] || null;
+                     
+                      console.log('matchedSegments', matchedSegment);
+                     
+                       
                         const matchingBookingInfo = flightairoptionRef.current.filter(entry => entry.SegmentRef === matchedSegment);
-                        // console.log('matchingBookingInfo',matchingBookingInfo);
-                        
+                        console.log('matchingBookingInfo',matchingBookingInfo);
+                       
                         const { fareKey, fareBasisCode } = matchingBookingInfo.map(booking => {
                             const fareEntry = fareRef.current.find(fare => fare['$'].Key === booking.FareInfoRef);
-                            const fareFamily = fareEntry?.['$']?.FareFamily; 
+                            const fareFamily = fareEntry?.['$']?.FareFamily;
                             if (fareEntry && fare_type.includes(fareFamily)) {
                                 const fareKey = fareEntry['$'].Key || null;
                                 const fareBasisCode = fareEntry['$'].FareBasis || null;
                                 return { fareKey, fareBasisCode };
                             }
-                        
-                            return null; 
+                       
+                            return null;
                         }).filter(Boolean)[0] || { fareKey: null, fareBasisCode: null };
-                        // console.log('fareKey, fareBasisCode', fareKey, fareBasisCode);
-                        
+                        console.log('fareKey, fareBasisCode', fareKey, fareBasisCode);
+                       
                             const airPricingCommand = {
                               'air:AirSegmentPricingModifiers': {
                                 $: {
@@ -689,41 +714,41 @@ const Targetbranch = 'P4451438';
 
                             const BookingCode = matchingBookingInfo
                             .find(entry => entry.SegmentRef === matchedSegment && entry.FareInfoRef === fareKey)?.BookingCode || null;
-                            // console.log('airPricingCommand',airPricingCommand);
+                            console.log('airPricingCommand',airPricingCommand);
 
                             const comHostTokens = hostRef.current
                             .filter(hostToken => hostToken['$'] && hostToken['$']['Key'] === hostTokenRef) // Match the hostkey
                             .map(hostToken => ({
                               $: { Key: hostToken['$'].Key }, // Use the Key
                               _: hostToken._ // Add the token value
-                            })); 
-                            // console.log('comHostTokens', comHostTokens);
-                            const segmentArray = 
+                            }));
+                            console.log('comHostTokens', comHostTokens);
+                            const segmentArray =
                                 segmentRef.current
                                     ?.filter((segment) => segment?.['$']?.['Key'] === matchedSegment) // Ensure segment exists
                                     .map((segment) => {
                                     if (!segment || !segment.$) return null; // Skip undefined segments
-                            
+                           
                                     // Clone the segment to avoid modifying the original object
                                     let updatedSegment = { ...segment, $: { ...segment.$ } };
-                            
+                           
                                     // Update ProviderCode if available
                                     if (segment['air:AirAvailInfo']?.$?.ProviderCode) {
                                         updatedSegment.$.ProviderCode = segment['air:AirAvailInfo'].$.ProviderCode;
                                     }
-                            
+                           
                                     // Add additional properties
                                     updatedSegment.$.HostTokenRef = hostTokenRef;
                                     updatedSegment.$.ClassOfService = BookingCode;
-                            
+                           
                                     // Remove unnecessary properties
                                     delete updatedSegment['air:FlightDetailsRef'];
-                            
+                           
                                 return updatedSegment;
                                 });
-                                
-                          
-                                  
+                               
+                         
+                                 
                                     // console.log('passengerKeys', passengerKeys)
                                 const builder = require('xml2js').Builder;
                                 var pricepointXMLpc = new builder().buildObject({
@@ -778,25 +803,190 @@ const Targetbranch = 'P4451438';
                                     }
                                 }
                                 });
-                                // console.log('pricepointXMLpc', pricepointXMLpc);
+                              }
+                        else if (flightNumber.length !== 1){
+                          const matchedSegment = flightNumber.flatMap(flight =>
+                            segmentRef.current
+                                .filter(segment => segment['$'].FlightNumber === flight)
+                                .map(segment => segment['$'].Key)
+                        );
+                       
+                        console.log('matchedSegments', matchedSegment);
+                       
+                        const matchingBookingInfo = flightairoptionRef.current.filter(entry =>
+                            matchedSegment.includes(entry.SegmentRef) // Check if SegmentRef exists in matchedSegment array
+                        );
+                       
+                        console.log('matchingBookingInfo', matchingBookingInfo);
+                       
+                        const { fareKey, fareBasisCode } = matchingBookingInfo.map(booking => {
+                            const fareEntry = fareRef.current.find(fare => fare['$'].Key === booking.FareInfoRef);
+                            const fareFamily = fareEntry?.['$']?.FareFamily;
+                            if (fareEntry && fare_type.includes(fareFamily)) {
+                                const fareKey = fareEntry['$'].Key || null;
+                                const fareBasisCode = fareEntry['$'].FareBasis || null;
+                                return { fareKey, fareBasisCode };
+                            }
+                       
+                            return null;
+                        }).filter(Boolean)[0] || { fareKey: null, fareBasisCode: null };
+                       
+                        const matchedbookinfo = matchingBookingInfo.filter(booking => {
+                          // Find the BookingCode of the entry where FareInfoRef matches fareKey
+                          const matchedBooking = matchingBookingInfo.find(entry => entry.FareInfoRef === fareKey);
+                         
+                          // If a matching entry is found, return all entries with the same BookingCode
+                          return matchedBooking && booking.BookingCode === matchedBooking.BookingCode;
+                      });
+                     
+                      console.log('matchedbookinfo', matchedbookinfo);
+                      const segmentArray = matchedbookinfo
+                          .flatMap((fareInfo) => {
+                            const segmentkey = fareInfo['SegmentRef'];
+                            const hostkey = fareInfo['HostTokenRef'];
+
+                            return segmentRef.current
+                              ?.filter((segment) => segment?.['$']?.['Key'] === segmentkey) // Ensure segment exists
+                              .map((segment) => {
+                                if (!segment || !segment.$) return null; // Skip undefined segments
+
+                                // Clone the segment to avoid modifying the original object
+                                let updatedSegment = { ...segment, $: { ...segment.$ } };
+
+                                // Update ProviderCode if available
+                                if (segment['air:AirAvailInfo']?.$?.ProviderCode) {
+                                  updatedSegment.$.ProviderCode = segment['air:AirAvailInfo'].$.ProviderCode;
+                                }
+
+                                // Add additional properties
+                                updatedSegment.$.HostTokenRef = hostkey;
+                                updatedSegment.$.ClassOfService = fareInfo['BookingCode'];
+
+                                // Remove unnecessary properties
+                                delete updatedSegment['air:FlightDetailsRef'];
+
+                                return updatedSegment;
+                              });
+                          })
+                          .filter(Boolean) // Remove null values
+                          .reduce((uniqueSegments, segment) => {
+                            // Check if segment with the same Key already exists in the unique list
+                            if (!uniqueSegments.some((item) => item.$.Key === segment.$.Key)) {
+                              uniqueSegments.push(segment);
+                            }
+                            return uniqueSegments;
+                          }, []);
+                          console.log('segmentArray', segmentArray);
+                          const comHostTokens = matchedbookinfo.map((fareInfo) => {
+                            const hostkey = fareInfo['HostTokenRef'];
+                     
+                            return hostRef.current
+                              .filter(hostToken => hostToken['$'] && hostToken['$']['Key'] === hostkey) // Match the hostkey
+                              .map(hostToken => ({
+                                $: { Key: hostToken['$'].Key }, // Use the Key
+                                _: hostToken._ // Add the token value
+                              }));
+                          }).flat();
+                          console.log('comHostTokens', comHostTokens);
+                          const airPricingCommand = matchedbookinfo.map((fareInfo) => {
+                            const farekey = fareInfo['FareInfoRef'];
+                            const segmentkey = fareInfo['SegmentRef'];
+                     
+                            return fareRef.current
+                              .filter(fareInfo => fareInfo['$'] && fareInfo['$']['Key'] === farekey) // Match the farekey
+                              .map(fareInfo => {
+                                const fareBasisCode = fareInfo['$'].FareBasis;
+                                if (fareBasisCode) {
+                                  return {
+                                    'air:AirSegmentPricingModifiers': {
+                                      $: {
+                                        AirSegmentRef: segmentkey, // Use the already available segmentkey
+                                        FareBasisCode: fareBasisCode,
+                                      }
+                                    }
+                                  };
+                                }
+                     
+                                return null; // Skip entries where FareBasisCode is missing
+                              })
+                              .filter(Boolean); // Remove nulls
+                          }).flat();
+                     
+                          console.log("Processed airPricingCommand:", airPricingCommand);
+                           
+                                const builder = require('xml2js').Builder;
+                                var pricepointXMLpc = new builder().buildObject({
+                                'soap:Envelope': {
+                                    '$': {
+                                    'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
+                                    },
+                                    'soap:Body': {
+                                    'air:AirPriceReq': {
+                                        '$': {
+                                        'AuthorizedBy': 'TAXIVAXI',
+                                        'TargetBranch': Targetbranch,
+                                        'FareRuleType': 'short',
+                                        'TraceId': 'TVSBP001',
+                                        'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
+                                        'xmlns:com': 'http://www.travelport.com/schema/common_v52_0'
+                                        },
+                                        'BillingPointOfSaleInfo': {
+                                        '$': {
+                                            'OriginApplication': 'UAPI',
+                                            'xmlns': 'http://www.travelport.com/schema/common_v52_0'
+                                        },
+                                        },
+                                        'air:AirItinerary': {
+                                        'air:AirSegment': segmentArray,
+                                        'com:HostToken': comHostTokens,
+                                        },
+                                        'air:AirPricingModifiers': {
+                                        '$': {
+                                            'InventoryRequestType': 'DirectAccess',
+                                            'ETicketability': 'Yes',
+                                            'FaresIndicator': "AllFares"
+                                        },
+                                        'air:PermittedCabins': {
+                                            'com:CabinClass': {
+                                            '$': {
+                                                'Type': dynamicCabinType,
+                                            },
+                                            },
+                                        },
+                                        'air:BrandModifiers': {
+                                            'air:FareFamilyDisplay': {
+                                            '$': {
+                                                'ModifierType': 'FareFamily',
+                                            },
+                                            },
+                                        },
+                                        },
+                                        'com:SearchPassenger': passengerKeysXml,
+                                        'air:AirPricingCommand': airPricingCommand
+                                    }
+                                    }
+                                }
+                                });
+                        }
+                                console.log('pricepointXMLpc', pricepointXMLpc);
                                 const makeSoapRequest = async () => {
                                     var pricepointXML = pricepointXMLpc;
-                                    // console.log('main_prc', pricepointXML); 
-                                    // console.log("in api1")
-                                    
+                                    // console.log('main_prc', pricepointXML);
+                                    console.log("in api1")
+                                   
                                       const priceresponse = await axios.post(
                                         `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
                                         pricepointXML);
-                                      
+                                     
                                       const priceResponse = priceresponse.data;
-                                    //   console.log('priceResponse', priceResponse);
+                                      console.log('priceResponse', priceResponse);
                                       parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
                                         if (err) {
                                           console.error('Error parsing XML:', err);
                                           return;
                                         }
                                         const AirPriceRsp = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp'];
-                              
+                             
                                         if (AirPriceRsp !== null && AirPriceRsp !== undefined) {
                                           const pricereponse = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp']['air:AirPriceResult']['air:AirPricingSolution'];
                                           const segmentpricereponse = priceresult['SOAP:Envelope']['SOAP:Body']['air:AirPriceRsp']['air:AirItinerary']['air:AirSegment'];
@@ -832,17 +1022,17 @@ const Targetbranch = 'P4451438';
                                               });
                                             }
                                           }
-                              
+                             
                                           const HostToken = pricereponse['common_v52_0:HostToken'];
                                           const SegmentParse = segmentpricereponse;
-                              
+                             
                                           // Convert SegmentParse to an array if it's a single object
                                           const segmentArray = Array.isArray(SegmentParse) ? SegmentParse : [SegmentParse];
-                              
+                             
                                           let finaldeparturedate = '';
                                           let finalreturndate = '';
                                           let finalarrivaldate = '';
-                              
+                             
                                           if (bookingtype === "Return") {
                                             segmentArray.forEach((segmentInfo, segmentindex) => {
                                               if (segmentindex === 0) {
@@ -864,7 +1054,7 @@ const Targetbranch = 'P4451438';
                                                 finalarrivaldate = segmentInfo['$']['ArrivalTime'];
                                               }
                                             });
-                              
+                             
                                             // If it's a single segment, ensure the dates are still assigned
                                             if (segmentArray.length === 1 && segmentArray[0]['$']) {
                                               finaldeparturedate = segmentArray[0]['$']['DepartureTime'];
@@ -874,7 +1064,7 @@ const Targetbranch = 'P4451438';
                                           // Handle 'air:Connection' assignment for segments within the same group
                                           for (let i = 0; i < segmentArray.length; i++) {
                                             let currentSegment = segmentArray[i];
-                              
+                             
                                             for (let j = i + 1; j < segmentArray.length; j++) {
                                               const nextSegment = segmentArray[j];
                                               if (currentSegment.$.Group === nextSegment.$.Group) {
@@ -883,7 +1073,7 @@ const Targetbranch = 'P4451438';
                                               }
                                             }
                                           }
-                              
+                             
                                           // Assign 'HostTokenRef' based on segmentRef
                                           segmentArray.forEach(segment => {
                                             const segmentKey = segment['$'].Key;
@@ -892,7 +1082,7 @@ const Targetbranch = 'P4451438';
                                               segment['$'].HostTokenRef = matchedEntry.hostTokenRef;
                                             }
                                           });
-                              
+                             
                                           const builder = require('xml2js').Builder;
                                           var servicerequestXML = new builder().buildObject({
                                             'soap:Envelope': {
@@ -900,7 +1090,7 @@ const Targetbranch = 'P4451438';
                                                 'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
                                               },
                                               'soap:Header': {
-                              
+                             
                                               },
                                               'soap:Body': {
                                                 '$': {
@@ -921,7 +1111,7 @@ const Targetbranch = 'P4451438';
                                                     'air:AirSegment': SegmentParse,
                                                     'com:HostToken': HostToken
                                                   },
-                              
+                             
                                                 }
                                               }
                                             }
@@ -931,7 +1121,7 @@ const Targetbranch = 'P4451438';
                                             `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, servicerequestXML);
                                           const serviceResponse = serviceresponse.data;
                                           // console.log('serviceResponse', serviceresponse);
-                              
+                             
                                           const serviceData = {
                                             apiairportsdata: apiairportData,
                                             servicedata: serviceresponse.data,
@@ -951,12 +1141,15 @@ const Targetbranch = 'P4451438';
                                             booking_id: booking_id,
                                             client_id: client_id,
                                             is_gst_benefit: is_gst_benefit,
-                                            accesstoken: access_token
-                              
+                                            accesstoken: access_token,
+                                            segmentArray: segmentArray,
+                                            flightDetails: flightdetailRef.current,
+                                            markup_price: markup_price,
+                             
                                           };
                                           console.log('servicedata1', serviceData);
                                           navigate('/bookingProcess', { state: { serviceData } });
-                              
+                             
                                         } else {
                                           const error = priceresult['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
                                           // ErrorLogger.logError('price_api',pricepointXML,error);
@@ -966,39 +1159,39 @@ const Targetbranch = 'P4451438';
                                           //   confirmButtonText: 'OK'
                                           // });
                                         }
-                              
-                              
+                             
+                             
                                       });
-                                    
+                                   
                                   };
-                              
+                             
                                   makeSoapRequest();
 
                     }
-                    
+                   
                     // navigate('/SearchFlight', { state: { responseData } });
                     // await new Promise(resolve => setTimeout(resolve, 1000));
-                
+               
                 } catch (error) {
                     // navigate('/tryagainlater');
                 }
                 finally{
                     // setLoading(false);
                 }
-                
+               
         };
 
         const executeRequestsSequentially = async () => {
             try {
-                setLoading(true); 
+                setLoading(true);
                 if (!airlineResponseData) {
                   await makeAirlineRequest();
               }
-          
+         
               if (!airportResponseData) {
                   await makeAirportRequest();
               }
-          
+         
               if (!apiairportData) {
                   await apiairportss();
               }
@@ -1010,15 +1203,15 @@ const Targetbranch = 'P4451438';
                 setLoading(false); // Hide loader when all async operations are completed
             }
         };  
-            
+           
             const formtaxivaxiData = JSON.parse(decodeURIComponent(taxivaxidata));
-            console.log('formtaxivaxiData', formtaxivaxiData); 
+            console.log('formtaxivaxiData', formtaxivaxiData);
             if (formtaxivaxiData) {
                 setLoading(true)
                 sessionStorage.setItem('formtaxivaxiData', JSON.stringify(formtaxivaxiData));
-                
+               
                 executeRequestsSequentially().then(() => {
-                    
+                   
                 });
             }
     },[[navigate, taxivaxidata]]);
@@ -1028,29 +1221,28 @@ const Targetbranch = 'P4451438';
   return (
     <div className="yield-content">
         {loading && (
-    <div className="page-center-loader flex items-center justify-center">
-        <div className="big-loader flex items-center justify-center">
-            {/* <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" /> */}
-            <img className="loader-gif" src="/img/cotravloader.gif" alt="Loader" />
-
-            {/* Conditional loading text */}
-            {isPriceLoadingRef.current ? (
-                <p className="text-center ml-4 text-gray-600 text-lg">
-                    Fetching price....
-                </p>
-            ) : isReservationRef.current ? (
-                <p className="text-center ml-4 text-gray-600">
-                    Processing your reservation. Please wait...
-                </p>
-            ) : (
-                <p className="text-center ml-4 text-gray-600 text-lg">
-                    Retrieving flight details. Please wait a moment.
-                </p>
-            )}
-        </div>
-    </div>
-)}
-      </div >
+            <div className="page-center-loader flex items-center justify-center">
+                <div className="big-loader flex items-center justify-center">
+                    {/* <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" /> */}
+                    <img className="loader-gif" src="/img/cotravloader.gif" alt="Loader" />
+                    {/* Conditional loading text */}
+                    {isPriceLoadingRef.current ? (
+                        <p className="text-center ml-4 text-gray-600 text-lg">
+                            Fetching price....
+                        </p>
+                    ) : isReservationRef.current ? (
+                        <p className="text-center ml-4 text-gray-600">
+                            Processing your reservation. Please wait...
+                        </p>
+                    ) : (
+                        <p className="text-center ml-4 text-gray-600 text-lg">
+                            Retrieving flight details. Please wait a moment.
+                        </p>
+                    )}
+                </div>
+            </div>
+        )}
+    </div >
   )
 }
 

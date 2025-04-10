@@ -193,7 +193,7 @@ const [personDetails , setPersonDetails]= useState();
               booking_id: formtaxivaxiData.booking_id,
               admin_id: formtaxivaxiData.admin_id,
               payment: formtaxivaxiData.is_self_payment,
-              booknow: formtaxivaxiData.booknow,
+              booknow: '0'|formtaxivaxiData.booknow ,
             
             };
             sessionStorage.setItem(

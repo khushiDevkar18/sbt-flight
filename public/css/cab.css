@@ -1,0 +1,102 @@
+.Cab-form-box {
+  padding: 5px 9px 7px 7px;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0 1px 1px 0 rgba(50, 50, 50, 0.05);
+  min-height: 34px;
+  height: auto;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+  .Cab-form-box {
+    height: 50px;
+    margin-bottom: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .Cab-form-box {
+    width: 100%;
+    padding-left: 12px;
+  }
+}
+
+.search-buttonn {
+  width: 100%;
+  height: 40px;
+}
+
+@media (min-width: 768px) {
+  .search-buttonn {
+    height: 50px;
+  }
+}
+.card-container {
+  padding: 10px 0 50px;
+  background-color: white;
+  overflow-x: hidden; /* Changed from overflow-y */
+}
+
+@media (min-width: 768px) {
+  .card-container {
+    padding-top: 20px;
+    overflow-y: auto;
+  }
+}
+
+.heading-line {
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+.heading-line::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+@media (min-width: 768px) {
+  .heading-line::after {
+    width: calc(100% - 2rem);
+    left: 1rem;
+  }
+}
+.cab-box {
+    padding: 1px 21px 11px 21px;
+    }
+    .cab-container {
+      /* margin-bottom: 41px; */
+      /* border: 1px solid #D9DFC6; */
+      flex: 1 1;
+      border: 1px solid #d9dfc6;
+      height: 93px;
+      margin-top: 24px;
+    }
+    .from-cab-group {
+      margin-bottom: 20px;
+      flex: 1;
+      border: 1px solid #d9dfc6;
+      height: 93px;
+    }
+    .cab-headers {
+        font-size: 11px;
+        font-weight: bold;
+        color: #7a7a7a;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+        padding-left: 12px;
+        padding-top: 6px;
+      }
+      .cab_names{
+        font-weight: 500;
+        color: black;
+      }
+
+      
+  

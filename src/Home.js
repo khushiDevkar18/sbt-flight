@@ -335,11 +335,11 @@ function Home() {
         );
         return {
           value: airport.$.Code,
-          label: airport.$.Name,
+          div: airport.$.Name,
           airportName: matchedAirport ? matchedAirport.airport_name : "", // Add airport name from apiairports
         };
       })
-      .sort((a, b) => a.label.localeCompare(b.label));
+      .sort((a, b) => a.div.localeCompare(b.div));
     setOrigin(filteredOptions);
     setShowOriginDropdown(true);
   };
@@ -362,11 +362,11 @@ function Home() {
         );
         return {
           value: airport.$.Code,
-          label: airport.$.Name,
+          div: airport.$.Name,
           airportName: matchedAirport ? matchedAirport.airport_name : "",
         };
       })
-      .sort((a, b) => a.label.localeCompare(b.label));
+      .sort((a, b) => a.div.localeCompare(b.div));
     setDestination(filteredOptions);
     setShowDestinationDropdown(true);
   };
@@ -931,6 +931,7 @@ function Home() {
       setIsOpen(false); // Close the div
     }
   };
+  // ********************************************************************* Hotel Section ************************************************************************************
 
   // const [formActual, setformActual] = useState(null);
   // console.log('form', formActual);
@@ -999,6 +1000,14 @@ function Home() {
 
   // Handle city search and filter
   const handleInputChange = (e) => {
+    const value = e.target.value;
+    setSelectedCity(value);
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      if (value) delete newErrors.selectedCity;
+      return newErrors;
+    });
+    clearFieldError("selectedCity");
     const searchValue = e.target.value.toLowerCase();
     setSelectedCity(searchValue);
 
@@ -1077,23 +1086,6 @@ function Home() {
     fetchCompanies();
   }, []); // Runs only once when component mounts
 
-  const handleInputChange2 = (e) => {
-    const searchValue = e.target.value;
-
-    if (!searchValue.trim()) {
-      setFilteredCompany([]);
-      setShowDropdown2(false);
-      return;
-    }
-
-    const filtered = companyList.filter((company) =>
-      company?.corporate_name?.toLowerCase().includes(searchValue.toLowerCase())
-    );
-
-    setFilteredCompany(filtered);
-    setShowDropdown2(filtered.length > 0);
-  };
-
   const handleSelectCompany = (company) => {
     setSelectedCompany(company); // Store entire company object
     sessionStorage.setItem("selectedCompany", JSON.stringify(company)); // Store in sessionStorage
@@ -1163,22 +1155,51 @@ function Home() {
 
   // // conaole.log(hotelCodes);
 
-
   const [isCheckInOpen, setCheckInIsOpen] = useState(false);
   const [isCheckOutOpen, setCheckOutIsOpen] = useState(false);
-
-  const handleCheckInDateChange = (date) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      checkInDate: date,
-    }));
+  const clearFieldError = (fieldName) => {
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[fieldName];
+      return newErrors;
+    });
   };
+  // const handleCheckInDateChange = (date) => {
+  //   setFormData((prevData) => ({
+  //     ...prevData,
+  //     checkInDate: date,
+  //   }));
+  // };
+  const handleCheckInDateChange = (date) => {
+    setFormData((prev) => ({ ...prev, checkInDate: date }));
+    clearFieldError("checkInDate");
 
+    // Validate check-out date if it exists
+    if (formData.checkOutDate && date >= formData.checkOutDate) {
+      setErrors((prev) => ({
+        ...prev,
+        checkOutDate: "Check-out must be after check-in",
+      }));
+    }
+  };
+  // const handleCheckOutDateChange = (date) => {
+  //   setFormData((prevData) => ({
+  //     ...prevData,
+  //     checkOutDate: date,
+  //   }));
+  // };
   const handleCheckOutDateChange = (date) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      checkOutDate: date,
-    }));
+    setFormData((prev) => ({ ...prev, checkOutDate: date }));
+
+    // Only clear error if date is valid
+    if (!formData.checkInDate || date > formData.checkInDate) {
+      clearFieldError("checkOutDate");
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        checkOutDate: "Check-out must be after check-in",
+      }));
+    }
   };
   const formatDate1 = (date) => {
     const year = date.getFullYear();
@@ -1192,9 +1213,8 @@ function Home() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Control dropdown visibility
   const [roomCount, setRoomCount] = useState("");
   const [roomadultCount, setRoomAdultCount] = useState("");
-  const [roomchildCount, setRoomChildCount] = useState("0");
+  const [roomchildCount, setRoomChildCount] = useState(0);
   const [childrenAges, setChildrenAges] = useState([""]);
-
 
   const handleToggleHotel = () => {
     setIsDropdownOpen((prev) => !prev);
@@ -1205,11 +1225,15 @@ function Home() {
     // - Max 4 children AND
     // - Max 12 total people
 
-    const roomsBasedOnAdults = Math.ceil(adults / 8);
-    const roomsBasedOnChildren = Math.ceil(children / 4);
-    const roomsBasedOnTotal = Math.ceil((adults + children) / 12);
+    const roomsBasedOnAdults = Math.ceil(adults / 2);
+    const roomsBasedOnChildren = Math.ceil(children / 2);
+    const roomsBasedOnTotal = Math.ceil((adults + children) / 4);
 
-    return Math.max(roomsBasedOnAdults, roomsBasedOnChildren, roomsBasedOnTotal);
+    return Math.max(
+      roomsBasedOnAdults,
+      roomsBasedOnChildren,
+      roomsBasedOnTotal
+    );
   };
 
   const handleApply = () => {
@@ -1220,17 +1244,21 @@ function Home() {
     const requiredRooms = calculateRequiredRooms(totalAdults, totalChildren);
 
     if (selectedRooms > requiredRooms) {
-      setErrorMessage(`Minimum ${requiredRooms} rooms required based on your selection.`);
+      setErrorMessage(
+        `Minimum ${requiredRooms} rooms required based on your selection.`
+      );
       return;
     }
 
     if (selectedRooms < requiredRooms) {
-      setErrorMessage(`Minimum ${requiredRooms} rooms required based on your selection.`);
+      setErrorMessage(
+        `Minimum ${requiredRooms} rooms required based on your selection.`
+      );
       return;
     }
 
     // Validate children ages
-    if (totalChildren > 0 && childrenAges.some(age => age === "")) {
+    if (totalChildren > 0 && childrenAges.some((age) => age === "")) {
       setErrorMessage("Please specify ages for all children");
       return;
     }
@@ -1238,6 +1266,90 @@ function Home() {
     setErrorMessage("");
     setIsDropdownOpen(false);
   };
+  const [errors, setErrors] = useState({
+    selectedCompany: "",
+    selectedCity: "",
+    checkInDate: "",
+    checkOutDate: "",
+    roomCount: "",
+  });
+
+  const validateForm = () => {
+    let newErrors = {};
+
+    if (!selectedCompany) {
+      newErrors.selectedCompany = "Please select a company.";
+    }
+
+    if (!selectedCity) {
+      newErrors.selectedCity = "Please enter a city.";
+    }
+
+    if (!formData.checkInDate) {
+      newErrors.checkInDate = "Check-in date is required.";
+    }
+
+    if (!formData.checkOutDate) {
+      newErrors.checkOutDate = "Check-out date is required.";
+    } else if (
+      formData.checkInDate &&
+      formData.checkOutDate <= formData.checkInDate
+    ) {
+      newErrors.checkOutDate = "Check-out date must be after check-in.";
+    }
+
+    if (roomCount <= 0) {
+      newErrors.roomCount = "Select the Room.";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+  const handleInputChange2 = (e) => {
+    const { name, value } = e.target;
+
+    clearFieldError("selectedCompany");
+
+    // Update the corresponding state
+    switch (name) {
+      case "selectedCompany":
+        setSelectedCompany(value);
+        const searchValue = value.trim();
+        if (!searchValue) {
+          setFilteredCompany([]);
+          setShowDropdown2(false);
+        } else {
+          const filtered = companyList.filter((company) =>
+            company?.corporate_name
+              ?.toLowerCase()
+              .includes(searchValue.toLowerCase())
+          );
+          setFilteredCompany(filtered);
+          setShowDropdown2(filtered.length > 0);
+        }
+        break;
+
+      case "selectedCity":
+        setSelectedCity(value);
+        break;
+
+      case "roomCount":
+        setRoomCount(value);
+        break;
+
+      case "checkInDate":
+      case "checkOutDate":
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        break;
+    }
+  };
+
+  // Debugging: Watch error updates
+  useEffect(() => {
+    console.log("Errors state updated:", errors);
+  }, [errors]);
+
   const handleSelection = (type, value) => {
     let newRoomAdultCount = roomadultCount;
     let newRoomChildCount = roomchildCount;
@@ -1259,6 +1371,7 @@ function Home() {
       });
     } else if (type === "rooms") {
       newRoomCount = value;
+      if (value > 0) clearFieldError("roomCount");
       setRoomCount(value);
     }
 
@@ -1270,7 +1383,9 @@ function Home() {
     const requiredRooms = calculateRequiredRooms(totalAdults, totalChildren);
 
     if (selectedRooms < requiredRooms) {
-      setErrorMessage(`Minimum ${requiredRooms} rooms required based on your selection.`);
+      setErrorMessage(
+        `Minimum ${requiredRooms} rooms required based on your selection.`
+      );
     } else {
       setErrorMessage(""); // Clear error message when valid selection
     }
@@ -1282,65 +1397,74 @@ function Home() {
     setChildrenAges(updatedAges);
   };
 
- 
-  
   const handleHotelSearch = async (e) => {
     e.preventDefault();
-  
+
     // Prevent search if there is an error
     if (errorMessage) {
       return;
     }
-  
+    if (!validateForm()) {
+      return;
+    }
+
     setLoader(true);
-  
-    const checkIn = formData.checkInDate ? formatDate1(formData.checkInDate) : "";
-    const checkOut = formData.checkOutDate ? formatDate1(formData.checkOutDate) : "";
+
+    const checkIn = formData.checkInDate
+      ? formatDate1(formData.checkInDate)
+      : "";
+    const checkOut = formData.checkOutDate
+      ? formatDate1(formData.checkOutDate)
+      : "";
     const CityCode = hotelCodes.toString();
-  
+
     let remainingAdults = roomadultCount;
     let remainingChildren = roomchildCount;
-    let remainingChildrenAges = [...childrenAges]; 
+    let remainingChildrenAges = [...childrenAges];
     let roomsArray = [];
-  
+
     const maxAdultsPerRoom = 8;
     const maxChildrenPerRoom = 4;
-  
+
     while (remainingAdults > 0 || remainingChildren > 0) {
       let allocatedAdults = Math.min(remainingAdults, maxAdultsPerRoom);
       let allocatedChildren = Math.min(remainingChildren, maxChildrenPerRoom);
-  
-      let allocatedChildrenAges = remainingChildrenAges.slice(0, allocatedChildren);
-  
+
+      let allocatedChildrenAges = remainingChildrenAges.slice(
+        0,
+        allocatedChildren
+      );
+
       roomsArray.push({
         Adults: allocatedAdults,
         Children: allocatedChildren,
-        ChildrenAges: allocatedChildrenAges.length > 0 ? allocatedChildrenAges : null,
+        ChildrenAges:
+          allocatedChildrenAges.length > 0 ? allocatedChildrenAges : null,
       });
-  
+
       remainingAdults -= allocatedAdults;
       remainingChildren -= allocatedChildren;
       remainingChildrenAges = remainingChildrenAges.slice(allocatedChildren);
     }
-  
+
     while (remainingAdults > 0) {
       let allocatedAdults = Math.min(remainingAdults, maxAdultsPerRoom);
-  
+
       roomsArray.push({
         Adults: allocatedAdults,
         Children: 0,
         ChildrenAges: null,
       });
-  
+
       remainingAdults -= allocatedAdults;
     }
-  
+
     const requestBody = {
       CheckIn: checkIn,
       CheckOut: checkOut,
       HotelCodes: CityCode,
       GuestNationality: "IN",
-      PaxRooms: roomsArray, 
+      PaxRooms: roomsArray,
       ResponseTime: 23.0,
       IsDetailedResponse: true,
       Filters: {
@@ -1352,9 +1476,9 @@ function Home() {
         HotelName: null,
       },
     };
-  
+
     console.log("Request Body:", requestBody);
-  
+
     try {
       const response = await fetch(
         "https://demo.taxivaxi.com/api/hotels/sbtHotelCodesSearch",
@@ -1367,13 +1491,13 @@ function Home() {
           body: JSON.stringify(requestBody),
         }
       );
-  
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+
       const data = await response.json();
-  
+
       if (data.Status.Code === 200) {
         setHotelCityList(data.HotelResult || []);
         const payment = "1";
@@ -1385,13 +1509,20 @@ function Home() {
           Children: roomchildCount,
           ChildAge: childrenAges,
           CityCode,
-          corporate_name: JSON.parse(sessionStorage.getItem("selectedCompany")) || null,
+          corporate_name:
+            JSON.parse(sessionStorage.getItem("selectedCompany")) || null,
           filteredCities,
           payment,
         };
         sessionStorage.setItem("agent_portal", 0);
-        sessionStorage.setItem("hotelData_header", JSON.stringify(searchParams));
-        sessionStorage.setItem("hotelSearchData", JSON.stringify({ hotelcityList: data.HotelResult }));
+        sessionStorage.setItem(
+          "hotelData_header",
+          JSON.stringify(searchParams)
+        );
+        sessionStorage.setItem(
+          "hotelSearchData",
+          JSON.stringify({ hotelcityList: data.HotelResult })
+        );
         fetchCity(data.HotelResult || []);
       } else {
         Swal.fire({
@@ -1404,7 +1535,6 @@ function Home() {
       console.error("Error fetching hotels:", error);
     }
   };
-  
 
   // Function to fetch hotel details
   const fetchCity = async (hotelcityList) => {
@@ -1457,6 +1587,418 @@ function Home() {
       setLoader(false);
     }
   };
+  // ************************************************************************** Cab Section **********************************************************************
+  const [selectedCabType, setSelectedCabType] = useState("Local");
+  const [selectedCabCity, setSelectedCabCity] = useState("");
+  const [allCities, setAllCities] = useState([]);
+  const [filteredCitiesCab, setFilteredCitiesCab] = useState([]);
+  const [showDropdownCab, setShowDropdownCab] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showDropdown5, setShowDropdown5] = useState(false);
+  const [selectedCabInput, setSelectedCabInput] = useState("");
+
+  const [cityLimitError, setCityLimitError] = useState('');
+  const [RoundTripcityLimitError, setRoundTripsetCityLimitError] = useState('');
+
+  const [multiStopsVisible, setMultiStopsVisible] = useState(false);
+  const [stopInputs, setStopInputs] = useState([]);
+
+  const inputRefs = useRef([]);
+
+  const handleAddStop = () => {
+    if (stopInputs.length >= 5) {
+      setCityLimitError("You can only select up to 5 cities.");
+      return;
+    }
+    setStopInputs((prev) => [...prev, ""]);
+    setMultiStopsVisible(true);
+    setCityLimitError(""); // clear error if adding within limit
+  };
+
+
+  const handleInputChangeCIties = (index, value) => {
+    const updated = [...stopInputs];
+    updated[index] = value;
+    setStopInputs(updated);
+  };
+
+  const handleRemoveStop = (index) => {
+    const updated = [...stopInputs];
+    updated.splice(index, 1);
+    setStopInputs(updated);
+    if (updated.length < 5) {
+      setCityLimitError("");
+    }
+    if(updated.length === 0){
+      setMultiStopsVisible(false);
+    }
+  };
+
+
+  // Initialize Google Places Autocomplete for all input fields
+  useEffect(() => {
+    inputRefs.current.forEach((input, index) => {
+      if (input && !input.autocomplete) {
+        const autocomplete = new window.google.maps.places.Autocomplete(input, {
+          types: ["(cities)"],
+        });
+
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+
+          // Fallback to formatted address or place.name
+          const city = place.formatted_address || place.name || "";
+
+          handleInputChangeCIties(index, city);
+        });
+
+        input.autocomplete = autocomplete;
+      }
+    });
+  }, [stopInputs]);
+
+
+  const [roundTripStopsVisible, setRoundTripStopsVisible] = useState(false);
+  const [roundTripStopInputs, setRoundTripStopInputs] = useState([]);
+  const roundTripInputRefs = useRef([]);
+  const [selectedRoundTripCity, setSelectedRoundTripCity] = useState('');
+
+
+  const handleAddRoundTripStop = () => {
+    if (roundTripStopInputs.length >= 1) {
+      setRoundTripsetCityLimitError("You can select a maximum of 1 cities.");
+      return;
+    }
+    setRoundTripStopInputs((prev) => [...prev, ""]);
+    setRoundTripStopsVisible(true);
+    setRoundTripsetCityLimitError(""); // clear error if adding within limit
+  };
+
+  const handleRoundTripInputChange = (index, value) => {
+    const updated = [...roundTripStopInputs];
+    updated[index] = value;
+    setRoundTripStopInputs(updated);
+  };
+
+  const handleRemoveRoundTripStop = (index) => {
+    const updated = [...roundTripStopInputs];
+    updated.splice(index, 1);
+    setRoundTripStopInputs(updated);
+
+    if (updated.length < 1) {
+      setRoundTripsetCityLimitError("");
+    }
+    if(updated.length === 0){
+      setRoundTripStopsVisible(false);
+    }
+
+  };
+
+  // Initialize Google Places Autocomplete for round trip inputs
+  useEffect(() => {
+    roundTripInputRefs.current.forEach((input, index) => {
+      if (input && !input.autocomplete) {
+        const autocomplete = new window.google.maps.places.Autocomplete(input, {
+          types: ["(cities)"],
+        });
+
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          const city = place.formatted_address || place.name || "";
+          handleRoundTripInputChange(index, city);
+        });
+
+        input.autocomplete = autocomplete;
+      }
+    });
+  }, [roundTripStopInputs]);
+
+
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await axios.get(
+          "https://demo.fleet247.in/api/corporate_apis/v1/getAllCities"
+        );
+
+        if (
+          response.data?.success === "true" &&
+          Array.isArray(response.data.response?.cities)
+        ) {
+          const citiesData = response.data.response.cities;
+          setAllCities(citiesData);
+          setFilteredCitiesCab(citiesData); // Initialize pickup city list
+          setFilteredCitiesDrop(citiesData); // Initialize drop city list
+        }
+      } catch (err) {
+        console.error("Error fetching cities:", err);
+        setError("Failed to load cities. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCities();
+  }, []);
+
+  const handleSelectCity = (city) => {
+    setSelectedCabCity(city);
+    setSelectedCabInput(`${city.city_name}, ${city.state_name}`);
+    setShowDropdownCab(false);
+    setErrors(prev => ({
+      ...prev,
+      pickupCity: '' // Clear pickup city error
+    }))
+  };
+
+  const handleInputChangeCab = (e) => {
+    const inputValue = e.target.value;
+    setErrors(prev => ({ ...prev, pickupCity: '' }));
+    setSelectedCabInput(inputValue); // update input string
+
+    if (
+      !selectedCabCity ||
+      (selectedCabCity &&
+        inputValue !==
+        `${selectedCabCity.city_name || ""}, ${selectedCabCity.state_name || ""
+        }`)
+    ) {
+      setSelectedCabCity(null);
+
+      if (inputValue.length > 0) {
+        const filtered = allCities.filter((city) => {
+          const searchTerm = inputValue.toLowerCase();
+
+          const cityName = city.city_name?.toLowerCase() ?? "";
+          const googleName = city.google_city_name?.toLowerCase() ?? "";
+          const stateName = city.state_name?.toLowerCase() ?? "";
+          const keywords = city.keywords?.toLowerCase() ?? "";
+
+          return (
+            cityName.includes(searchTerm) ||
+            googleName.includes(searchTerm) ||
+            stateName.includes(searchTerm) ||
+            keywords.includes(searchTerm)
+          );
+        });
+
+        setFilteredCitiesCab(filtered);
+      } else {
+        setFilteredCitiesCab(allCities);
+      }
+    }
+  
+  };
+
+  const [selectedDropCity, setSelectedDropCity] = useState("");
+  const [filteredCitiesDrop, setFilteredCitiesDrop] = useState([]);
+  const [showDropdownDrop, setShowDropdownDrop] = useState(false);
+
+  const handleSelectDropCity = (city) => {
+    const fullCity = `${city.city_name}, ${city.state_name}`;
+    setSelectedDropCity(fullCity);
+    setShowDropdownDrop(false);
+    setErrors(prev => ({
+      ...prev,
+      dropCity: '' // Clear pickup city error
+    }))
+  };
+
+
+  const handleInputChangeDrop = (e) => {
+
+    const inputValue = e.target.value;
+    setErrors(prev => ({ ...prev, dropCity: '' }));
+    setSelectedDropCity(inputValue); // update input string
+
+    if (
+      !selectedDropCity ||
+      (selectedDropCity &&
+        inputValue !==
+        `${selectedDropCity.city_name || ""}, ${selectedDropCity.state_name || ""
+        }`)
+    ) {
+      setSelectedDropCity(null);
+
+      if (inputValue.length > 0) {
+        const filtered = allCities.filter((city) => {
+          const searchTerm = inputValue.toLowerCase();
+
+          const cityName = city.city_name?.toLowerCase() ?? "";
+          const googleName = city.google_city_name?.toLowerCase() ?? "";
+          const stateName = city.state_name?.toLowerCase() ?? "";
+          const keywords = city.keywords?.toLowerCase() ?? "";
+
+          return (
+            cityName.includes(searchTerm) ||
+            googleName.includes(searchTerm) ||
+            stateName.includes(searchTerm) ||
+            keywords.includes(searchTerm)
+          );
+        });
+
+        setFilteredCitiesDrop(filtered);
+      } else {
+        setFilteredCitiesDrop(allCities);
+      }
+    };
+  };
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+
+  const [dropDate, setDropDate] = useState(null);
+  const [showDropDatePicker, setShowDropDatePicker] = useState(false);
+
+  const validateFormCab = () => {
+    const newErrors = {};
+    if (selectedCabType === "Local") {
+      if (!selectedCabInput) newErrors.pickupCity = "Pickup city is required";
+      
+      if (!selectedDate) newErrors.pickupDate = "Pickup date is required";
+     
+      if (!selectedTime) newErrors.pickupTime = "Pickup time is required";
+    }
+    
+    // Round Trip Validation
+    if (selectedCabType === "Round Trip (Outstation)") {
+      if (!selectedCabInput) newErrors.pickupCity = "Pickup city is required";
+      if (!selectedDropCity) newErrors.dropCity = "Drop city is required";
+      if (selectedCabInput === selectedDropCity) newErrors.dropCity = "Drop city must be different";
+      if (!selectedDate) newErrors.pickupDate = "Pickup date is required";
+      if (!dropDate) newErrors.dropDate = "Drop date is required";
+      if (dropDate && selectedDate && dropDate < selectedDate) newErrors.dropDate = "Drop date cannot be before pickup date";
+      if (!selectedTime) newErrors.pickupTime = "Pickup time is required";
+    }
+
+    // MultiCity Validation
+    if (selectedCabType === "MultiCity (Outstation)") {
+      if (!selectedCabInput) newErrors.pickupCity = "Pickup city is required";
+      if (stopInputs.some(input => !input)) newErrors.stops = "All stops must be filled";
+      if (new Set([selectedCabInput, ...stopInputs]).size !== stopInputs.length + 1) newErrors.duplicate = "Duplicate cities not allowed";
+      if (!selectedDate) newErrors.pickupDate = "Pickup date is required";
+      if (!dropDate) newErrors.dropDate = "Drop date is required";
+      if (!selectedTime) newErrors.pickupTime = "Pickup time is required";
+    }
+    if (selectedCabType === "oneWay") {
+      if (!selectedCabInput) newErrors.pickupCity = "Pickup city is required";
+      if (!selectedDropCity) newErrors.dropCity = "Drop city is required";
+
+      if (!selectedDate) newErrors.pickupDate = "Pickup date is required";
+     
+      if (!selectedTime) newErrors.pickupTime = "Pickup time is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSearchCab = async (e) => {
+    e.preventDefault();
+    if (!validateFormCab()) return;
+    const formattedPickupDate = selectedDate
+      ? format(selectedDate, "yyyy-MM-dd")
+      : "";
+    const formattedDropDate = dropDate ? format(dropDate, "yyyy-MM-dd") : "";
+    const formattedTime = selectedTime ? format(selectedTime, "HH:mm") : "";
+
+    const formData = new URLSearchParams();
+
+    if (selectedCabType === "Local") {
+      formData.append("pickup_city", selectedCabCity?.city_name || "");
+      formData.append("pickup_time", formattedTime);
+      formData.append("pickup_date", formattedPickupDate);
+      formData.append("type_of_tour", selectedCabType);
+    } else if (selectedCabType === "Round Trip (Outstation)") {
+      formData.append("pickup_city", selectedCabCity?.city_name || "");
+      formData.append("pickup_time", formattedTime);
+      formData.append("pickup_date", formattedPickupDate);
+      formData.append("cities", 
+        [selectedCabInput, ...roundTripStopInputs, selectedDropCity,selectedCabInput]
+          .filter(Boolean)
+          .map(location => location.split(',')[0].trim())
+          .join(", ")  // Changed arrow to comma separator
+      );
+      formData.append("return_date", formattedDropDate);
+      formData.append("type_of_tour", selectedCabType);
+    } else if (selectedCabType === "MultiCity (Outstation)") {
+      formData.append("pickup_city", selectedCabCity?.city_name || "");
+      formData.append("pickup_time", formattedTime);
+      formData.append("pickup_date", formattedPickupDate);
+      formData.append("cities", 
+        [selectedCabInput, ...stopInputs]
+          .filter(Boolean)
+          .map(location => location.split(',')[0].trim())
+          .join(", ")  // Changed arrow to comma separator
+      );
+      formData.append("return_date", formattedDropDate);
+      formData.append("type_of_tour", selectedCabType);
+    }
+    else if (selectedCabType === "Oneway") {
+      formData.append("pickup_city", selectedCabCity?.city_name || "");
+      formData.append("pickup_time", formattedTime);
+      formData.append("pickup_date", formattedPickupDate);
+      formData.append("cities", selectedDropCity?.city_name || "");
+      formData.append("return_date", formattedDropDate);
+      formData.append("type_of_tour", selectedCabType);
+    }
+
+    // console.log(formData.toString());
+
+    try {
+      const response = await fetch(
+        "https://demo.fleet247.in/api/corporate_apis/v1/searchTaxismod",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+
+      console.log("API response:", data);
+      if(data.success === 'false'){
+        navigate('/ResultNotFound');
+
+      }
+      else if (data.success === 'true') {
+        const header = {
+          pickup_city: selectedCabCity,
+          pickup_date: formattedPickupDate,
+          ...(selectedCabType === 'Round Trip (Outstation)' && {
+            Cities: [selectedCabInput, ...roundTripStopInputs, selectedDropCity, selectedCabInput].filter(Boolean),
+           
+          }),
+          ...(selectedCabType === 'MultiCity (Outstation)' && {
+            Cities: [selectedCabInput, ...stopInputs].filter(Boolean)
+          }),
+          Drop_city: selectedDropCity,
+          Drop_date: formattedDropDate,
+          pickup_time: formattedTime,
+          selectType : selectedCabType,
+        };
+        
+        navigate('/SearchCab');
+        sessionStorage.setItem('SerachCab', JSON.stringify(data.response));
+        sessionStorage.setItem('Header_Cab', JSON.stringify(header)); 
+     
+      }
+    } catch (error) {
+      console.error("Error fetching cab data:", error);
+    }
+  };
 
   return (
     <div className="yield-content">
@@ -1479,7 +2021,7 @@ function Home() {
             <div className="big-loader flex items-center justify-center">
               <img
                 className="loader-gif"
-               src="../img/hotel_loader.gif"
+                src="../img/hotel_loader.gif"
                 alt="Loader"
               />
             </div>
@@ -1546,18 +2088,20 @@ function Home() {
                       className="page-search-content"
                       style={{
                         display:
-                          activeTab === "flight" || activeTab === "hotel"
+                          activeTab === "flight" ||
+                            activeTab === "hotel" ||
+                            activeTab === "cab"
                             ? "block"
                             : "none",
                       }}
                     >
                       <div className="search-tab-content">
                         <div className="py-3 px-4 flex flex-cols gap-4 ">
-                          {/* Flight Icon */}
+                        
                           <div
                             className={`gap-1 flex items-center border-b ${activeForm === "flight"
-                                ? "information_button border-b  active_tabs"
-                                : "border-b-2 border-transparent"
+                              ? "information_button border-b  active_tabs"
+                              : "border-b-2 border-transparent"
                               }`}
                             onClick={() => handleIconClick("flight")}
                             style={{ cursor: "pointer" }}
@@ -1590,8 +2134,8 @@ function Home() {
                           {/* Hotel Icon */}
                           <div
                             className={`gap-1 flex items-center ${activeForm === "hotel"
-                                ? "information_button  border-b  active_tabs"
-                                : "border-b-2 border-transparent"
+                              ? "information_button  border-b  active_tabs"
+                              : "border-b-2 border-transparent"
                               }`}
                             onClick={() => handleIconClick("hotel")}
                             style={{ cursor: "pointer" }}
@@ -1621,7 +2165,41 @@ function Home() {
                               Hotel
                             </span>
                           </div>
+                          <div
+                            className={`gap-1 flex items-center ${activeForm === "cab"
+                              ? "information_button  border-b  active_tabs"
+                              : "border-b-2 border-transparent"
+                              }`}
+                            onClick={() => handleIconClick("cab")}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <img
+                              src={
+                                activeForm === "cab"
+                                  ? "../img/Cab_Hover-03.svg" // Image to show when activeForm is "flight"
+                                  : "../img/Cab_black.svg" // Default image
+                              }
+                              // src="../img/Hotel-02.png"
+                              alt="Cab Image"
+                              className="w-6 h-6"
+                              style={{
+                                // filter:
+                                //   activeForm === "hotel"
+                                //     ? "grayscale(0%)"
+                                //     : "grayscale(100%)",
+                                tintColor:
+                                  activeForm === "cab" ? "blue" : "black",
+                              }}
+                            />
+                            <span
+                              className="text-lg font-semibold"
+                              style={{ cursor: "pointer" }}
+                            >
+                              Cab
+                            </span>
+                          </div>
                         </div>
+                        
 
                         {activeForm === "flight" && (
                           <form
@@ -1650,13 +2228,13 @@ function Home() {
                                     checked={formData.bookingType === "oneway"}
                                     id="departureRadio"
                                   />
-                                  <label
+                                  <div
                                     className="bookingtype onewaybookingtype"
                                     htmlFor="departureRadio"
                                     style={getLabelStyle("oneway")}
                                   >
                                     One-Way
-                                  </label>
+                                  </div>
                                 </div>
 
                                 <div className="Return">
@@ -1669,13 +2247,13 @@ function Home() {
                                     checked={formData.bookingType === "Return"}
                                     id="returnRadio"
                                   />
-                                  <label
+                                  <div
                                     className="bookingtype returnbookingtype"
                                     htmlFor="returnRadio"
                                     style={getLabelStyle("Return")}
                                   >
                                     Return
-                                  </label>
+                                  </div>
                                 </div>
                                 <div className="clear"></div>
                               </div>
@@ -1891,7 +2469,7 @@ function Home() {
                                               >
                                                 <div className="dropdown-top">
                                                   <span className="city-names">
-                                                    {option.label}
+                                                    {option.div}
                                                   </span>
                                                   <span className="iata-code">
                                                     {option.value}
@@ -2044,7 +2622,7 @@ function Home() {
                                                 {/* City name and IATA code in the same line */}
                                                 <div className="dropdown-top">
                                                   <span className="city-names">
-                                                    {option.label}
+                                                    {option.div}
                                                   </span>
                                                   <span className="iata-code">
                                                     {option.value}
@@ -2091,7 +2669,7 @@ function Home() {
                                   className="form-groupp srch-tab-left"
                                   style={{ maxWidth: "130px" }}
                                 >
-                                  {/* <label htmlFor="departureDate">Departure</label> */}
+                                  {/* <div htmlFor="departureDate">Departure</div> */}
                                   <div
                                     className="location-header"
                                     style={{
@@ -2163,7 +2741,7 @@ function Home() {
                                   id="departurereturn"
                                   style={{ maxWidth: "130px" }}
                                 >
-                                  {/* <label htmlFor="returnDate">Return</label> */}
+                                  {/* <div htmlFor="returnDate">Return</div> */}
                                   <div
                                     className="location-header"
                                     style={{
@@ -2243,7 +2821,7 @@ function Home() {
                                 </div>
 
                                 <div className="form-groupp srch-tab-line no-margin-bottom">
-                                  {/* <label htmlFor="travellers">Travellers & Class</label> */}
+                                  {/* <div htmlFor="travellers">Travellers & Class</div> */}
                                   <div
                                     className="location-header"
                                     style={{
@@ -2330,14 +2908,14 @@ function Home() {
                             >
                               <div className="search-large-i">
                                 <div className="srch-tab-line no-margin-bottom">
-                                  <label
+                                  <div
                                     style={{
                                       textAlign: "left",
                                       marginBottom: "0px",
                                     }}
                                   >
                                     Adults (12y +)
-                                  </label>
+                                  </div>
                                   <p
                                     style={{
                                       color: "#7b7777",
@@ -2366,9 +2944,9 @@ function Home() {
                                                 : value === 1
                                             }
                                           />
-                                          <label htmlFor={`adult${value}`}>
+                                          <div htmlFor={`adult${value}`}>
                                             {value}
-                                          </label>
+                                          </div>
                                         </React.Fragment>
                                       )
                                     )}
@@ -2381,19 +2959,19 @@ function Home() {
                                         handleAdult(e.target.value)
                                       }
                                     />
-                                    <label htmlFor="adultgreater9">&gt;9</label>
+                                    <div htmlFor="adultgreater9">&gt;9</div>
                                   </div>
                                 </div>
                                 <div className="row-container">
                                   <div className="srch-tab-line no-margin-bottom">
-                                    <label
+                                    <div
                                       style={{
                                         textAlign: "left",
                                         marginBottom: "0px",
                                       }}
                                     >
                                       Children (2y - 12y)
-                                    </label>
+                                    </div>
                                     <p
                                       style={{
                                         color: "#7b7777",
@@ -2421,9 +2999,9 @@ function Home() {
                                                 : value === 0
                                             }
                                           />
-                                          <label htmlFor={`child${value}`}>
+                                          <div htmlFor={`child${value}`}>
                                             {value}
-                                          </label>
+                                          </div>
                                         </React.Fragment>
                                       ))}
                                       <input
@@ -2435,20 +3013,18 @@ function Home() {
                                           handleChild(e.target.value)
                                         }
                                       />
-                                      <label htmlFor="childgreater6">
-                                        &gt;6
-                                      </label>
+                                      <div htmlFor="childgreater6">&gt;6</div>
                                     </div>
                                   </div>
                                   <div className="srch-tab-line no-margin-bottom">
-                                    <label
+                                    <div
                                       style={{
                                         textAlign: "left",
                                         marginBottom: "0px",
                                       }}
                                     >
                                       Infants (below 2y)
-                                    </label>
+                                    </div>
                                     <p
                                       style={{
                                         color: "#7b7777",
@@ -2476,9 +3052,9 @@ function Home() {
                                                 : value === 0
                                             }
                                           />
-                                          <label htmlFor={`infant${value}`}>
+                                          <div htmlFor={`infant${value}`}>
                                             {value}
-                                          </label>
+                                          </div>
                                         </React.Fragment>
                                       ))}
                                       <input
@@ -2490,9 +3066,7 @@ function Home() {
                                           handleInfant(e.target.value)
                                         }
                                       />
-                                      <label htmlFor="infantgreater6">
-                                        &gt;6
-                                      </label>
+                                      <div htmlFor="infantgreater6">&gt;6</div>
                                     </div>
                                   </div>
                                 </div>
@@ -2500,14 +3074,14 @@ function Home() {
                               {/* Travel Class Selection */}
                               <div className="search-large-i1">
                                 <div className="srch-tab-line no-margin-bottom">
-                                  <label
+                                  <div
                                     style={{
                                       marginBottom: "1%",
                                       textAlign: "left",
                                     }}
                                   >
                                     Choose Travel Class
-                                  </label>
+                                  </div>
                                   <div className="select-wrapper1 select-wrapper2">
                                     {[
                                       "Economy/Premium Economy",
@@ -2531,14 +3105,14 @@ function Home() {
                                               "Economy/Premium Economy"
                                           }
                                         />
-                                        <label
+                                        <div
                                           style={{ lineHeight: "2" }}
                                           htmlFor={`classtype${value}`}
                                         >
                                           {value === "Economy/Premium Economy"
                                             ? value
                                             : `${value} class`}
-                                        </label>
+                                        </div>
                                       </React.Fragment>
                                     ))}
                                   </div>
@@ -2576,6 +3150,7 @@ function Home() {
                                       type="text"
                                       className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
                                       placeholder="Select Company"
+                                      name="selectedCompany" // Match this with your state key
                                       value={selectedCompany}
                                       onChange={handleInputChange2}
                                       onFocus={() => setShowDropdown2(true)}
@@ -2585,25 +3160,9 @@ function Home() {
                                           200
                                         )
                                       }
+                                      autoComplete="off"
                                     />
 
-                                    {/* {showDropdown2 && (
-      <div className="dropdown-menu absolute w-full bg-white shadow-md rounded-lg max-h-48 overflow-auto mt-1">
-        {filteredCompany.length > 0 ? (
-          filteredCompany.map((company) => (
-            <div
-              key={company.id}
-              className="dropdown-item px-3 py-2 cursor-pointer hover:bg-gray-200"
-              onClick={() => handleCompanySelect(company.corporate_name)}
-            >
-              {company.corporate_name}
-            </div>
-          ))
-        ) : (
-          <div className="px-3 py-2 text-gray-500">No companies found</div>
-        )}
-      </div>
-    )} */}
                                     {showDropdown2 && (
                                       <div className="absolute w-full bg-white shadow-md rounded-lg max-h-48 overflow-auto mt-1 border border-gray-300 z-50">
                                         {filteredCompany.length > 0 ? (
@@ -2619,11 +3178,9 @@ function Home() {
                                                 }
                                               >
                                                 <div className="text-sm">
-                                                  {" "}
                                                   {company.corporate_name}
                                                 </div>
                                                 <div className="text-xs">
-                                                  {" "}
                                                   ({company.corporate_code})
                                                 </div>
                                               </div>
@@ -2636,8 +3193,15 @@ function Home() {
                                         )}
                                       </div>
                                     )}
+
+                                    {errors.selectedCompany && (
+                                      <span className="text-red-500 text-xs px-3">
+                                        {errors.selectedCompany}
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
+
                                 <div className="from-hotel-group">
                                   <div className="location-headers">
                                     City, Property Name or Location
@@ -2648,6 +3212,7 @@ function Home() {
                                       className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
                                       placeholder="Enter City"
                                       value={selectedCity}
+                                      name="city_name"
                                       onChange={handleInputChange}
                                       onFocus={() => setShowDropdown1(true)} // Show dropdown when input is focused
                                       onBlur={() =>
@@ -2656,6 +3221,7 @@ function Home() {
                                           200
                                         )
                                       } // Delay hiding to allow click
+                                      autoComplete="off"
                                     />
 
                                     {showDropdown1 &&
@@ -2674,6 +3240,11 @@ function Home() {
                                           ))}
                                         </div>
                                       )}
+                                    {errors.selectedCity && (
+                                      <span className="text-red-500 text-xs px-3">
+                                        {errors.selectedCity}
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
 
@@ -2717,6 +3288,11 @@ function Home() {
                                       }}
                                     ></span>
                                   </div>
+                                  {errors.checkInDate && (
+                                    <span className="text-red-500 text-xs px-2">
+                                      {errors.checkInDate}
+                                    </span>
+                                  )}
                                   <span
                                     id="errorDate"
                                     style={{
@@ -2776,6 +3352,11 @@ function Home() {
                                       className="error-message"
                                     ></span>
                                   </div>
+                                  {errors.checkOutDate && (
+                                    <span className="text-red-500 text-xs px-2">
+                                      {errors.checkOutDate}
+                                    </span>
+                                  )}
                                   <span
                                     id="errorDate1"
                                     style={{
@@ -2797,24 +3378,33 @@ function Home() {
                                       name="openpassengermodal"
                                       className="openpassengermodal srch-lbl w-full focus:outline-none cursor-pointer overflow-x"
                                       placeholder="Select all"
-                                      value={`Rooms: ${roomCount}, Adults: ${roomadultCount}, Children: ${roomchildCount}`}
+                                      value={`${roomCount} Rooms, ${roomadultCount} Adults,${roomchildCount} Children`}
                                       onClick={handleToggleHotel}
                                       readOnly
                                     />
                                     {isDropdownOpen && (
                                       <div className="absolute right-0 bg-white rounded-lg mt-1 p-3 z-10 shadow-lg hotel_forms_home">
-                                        {/* Room Selector */}
-                                        {/* Rooms Selector */}
-                                        {/* Rooms Selector */}
                                         <div className="mb-2 flex items-center justify-between">
                                           <h6 className="textsizes">Rooms</h6>
                                           <select
                                             className="border border-gray-300 px-3 py-1 focus:outline-none"
                                             value={roomCount}
-                                            onChange={(e) => handleSelection("rooms", parseInt(e.target.value))}
+                                            onChange={(e) =>
+                                              handleSelection(
+                                                "rooms",
+                                                parseInt(e.target.value)
+                                              )
+                                            }
                                           >
-                                            {Array.from({ length: 21 }, (_, i) => i).map((num) => (
-                                              <option key={num} value={num}>
+                                            {Array.from(
+                                              { length: 21 },
+                                              (_, i) => i
+                                            ).map((num) => (
+                                              <option
+                                                key={num}
+                                                value={num}
+                                                className="max-h-[2px]"
+                                              >
                                                 {num}
                                               </option>
                                             ))}
@@ -2822,8 +3412,11 @@ function Home() {
                                         </div>
 
                                         {/* Show error message if not enough rooms */}
-                                        {errorMessage && <p className="text-red-500 text-xs">{errorMessage}</p>}
-
+                                        {errorMessage && (
+                                          <p className="text-red-500 text-xs px-2">
+                                            {errorMessage}
+                                          </p>
+                                        )}
 
                                         {/* Adults Selector */}
                                         <div className="mb-2 flex items-center justify-between">
@@ -2888,45 +3481,51 @@ function Home() {
                                         <hr className="my-4 border-gray-500" />
 
                                         {/* Children Ages Dropdowns */}
-                                        <div
-                                          className="overflow-y-auto grid grid-cols-2 gap-4"
-                                          style={{
-                                            maxHeight: "150px", // Scrollable height for child age section
-                                          }}
-                                        >
-                                          {childrenAges.map((age, index) => (
-                                            <div
-                                              key={index}
-                                              className="mb-4 flex items-center gap-4 justify-between"
-                                            >
-                                              <h6 className="textsizes">
-                                                Child&nbsp;{index + 1}
-                                              </h6>
-                                              <select
-                                                className="border border-gray-300 rounded-sm py-1 px-2 w-full focus:outline-none text-xs"
-                                                value={age || ""}
-                                                onChange={(e) =>
-                                                  handleChildAgeChange(
-                                                    index,
-                                                    parseInt(e.target.value)
-                                                  )
-                                                }
-                                              >
-                                                <option value="" disabled>
-                                                  Select
-                                                </option>
-                                                {Array.from(
-                                                  { length: 18 },
-                                                  (_, i) => i
-                                                ).map((num) => (
-                                                  <option key={num} value={num}>
-                                                    {num} Yrs
-                                                  </option>
-                                                ))}
-                                              </select>
-                                            </div>
-                                          ))}
-                                        </div>
+                                        {/* Children Ages Dropdowns - Only show if children count > 0 */}
+                                        {roomchildCount > 0 && (
+                                          <div
+                                            className="overflow-y-auto grid grid-cols-2 gap-4"
+                                            style={{ maxHeight: "150px" }}
+                                          >
+                                            {childrenAges
+                                              .slice(0, roomchildCount)
+                                              .map((age, index) => (
+                                                <div
+                                                  key={index}
+                                                  className="mb-4 flex items-center gap-4 justify-between"
+                                                >
+                                                  <h6 className="textsizes">
+                                                    Child&nbsp;{index + 1}
+                                                  </h6>
+                                                  <select
+                                                    className="border border-gray-300 rounded-sm py-1 px-2 w-full focus:outline-none text-xs"
+                                                    value={age || ""}
+                                                    onChange={(e) =>
+                                                      handleChildAgeChange(
+                                                        index,
+                                                        parseInt(e.target.value)
+                                                      )
+                                                    }
+                                                  >
+                                                    <option value="" disabled>
+                                                      Select
+                                                    </option>
+                                                    {Array.from(
+                                                      { length: 18 },
+                                                      (_, i) => i
+                                                    ).map((num) => (
+                                                      <option
+                                                        key={num}
+                                                        value={num}
+                                                      >
+                                                        {num} Yrs
+                                                      </option>
+                                                    ))}
+                                                  </select>
+                                                </div>
+                                              ))}
+                                          </div>
+                                        )}
 
                                         {/* Apply Button */}
                                         <button
@@ -2936,10 +3535,14 @@ function Home() {
                                         >
                                           Apply
                                         </button>
-
                                       </div>
                                     )}
                                   </div>
+                                  {errors.roomCount && (
+                                    <span className="text-red-500 text-xs px-2">
+                                      {errors.roomCount}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -2958,6 +3561,995 @@ function Home() {
                               SEARCH
                             </button>
                           </form>
+                        )}
+                        {activeForm === "cab" && (
+                          <div
+                            className="cab-form "
+                          // onSubmit={handleCabSearch}
+                          >
+                            <div className=" cab-box ">
+                              <div className="flex gap-4">
+                                {/* Radio Buttons */}
+                                {[
+                                  "Local",
+                                  "Round Trip (Outstation)",
+                                  "MultiCity (Outstation)",
+                                  "Oneway",
+                                ].map((type) => (
+                                  <div
+                                    key={type}
+                                    className="inline-flex items-center gap-1 cursor-pointer"
+                                    onClick={() => setSelectedCabType(type)}
+                                  >
+                                    <input
+                                      type="radio"
+                                      name="cabType"
+                                      className="w-4 h-3"
+                                      checked={selectedCabType === type}
+                                      onChange={() => setSelectedCabType(type)}
+                                    />
+                                    <span className="text-sm cursor-pointer">
+                                      {type}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                              {selectedCabType === "Local" ? (
+                                <from className="cab-container flex flex-cols ">
+                                  <div className="from-cab-group">
+                                    <div className="location-headers">
+                                      Pickup City
+                                    </div>
+                                    <div className="location-details relative">
+                                      <input
+                                        type="text"
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholder="Select Pickup City"
+                                        value={selectedCabInput}
+                                        onChange={handleInputChangeCab}
+                                        onFocus={() => setShowDropdownCab(true)}
+                                        onBlur={() =>
+                                          setTimeout(
+                                            () => setShowDropdownCab(false),
+                                            200
+                                          )
+                                        }
+                                        disabled={isLoading}
+                                      />
+
+                                      {isLoading && (
+                                        <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                          <div className="text-center py-2">
+                                            Loading cities...
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {error && (
+                                        <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                          <div className="text-red-500 text-center py-2">
+                                            {error}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {showDropdownCab &&
+                                        !isLoading &&
+                                        !error &&
+                                        filteredCitiesCab.length > 0 && (
+                                          <ul className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full max-h-60 overflow-auto shadow-lg">
+                                            {filteredCitiesCab.map((city) => (
+                                              <li
+                                                key={city.city_id}
+                                                className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                                                onMouseDown={() =>
+                                                  handleSelectCity(city)
+                                                }
+                                              >
+                                                <div className="font-medium">
+                                                  {city.city_name}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                  {city.google_city_name}
+                                                </div>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+
+                                      {showDropdownCab &&
+                                        !isLoading &&
+                                        filteredCitiesCab.length === 0 && (
+                                          <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                            <div className="text-center py-2 text-gray-500">
+                                              No cities found
+                                            </div>
+                                          </div>
+                                        )}
+                                          {errors.pickupCity && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupCity}</div>
+          )}
+                                    </div>
+                                  </div>
+
+                                  <div className="from-cab-group">
+                                    <div className="cab-headers">
+                                      Pickup Date
+                                    </div>
+                                    <div className="location-details relative">
+                                      <DatePicker
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholderText="Select Pickup Date"
+                                        selected={selectedDate} // Your state variable for the selected date
+                                        onChange={(date) => {
+                                          setSelectedDate(date);
+                                          setErrors(prev => ({ ...prev, pickupDate: '' }));
+                                          setShowDropdown5(false); // Close the dropdown if needed
+                                        }}
+                                        dateFormat="dd/MM/yyyy"
+                                        minDate={new Date()} // Optional: restrict to future dates
+                                        onFocus={() => setShowDropdown5(true)}
+                                        onBlur={() =>
+                                          setTimeout(
+                                            () => setShowDropdown5(false),
+                                            200
+                                          )
+                                        }
+                                        open={showDropdown5} // Control visibility
+                                        onClickOutside={() =>
+                                          setShowDropdown5(false)
+                                        }
+                                      />
+                                    </div>
+                                    {errors.pickupDate && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupDate}</div>
+          )}
+                                  </div>
+
+                                  <div className="from-cab-group">
+                                    <div className="cab-headers">
+                                      Pickup Time
+                                    </div>
+                                    <div className="location-details relative">
+                                      <DatePicker
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholderText="Select Pickup Time"
+                                        selected={selectedTime}
+                                        onChange={(time) => {
+                                          setSelectedTime(time);
+                                          setErrors(prev => ({ ...prev, pickupTime: '' })); // Clear time error
+                                        }}
+                                        showTimeSelect
+                                        showTimeSelectOnly
+                                        timeIntervals={15}
+                                        timeCaption="Time"
+                                        dateFormat="h:mm aa"
+                                        onFocus={() =>
+                                          setShowTimeDropdown(true)
+                                        }
+                                        onBlur={() =>
+                                          setTimeout(
+                                            () => setShowTimeDropdown(false),
+                                            200
+                                          )
+                                        }
+                                        open={showTimeDropdown}
+                                      />
+                                    </div>
+                                    {errors.pickupTime && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupTime}</div>
+          )}
+                                  </div>
+                                </from>
+                              ) : selectedCabType ===
+                                "Round Trip (Outstation)" ? (
+                                <><from className="cab-container flex flex-cols ">
+                                  <div className="from-cab-group">
+                                    <div className="location-headers">
+                                      From City
+                                    </div>
+                                    <div className="location-details relative">
+                                      <input
+                                        type="text"
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholder="Select Pickup City"
+                                        value={selectedCabInput}
+                                        onChange={handleInputChangeCab}
+                                        onFocus={() => setShowDropdownCab(true)}
+                                        onBlur={() => setTimeout(
+                                          () => setShowDropdownCab(false),
+                                          200
+                                        )}
+                                        disabled={isLoading} />
+
+                                      {isLoading && (
+                                        <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                          <div className="text-center py-2">
+                                            Loading cities...
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {error && (
+                                        <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                          <div className="text-red-500 text-center py-2">
+                                            {error}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {showDropdownCab &&
+                                        !isLoading &&
+                                        !error &&
+                                        filteredCitiesCab.length > 0 && (
+                                          <ul className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full max-h-60 overflow-auto shadow-lg">
+                                            {filteredCitiesCab.map((city) => (
+                                              <li
+                                                key={city.city_id}
+                                                className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                                                onMouseDown={() => handleSelectCity(city)}
+                                              >
+                                                <div className="font-medium">
+                                                  {city.city_name}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                  {city.google_city_name}
+                                                </div>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+
+                                      {showDropdownCab &&
+                                        !isLoading &&
+                                        filteredCitiesCab.length === 0 && (
+                                          <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                            <div className="text-center py-2 text-gray-500">
+                                              No cities found
+                                            </div>
+                                          </div>
+                                        )}
+                                          {errors.pickupCity && (
+            <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupCity}</div>
+          )}
+                                    </div>
+                                  </div>
+                                  <div className="from-cab-group">
+                                    <div className="cab-headers">To City</div>
+                                    <div className="location-details relative">
+                                      <input
+                                        type="text"
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholder="Select Drop City"
+                                        value={selectedDropCity}
+                                        onChange={handleInputChangeDrop}
+                                        
+                                        onFocus={() => setShowDropdownDrop(true)}
+                                        onBlur={() => setTimeout(
+                                          () => setShowDropdownDrop(false),
+                                          200
+                                        )}
+                                        disabled={isLoading} />
+
+                                      {isLoading && (
+                                        <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                          <div className="text-center py-2">
+                                            Loading cities...
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {error && (
+                                        <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                          <div className="text-red-500 text-center py-2">
+                                            {error}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {showDropdownDrop &&
+                                        !isLoading &&
+                                        !error &&
+                                        filteredCitiesDrop.length > 0 && (
+                                          <ul className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full max-h-60 overflow-auto shadow-lg">
+                                            {filteredCitiesDrop.map((city) => (
+                                              <li
+                                                key={city.city_id}
+                                                className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                                                onMouseDown={() => handleSelectDropCity(city)}
+                                              >
+                                                <div className="font-medium">
+                                                  {city.city_name}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                  {city.google_city_name}
+                                                </div>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+
+                                      {showDropdownDrop &&
+                                        !isLoading &&
+                                        filteredCitiesDrop.length === 0 && (
+                                          <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                            <div className="text-center py-2 text-gray-500">
+                                              No cities found
+                                            </div>
+                                          </div>
+                                        )}
+                                          {errors.dropCity && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.dropCity}</div>
+          )}
+                                    </div>
+                                  
+                                  </div>
+
+                                  <div className="from-cab-group">
+                                    <div className="cab-headers">
+                                      Pickup Date
+                                    </div>
+                                    <div className="location-details relative">
+                                      <DatePicker
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholderText="Select Pickup Date"
+                                        selected={selectedDate} // Your state variable for the selected date
+                                        onChange={(date) => {
+                                          setSelectedDate(date);
+                                          setErrors(prev => ({ ...prev, pickupDate: '' }));
+                                          setShowDropdown5(false); // Close the dropdown if needed
+                                        }}
+                                        dateFormat="dd/MM/yyyy"
+                                        minDate={new Date()} // Optional: restrict to future dates
+                                        onFocus={() => setShowDropdown5(true)}
+                                        onBlur={() => setTimeout(
+                                          () => setShowDropdown5(false),
+                                          200
+                                        )}
+                                        open={showDropdown5} // Control visibility
+                                        onClickOutside={() => setShowDropdown5(false)} />
+                                    </div>
+                                    {errors.pickupDate && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupDate}</div>
+          )}
+                                  </div>
+                                  <div className="from-cab-group">
+                                    <div className="cab-headers">Drop Date</div>
+                                    <div className="location-details relative">
+                                      <DatePicker
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholderText="Select Drop Date"
+                                        selected={dropDate}
+                                        onChange={(date) => {
+                                          setDropDate(date);
+                                          setErrors(prev => ({ ...prev, dropDate: '' })); // Clear drop date error
+                                          setShowDropDatePicker(false);
+                                        }}
+                                        dateFormat="dd/MM/yyyy"
+                                        minDate={selectedDate}
+                                        onFocus={() => setShowDropDatePicker(true)}
+                                        onBlur={() => setTimeout(
+                                          () => setShowDropDatePicker(false),
+                                          200
+                                        )}
+                                        open={showDropDatePicker}
+                                        onClickOutside={() => setShowDropDatePicker(false)} />
+                                    </div>
+                                    {errors.dropDate && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.dropDate}</div>
+          )}
+                                  </div>
+                                  <div className="from-cab-group">
+                                    <div className="cab-headers">
+                                      Pickup Time
+                                    </div>
+                                    <div className="location-details relative">
+                                      <DatePicker
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholderText="Select Pickup Time"
+                                        selected={selectedTime}
+                                        onChange={(time) => {
+                                          setSelectedTime(time);
+                                          setErrors(prev => ({ ...prev, pickupTime: '' })); // Clear time error
+                                        }}
+                                        showTimeSelect
+                                        showTimeSelectOnly
+                                        timeIntervals={15}
+                                        timeCaption="Time"
+                                        dateFormat="h:mm aa"
+                                        onFocus={() => setShowTimeDropdown(true)}
+                                        onBlur={() => setTimeout(
+                                          () => setShowTimeDropdown(false),
+                                          200
+                                        )}
+                                        open={showTimeDropdown} />
+                                    </div>
+                                    {errors.pickupTime && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupTime}</div>
+          )}
+                                  </div>
+                                </from><>
+                                    {roundTripStopsVisible && (
+
+                                      <div className="text-sm font-medium text-gray-700 my-2 px-2 py-2">
+                                        Your Round Trip plan |{" "}
+                                        {[selectedCabInput, ...roundTripStopInputs, selectedDropCity,selectedCabInput]
+                                          .filter(Boolean)
+                                          .map(location => location.split(',')[0].trim()) // Get first part before comma
+                                          .join(" → ")}
+                                      </div>
+                                    )}
+                                    {roundTripStopInputs.map((value, index) => (
+                                      <div key={index} className="relative mb-2 mt-2">
+                                        <input
+                                          type="text"
+                                          ref={(el) => (roundTripInputRefs.current[index] = el)}
+                                          value={value}
+                                          onChange={(e) => handleRoundTripInputChange(index, e.target.value)}
+                                          placeholder="Enter city name"
+                                          className="w-full rounded-lg px-3 py-2 pr-8 text-xs border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                        <span
+                                          className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
+                                          onClick={() => handleRemoveRoundTripStop(index)}
+                                        >
+                                          ×
+                                        </span>
+                                      </div>
+                                    ))}
+
+                                    <div className="relative">
+                                      <button
+                                        className="text-sm text-blue-500 py-2 px-2 cursor-pointer hover:text-blue-700 transition-colors"
+                                        onClick={handleAddRoundTripStop}
+                                      >
+                                        Add More Stops
+                                      </button>
+                                      {RoundTripcityLimitError && (
+                                        <div className="text-xs text-red-500 mt-1">{RoundTripcityLimitError}</div>
+                                      )}
+                                    </div>
+                                  </></>
+
+
+                              ) : selectedCabType ===
+                                "MultiCity (Outstation)" ? (
+                                <>
+                                  <from className="cab-container flex flex-cols ">
+                                    <div className="from-cab-group">
+                                      <div className="location-headers">
+                                        Pickup City
+                                      </div>
+                                      <div className="location-details relative">
+                                        <input
+                                          type="text"
+                                          className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                          placeholder="Select Pickup City"
+                                          value={selectedCabInput}
+                                          onChange={handleInputChangeCab}
+                                          onFocus={() =>
+                                            setShowDropdownCab(true)
+                                          }
+                                          onBlur={() =>
+                                            setTimeout(
+                                              () => setShowDropdownCab(false),
+                                              200
+                                            )
+                                          }
+                                          disabled={isLoading}
+                                        />
+
+                                        {isLoading && (
+                                          <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                            <div className="text-center py-2">
+                                              Loading cities...
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {error && (
+                                          <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                            <div className="text-red-500 text-center py-2">
+                                              {error}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {showDropdownCab &&
+                                          !isLoading &&
+                                          !error &&
+                                          filteredCitiesCab.length > 0 && (
+                                            <ul className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full max-h-60 overflow-auto shadow-lg">
+                                              {filteredCitiesCab.map((city) => (
+                                                <li
+                                                  key={city.city_id}
+                                                  className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                                                  onMouseDown={() =>
+                                                    handleSelectCity(city)
+                                                  }
+                                                >
+                                                  <div className="font-medium">
+                                                    {city.city_name}
+                                                  </div>
+                                                  <div className="text-xs text-gray-500">
+                                                    {city.google_city_name}
+                                                  </div>
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          )}
+
+                                        {showDropdownCab &&
+                                          !isLoading &&
+                                          filteredCitiesCab.length === 0 && (
+                                            <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                              <div className="text-center py-2 text-gray-500">
+                                                No cities found
+                                              </div>
+                                            </div>
+                                          )}
+                                            {errors.pickupCity && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupCity}</div>
+          )}
+                                      </div>
+                                    </div>
+
+                                    <div className="from-cab-group">
+                                      <div className="cab-headers">
+                                        Pickup Date
+                                      </div>
+                                      <div className="location-details relative">
+                                        <DatePicker
+                                          className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                          placeholderText="Select Pickup Date"
+                                          selected={selectedDate} // Your state variable for the selected date
+                                          onChange={(date) => {
+                                            setSelectedDate(date);
+                                            setErrors(prev => ({ ...prev, pickupDate: '' }));
+                                            setShowDropdown5(false); // Close the dropdown if needed
+                                          }}
+                                          dateFormat="dd/MM/yyyy"
+                                          minDate={new Date()} // Optional: restrict to future dates
+                                          onFocus={() => setShowDropdown5(true)}
+                                          onBlur={() =>
+                                            setTimeout(
+                                              () => setShowDropdown5(false),
+                                              200
+                                            )
+                                          }
+                                          open={showDropdown5} // Control visibility
+                                          onClickOutside={() =>
+                                            setShowDropdown5(false)
+                                          }
+                                        />
+                                      </div>
+                                      {errors.pickupDate && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupDate}</div>
+          )}
+                                    </div>
+                                    <div className="from-cab-group">
+                                      <div className="cab-headers">
+                                        Drop Date
+                                      </div>
+                                      <div className="location-details relative">
+                                        <DatePicker
+                                          className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                          placeholderText="Select Drop Date"
+                                          selected={dropDate}
+                                          onChange={(date) => {
+                                            setDropDate(date);
+                                            setErrors(prev => ({ ...prev, dropDate: '' })); // Clear drop date error
+                                            setShowDropDatePicker(false);
+                                          }}
+                                          dateFormat="dd/MM/yyyy"
+                                          minDate={selectedDate}
+                                          onFocus={() =>
+                                            setShowDropDatePicker(true)
+                                          }
+                                          onBlur={() =>
+                                            setTimeout(
+                                              () =>
+                                                setShowDropDatePicker(false),
+                                              200
+                                            )
+                                          }
+                                          open={showDropDatePicker}
+                                          onClickOutside={() =>
+                                            setShowDropDatePicker(false)
+                                          }
+                                        />
+                                      </div>
+                                      {errors.dropDate && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.dropDate}</div>
+          )}
+                                    </div>
+                                    <div className="from-cab-group">
+                                      <div className="cab-headers">
+                                        Pickup Time
+                                      </div>
+                                      <div className="location-details relative">
+                                        <DatePicker
+                                          className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                          placeholderText="Select Pickup Time"
+                                          selected={selectedTime}
+                                          onChange={(time) => {
+                                            setSelectedTime(time);
+                                            setErrors(prev => ({ ...prev, pickupTime: '' })); // Clear time error
+                                          }}
+                                          showTimeSelect
+                                          showTimeSelectOnly
+                                          timeIntervals={15}
+                                          timeCaption="Time"
+                                          dateFormat="h:mm aa"
+                                          onFocus={() =>
+                                            setShowTimeDropdown(true)
+                                          }
+                                          onBlur={() =>
+                                            setTimeout(
+                                              () => setShowTimeDropdown(false),
+                                              200
+                                            )
+                                          }
+                                          open={showTimeDropdown}
+                                        />
+                                      </div>
+                                      {errors.pickupTime && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupTime}</div>
+          )}
+                                    </div>
+                                  </from>
+                                  {/* {cabCities && (
+
+                               
+                                  <div className="text-sm font-medium text-gray-700 my-2 px-2 py-2">
+                                    Your multi city plan |  {[selectedCabInput, ...cityInputs]
+                                      .filter(Boolean)
+                                      .map(city => city.split(',')[0].trim())
+                                      .join(' → ')}
+                                     
+                                  </div>
+                                   )}
+
+
+                                  {cityInputs.map((value, index) => {
+                                    const filteredOptions = allCities.filter((city) =>
+                                      `${city.city_name}, ${city.state_name}`.toLowerCase().includes(value.toLowerCase())
+                                    );
+
+                                    return (
+                                      <div key={index} className="relative mb-2 mt-2">
+                                        <input
+                                          type="text"
+                                          autoFocus
+                                          value={value}
+                                          onChange={(e) => handleCityInputChange(index, e.target.value)}
+                                          placeholder="Enter city name"
+                                          className="w-full rounded-lg px-3 py-2 pr-8 text-xs border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 cab_names"
+                                        />
+                                        <span
+                                          className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
+                                          onClick={() => handleRemoveCityInput(index)}
+                                        >
+                                          ×
+                                        </span>
+
+                                        {value && filteredOptions.length > 0 && value !== filteredOptions[0]?.city_name + ', ' + filteredOptions[0]?.state_name && (
+                                          <ul className="absolute z-10 bg-white border border-gray-300 w-full max-h-40 overflow-y-auto rounded-md mt-1 shadow-lg">
+                                            {filteredOptions.map((city, i) => (
+                                              <li
+                                                key={i}
+                                                onClick={() => {
+                                                  handleCityInputChange(index, `${city.city_name}, ${city.state_name}`);
+                                                }}
+                                                className="px-3 py-1 text-sm cursor-pointer hover:bg-blue-100"
+                                              >
+                                                {city.city_name}, {city.state_name}
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+
+
+                                  <div className="relative">
+                                    <button
+                                      className="text-sm text-blue-500 py-2 px-2 cursor-pointer hover:text-blue-700 transition-colors"
+                                      onClick={handleAddCityInput}
+                                    >
+                                      Add More Stops
+                                    </button>
+                                  </div> */}
+                                  {multiStopsVisible && (
+                                    <div className="text-sm font-medium text-gray-700 my-2 px-2 py-2">
+                                      Your multi city plan |{" "}
+                                      {[selectedCabInput, ...stopInputs]
+                                        .filter(Boolean)
+                                        .map(location => location.split(',')[0].trim()) // Get first part before comma
+                                        .join(" → ")}
+                                    </div>
+                                  )}
+
+                                  {stopInputs.map((value, index) => (
+                                    <div
+                                      key={index}
+                                      className="relative mb-2 mt-2"
+                                    >
+                                      <input
+                                        type="text"
+                                        ref={(el) =>
+                                          (inputRefs.current[index] = el)
+                                        }
+                                        value={value}
+                                        onChange={(e) =>
+                                          handleInputChangeCIties(
+                                            index,
+                                            e.target.value
+                                          )
+                                        }
+                                        placeholder="Enter city name"
+                                        className="w-full rounded-lg px-3 py-2 pr-8 text-xs border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 cab_names"
+                                      />
+                                      <span
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
+                                        onClick={() => handleRemoveStop(index)}
+                                      >
+                                        ×
+                                      </span>
+                                    </div>
+                                  ))}
+
+                                  <div className="relative">
+                                    <button
+                                      className="text-sm text-blue-500 py-2 px-2 cursor-pointer hover:text-blue-700 transition-colors"
+                                      onClick={handleAddStop}
+                                    >
+                                      Add More Stops
+                                    </button>
+                                    {cityLimitError && (
+                                      <div className="text-xs text-red-500 mt-1">{cityLimitError}</div>
+                                    )}
+                                  </div>
+
+                                </>
+                              ) : selectedCabType === "Oneway" ? (
+                                <from className="cab-container flex flex-cols ">
+                                  <div className="from-cab-group">
+                                    <div className="location-headers">
+                                      Pickup City
+                                    </div>
+                                    <div className="location-details relative">
+                                      <input
+                                        type="text"
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholder="Select Pickup City"
+                                        value={selectedCabInput}
+                                        onChange={handleInputChangeCab}
+                                        onFocus={() => setShowDropdownCab(true)}
+                                        onBlur={() =>
+                                          setTimeout(
+                                            () => setShowDropdownCab(false),
+                                            200
+                                          )
+                                        }
+                                        disabled={isLoading}
+                                      />
+
+                                      {isLoading && (
+                                        <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                          <div className="text-center py-2">
+                                            Loading cities...
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {error && (
+                                        <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                          <div className="text-red-500 text-center py-2">
+                                            {error}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {showDropdownCab &&
+                                        !isLoading &&
+                                        !error &&
+                                        filteredCitiesCab.length > 0 && (
+                                          <ul className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full max-h-60 overflow-auto shadow-lg">
+                                            {filteredCitiesCab.map((city) => (
+                                              <li
+                                                key={city.city_id}
+                                                className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                                                onMouseDown={() =>
+                                                  handleSelectCity(city)
+                                                }
+                                              >
+                                                <div className="font-medium">
+                                                  {city.city_name}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                  {city.google_city_name}
+                                                </div>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+
+                                      {showDropdownCab &&
+                                        !isLoading &&
+                                        filteredCitiesCab.length === 0 && (
+                                          <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                            <div className="text-center py-2 text-gray-500">
+                                              No cities found
+                                            </div>
+                                          </div>
+                                        )}
+                                          {errors.pickupCity && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupCity}</div>
+          )}
+                                    </div>
+                                  </div>
+                                  <div className="from-cab-group">
+                                    <div className="cab-headers">Drop City</div>
+                                    <div className="location-details relative">
+                                      <input
+                                        type="text"
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholder="Select Drop City"
+                                        value={selectedDropCity}
+                                        onChange={handleInputChangeDrop}
+                                        onFocus={() =>
+                                          setShowDropdownDrop(true)
+                                        }
+                                        onBlur={() =>
+                                          setTimeout(
+                                            () => setShowDropdownDrop(false),
+                                            200
+                                          )
+                                        }
+                                        disabled={isLoading}
+                                      />
+
+                                      {isLoading && (
+                                        <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                          <div className="text-center py-2">
+                                            Loading cities...
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {error && (
+                                        <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                          <div className="text-red-500 text-center py-2">
+                                            {error}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {showDropdownDrop &&
+                                        !isLoading &&
+                                        !error &&
+                                        filteredCitiesDrop.length > 0 && (
+                                          <ul className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full max-h-60 overflow-auto shadow-lg">
+                                            {filteredCitiesDrop.map((city) => (
+                                              <li
+                                                key={city.city_id}
+                                                className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                                                onMouseDown={() =>
+                                                  handleSelectDropCity(city)
+                                                }
+                                              >
+                                                <div className="font-medium">
+                                                  {city.city_name}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                  {city.google_city_name}
+                                                </div>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+
+                                      {showDropdownDrop &&
+                                        !isLoading &&
+                                        filteredCitiesDrop.length === 0 && (
+                                          <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full p-2">
+                                            <div className="text-center py-2 text-gray-500">
+                                              No cities found
+                                            </div>
+                                          </div>
+                                        )}
+                                    </div>
+                                    {errors.dropCity && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.dropCity}</div>
+          )}
+                                  </div>
+
+                                  <div className="from-cab-group">
+                                    <div className="cab-headers">
+                                      Pickup Date
+                                    </div>
+                                    <div className="location-details relative">
+                                      <DatePicker
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholderText="Select Pickup Date"
+                                        selected={selectedDate} // Your state variable for the selected date
+                                        onChange={(date) => {
+                                          setSelectedDate(date);
+                                          setErrors(prev => ({ ...prev, pickupDate: '' }));
+                                          setShowDropdown5(false); // Close the dropdown if needed
+                                        }}
+                                        dateFormat="dd/MM/yyyy"
+                                        minDate={new Date()} // Optional: restrict to future dates
+                                        onFocus={() => setShowDropdown5(true)}
+                                        onBlur={() =>
+                                          setTimeout(
+                                            () => setShowDropdown5(false),
+                                            200
+                                          )
+                                        }
+                                        open={showDropdown5} // Control visibility
+                                        onClickOutside={() =>
+                                          setShowDropdown5(false)
+                                        }
+                                      />
+                                    </div>
+                                    {errors.pickupDate && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupDate}</div>
+          )}
+                                  </div>
+
+                                  <div className="from-cab-group">
+                                    <div className="cab-headers">
+                                      Pickup Time
+                                    </div>
+                                    <div className="location-details relative">
+                                      <DatePicker
+                                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                                        placeholderText="Select Pickup Time"
+                                        selected={selectedTime}
+                                        onChange={(time) => {
+                                          setSelectedTime(time);
+                                          setErrors(prev => ({ ...prev, pickupTime: '' })); // Clear time error
+                                        }}
+                                        showTimeSelect
+                                        showTimeSelectOnly
+                                        timeIntervals={15}
+                                        timeCaption="Time"
+                                        dateFormat="h:mm aa"
+                                        onFocus={() =>
+                                          setShowTimeDropdown(true)
+                                        }
+                                        onBlur={() =>
+                                          setTimeout(
+                                            () => setShowTimeDropdown(false),
+                                            200
+                                          )
+                                        }
+                                        open={showTimeDropdown}
+                                      />
+                                    </div>
+                                    {errors.pickupTime && (
+           <div className="text-red-500 text-xs mt-1 px-2.5">{errors.pickupTime}</div>
+          )}
+                                  </div>
+                                </from>
+                              ) : null}
+                            </div>
+                            <button
+                              type="submit"
+                              className="search-buttonn "
+                              style={{
+                                marginBottom: "-20px",
+                                marginLeft: "40%",
+                              }}
+                              onClick={handleSearchCab}
+                              id="btnSearch"
+                            >
+                              SEARCH
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
