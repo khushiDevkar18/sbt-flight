@@ -1,6 +1,7 @@
 
 .hotel-box {
   padding: 1px 21px 11px 21px;
+  margin-bottom: 24px;
   }
   .hotel-container {
     /* margin-bottom: 41px; */
@@ -49,7 +50,7 @@
   }
   .serach_button{
     position: absolute;
-    bottom: -105px;
+    bottom: -20px;
     left: 41%;
   }
   .dropdown-size{

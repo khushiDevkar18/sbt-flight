@@ -64,6 +64,8 @@ const SearchFlight = () => {
   const [BrandList, setBrandlist] = useState([]);
   // console.log('flightOptions', flightOptions);
   const [flightairoption, setFlightAirOptions] = useState([]);
+  const [flightairoptionarray, setFlightAirOptionsArray] = useState([]);
+  // console.log('flightairoptionarray', flightairoptionarray);
   const [flightDetails, setFlightDetails] = useState([]);
   const [actualFlightDetails, setActualFlightDetails] = useState([]);
   
@@ -309,16 +311,39 @@ const SearchFlight = () => {
   // console.log('taxesRef', taxesRef);
 
   const handleSegmentKeyMatch = (segmentKey) => {
+    console.log('segmentKey', segmentKey);
     setFareInfoRefsState([]);
-    const matchedBookingInfo = flightairoption.filter(
-      (bookingInfo) => bookingInfo['SegmentRef'] === segmentKey
-    );
-    setFareInfoRefsState([...matchedBookingInfo]);
+    const segmentKeys = Array.isArray(segmentKey) ? segmentKey : [segmentKey];
+    const matchedBookingInfo = flightairoptionarray.filter((option) => {
+      const bookingInfos = option["air:BookingInfo"];
+      const normalizedBookingInfos = Array.isArray(bookingInfos) ? bookingInfos : [bookingInfos];
+  
+      // Must match length
+      if (normalizedBookingInfos.length !== segmentKeys.length) return false;
+  
+      const segmentRefsInOption = normalizedBookingInfos.map(
+        (b) => b?.["$"]?.SegmentRef
+      );
+  
+      // Must contain exactly the same SegmentRefs as the segmentKeys (unordered match)
+      const isExactMatch =
+        segmentRefsInOption.every((ref) => segmentKeys.includes(ref)) &&
+        segmentKeys.every((ref) => segmentRefsInOption.includes(ref));
+  
+      return isExactMatch;
+    });
+    // console.log('matchedBookingInfo', matchedBookingInfo);
+    const firstBookingInfos = matchedBookingInfo.map((item) => {
+      const bookingInfos = item["air:BookingInfo"];
+      const normalizedBookingInfos = Array.isArray(bookingInfos) ? bookingInfos : [bookingInfos];
+      return normalizedBookingInfos[0]?.["$"] || {}; // Flatten the $
+    });
+    setFareInfoRefsState([...firstBookingInfos]);
   };
   // console.log('hello');
 
   const handleach = (fareInfoRefKey) => {
-    // console.log('fareInfoRefKey', fareInfoRefKey);
+    console.log('fareInfoRefKey', fareInfoRefKey);
     setLoading(true);
     setBookingpage(true);
     const bookingCode = fareInfoRefKey['BookingCode'];
@@ -328,7 +353,7 @@ const SearchFlight = () => {
         fareInfo.BookingCode === bookingCode &&
         allSegmentKeys.includes(fareInfo.SegmentRef) // Use allSegmentKeys from state for connecting flights
     );
-    // console.log("matchedData", matchedData);
+    console.log("matchedData", matchedData);
 
     const matchingFareInfo = FareList.find(
       (fareInfo) => fareInfo['$'] && fareInfo['$']['Key'] === fareInfoRefKey['FareInfoRef']
@@ -339,10 +364,8 @@ const SearchFlight = () => {
       (taxinfo) => taxinfo['Key'] === extractedtaxinfo
     );
     const totalTax = matchingTaxInfo['Amount'];
-    // console.log('price', matchingFareInfo['$']['Amount']);
-    // const price = matchingFareInfo['$']['Amount'];
 
-    const markup_price = calculateFinalMarkup((parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + parseFloat(totalTax.replace("INR", "").trim())), markupdata, cabinClass, matchingFareInfo['$']['FareFamily'], inputOrigin, flight_type);
+    const markup_price = calculateFinalMarkup((parseFloat(matchingFareInfo['$']['Amount'].replace("INR", "").trim()) + parseFloat(totalTax.replace("INR", "").trim())), markupdata);
     // console.log('markup_price', markup_price);
 
     const segmentArray = matchedData
@@ -740,9 +763,10 @@ const SearchFlight = () => {
           } else {
             const error = priceresult['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
             // ErrorLogger.logError('price_api',pricepointXML,error);
+            console.log('errror', error);
             Swal.fire({
               title: 'Something Went Wrong !',
-              text: 'Please try again later',
+              text: error,
               confirmButtonText: 'OK'
             });
           }
@@ -797,19 +821,10 @@ const SearchFlight = () => {
 
 
   };
-  const calculateFinalMarkup = (totalPrice, markup, seatType, fareName, airline, flighttype) => {
+  const calculateFinalMarkup = (totalPrice, markup) => {
     // Parse markup if it's a JSON string
     console.log('totalPrice for markup', totalPrice)
-    // if (typeof markup === "string") {
-    //   try {
-    //     markup = JSON.parse(markup);
-    //   } catch (error) {
-    //     return 0; // Return 0 if parsing fails
-    //   }
-    // }
 
-    // Ensure totalPrice is numeric for calculations
-    // const numericPrice = parseFloat(totalPrice.replace("INR", "").trim());
     const numericPrice = String(totalPrice).includes("INR")
       ? parseFloat(totalPrice.replace("INR", "").trim())
       : parseFloat(totalPrice);
@@ -858,48 +873,58 @@ const SearchFlight = () => {
 
           const extractedBookingInfo = [];
           const extractedTaxInfo = [];
+          const extractedOptionsArray = []; // <-- This is what you're asking for
+
           const pricepointlistArray = Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist];
+
           // Iterate through the AirPricePoint list
           pricepointlistArray.forEach((airPricePoint) => {
             const airPricingInfo = airPricePoint['air:AirPricingInfo'];
-            if (!airPricingInfo) return; // Skip if no AirPricingInfo is found
+            if (!airPricingInfo) return;
+
+            // Tax Info extraction
             const taxInfoList = airPricingInfo['air:TaxInfo'];
             const taxInfoArray = Array.isArray(taxInfoList) ? taxInfoList : taxInfoList ? [taxInfoList] : [];
 
             taxInfoArray.forEach((taxInfo) => {
-              if (taxInfo && taxInfo["$"] && taxInfo["$"].SupplierCode === "6E") {
-                extractedTaxInfo.push(taxInfo["$"]); // Only push if SupplierCode is "6E"
+              if (taxInfo?.["$"]?.SupplierCode === "6E") {
+                extractedTaxInfo.push(taxInfo["$"]);
               }
             });
 
             const flightOptionsList = airPricingInfo['air:FlightOptionsList'];
-            if (!flightOptionsList) return; // Skip if no FlightOptionsList is found
+            if (!flightOptionsList) return;
 
             const flightOptions = flightOptionsList['air:FlightOption'];
-            const flightOptionArray = Array.isArray(flightOptions) ? flightOptions : [flightOptions]; // Normalize to array
+            const flightOptionArray = Array.isArray(flightOptions) ? flightOptions : [flightOptions];
 
-            // Iterate through each air:FlightOption
             flightOptionArray.forEach((flightOption) => {
               const options = flightOption['air:Option'];
-              const optionsArray = Array.isArray(options) ? options : [options]; // Normalize to array
+              const optionsArray = Array.isArray(options) ? options : [options];
 
-              // Iterate through each air:Option
               optionsArray.forEach((airOption) => {
                 const bookingInfo = airOption['air:BookingInfo'];
-                const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo]; // Normalize to array
+                const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
 
-                // Extract the "$" part from each bookingInfo
                 bookingInfoArray.forEach((info) => {
                   if (info && info["$"]) {
-                    extractedBookingInfo.push(info["$"]); // Push the extracted info into the result array
+                    extractedBookingInfo.push(info["$"]);
                   }
+                });
+
+                // 💡 Push only the 'air:BookingInfo' for each option (no '$' field)
+                extractedOptionsArray.push({
+                  "air:BookingInfo": Array.isArray(airOption["air:BookingInfo"])
+                    ? airOption["air:BookingInfo"]
+                    : [airOption["air:BookingInfo"]]
                 });
               });
             });
           });
 
-          // console.log("Extracted Booking Info:", extractedBookingInfo);
 
+          // console.log("extractedOptionsArray:", extractedOptionsArray);
+          setFlightAirOptionsArray(extractedOptionsArray)
           const Segmentlist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:AirSegmentList']['air:AirSegment'];
           const flightdetailist = result['SOAP:Envelope']['SOAP:Body']['air:LowFareSearchRsp']['air:FlightDetailsList']['air:FlightDetails'];
           const hosttokenlist = result?.['SOAP:Envelope']?.['SOAP:Body']?.['air:LowFareSearchRsp']?.['air:HostTokenList']?.['common_v52_0:HostToken'] || [];
@@ -910,7 +935,6 @@ const SearchFlight = () => {
           setBrandlist(Array.isArray(brandlist) ? brandlist : [brandlist]);
           setFlightDetails(Array.isArray(flightdetailist) ? flightdetailist : [flightdetailist]);
           setActualFlightDetails(Array.isArray(flightdetailist) ? flightdetailist : [flightdetailist]);
-          // sessionStorage.setItem('flightdetailist', flightdetailist);
           setSegment(Array.isArray(Segmentlist) ? Segmentlist : [Segmentlist]);
           setHostlist(Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist]);
           setFarelist(Array.isArray(fareinfolist) ? fareinfolist : [fareinfolist]);
@@ -1001,6 +1025,7 @@ const SearchFlight = () => {
   // console.log('selectedairline', selectedAirlines);
   const [selectedreturnAirlines, setreturnSelectedAirlines] = useState([]);
   const [selectedStops, setSelectedStops] = useState([]);
+  // const [selectedStops, setSelectedStops] = useState([]);
   const [selectedreturnStops, setreturnSelectedStops] = useState([]);
   const [selectedTimeRange, setSelectedTimeRange] = useState([]);
   // console.log('selectedTimeRange', selectedTimeRange);
@@ -1039,7 +1064,6 @@ const SearchFlight = () => {
       setreturnSelectedAirlines([...selectedreturnAirlines, airline]);
     }
   };
-
 
   const handleStopCheckboxChange = (stops) => {
     setSelectedStops((prevStops) =>
@@ -1456,7 +1480,7 @@ const SearchFlight = () => {
           const segmentKeys = segmentArray.map((segment) => segment["$"]["Key"]); // Get all segment keys
           setAllSegmentKeys(segmentKeys);
           const key = segmentArray[0]["$"]["Key"];
-          handleSegmentKeyMatch(key);
+          handleSegmentKeyMatch(segmentKeys);
           setLoading(false);
           return;
 
@@ -1490,9 +1514,12 @@ const SearchFlight = () => {
                 setsegmentpriceparse(Array.isArray(segmentpricereponse) ? segmentpricereponse : [segmentpricereponse]);
                 // setShow(true);
               } else {
+                const error = priceresult['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
+            // ErrorLogger.logError('price_api',pricepointXML,error);
+                console.log('errror', error);
                 Swal.fire({
                   title: 'Something Went Wrong !',
-                  text: 'Please try again later',
+                  text: error,
                   confirmButtonText: 'OK'
                 });
               }
@@ -1624,7 +1651,7 @@ const SearchFlight = () => {
 
     const SegmentParse = segmentpriceParse;
     // console.log('HostToken',HostToken);
-    // console.log('SegmentParse',SegmentParse);
+    console.log('SegmentParse',SegmentParse);
     let finaldeparturedate = '';
     let finalreturndate = '';
     let finalarrivaldate = '';
@@ -1670,7 +1697,7 @@ const SearchFlight = () => {
         segment['$'].HostTokenRef = matchedEntry.hostTokenRef;
       }
     });
-    const markup_price = calculateFinalMarkup((parseFloat(priceParse[selectedprice]['$']['TotalPrice'].replace("INR", "").trim())), markupdata, cabinClass, extractFareName(priceParse[selectedprice]), inputOrigin, flight_type);
+    const markup_price = calculateFinalMarkup((parseFloat(priceParse[selectedprice]['$']['TotalPrice'].replace("INR", "").trim())), markupdata);
 
 
     const makeServicesRequest = async () => {
@@ -1747,6 +1774,7 @@ const SearchFlight = () => {
           fareInfoRefKey: fareInfoRefKey,
           markup_price: markup_price,
           flightDetails: actualFlightDetails,
+          segmentArray: SegmentParse
 
         };
         setLoading(false);
@@ -2114,7 +2142,8 @@ const SearchFlight = () => {
         const dynamicDestinationCode = searchtoCode;
         const dynamicDepTime = formattedsearchdeparture;
         const returndynamicDepTime = formattedsearchreturnDate;
-        const dynamicCabinType = cabinclass;
+        // const dynamicCabinType = cabinclass;
+        const dynamicCabinType = cabinclass || 'Economy';
         const PassengerCodeADT = adult;
         const PassengerCodeCNN = child;
         const PassengerCodeINF = infant;
@@ -2439,6 +2468,7 @@ const SearchFlight = () => {
       {
         fare_type: fareName || "Default Fare Name",
         price: farePrice || "Unknown",
+        markup: calculateFinalMarkup(farePrice, markupdata)
       },
     ];
 
@@ -2482,7 +2512,7 @@ const SearchFlight = () => {
             ...existingFlight,
             fare_details: [
               ...existingFlight.fare_details,
-              { fare_type: fareName, price: farePrice },
+              { fare_type: fareName, price: farePrice, markup: calculateFinalMarkup(farePrice, markupdata) },
             ],
           };
           return [
@@ -2607,18 +2637,6 @@ const SearchFlight = () => {
     }
   };
 
-  // Handle adding the CC email when the input loses focus (onBlur event)
-  // const handleAddCCEmailOnBlur = () => {
-  //   if (
-  //     typeof ccEmailInput === "string" &&
-  //     ccEmailInput.trim() !== "" &&
-  //     !ccEmails.includes(ccEmailInput.trim())
-  //   ) {
-  //     setCCEmails((prev) => [...prev, ccEmailInput.trim()]);
-  //     setCCEmailInput(""); // Clear input
-  //   }
-  // };
-
   const handleAddCCEmailOnBlur = () => {
     if (ccEmailInput.trim() !== "") {
       const newEmails = ccEmailInput.split(',').map(email => email.trim());
@@ -2701,6 +2719,7 @@ const SearchFlight = () => {
           const no_of_stops = Array.isArray(bookinfo) ? bookinfo.length - 1 : 0;
           // const fareDetails = flight.fare_details;
           const fareDetails = flight?.fare_details || null;
+          console.log('fareDetails', fareDetails);
 
           return {
             flight_no: flightDetail.map((detail) => detail.flight_no).join(", "),
@@ -3770,6 +3789,8 @@ const SearchFlight = () => {
                               )
                             ));
                             let uniqueStopsArray = Array.from(uniqueStops);
+                            
+
 
                             return (
                               <>
@@ -17401,7 +17422,7 @@ const SearchFlight = () => {
                                                               </div>
 
                                                               {/* {agent_id && ( */}
-                                                              <div className='buttonbook' >
+                                                              <div className='buttonbook'>
                                                                 <button type='button' className="continuebutton"
                                                                   style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }}
                                                                   onClick={() => handleselectedContinue(priceParseindex)}>
@@ -17425,11 +17446,6 @@ const SearchFlight = () => {
                                                                   ), // Ensure calculatedPrice is computed here
                                                                   extractFareName(priceParseData)
                                                                 )}
-                                                              // onClick={() => {
-                                                              //   const fareName = extractFareName(priceParseData);
-                                                              //   const farePrice = priceParseData['$']['TotalPrice']
-                                                              //   handleCheckboxChange(pricepoint["air:AirPricingInfo"], farePrice, fareName)
-                                                              // }}
                                                               >
                                                                 {
                                                                   selectedFlights.some((flight) => {

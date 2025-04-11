@@ -21,6 +21,7 @@ import HotelBookingCompleted from './HotelBookingCompleted';
 import ResultNotFound from './ResultNotFound';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CabResultNotFound from "./CabResultNotFound";
+import NewHome from "./NewHome";
 
 const App = () => {
   return (
@@ -30,6 +31,7 @@ const App = () => {
         <div className="content">
         <Routes>
           <Route exact path="/" element={<Home />}/>
+          <Route exact path="/NewHome" element={<NewHome />}/>
           <Route path="/SearchFlight" element={<SearchFlight />}/>
           <Route path="/FormTaxivaxi" element={<FormTaxivaxi />}/>
           <Route path="/bookingProcess" element={<Booking />}/>

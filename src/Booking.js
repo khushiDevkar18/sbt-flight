@@ -3,11 +3,24 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { parseString } from 'xml2js';
 import { Nav } from 'react-bootstrap';
-import Accordion from '@mui/material/Accordion';
-import AccordionActions from '@mui/material/AccordionActions';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+// import Accordion from '@mui/material/Accordion';
+// import AccordionActions from '@mui/material/AccordionActions';
+// import AccordionSummary from '@mui/material/AccordionSummary';
+// import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import {
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    AccordionActions,
+    Tooltip,
+    IconButton,
+  } from "@mui/material";
 import Swal from 'sweetalert2';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
@@ -50,8 +63,69 @@ const Booking = () => {
     const packageSelectedRef = useRef(null);
     const segmentParseRef = useRef(null);
 
+    const [mealorbeverage, setMealorbeverage] = useState([]);
+    console.log('mealorbeverage', mealorbeverage);
+    const [selectedMeals, setSelectedMeals] = useState([]);
+    const [currentSlide, setCurrentSlide] = useState(0); // Track current flight
+    console.log('selectedMeals', selectedMeals);
+
+    // const handleAddMeal = (meal) => {
+    //     console.log('meal', meal);
+    //     const newKey = meal?.['$']?.Key;
+      
+    //     const alreadyAdded = selectedMeals.some(
+    //       (m) => m?.['$']?.Key === newKey
+    //     );
+      
+    //     if (!alreadyAdded) {
+    //       setSelectedMeals((prev) => [...prev, meal]);
+    //     }
+    //   };
+    const handleAddMeal = (meal) => {
+        const newKey = meal?.['$']?.Key;
+        const segmentRef = meal?.segmentRef;
+        const flightKey = meal?.flightKey;
+      
+        const alreadyAdded = selectedMeals.some((m) => m?.['$']?.Key === newKey);
+      
+        if (!alreadyAdded) {
+          const mealWithMeta = {
+            ...meal,
+            segmentRef,
+            flightKey, // ✅ ensure it's added
+          };
+      
+          setSelectedMeals((prev) => [...prev, mealWithMeta]);
+        }
+      };
+    
+      
+
     const [packageSelected, setPackageSelected] = useState(packageSelectedd);
     console.log('asdfasdfkjasdfasd', packageSelected);
+    useEffect(() => {
+        const serviceoptionalsss = packageSelected?.['air:OptionalServices']?.['air:OptionalService'];
+      
+        const mealOrBeverageItems = Array.isArray(serviceoptionalsss)
+          ? serviceoptionalsss.filter(
+              (item) => item?.['$']?.['Type'] === 'MealOrBeverage'
+            )
+          : [];
+      
+        setMealorbeverage(mealOrBeverageItems); // safe to call here
+      }, [packageSelected]); // runs only when packageSelected changes
+    // const serviceoptionalsss = packageSelected?.['air:OptionalServices']?.['air:OptionalService'];
+
+    // const mealOrBeverageItems = Array.isArray(serviceoptionalsss)
+    // ? serviceoptionalsss.filter(
+    //     (item) => item?.['$']?.['Type'] === 'MealOrBeverage'
+    //     )
+    // : [];
+    // if(mealOrBeverageItems){
+    // setMealorbeverage(mealOrBeverageItems)}
+
+    // console.log('mealOrBeverageItems', mealOrBeverageItems);
+      
 
     const tripType = formtaxivaxi['trip_type'];
     const flightType = formtaxivaxi['flight_type'];
@@ -86,13 +160,14 @@ const Booking = () => {
     const markup_price = location.state && location.state.serviceData.markup_price;
     const flightDetails = location.state && location.state.serviceData.flightDetails;
     const actualFlightDetails = location.state && location.state.serviceData.flightDetails;
-    console.log('flightDetails', flightDetails);
+    // console.log('flightDetails', flightDetails);
 
     const [accordion1Expanded, setAccordion1Expanded] = useState(true);
     const [accordion5Expanded, setAccordion5Expanded] = useState(false);
     const [flightErrors, setFlighterrors] = useState([]);
     const [accordion2Expanded, setAccordion2Expanded] = useState(false);
     const [accordion3Expanded, setAccordion3Expanded] = useState(false);
+    const [accordion6Expanded, setAccordion6Expanded] = useState(false);
     const [accordion4Expanded, setAccordion4Expanded] = useState(false);
     const [passengerDetailsVisible, setPassengerDetailsVisible] = useState(true);
     const [seattravelerparse, setseattravelerparse] = useState(null);
@@ -104,6 +179,7 @@ const Booking = () => {
     const [Passengers, setPassengers] = useState(null);
     const [seatrowsParse, setseatrowsparse] = useState(null);
     const [serviceoptionalsOptions, setserviceoptionalsOptions] = useState([]);
+    console.log('serviceoptionalsOptions', serviceoptionalsOptions);
     const [serviceSegments, setserviceSegments] = useState([]);
     const [seatresponseparse, setseatresponseparse] = useState(null);
     const [emptyseatmap, setemptyseatmap] = useState(false);
@@ -137,6 +213,48 @@ const Booking = () => {
     }
 
     const mergedData = { ...emptaxivaxi };
+    const [currentSegmentKey, setCurrentSegmentKey] = useState('');
+
+    const mealMapByFlight = segmentArray1.map((segment) => {
+        const flightKey = segment?.['$']?.Key;
+      
+        const mealsForThisFlight = mealorbeverage.filter(
+          (meal) =>
+            meal?.['common_v52_0:ServiceData']?.['$']?.AirSegmentRef === flightKey
+        );
+      
+        return {
+          flightKey,
+          flightNumber: segment?.['$']?.FlightNumber,
+          origin: segment?.['$']?.Origin,
+          destination: segment?.['$']?.Destination,
+          meals: mealsForThisFlight,
+        };
+      });
+      console.log('mealMapByFlight',mealMapByFlight);
+      segmentArray1.map((segment, i) => (
+        <Tab
+          key={i}
+          label={`Segment ${i + 1}`} // or any label you like
+          onClick={() => {
+            const segmentKey = segment?.['$']?.Key;
+            setCurrentSegmentKey(segmentKey);
+          }}
+        />
+      ))
+      const [selectedSegmentKey, setSelectedSegmentKey] = useState(
+        segmentArray1?.[0]?.['$']?.Key || ''
+      );
+      
+      const handleTabChange = (event, newValue) => {
+        setSelectedSegmentKey(newValue);
+      };
+      
+      // Filter meals based on selected segment key
+      const selectedFlightData = mealMapByFlight.find(
+        (item) => item.flightKey === selectedSegmentKey
+      );
+
 
 
     if (Passengers) {
@@ -378,6 +496,12 @@ const Booking = () => {
                     const serviceSegmentlists = serviceresult['SOAP:Envelope']['SOAP:Body']['air:AirMerchandisingOfferAvailabilityRsp']['air:AirSolution']['air:AirSegment'];
                     setserviceoptionalsOptions(Array.isArray(serviceoptionalss) ? serviceoptionalss : [serviceoptionalss]);
                     setserviceSegments(Array.isArray(serviceSegmentlists) ? serviceSegmentlists : [serviceSegmentlists]);
+                    const mealOrBeverageItems = Array.isArray(serviceoptionalss)
+                    ? serviceoptionalss.filter(
+                        (item) => item?.['$']?.['Type'] === 'MealOrBeverage'
+                        )
+                    : [];
+                    setMealorbeverage(mealOrBeverageItems);
                 }
             } else {
                 const error = serviceresult['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
@@ -1311,6 +1435,7 @@ const Booking = () => {
             }
             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
             const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
+            const mainlocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
 
             var UniversalRecordRequest = {
                 "soap:Envelope": {
@@ -1451,6 +1576,7 @@ const Booking = () => {
                 fast_forward_charges: 0,
                 vip_service_charges: 0,
                 pnrcode: flightpnrCode,
+                universallocatorCode: mainlocatorCode,
                 applied_markup: markup_price,
                 actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
                 // flightDetails: segmenttaxivaxis,
@@ -2336,6 +2462,7 @@ console.log("fareInfoList",fareInfoList);
                                     fast_forward_charges: 0,
                                     vip_service_charges: 0,
                                     pnrcode: flightpnrCode,
+                                    universallocatorCode: universallocatorCode,
                                     applied_markup: markup_price,
                                     actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
                                     ...flightDetails,
@@ -2539,6 +2666,7 @@ console.log("fareInfoList",fareInfoList);
                                         fast_forward_charges: 0,
                                         vip_service_charges: 0,
                                         pnrcode: flightpnrCode,
+                                        universallocatorCode: universallocatorCode,
                                         applied_markup: markup_price,
                                         actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
                                         // flightDetails: segmenttaxivaxis,
@@ -5214,7 +5342,6 @@ console.log("fareInfoList",fareInfoList);
                                                                                                                                             const bookingInfo = packageSelected['air:AirPricingInfo']['air:BookingInfo'].find(
                                                                                                                                                 info => info['$']['FareInfoRef'] === fareInfo['$']['Key']
                                                                                                                                             );
-
                                                                                                                                             // Check if the segment's key matches the booking info's SegmentRef
                                                                                                                                             return bookingInfo && segment['$']['Key'] === bookingInfo['$']['SegmentRef'];
                                                                                                                                         }) .map(segment => {
@@ -5225,7 +5352,6 @@ console.log("fareInfoList",fareInfoList);
                                                                                                                                                 flight.$?.DepartureTime === segment['$']['DepartureTime'] &&
                                                                                                                                                 flight.$?.ArrivalTime === segment['$']['ArrivalTime']
                                                                                                                                             );
-
                                                                                                                                             return matchedFlightDetail?.$?.OriginTerminal ? ` T-${matchedFlightDetail.$.OriginTerminal}` : null;
                                                                                                                                         })
                                                                                                                                         .filter(Boolean)
@@ -6409,183 +6535,7 @@ console.log("fareInfoList",fareInfoList);
                                                                             </span>
                                                                         </div>
                                                                     </div>
-                                                                    {/* <div
-                                                                        className="booking-form"
-                                                                        style={{
-                                                                            marginLeft: 5,
-                                                                            marginRight: 5,
-                                                                            marginBottom: 0
-                                                                        }}
-                                                                    >
-                                                                        <div className="booking-form-i booking-form-i3">
-                                                                            <label>Address</label>
-                                                                            <div className="input">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    name="address"
-                                                                                    // defaultValue=""
-                                                                                    placeholder=""
-                                                                                    // readOnly={bookingid}
-                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_address'] ?
-                                                                                        emptaxivaxi[0]['home_address'] : ''
-                                                                                    }
-                                                                                />
-                                                                            </div>
-                                                                            <span
-                                                                                className="error-message address-message"
-                                                                                style={{
-                                                                                    display: "none",
-                                                                                    color: "red",
-                                                                                    fontWeight: "normal"
-                                                                                }}
-                                                                            >
-                                                                                Please enter Address.
-                                                                            </span>
-                                                                        </div>
-                                                                        <div className="booking-form-i booking-form-i3">
-                                                                            <label>Street</label>
-                                                                            <div className="input">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    name="street"
-                                                                                    placeholder=""
-                                                                                    // readOnly={bookingid}
-                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['home_address'] ?
-                                                                                        emptaxivaxi[0]['home_address'] : ''
-                                                                                    }
-                                                                                />
-                                                                            </div>
-                                                                            <span
-                                                                                className="error-message street-message"
-                                                                                style={{
-                                                                                    display: "none",
-                                                                                    color: "red",
-                                                                                    fontWeight: "normal"
-                                                                                }}
-                                                                            >
-                                                                                Please enter Street.
-                                                                            </span>
-                                                                        </div>
-                                                                    </div> */}
-                                                                    {/* <div
-                                                                        className="booking-form"
-                                                                        style={{
-                                                                            marginLeft: 5,
-                                                                            marginRight: 5,
-                                                                            marginBottom: 0
-                                                                        }}
-                                                                    >
-                                                                        <div className="booking-form-i booking-form-i3">
-                                                                            <label>City</label>
-                                                                            <div className="input">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    name="city"
-                                                                                    placeholder=""
-                                                                                    onKeyPress={handleKeyPress}
-                                                                                    // readOnly={bookingid}
-                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['city_name'] ?
-                                                                                        emptaxivaxi[0]['city_name'] : ''
-                                                                                    }
-                                                                                />
-                                                                            </div>
-                                                                            <span
-                                                                                className="error-message city-message"
-                                                                                style={{
-                                                                                    display: "none",
-                                                                                    color: "red",
-                                                                                    fontWeight: "normal"
-                                                                                }}
-                                                                            >
-                                                                                Please enter City.
-                                                                            </span>
-                                                                        </div>
-                                                                        <div className="booking-form-i booking-form-i3">
-                                                                            <label>State</label>
-                                                                            <div className="input">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    name="state"
-                                                                                    placeholder=""
-                                                                                    onKeyPress={handleKeyPress}
-                                                                                    // readOnly={bookingid}
-                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['state_name'] ?
-                                                                                        emptaxivaxi[0]['state_name'] : ''
-                                                                                    }
-
-                                                                                />
-                                                                            </div>
-                                                                            <span
-                                                                                className="error-message state-message"
-                                                                                style={{
-                                                                                    display: "none",
-                                                                                    color: "red",
-                                                                                    fontWeight: "normal"
-                                                                                }}
-                                                                            >
-                                                                                Please enter State.
-                                                                            </span>
-                                                                        </div>
-                                                                    </div> */}
-                                                                    {/* <div
-                                                                        className="booking-form"
-                                                                        style={{
-                                                                            marginLeft: 5,
-                                                                            marginRight: 5,
-                                                                            marginBottom: 0
-                                                                        }}
-                                                                    >
-                                                                        <div className="booking-form-i booking-form-i3">
-                                                                            <label>Postal Code</label>
-                                                                            <div className="input">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    name="postal_code"
-                                                                                    onKeyPress={handleNumberPress}
-                                                                                    maxLength={6}
-                                                                                    minLength={6}
-                                                                                    placeholder=""
-                                                                                    // readOnly={bookingid}
-                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['postal_code'] ?
-                                                                                        emptaxivaxi[0]['postal_code'] : ''
-                                                                                    }
-                                                                                />
-                                                                            </div>
-                                                                            <span
-                                                                                className="error-message postal_code-message"
-                                                                                style={{
-                                                                                    display: "none",
-                                                                                    color: "red",
-                                                                                    fontWeight: "normal"
-                                                                                }}
-                                                                            >
-                                                                                Please enter Pin code.
-                                                                            </span>
-                                                                        </div>
-                                                                        <div className="booking-form-i booking-form-i3">
-                                                                            <label>Country Code</label>
-                                                                            <div className="input">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    name="country"
-                                                                                    placeholder="Eg.IN"
-                                                                                    defaultValue={emptaxivaxi && emptaxivaxi[0] && emptaxivaxi[0]['country_code'] ?
-                                                                                        emptaxivaxi[0]['country_code'] : 'IN'
-                                                                                    }
-                                                                                />
-                                                                            </div>
-                                                                            <span
-                                                                                className="error-message country-message"
-                                                                                style={{
-                                                                                    display: "none",
-                                                                                    color: "red",
-                                                                                    fontWeight: "normal"
-                                                                                }}
-                                                                            >
-                                                                                Please enter Country.
-                                                                            </span>
-                                                                        </div>
-                                                                    </div> */}
+                                                                    
 
                                                                     <div className="booking-form-append" />
                                                                     <div className="add-passenger">
@@ -6650,7 +6600,164 @@ console.log("fareInfoList",fareInfoList);
 
                                                 </form>
                                                 <form onSubmit={(e) => handleCompleteBooking(e)}>
+                                                <Accordion
+  expanded={accordion6Expanded}
+  onChange={(event, isExpanded) => {
+    if (mealorbeverage.length > 0) {
+      setAccordion6Expanded(isExpanded);
+    }
+  }}
+>
+  <AccordionSummary
+    expandIcon={mealorbeverage.length > 0 ? <ExpandMoreIcon /> : null}
+    aria-controls="panel1-content"
+    id="panel1-header"
+    className="accordion"
+  >
+    <div className="flex items-center gap-2">
+      <img
+        src="/img/taxivaxi/meal_seats/user_icon.svg"
+        width="15px"
+        alt="User Icon"
+      />
+      <span>Meal Or Beverage</span>
+      {mealorbeverage.length === 0 ? (
+        <span className="extradisabled">Meal not provided</span>
+      ) : selectedMeals.length > 0 && (
+        <>
+          <span className="text-sm text-gray-500">
+            &nbsp; ({selectedMeals.length} Selected)
+          </span>
+          <Tooltip
+            title={
+              <div className="text-sm p-2">
+                {selectedMeals.map((meal, index) => {
+                  const displayText = meal?.['$']?.DisplayText || 'Meal';
+                  const price = meal?.['$']?.TotalPrice?.replace('INR', '₹').split('.')[0];
+                  return (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center gap-4"
+                    >
+                      <div>{displayText}</div>
+                      <div>{price}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            }
+            arrow
+          >
+            <IconButton size="small">
+              <InfoOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </>
+      )}
+    </div>
+  </AccordionSummary>
 
+  <AccordionDetails>
+  {/* Tabs for each flight segment */}
+  <div className="mb-4">
+    <Tabs
+      value={selectedSegmentKey}
+      onChange={handleTabChange}
+      variant="scrollable"
+      scrollButtons="auto"
+    >
+      {segmentArray1.map((segment, index) => {
+        const key = segment?.['$']?.Key;
+        const origin = handleAirport(segment?.['$']?.Origin);
+        const dest = handleAirport(segment?.['$']?.Destination);
+        return (
+          <Tab key={key} label={`${origin} → ${dest}`} value={key} />
+        );
+      })}
+    </Tabs>
+  </div>
+
+  {/* Show meal list of selected segment */}
+  <div>
+    {selectedFlightData ? (
+      <div className="grid grid-cols-2 gap-4">
+        {selectedFlightData.meals.map((item, index) => {
+          const key = item?.['$']?.Key;
+          const displayText = item?.['$']?.DisplayText;
+          const price = item?.['$']?.TotalPrice || '';
+          const formattedPrice = price.replace('INR', '₹').split('.')[0];
+          const flightKey = selectedFlightData.flightKey;
+          const segmentRef =
+            item?.['common_v52_0:ServiceData']?.['$']?.AirSegmentRef;
+
+          const isAdded = selectedMeals.some(
+            (m) => m?.['$']?.Key === key && m?.flightKey === flightKey
+          );
+
+          return (
+            <div
+              key={index}
+              className="flex items-center justify-between border rounded-2xl p-2 mb-3"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-violet-50">
+                  <img
+                    src="/meal-icon.svg"
+                    alt="Meal"
+                    className="h-10 w-10"
+                  />
+                </div>
+                <div>
+                  <div className="text-sm font-medium">{displayText}</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-6">
+                <div className="font-semibold text-sm">{formattedPrice}</div>
+                <button
+                  type="button"
+                  className={`px-4 py-1 border rounded-xl text-sm ${
+                    isAdded
+                      ? 'bg-violet-100 text-violet-700 border-violet-500'
+                      : 'text-violet-600 border-violet-300'
+                  }`}
+                  onClick={() => {
+                    if (isAdded) {
+                      setSelectedMeals((prev) =>
+                        prev.filter(
+                          (m) =>
+                            !(
+                              m?.['$']?.Key === key &&
+                              m?.flightKey === flightKey
+                            )
+                        )
+                      );
+                    } else {
+                      const enrichedMeal = {
+                        ...item,
+                        segmentRef,
+                        flightKey,
+                      };
+                      handleAddMeal(enrichedMeal);
+                    }
+                  }}
+                >
+                  {isAdded ? 'Added' : 'Add'}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <div className="text-sm text-gray-500">No meals available.</div>
+    )}
+  </div>
+</AccordionDetails> 
+
+  <AccordionActions>{/* Footer if needed */}</AccordionActions>
+</Accordion>
+                                                    <div className="booking-devider" />
                                                     <Accordion expanded={seatresponseparse ? accordion3Expanded : false} onChange={(event, isExpanded) => setAccordion3Expanded(isExpanded)}>
                                                         <AccordionSummary
                                                             expandIcon={<ExpandMoreIcon />}
@@ -7444,9 +7551,7 @@ console.log("fareInfoList",fareInfoList);
                                         <div className="chk-total">
                                             <div className="chk-total-l">Total Price</div>
                                             <div className="chk-total-r" style={{ fontWeight: 700 }}>
-                                                {/* ₹ 6521 */}
-                                                {/* {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                {packageSelected.$.TotalPrice.replace('INR', '')} */}
+
                                                 {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
                                                 {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price)}
 
