@@ -1286,7 +1286,6 @@ console.log("discount",discount);
         var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
         console.log('modifiedXmlString ACH', modifiedXmlString);
 
-
         const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
         const reservationResponse = reservationresponse.data;
  
@@ -1363,10 +1362,6 @@ console.log("discount",discount);
             console.log("formattedsegmenttaxivaxis", formattedsegmenttaxivaxis);
             if (Array.isArray(formattedsegmenttaxivaxis)) {
                 formattedsegmenttaxivaxis.forEach((segment, index) => {
-                    console.log("segment.DepartureDate", segment.DepartureDate);
-                    console.log("segment.ArrivalDate", segment.ArrivalDate);
-                    console.log("segment.DepartureTime", segment.DepartureTime);
-                    console.log("segment.ArrivalTime", segment.ArrivalTime);
                     const departureDate = new Date(segment.DepartureTime);
                     const arrivalDate = new Date(segment.ArrivalTime);
 
@@ -1428,7 +1423,6 @@ console.log("discount",discount);
             }
 
             const seatDetailsFormatted = {};
-            console.log("formseat", formseat)
             if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formseat)) {
                 segmenttaxivaxis.forEach((segment, flightIndex) => {
                     formseat.forEach((seat, passengerIndex) => {
@@ -1439,8 +1433,9 @@ console.log("discount",discount);
 
             const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3) - parseFloat(assignTax);
             const passenger_markup_price = parseFloat(markup_price) * parseFloat(noOfSeats);
+
+            
             const formtaxivaxiData = {
-                // ...formtaxivaxi,
                 access_token: access_token,
                 booking_id: bookingid,
                 trip_type: tripType,
@@ -1491,7 +1486,7 @@ console.log("discount",discount);
             console.log("Condition met, navigating... now in the reservationresult");
 
             const bookingCompleteData = {
-                reservationdata: reservationResponse,
+                reservationdata: reservationresponse.data,
                 segmentParse: segmentParse,
                 Passengers: Passengers,
                 PackageSelected: packageSelected,
@@ -2340,6 +2335,35 @@ console.log("discount",discount);
 
                             if (providerCodeValue?.trim() === "ACH") {
                                 console.log("Condition met, navigating...");
+                                console.log("statusResp",reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['common_v52_0:ResponseMessage']);
+                                const responseMessages = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['common_v52_0:ResponseMessage'];
+                               
+                                let bookingStatus = "";
+
+                                responseMessages.forEach((msg) => {
+                                    const text = msg?._ || "";
+                                    if (text.includes("Reservation declined")) {
+                                    bookingStatus = "Booking failed: Reservation declined by vendor.";
+                                    } else if (text.includes("on hold")) {
+                                    bookingStatus = "Booking on hold. Please complete payment.";
+                                    }
+                                });
+
+                                const airSegmentStatus = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment']['$']['Status'];
+
+                                if (airSegmentStatus == 'PN') {
+                                    bookingStatus= "Booking on hold. Please complete payment.";
+                                } else if (airSegmentStatus == 'HK') {
+                                    bookingStatus= "Flight Booking is confirmed!.";
+                                } else if (airSegmentStatus == 'TK') {
+                                    bookingStatus= "Booking ticketed.";
+                                } else {
+                                    bookingStatus = bookingStatus;
+                                }
+
+                                
+                                console.log("airSegmentStatus",airSegmentStatus);
+                                console.log("bookingStatus",bookingStatus);
                                 const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3) - parseFloat(assignTax);
                                 const passenger_markup_price = parseFloat(markup_price) * parseFloat(noOfSeats);
                                 const formtaxivaxiData = {
@@ -2374,7 +2398,8 @@ console.log("discount",discount);
                                     cabinBaggage: cabinBaggage,
                                     returns: returns,
                                     ...passengerDetailsFormatted,
-                                    ...seatDetailsFormatted
+                                    ...seatDetailsFormatted,
+                                    reservationStatus:bookingStatus
                                 };
 
                                 console.log('assignFlightPayloadData', formtaxivaxiData);
@@ -2422,7 +2447,7 @@ console.log("discount",discount);
                                 // const UniversalRecordResponse = await axios.post('${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
 
                                 const bookingCompleteData = {
-                                    reservationdata: reservationResponse,
+                                    reservationdata: reservationresponse.data,
                                     segmentParse: segmentParse,
                                     Passengers: Passengers,
                                     PackageSelected: packageSelected,
@@ -2436,6 +2461,7 @@ console.log("discount",discount);
                                     booking_id: bookingid,
                                     flightDetails: actualFlightDetails,
                                     discount: discount,
+                                    bookingStatus:bookingStatus
                                     // ticketdata: ticketresponse.data 
                                 };
                                 console.log('bookingCompleteData', bookingCompleteData);
@@ -2624,7 +2650,7 @@ console.log("discount",discount);
                                             });
                                         });
                                     const bookingCompleteData = {
-                                        reservationdata: reservationResponse,
+                                        reservationdata: reservationresponse.data,
                                         segmentParse: segmentParse,
                                         Passengers: Passengers,
                                         PackageSelected: packageSelected,

@@ -27,6 +27,7 @@ const BookingContinue = () => {
     
     const seat_codes = location.state && location.state.bookingCompleteData.seat_codes;
     const bookingid = location.state && location.state.bookingCompleteData.booking_id;
+    const reservationStatus = location.state && location.state.bookingCompleteData.bookingStatus;
     const flightDetails = location.state && location.state.bookingCompleteData.flightDetails;
     console.log("flightDetailsB", flightDetails);
 
@@ -171,7 +172,8 @@ const BookingContinue = () => {
                     <div className="wrapper-padding">
                         <span class="bgGradient">
                             <p style={{ color: 'white', marginTop: '33px', marginLeft: '10px', fontSize: '19px' }}>
-                                Your Flight Booking is confirmed!
+                                {/* Your Flight Booking is confirmed! */}
+                                {reservationStatus}
                                 <div style={{ fontSize: '12px' }}>PNR No. {pnr}</div>
                             </p>
                         </span>
