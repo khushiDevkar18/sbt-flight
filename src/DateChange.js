@@ -12,7 +12,7 @@ import Slider from 'rc-slider';
 import "rc-slider/assets/index.css";
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
-import IconLoader from './IconLoader';
+import CONFIG from "./config";
 
 
 const FormTaxivaxi = () => {
@@ -21,16 +21,10 @@ const navigate = useNavigate();
   const location = useLocation();
   
   const [emptaxivaxi, setEmptaxivaxi] = useState([]);
-  // const searchParams = new URLSearchParams(window.location.search);
-  // const taxivaxidata = searchParams.get('taxivaxidata');
+
   const searchParams = new URLSearchParams(window.location.search);
   const taxivaxidata = searchParams.get('taxivaxidata');
 
-
-  
-//   alert('okay', taxivaxidata);
-//   console.log('data', taxivaxidata);
-  
 
   const [Airports, setAirportOptions] = useState([]);
   const [allAirportsOrigin, setAllAirportsOrigin] = useState([]);
@@ -44,89 +38,14 @@ const navigate = useNavigate();
     let airlineResponseData;
     let airportResponseData;
     let apiairportData;
-    
 
-      const makeAirlineRequest = async () => {
-      try {
-          const username = 'Universal API/uAPI6514598558-21259b0c';
-          const password = 'tN=54gT+%Y';
-          const authHeader = `Basic ${btoa(`${username}:${password}`)}`; 
-          const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
-          <soapenv:Header/>
-          <soapenv:Body>
-              <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AR45JHJ" TypeCode="AirAndRailSupplierType">
-                  <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
-                  <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
-              </util:ReferenceDataRetrieveReq>
-          </soapenv:Body>
-          </soapenv:Envelope>`;
-          
-          const airlineresponse = await axios.post(
-            'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
-            airlineRequest, { headers: { 'Content-Type': 'text/xml'  }}
-          );
-          airlineResponseData = airlineresponse.data;
-          // setAirlineResponse(airlineresponse);
-          
-      } catch (error) {
-          console.error(error);
-          // navigate('/tryagainlater');
-          }
-          
-      };
-
-      const makeAirportRequest = async () => {
-      try {
-          const username1 = 'Universal API/uAPI6514598558-21259b0c';
-          const password1 = 'tN=54gT+%Y';
-          const authHeader1 = `Basic ${btoa(`${username1}:${password1}`)}`;
-          const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
-          <soapenv:Header/>
-          <soapenv:Body>
-          <util:ReferenceDataRetrieveReq AuthorizedBy="TAXIVAXI" TargetBranch="P4451438" TraceId="AV145ER" TypeCode="CityAirport">
-              <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
-              <util:ReferenceDataSearchModifiers MaxResults="99999" StartFromResult="0"/>
-          </util:ReferenceDataRetrieveReq>
-          </soapenv:Body>
-      </soapenv:Envelope>`;
-      const airportResponse = await axios.post(
-        'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightRequest', 
-        airportRequest, { headers: { 'Content-Type': 'text/xml'  }}
-      );
-          airportResponseData = airportResponse.data;
-          // setAirportResponse(airportResponse);
-          
-          parseString(airportResponse.data, { explicitArray: false }, (errs, airportresult) => {
-              if (errs) {
-              console.error('Error parsing XML:', errs);
-              return;
-              }
-              const airportlist = airportresult['SOAP:Envelope']['SOAP:Body']['util:ReferenceDataRetrieveRsp']['util:ReferenceDataItem'];
-              setAirportOptions(airportlist);
-              const tempAirportCodes = {};
-              airportlist.forEach((airport) => {
-                      tempAirportCodes[airport.$.Code] = airport.$.Name;
-                  });
-              
-              setAirportOriginCodes(tempAirportCodes);
-              setAllAirportsOrigin(airportlist);
-
-              setAirportDestinationCodes(tempAirportCodes);
-              setAllAirportsDestination(airportlist);
-          });
-          
-      } catch (error) {
-          console.error(error);
-              // navigate('/tryagainlater');
-              }
-              
-      };
 
       const apiairportss = async () => {
               try {
               const response = await axios.get('https://selfbooking.taxivaxi.com/api/airports');
               apiairportData = response.data;
               // setAirports(response.data);
+            //   console.log('airports',apiairportData);
               } catch (error) {
               console.error('Error fetching data:', error);
               }
@@ -148,13 +67,15 @@ const navigate = useNavigate();
                 //   console.log('searchfrom', searchfrom);
                   const searchfromMatch = searchfrom.match(/\((\w+)\)/);
                   const searchfromCode = searchfromMatch[1];
-                //   console.log('sechfromcode', searchfromCode);
+                  console.log('sechfromcode', searchfromCode);
                   const searchto = formtaxivaxiData['to_city']; 
                   const searchtoMatch = searchto.match(/\((\w+)\)/);
                   const searchtoCode = searchtoMatch[1];
-                  const searchdeparture = formtaxivaxiData['departure_date'];       
-                //   const searchdeparture = formtaxivaxiData['departure_date'].split('-').reverse().join('/');
+                  const searchdeparture = formtaxivaxiData['departure_date'];     
+                  const previousdepdate = formtaxivaxiData['previous_departure_date']  
+                  const searchdeparturee = formtaxivaxiData['departure_date'].split('-').reverse().join('/');
                   const formattedsearchdeparture = formatDate(searchdeparture);
+                  console.log('formattedsearchdeparture',formattedsearchdeparture);
                   const spoc_email = formtaxivaxiData['email'];
                   const additional_emails = formtaxivaxiData['additional_emails'];
                   const ccmail = formtaxivaxiData['cc_email'];
@@ -162,11 +83,18 @@ const navigate = useNavigate();
                   const spoc_name = formtaxivaxiData['spoc_name'];
                   const markup = formtaxivaxiData['markup_details'];
                   const booking_id = formtaxivaxiData['booking_id'];
+                  const is_approved  = formtaxivaxiData['is_approved'];    
                   const no_of_seats = formtaxivaxiData['no_of_seats'];
                   const request_id = formtaxivaxiData['request_id'];
                   const request_type = formtaxivaxiData['request_type'];
+                  const client_id = formtaxivaxiData['client_id'];
+                  const is_gst_benefit = formtaxivaxiData['is_gst_benefit'];
+                  const flight_type = formtaxivaxiData['flight_type'];
+                  const access_token = formtaxivaxiData['access_token'];
+                  const agent_id = formtaxivaxiData['agentId'];
+                  const universal_locator_code = formtaxivaxiData['universal_locator_code'];
                   
-                  const adult = no_of_seats;
+                  const adult = no_of_seats || 1;
                   const child = 0;
                   const infant = 0;
                   const classtype = formtaxivaxiData['seat_type'];
@@ -188,11 +116,11 @@ const navigate = useNavigate();
                   const dynamicDestinationCode = searchtoCode; 
                   const dynamicDepTime = formattedsearchdeparture;
                   const returndynamicDepTime = formattedsearchreturnDate;
-                  const dynamicCabinType = cabinclass; 
+                  const dynamicCabinType = cabinclass || 'Economy';
                   const PassengerCodeADT = adult; 
                   const PassengerCodeCNN = child; 
                   const PassengerCodeINF = infant; 
-                //   console.log('helo');
+                  console.log('helo');
                   const createSoapEnvelope = (
                       cityCode,
                       destinationCode,
@@ -266,45 +194,52 @@ const navigate = useNavigate();
                   const username = 'Universal API/uAPI6514598558-21259b0c';
                   const password = 'tN=54gT+%Y'; 
                   const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
-
                   sessionStorage.setItem('searchdata', soapEnvelope);
-                //   console.log('soapenv', soapEnvelope); 
+                  console.log('soapenv', soapEnvelope); 
 
                 const response = await axios.post(
-                    'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeFlightAirServiceRequest', 
+                    `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, 
                     soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
                   );
-                  // console.log(airlineResponseData);
-                  // console.log(airportResponseData);
+                  console.log('search response', response.data);
+
                   const responseData = {
                       responsedata: response.data,
                       searchfromcity: searchfrom,
                       searchtocity: searchto,
-                      searchdeparture: searchdeparture,
+                      searchdeparture: searchdeparturee,
                       searchreturnd: searchreturnDate,
-                      airlinedata: airlineResponseData,
-                      airportData: airportResponseData,
+                      // airlinedata: airlineResponseData,
+                      // airportData: airportResponseData,
                       selectadult: adult,
                       selectchild: child,
                       selectinfant: infant,
                       selectclass: cabinclass,
                       bookingtype: bookingtype,
                       apiairportsdata: apiairportData,
-                      requesttype: request_type,
-                      spocemail: spoc_email,
-                      additionalemail: additional_emails,
-                      ccmail: ccmail,
-                      clientname:client_name,
-                      spocname:spoc_name,
+                      // requesttype: request_type,
+                      // spocemail: spoc_email,
+                      // additionalemail: additional_emails,
+                      // ccmail: ccmail,
+                      // clientname:client_name,
+                      // spocname:spoc_name,
                       markupdata: markup,
                       bookingid: booking_id,
+                      // isapproved: is_approved,
                       no_of_seats: no_of_seats,
-                      request_id: request_id,
+                      // request_id: request_id,
+                      // clientid: client_id,
+                      // is_gst_benefit: is_gst_benefit,
+                      flighttype: flight_type,
+                      accessToken:access_token,
+                      agent_id: agent_id,
+                      universal_locator_code: universal_locator_code,
+                      previousdepdate: previousdepdate
                   };
-                  console.log('resp', responseData);
+                  // console.log('resp', responseData);
  
                   
-                  navigate('/SearchFlight', { state: { responseData } });
+                  navigate('/SearchFlightc', { state: { responseData } });
                   await new Promise(resolve => setTimeout(resolve, 1000));
               
               } catch (error) {
@@ -318,8 +253,8 @@ const navigate = useNavigate();
       const executeRequestsSequentially = async () => {
         try {
             setLoading(true); 
-            await makeAirlineRequest();
-            await makeAirportRequest();
+            // await makeAirlineRequest();
+            // await makeAirportRequest();
             await apiairportss();
             await fetchData();
         } catch (error) {
@@ -351,14 +286,14 @@ const navigate = useNavigate();
       <div className="yield-content">
         {loading && (<div className="page-center-loaderr flex items-center justify-center">
                             <div className="big-loader flex items-center justify-center">
-                                <IconLoader className="big-icon animate-[spin_2s_linear_infinite]" />
+                                <img className="loader-gif" src="/img/cotravloader.gif" alt="Loader" />
                                 <p className="text-center ml-4 text-gray-600 text-lg">
                                 Retrieving flight details. Please wait a moment.
                                 </p>
                             </div>
                         </div>
-       )}
-        </div >
+         )}
+      </div >
     
   );
 }

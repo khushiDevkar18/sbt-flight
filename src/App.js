@@ -7,6 +7,8 @@ import Booking from './Booking';
 import BookingComplete from './BookingComplete';
 import BookFlow from './BookFlow';
 import Home from './Home';
+import DateChange from './DateChange';
+import SearchFlightc from './SearchFlightc';
 import PageNotFound from './PageNotFound';
 import TryAgainLater from './TryAgainLater';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -24,6 +26,8 @@ const App = () => {
           <Route path="/bookingProcess" element={<Booking />}/>
           <Route path="/bookingCompleted" element={<BookingComplete />}/>
           <Route path="/BookFlow" element={<BookFlow />}/>
+          <Route path="/DateChange" element={<DateChange />}/>
+          <Route path="/SearchFlightc" element={<SearchFlightc />}/>
           <Route path="/pagenotfound" element={<PageNotFound />}/>
           <Route path="/tryagainlater" element={<TryAgainLater />}/>
           <Route path="*" element={<PageNotFound />} />
