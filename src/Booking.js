@@ -719,41 +719,41 @@ const Booking = () => {
                         'com:SearchPassenger': Passengerxml,
                         'air:AirPricingCommand': airPricingCommand,
                         ...optionalServicesXML,
-                        'com:FormOfPayment': {
-                            '$': {
-                                'Type': "Credit"
-                            },
-                            'com:CreditCard': {
-                                '$': {
-                                    'BankCountryCode': "IN",
-                                    'CVV': "737",
-                                    'ExpDate': "2026-11",
-                                    'Name': "Pavan Patil",
-                                    'Number': "4111111111111111",
-                                    'Type': "VI",
-                                },
-                                'com:BillingAddress': {
-                                    'com:AddressName': "Home",
-                                    'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
-                                    'com:City': "Pune",
-                                    'com:State': "Maharashtra",
-                                    'com:PostalCode': "411011",
-                                    'com:Country': "IN",
-                                }
-                            },
-                        },
-
                         // 'com:FormOfPayment': {
                         //     '$': {
-                        //         'Type': 'AgencyPayment'
+                        //         'Type': "Credit"
                         //     },
-                        //     'com:AgencyPayment': {
+                        //     'com:CreditCard': {
                         //         '$': {
-                        //             'AgencyBillingIdentifier': 'KTDEL283',
-                        //             'AgencyBillingPassword': 'Baiinfo@2024'
+                        //             'BankCountryCode': "IN",
+                        //             'CVV': "737",
+                        //             'ExpDate': "2026-11",
+                        //             'Name': "Pavan Patil",
+                        //             'Number': "4111111111111111",
+                        //             'Type': "VI",
+                        //         },
+                        //         'com:BillingAddress': {
+                        //             'com:AddressName': "Home",
+                        //             'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                        //             'com:City': "Pune",
+                        //             'com:State': "Maharashtra",
+                        //             'com:PostalCode': "411011",
+                        //             'com:Country': "IN",
                         //         }
-                        //     }
+                        //     },
                         // },
+
+                        'com:FormOfPayment': {
+                            '$': {
+                                'Type': 'AgencyPayment'
+                            },
+                            'com:AgencyPayment': {
+                                '$': {
+                                    'AgencyBillingIdentifier': 'KTDEL283',
+                                    'AgencyBillingPassword': 'Baiinfo@2024'
+                                }
+                            }
+                        },
                     }
                 }
             }
@@ -1182,41 +1182,41 @@ console.log("discount",discount);
                             }
                         },
 
-                        // 'com:FormOfPayment': {
-                        //     '$': {
-                        //         'Type': 'AgencyPayment'
-                        //     },
-                        //     'com:AgencyPayment': {
-                        //         '$': {
-                        //             'AgencyBillingIdentifier': 'KTDEL283',
-                        //             'AgencyBillingPassword': 'Baiinfo@2024'
-                        //         }
-                        //     }
-                        // },
-
                         'com:FormOfPayment': {
                             '$': {
-                                'Type': "Credit"
+                                'Type': 'AgencyPayment'
                             },
-                            'com:CreditCard': {
+                            'com:AgencyPayment': {
                                 '$': {
-                                    'BankCountryCode': "IN",
-                                    'CVV': "737",
-                                    'ExpDate': "2026-11",
-                                    'Name': "Pavan Patil",
-                                    'Number': "4111111111111111",
-                                    'Type': "VI",
-                                },
-                                'com:BillingAddress': {
-                                    'com:AddressName': "Home",
-                                    'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
-                                    'com:City': "Pune",
-                                    'com:State': "Maharashtra",
-                                    'com:PostalCode': "411011",
-                                    'com:Country': "IN",
+                                    'AgencyBillingIdentifier': 'KTDEL283',
+                                    'AgencyBillingPassword': 'Baiinfo@2024'
                                 }
-                            },
+                            }
                         },
+
+                        // 'com:FormOfPayment': {
+                        //     '$': {
+                        //         'Type': "Credit"
+                        //     },
+                        //     'com:CreditCard': {
+                        //         '$': {
+                        //             'BankCountryCode': "IN",
+                        //             'CVV': "737",
+                        //             'ExpDate': "2026-11",
+                        //             'Name': "Pavan Patil",
+                        //             'Number': "4111111111111111",
+                        //             'Type': "VI",
+                        //         },
+                        //         'com:BillingAddress': {
+                        //             'com:AddressName': "Home",
+                        //             'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                        //             'com:City': "Pune",
+                        //             'com:State': "Maharashtra",
+                        //             'com:PostalCode': "411011",
+                        //             'com:Country': "IN",
+                        //         }
+                        //     },
+                        // },
                         'air:AirPricingSolution': packageSelected,
                         'com:ActionStatus': {
                             '$': {
@@ -1286,9 +1286,17 @@ console.log("discount",discount);
         var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
         console.log('modifiedXmlString ACH', modifiedXmlString);
 
+        await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+            new URLSearchParams({ booking_id: bookingid,api_data:modifiedXmlString,api_name:'reservationReq' }) // Send booking_id as form data
+        );
+
         const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
         const reservationResponse = reservationresponse.data;
  
+        await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+            new URLSearchParams({ booking_id: bookingid,api_data:reservationResponse,api_name:'reservationRes' }) // Send booking_id as form data
+        );
+
         console.log('reservationResponse', reservationResponse);
         let matchesDataInfo;
         console.log("re packageSelected", packageSelected);
@@ -1317,8 +1325,8 @@ console.log("discount",discount);
             if (soapFault) {
                 navigate('/tryagainlater');
                 return;
-
             }
+            
             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
             const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
             const mainlocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
@@ -1355,11 +1363,10 @@ console.log("discount",discount);
             }
             // const UniversalRecordResponse = await axios.post('${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
 
-
             const flightDetails = {};
 
             const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis]
-            console.log("formattedsegmenttaxivaxis", formattedsegmenttaxivaxis);
+
             if (Array.isArray(formattedsegmenttaxivaxis)) {
                 formattedsegmenttaxivaxis.forEach((segment, index) => {
                     const departureDate = new Date(segment.DepartureTime);
@@ -1433,8 +1440,33 @@ console.log("discount",discount);
 
             const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3) - parseFloat(assignTax);
             const passenger_markup_price = parseFloat(markup_price) * parseFloat(noOfSeats);
+    
+            const responseMessages = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['common_v52_0:ResponseMessage'];
+                     console.log("responseMessages",responseMessages);
+                              
+            let bookingStatus = "";
 
-            
+            responseMessages.forEach((msg) => {
+                const text = msg?._ || "";
+                if (text.includes("Reservation declined")) {
+                bookingStatus = "Booking failed: Reservation declined by vendor.";
+                } else if (text.includes("on hold")) {
+                bookingStatus = "Booking on hold. Please complete payment.";
+                }
+            });
+
+            const airSegmentStatus = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment']['$']['Status'];
+            console.log("airSegmentStatus",airSegmentStatus);
+            if (airSegmentStatus == 'PN') {
+                bookingStatus= "Booking on hold. Please complete payment.";
+            } else if (airSegmentStatus == 'HK') {
+                bookingStatus= "Flight Booking is confirmed!.";
+            } else if (airSegmentStatus == 'TK') {
+                bookingStatus= "Booking Ticketed.";
+            } else {
+                bookingStatus = bookingStatus;
+            }
+            console.log("bookingStatus1",bookingStatus);
             const formtaxivaxiData = {
                 access_token: access_token,
                 booking_id: bookingid,
@@ -1468,7 +1500,8 @@ console.log("discount",discount);
                 cabinBaggage: cabinBaggage,
                 returns: returns,
                 ...passengerDetailsFormatted,
-                ...seatDetailsFormatted
+                ...seatDetailsFormatted,
+                reservationStatus: bookingStatus
             };
 
             console.log('assignFlightPayloadData', formtaxivaxiData);
@@ -1501,6 +1534,7 @@ console.log("discount",discount);
                 booking_id: bookingid,
                 flightDetails: actualFlightDetails,
                 discount: discount,
+                bookingStatus:bookingStatus
                 // ticketdata: ticketresponse.data 
             };
             console.log('bookingCompleteData', bookingCompleteData);
@@ -2103,41 +2137,41 @@ console.log("discount",discount);
                                         'Recipients': "All"
                                     }
                                 },
-                                // 'com:FormOfPayment': {
-                                //     '$': {
-                                //         'Type': 'AgencyPayment'
-                                //     },
-                                //     'com:AgencyPayment': {
-                                //         '$': {
-                                //             'AgencyBillingIdentifier': 'KTDEL283',
-                                //             'AgencyBillingPassword': 'Baiinfo@2024'
-                                //         }
-                                //     }
-                                // },
-
                                 'com:FormOfPayment': {
                                     '$': {
-                                        'Type': "Credit"
+                                        'Type': 'AgencyPayment'
                                     },
-                                    'com:CreditCard': {
+                                    'com:AgencyPayment': {
                                         '$': {
-                                            'BankCountryCode': "IN",
-                                            'CVV': "737",
-                                            'ExpDate': "2026-11",
-                                            'Name': "Pavan Patil",
-                                            'Number': "4111111111111111",
-                                            'Type': "VI",
-                                        },
-                                        'com:BillingAddress': {
-                                            'com:AddressName': "Home",
-                                            'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
-                                            'com:City': "Pune",
-                                            'com:State': "Maharashtra",
-                                            'com:PostalCode': "411011",
-                                            'com:Country': "IN",
+                                            'AgencyBillingIdentifier': 'KTDEL283',
+                                            'AgencyBillingPassword': 'Baiinfo@2024'
                                         }
-                                    },
+                                    }
                                 },
+
+                                // 'com:FormOfPayment': {
+                                //     '$': {
+                                //         'Type': "Credit"
+                                //     },
+                                //     'com:CreditCard': {
+                                //         '$': {
+                                //             'BankCountryCode': "IN",
+                                //             'CVV': "737",
+                                //             'ExpDate': "2026-11",
+                                //             'Name': "Pavan Patil",
+                                //             'Number': "4111111111111111",
+                                //             'Type': "VI",
+                                //         },
+                                //         'com:BillingAddress': {
+                                //             'com:AddressName': "Home",
+                                //             'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                                //             'com:City': "Pune",
+                                //             'com:State': "Maharashtra",
+                                //             'com:PostalCode': "411011",
+                                //             'com:Country': "IN",
+                                //         }
+                                //     },
+                                // },
                                 'air:AirPricingSolution': packageSelected,
                                 'com:ActionStatus': {
                                     '$': {
@@ -2208,8 +2242,16 @@ console.log("discount",discount);
                 console.log('modifiedXmlString', modifiedXmlString);
 
                 try {
+                    await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+                              new URLSearchParams({ booking_id: bookingid,api_data:modifiedXmlString,api_name:'reservationReq' }) 
+                    );
+                    
                     const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
                     const reservationResponse = reservationresponse.data;
+                   
+                    await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+                        new URLSearchParams({ booking_id: bookingid,api_data:reservationResponse,api_name:'reservationRes' }) 
+                    );
                     
                     console.log('reservationResponse', reservationResponse);
 
@@ -2356,7 +2398,7 @@ console.log("discount",discount);
                                 } else if (airSegmentStatus == 'HK') {
                                     bookingStatus= "Flight Booking is confirmed!.";
                                 } else if (airSegmentStatus == 'TK') {
-                                    bookingStatus= "Booking ticketed.";
+                                    bookingStatus= "Booking Ticketed.";
                                 } else {
                                     bookingStatus = bookingStatus;
                                 }
@@ -2574,7 +2616,6 @@ console.log("discount",discount);
                                     const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3) - parseFloat(assignTax);
                                     const passenger_markup_price = parseFloat(markup_price) * parseFloat(noOfSeats);
                                     const formtaxivaxiData = {
-                                        // ...formtaxivaxi,
                                         access_token: access_token,
                                         booking_id: bookingid,
                                         trip_type: tripType,
@@ -2603,11 +2644,9 @@ console.log("discount",discount);
                                         discount: discount,
                                         ...flightDetails,
                                         extrabaggage: 'NA',
-                                        // seatdetails: formseat,
                                         checkedInBaggage: checkedInBaggage,
                                         cabinBaggage: cabinBaggage,
                                         returns: returns,
-                                        // passengerdetails: mergedData
                                         ...passengerDetailsFormatted,
                                         ...seatDetailsFormatted
                                     };
@@ -2622,8 +2661,7 @@ console.log("discount",discount);
                                         headers: {
                                             'Content-Type': 'application/x-www-form-urlencoded',
                                         },
-                                    })
-                                        .then((response) => {
+                                    }).then((response) => {
                                             console.log("responseData", response)
                                             if (response.data.success === "1") {
                                                 Swal.fire({
@@ -2665,6 +2703,7 @@ console.log("discount",discount);
                                         booking_id: bookingid,
                                         flightDetails: actualFlightDetails,
                                         discount: discount,
+                                        // bookingStatus:bookingStatus
                                     };
                                     console.log('bookingCompleteData', bookingCompleteData);
                                     navigate('/bookingCompleted', { state: { bookingCompleteData } });
@@ -6079,7 +6118,8 @@ console.log("discount",discount);
 
                                                                                                 name="adult_prefix[]"
                                                                                                 data-index={passengerindex}
-                                                                                                readOnly={bookingid}
+                                                                                                // readOnly={bookingid}
+                                                                                                style={{ pointerEvents: bookingid ? 'none' : 'auto' }}
                                                                                                 defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Female" ? "Mrs" : "Mr"}
                                                                                             >
                                                                                                 <option value="Mr" selected={emptaxivaxi?.[passengerindex]?.gender === "Male"}>Mr.</option>
@@ -7496,12 +7536,6 @@ console.log("discount",discount);
                                                           const feeAmount = parseFloat(feeInfo["Amount"].replace("INR", "").trim());
                                                           discount = Math.floor(Math.abs(feeAmount)) * parseFloat(noOfSeats || 1);
                                                         }
-                                                        console.log("other discount", discount);
-                                                        console.log("approximateTaxes:", approximateTaxes);
-                                                        console.log("k3Tax:", k3Tax);
-                                                        console.log("markup_price:", markup_price);
-                                                        console.log("noOfSeats:", noOfSeats);
-                                                        console.log("k3Tax",k3Tax);
                                                         
                                                         // Ensure the final tax is non-negative and only subtract GST if it exists
                                                         const finalTax = approximateTaxes - (k3Tax > 0 ? k3Tax : 0) + (parseFloat(markup_price) * parseFloat(noOfSeats));

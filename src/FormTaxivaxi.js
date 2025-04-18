@@ -280,12 +280,24 @@ const navigate = useNavigate();
                   sessionStorage.setItem('searchdata', soapEnvelope);
                   console.log('soapenv', soapEnvelope); 
 
+                const reData=await axios.post(
+                                `${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+                                new URLSearchParams({ booking_id: booking_id,api_data:soapEnvelope,api_name:'searchReq' }) // Send booking_id as form data
+                            );
+            
+                            console.log('reData', reData);
+
                 const response = await axios.post(
                     `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, 
                     soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
                   );
                   console.log('search response', response.data);
 
+                  await axios.post(
+                    `${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+                    new URLSearchParams({ booking_id: booking_id,api_data:response.data,api_name:'searchRes' }) // Send booking_id as form data
+                  );
+                
                   const responseData = {
                       responsedata: response.data,
                       searchfromcity: searchfrom,

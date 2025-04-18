@@ -30,6 +30,7 @@ const BookingContinue = () => {
     const reservationStatus = location.state && location.state.bookingCompleteData.bookingStatus;
     const flightDetails = location.state && location.state.bookingCompleteData.flightDetails;
     console.log("flightDetailsB", flightDetails);
+    console.log("reservationStatus",reservationStatus);
 
     const segmentlist = sessionStorage.getItem('segmentarray');
     console.log('segmentlist', segmentlist);
@@ -266,9 +267,12 @@ const BookingContinue = () => {
                                                                                     <span className="route">
                                                                                         {handleAirport(segmentinfo['$']['Origin'])} → {handleAirport(segmentinfo['$']['Destination'])}
                                                                                     </span>
-                                                                                    <span className="status-chip">
-                                                                                        Confirmed
+                                                                                    <span className={`status-chip ${reservationStatus === 'Flight Booking is confirmed!.' || reservationStatus === 'Booking Ticketed.' ? '' : 'red'}`}>
+                                                                                    {reservationStatus === 'Flight Booking is confirmed!.' || reservationStatus === 'Booking Ticketed.' ? 'Confirmed' : 'On Hold'}
                                                                                     </span>
+
+
+
                                                                                 </div>
                                                                                 <div className="clear" />
 

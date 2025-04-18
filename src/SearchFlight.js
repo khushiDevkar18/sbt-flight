@@ -494,11 +494,19 @@ const SearchFlight = () => {
       console.log('main_prc', pricepointXML);
       // console.log("in api1")
       try {
+        await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+          new URLSearchParams({ booking_id: bookingid,api_data:pricepointXML,api_name:'priceReq' }) // Send booking_id as form data
+        );
+
         const priceresponse = await axios.post(
           `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
           pricepointXML);
 
         const priceResponse = priceresponse.data;
+
+        await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+          new URLSearchParams({ booking_id: bookingid,api_data:priceResponse,api_name:'priceRes' }) // Send booking_id as form data
+        );
       
         console.log('priceResponse', priceResponse);
         parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
@@ -784,16 +792,18 @@ const SearchFlight = () => {
 
     const { markup_value, markup_type } = markup[0]; // Extract the first markup object
 
+
     // Calculate the final price based on markup type
     const markupValue = parseFloat(markup_value);
-
+    console.log("markupValue", markupValue);
     if (markup_type === "Fixed") {
-      return numericPrice + markupValue; // Add fixed value
+      return numericPrice + (markupValue*no_of_seats); // Add fixed value
     } else if (markup_type === "Percentage") {
-      return numericPrice + (numericPrice * markupValue) / 100; // Add percentage markup
+
+      return numericPrice + ((numericPrice * markupValue) / 100)*no_of_seats; // Add percentage markup
     }
 
-    // console.log('numericPrice', numericPrice);
+    console.log('numericPrice', numericPrice);
     return numericPrice
 
 
@@ -1477,12 +1487,21 @@ const SearchFlight = () => {
           console.log("in api2")
           // console.log('main_prc', pricepointXML);
           try {
+            await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+              new URLSearchParams({ booking_id: bookingid,api_data:pricepointXML,api_name:'priceReq' }) 
+            );
+                            
+            
             const priceresponse = await axios.post(
               `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
               pricepointXML, { headers: { 'Content-Type': 'text/xml' } }
             );
             const priceResponse = priceresponse.data;
-
+           
+            await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+              new URLSearchParams({ booking_id: bookingid,api_data:priceresponse.data,api_name:'priceRes' }) 
+            );
+          
      
             console.log('priceResponse', priceResponse);
 
@@ -2754,17 +2773,18 @@ const SearchFlight = () => {
       // console.log('Normalized:', normalize(inputOrigin));
       const normalizedInputOrigin = normalize(inputOrigin);
       const normalizedFromCity = normalize(flight.from_city);
-
+      console.log('normalizedInputOrigin:',normalizedInputOrigin);
+      console.log('normalizedFromCity:', normalizedFromCity);
       // Check if one string is part of the other
-      if (
-        normalizedFromCity.includes(normalizedInputOrigin) ||
-        normalizedInputOrigin.includes(normalizedFromCity)
-      ) {
+      if (normalizedFromCity.includes(normalizedInputOrigin) || normalizedInputOrigin.includes(normalizedFromCity)) {
         onwardFlights.push(flight);
       } else {
         returnFlights.push(flight);
       }
     });
+
+    console.log("onwardFlights",onwardFlights);
+    console.log("returnFlights",returnFlights);
 
     const payload = {
 
@@ -13016,7 +13036,7 @@ const SearchFlight = () => {
                                                                   )
                                                               )}
                                                             </div>
-                                                            {agent_id && (
+                                                            {agent_id && bookingid && (
                                                               <div className='buttonbook'><button type='button' className="continuebutton" style={{ marginTop: "11px", color: "white", backgroundColor: "#785eff", border: "none", padding: "3%", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
                                                             )}
                                                           </div>
@@ -16775,7 +16795,7 @@ const SearchFlight = () => {
                                                                       </div>
                                                                     </div>
                                                                   </div>
-                                                                  {/* {agent_id  && (  */}
+                                                                  {agent_id && bookingid && ( 
 
                                                                   <div className='buttonbook' >
 
@@ -16786,7 +16806,7 @@ const SearchFlight = () => {
                                                                       Book Now
                                                                     </button>
                                                                   </div>
-                                                                  {/* )}   */}
+                                                                  )}   
 
                                                                   <button
                                                                     className="add-btn"
@@ -17410,7 +17430,7 @@ const SearchFlight = () => {
                                                                 )}
                                                               </div>
 
-                                                              {/* {agent_id && ( */}
+                                                              {agent_id && bookingid && (
                                                               <div className='buttonbook' >
                                                                 <button type='button' className="continuebutton"
                                                                   style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }}
@@ -17418,7 +17438,7 @@ const SearchFlight = () => {
                                                                   Book Now
                                                                 </button>
                                                               </div>
-                                                              {/* )} */}
+                                                            )}
                                                               <button
                                                                 className="add-btn"
                                                                 type="button"
