@@ -303,7 +303,7 @@ const SearchFlight = () => {
   const [pricesegment, setpricesegment] = useState([]);
   const [loadingIndex, setLoadingIndex] = useState(null);
   const [fareInfoRefsState, setFareInfoRefsState] = useState([]);
-  // console.log('fareInfoRefsState', fareInfoRefsState);
+  console.log('fareInfoRefsState', fareInfoRefsState);
   const [allSegmentKeys, setAllSegmentKeys] = useState([]);
   const [isbookingpage, setBookingpage] = useState(false);
 
@@ -332,7 +332,7 @@ const SearchFlight = () => {
   
       return isExactMatch;
     });
-    // console.log('matchedBookingInfo', matchedBookingInfo);
+    console.log('matchedBookingInfo', matchedBookingInfo);
     const firstBookingInfos = matchedBookingInfo.map((item) => {
       const bookingInfos = item["air:BookingInfo"];
       const normalizedBookingInfos = Array.isArray(bookingInfos) ? bookingInfos : [bookingInfos];
@@ -489,13 +489,6 @@ const SearchFlight = () => {
                   }
                 }
               },
-              // 'air:PermittedCabins': {
-              //   'com:CabinClass': {
-              //     '$': {
-              //       'Type': formData.classType,
-              //     },
-              //   },
-              // },
               'air:BrandModifiers': {
                 'air:FareFamilyDisplay': {
                   '$': {
@@ -2973,6 +2966,7 @@ const SearchFlight = () => {
     setFilteredFlights([]); // Clear previous flights
 
     flightOptions.forEach((pricepoint) => {
+      console.log('inuseeffect', pricepoint);
       setTimeout(() => {
         const options = pricepoint['air:AirPricingInfo']?.['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'];
         const optionsArray = Array.isArray(options) ? options : options ? [options] : [];
@@ -3011,42 +3005,6 @@ const SearchFlight = () => {
       }, 200);
     });
   }, [flightOptions]);
-  // const renderedSegmentRefs = useRef(new Set()); // Track already rendered segments
-  // const [filteredFlights, setFilteredFlights] = useState([]);
-
-
-  // useEffect(() => {
-  //   setFilteredFlights([]); // Clear previous flights
-
-  //   flightOptions.forEach((pricepoint) => {
-  //     setTimeout(() => {
-  //       const options = pricepoint['air:AirPricingInfo']?.['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'];
-
-  //       const optionsArray = Array.isArray(options) ? options : options ? [options] : [];
-
-  //       optionsArray.forEach((airOption) => {
-  //         // Create a new flight option with only this `airOption`
-  //         const newFlightOption = {
-  //           ...pricepoint,
-  //           'air:AirPricingInfo': {
-  //             ...pricepoint['air:AirPricingInfo'],
-  //             'air:FlightOptionsList': {
-  //               'air:FlightOption': {
-  //                 ...pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'],
-  //                 'air:Option': airOption // Assign only this option
-  //               }
-  //             }
-  //           }
-  //         };
-
-  //         setFilteredFlights(prevFlights => [...prevFlights, newFlightOption]);
-  //       });
-  //     }, 200);
-  //   });
-  // }, [flightOptions]);
-  // console.log('filteredFlights',filteredFlights);
-  // console.log('new11', flightOptions);
-
 
   let flightsMatched = false;
 
@@ -4193,7 +4151,7 @@ const SearchFlight = () => {
 
 
                           {filteredFlights.map(pricepoint => {
-                            {/* console.log('pricepoint', pricepoint); */ }
+                            {/* console.log('pricepoint', pricepoint);  */}
                             pricepoint.price = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
                             let result = {};
                             pricepoint['air:AirPricingInfo'] && (
@@ -4677,7 +4635,7 @@ const SearchFlight = () => {
                             pricepoint.departure = calculateDepartureTime(result.travelTime);
                             pricepoint.return = calculateDepartureTime(result.return);
                             pricepoint.stops = result.stops;
-                            {/* console.log('test', pricepoint); */ }
+                             {/* console.log('test', pricepoint);  */}
                             return pricepoint;
 
                           })
@@ -4708,7 +4666,7 @@ const SearchFlight = () => {
                                   {/* return 0; */ }
                               }
                             }).map((pricepoint, priceindex) => {
-                              {/* console.log('price', pricepoint); */ }
+                               {/* console.log('price', pricepoint);  */}
                               const totalPrice = parseFloat(pricepoint.$.TotalPrice.replace(/[^\d.]/g, ''));
                               {/* console.log('totalPrice',totalPrice); */ }
                               let result = {};
@@ -5445,7 +5403,7 @@ const SearchFlight = () => {
                               if (airlineCheck && airlinereturnCheck && stopsCheck && stopsreturnCheck && arrivaltimeCheck && departuretimeCheck) {
                                 if (totalPrice >= priceRange[0] && totalPrice <= priceRange[1]) {
                                   flightsMatched = true;
-                                  {/* console.log('pricepoint', pricepoint); */ }
+                                  {/* console.log('pricepoint', pricepoint);  */}
                                   return (
                                     <React.Fragment key={priceindex}>
                                       <form onSubmit={(e) => handlePriceSubmit(e, priceindex, pricepoint['$']['Taxes'])}>
@@ -5641,12 +5599,12 @@ const SearchFlight = () => {
                                                                                         ) {
 
                                                                                           return (
-                                                                                            <div key={segmentindex}>
+                                                                                            <div key={segmentindex}> 
                                                                                               <img
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
                                                                                                 alt="Airline logo"
                                                                                                 width="40px"
-                                                                                              /><br />
+                                                                                              />
                                                                                               <span className='flightnumber1'>
                                                                                                 {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                 ,{segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
@@ -5741,7 +5699,7 @@ const SearchFlight = () => {
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
                                                                                                 alt="Airline logo"
                                                                                                 width="40px"
-                                                                                              /><br />
+                                                                                              />
                                                                                               <span className='flightnumber1'>
                                                                                                 {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                 {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
@@ -5823,7 +5781,7 @@ const SearchFlight = () => {
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
                                                                                                 alt="Airline logo"
                                                                                                 width="40px"
-                                                                                              /><br />
+                                                                                              />
                                                                                               <span className='flightnumber1'>
                                                                                                 {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                 {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
@@ -6183,6 +6141,36 @@ const SearchFlight = () => {
                                                                                               <span>
                                                                                                 {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['$']['TravelTime'])}
                                                                                               </span>
+                                                                                              <span className="stop-badge-container">
+                                                                                                <div className="flight-line-a">
+                                                                                                  {(() => {
+                                                                                                    let totalIterations = pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].length - 1;
+                                                                                                    let stopoverCity = "";
+                                                                                                    let flightTimeInMinutes = 0;
+                                                                                                    if (totalIterations > 0) { 
+                                                                                                      pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                        SegmentList.map((segmentinfo) => {
+                                                                                                          if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                            flightTimeInMinutes = flightTimeInMinutes + parseInt(segmentinfo['$']['FlightTime']);
+                                                                                                            stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                          }
+                                                                                                        });
+                                                                                                      }); 
+                                                                                                    }
+                                                                                                    
+                                                                                                    return (
+                                                                                                      <p className="stop-badge" >
+                                                                                                        {totalIterations} stop via {stopoverCity}
+                                                                                                        <div className="tooltip-content">
+                                                                                                          <p style={{ marginBottom: '0px' }}>Plane Change</p>
+                                                                                                          {stopoverCity} | {convertMinutesToHours(pricepoint['travelTime'] - flightTimeInMinutes)} Layover
+                                                                                                        </div>
+                                                                                                      </p>
+
+                                                                                                    );
+                                                                                                  })()}
+                                                                                                </div>
+                                                                                              </span>
                                                                                             </div>
                                                                                             <div className="flight-line-d2"></div>
                                                                                           </span>
@@ -6244,19 +6232,7 @@ const SearchFlight = () => {
                                                                                             ))}
                                                                                           </div>
                                                                                         </span>
-                                                                                        <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                          {(() => {
-                                                                                            let totalIterations = pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].length - 1;
-                                                                                            let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-
-
-                                                                                            return (
-                                                                                              <p className="iteration0" style={{ color: "#fff", fontWeight: '600', textAlign: "center", border: "1px solid #cbfac8", width: 70, backgroundColor: backgroundColor, padding: 4, borderRadius: 15, fontSize: 8 }}>
-                                                                                                {totalIterations} STOP
-                                                                                              </p>
-                                                                                            );
-                                                                                          })()}
-                                                                                        </div>
+                                                                                        
                                                                                       </>
                                                                                     ) : (
                                                                                       <>
@@ -6319,6 +6295,14 @@ const SearchFlight = () => {
                                                                                                         <span>
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['$']['TravelTime'])}
                                                                                                         </span>
+                                                                                                        <span className="stop-badge-container">
+                                                                                                          <p className="stop-badge">
+                                                                                                            Non-Stop
+                                                                                                            <div className="tooltip-content">
+                                                                                                              This is a direct flight with no stops.
+                                                                                                            </div>
+                                                                                                          </p>
+                                                                                                        </span>
                                                                                                       </div>
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
@@ -6361,17 +6345,7 @@ const SearchFlight = () => {
                                                                                                        </span>
                                                                                                     </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                    {(() => {
-                                                                                                      let totalIterations = 0;
-
-                                                                                                      return (
-                                                                                                        <p className="iteration0" style={{ textAlign: "center", border: "1px solid #cbfac8", width: 70, backgroundColor: "#cbfac8", color: "black", padding: 4, borderRadius: 15, fontSize: 8 }}>
-                                                                                                          NON STOP
-                                                                                                        </p>
-                                                                                                      );
-                                                                                                    })()}
-                                                                                                  </div>
+                                                                                                  
                                                                                                 </span>
                                                                                               );
                                                                                             }
@@ -6453,6 +6427,36 @@ const SearchFlight = () => {
                                                                                               <span>
                                                                                                 {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['$']['TravelTime'])}
                                                                                               </span>
+                                                                                              <span className="stop-badge-container">
+                                                                                                <div className="flight-line-a">
+                                                                                                  {(() => {
+                                                                                                    let totalIterations = pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['air:BookingInfo'].length - 1;
+                                                                                                    let stopoverCity = "";
+                                                                                                    let flightTimeInMinutes = 0;
+                                                                                                    if (totalIterations > 0) {
+                                                                                                      pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                        SegmentList.map((segmentinfo) => {
+                                                                                                          if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                            flightTimeInMinutes = flightTimeInMinutes + parseInt(segmentinfo['$']['FlightTime']);
+                                                                                                            stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                          }
+                                                                                                        });
+                                                                                                      });
+                                                                                                    }
+                                                                                                    
+                                                                                                    return (
+                                                                                                      <p className="stop-badge" >
+                                                                                                        {totalIterations} stop via {stopoverCity}
+                                                                                                        <div className="tooltip-content">
+                                                                                                          <p style={{ marginBottom: '0px' }}>Plane Change</p>
+                                                                                                          {stopoverCity} | {convertMinutesToHours(pricepoint['travelTime'] - flightTimeInMinutes)} Layover
+                                                                                                        </div>
+                                                                                                      </p>
+
+                                                                                                    );
+                                                                                                  })()}
+                                                                                                </div>
+                                                                                              </span>
                                                                                             </div>
                                                                                             <div className="flight-line-d2"></div>
                                                                                           </span>
@@ -6514,17 +6518,7 @@ const SearchFlight = () => {
                                                                                             ))}
                                                                                           </div>
                                                                                         </span>
-                                                                                        <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                          {(() => {
-                                                                                            let totalIterations = pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['air:BookingInfo'].length - 1;
-                                                                                            let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-                                                                                            return (
-                                                                                              <p className="iteration0" style={{ color: "#fff", fontWeight: '600', textAlign: "center", border: "1px solid #cbfac8", width: 70, backgroundColor: backgroundColor, padding: 4, borderRadius: 15, fontSize: 8 }}>
-                                                                                                {totalIterations} STOP
-                                                                                              </p>
-                                                                                            );
-                                                                                          })()}
-                                                                                        </div>
+                                                                                       
                                                                                       </>
                                                                                     ) : (
                                                                                       <>
@@ -6586,6 +6580,14 @@ const SearchFlight = () => {
                                                                                                         <span>
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['$']['TravelTime'])}
                                                                                                         </span>
+                                                                                                        <span className="stop-badge-container">
+                                                                                                          <p className="stop-badge">
+                                                                                                            Non-Stop
+                                                                                                            <div className="tooltip-content">
+                                                                                                              This is a direct flight with no stops.
+                                                                                                            </div>
+                                                                                                          </p>
+                                                                                                        </span>
                                                                                                       </div>
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
@@ -6628,17 +6630,7 @@ const SearchFlight = () => {
                                                                                                        </span>
                                                                                                     </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                    {(() => {
-                                                                                                      let totalIterations = 0;
-
-                                                                                                      return (
-                                                                                                        <p className="iteration0" style={{ textAlign: "center", border: "1px solid #cbfac8", width: 70, backgroundColor: "#cbfac8", color: "black", padding: 4, borderRadius: 15, fontSize: 8 }}>
-                                                                                                          NON STOP
-                                                                                                        </p>
-                                                                                                      );
-                                                                                                    })()}
-                                                                                                  </div>
+                                                                                                  
                                                                                                 </span>
                                                                                               );
                                                                                             }
@@ -6733,6 +6725,36 @@ const SearchFlight = () => {
                                                                                               <span>
                                                                                                 {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['$']['TravelTime'])}
                                                                                               </span>
+                                                                                              <span className="stop-badge-container">
+                                                                                                <div className="flight-line-a">
+                                                                                                  {(() => {
+                                                                                                    let totalIterations = pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].length - 1;
+                                                                                                    let stopoverCity = "";
+                                                                                                    let flightTimeInMinutes = 0;
+                                                                                                    if (totalIterations > 0) {
+                                                                                                      pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                        SegmentList.map((segmentinfo) => {
+                                                                                                          if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                            flightTimeInMinutes = flightTimeInMinutes + parseInt(segmentinfo['$']['FlightTime']);
+                                                                                                            stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                          }
+                                                                                                        });
+                                                                                                      });
+                                                                                                    }
+                                                                                                    
+                                                                                                    return (
+                                                                                                      <p className="stop-badge" >
+                                                                                                        {totalIterations} stop via {stopoverCity}
+                                                                                                        <div className="tooltip-content">
+                                                                                                          <p style={{ marginBottom: '0px' }}>Plane Change</p>
+                                                                                                          {stopoverCity} | {convertMinutesToHours(pricepoint['travelTime'] - flightTimeInMinutes)} Layover
+                                                                                                        </div>
+                                                                                                      </p>
+
+                                                                                                    );
+                                                                                                  })()}
+                                                                                                </div>
+                                                                                              </span>
                                                                                             </div>
                                                                                             <div className="flight-line-d2"></div>
                                                                                           </span>
@@ -6794,17 +6816,7 @@ const SearchFlight = () => {
                                                                                             ))}
                                                                                           </div>
                                                                                         </span>
-                                                                                        <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                          {(() => {
-                                                                                            let totalIterations = pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['air:BookingInfo'].length - 1;
-                                                                                            let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-                                                                                            return (
-                                                                                              <p className="iteration0" style={{ color: "#fff", fontWeight: '600', textAlign: "center", border: "1px solid #cbfac8", width: 70, backgroundColor: backgroundColor, padding: 4, borderRadius: 15, fontSize: 8 }}>
-                                                                                                {totalIterations} STOP
-                                                                                              </p>
-                                                                                            );
-                                                                                          })()}
-                                                                                        </div>
+                                                                                        
                                                                                       </>
                                                                                     ) : (
                                                                                       <>
@@ -6867,6 +6879,14 @@ const SearchFlight = () => {
 
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option'][0]['$']['TravelTime'])}
                                                                                                         </span>
+                                                                                                        <span className="stop-badge-container">
+                                                                                                          <p className="stop-badge">
+                                                                                                            Non-Stop
+                                                                                                            <div className="tooltip-content">
+                                                                                                              This is a direct flight with no stops.
+                                                                                                            </div>
+                                                                                                          </p>
+                                                                                                        </span>
                                                                                                       </div>
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
@@ -6909,16 +6929,7 @@ const SearchFlight = () => {
                                                                                                         </span>
                                                                                                     </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                    {(() => {
-                                                                                                      let totalIterations = 0;
-                                                                                                      return (
-                                                                                                        <p className="iteration0" style={{ textAlign: "center", border: "1px solid #cbfac8", width: 70, backgroundColor: "#cbfac8", color: "black", padding: 4, borderRadius: 15, fontSize: 8 }}>
-                                                                                                          NON STOP
-                                                                                                        </p>
-                                                                                                      );
-                                                                                                    })()}
-                                                                                                  </div>
+                                                                                                  
                                                                                                 </span>
                                                                                               );
                                                                                             }
@@ -7001,6 +7012,36 @@ const SearchFlight = () => {
                                                                                               <span>
                                                                                                 {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['$']['TravelTime'])}
                                                                                               </span>
+                                                                                              <span className="stop-badge-container">
+                                                                                                <div className="flight-line-a">
+                                                                                                  {(() => {
+                                                                                                    let totalIterations = pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['air:BookingInfo'].length - 1;
+                                                                                                    let stopoverCity = "";
+                                                                                                    let flightTimeInMinutes = 0;
+                                                                                                    if (totalIterations > 0) {
+                                                                                                      pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['air:BookingInfo'].forEach((bookingInfo) => {
+                                                                                                        SegmentList.map((segmentinfo) => {
+                                                                                                          if (segmentinfo['$'] && segmentinfo['$']['Key'] === bookingInfo['$']['SegmentRef']) {
+                                                                                                            flightTimeInMinutes = flightTimeInMinutes + parseInt(segmentinfo['$']['FlightTime']);
+                                                                                                            stopoverCity = handleAirport(segmentinfo['$']['Origin']);
+                                                                                                          }
+                                                                                                        });
+                                                                                                      });
+                                                                                                    }
+                                                                                                    
+                                                                                                    return (
+                                                                                                      <p className="stop-badge" >
+                                                                                                        {totalIterations} stop via {stopoverCity}
+                                                                                                        <div className="tooltip-content">
+                                                                                                          <p style={{ marginBottom: '0px' }}>Plane Change</p>
+                                                                                                          {stopoverCity} | {convertMinutesToHours(pricepoint['travelTime'] - flightTimeInMinutes)} Layover
+                                                                                                        </div>
+                                                                                                      </p>
+
+                                                                                                    );
+                                                                                                  })()}
+                                                                                                </div>
+                                                                                              </span>
                                                                                             </div>
                                                                                             <div className="flight-line-d2"></div>
                                                                                           </span>
@@ -7065,17 +7106,7 @@ const SearchFlight = () => {
 
                                                                                           </div>
                                                                                         </span>
-                                                                                        <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                          {(() => {
-                                                                                            let totalIterations = pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['air:BookingInfo'].length - 1;
-                                                                                            let backgroundColor = totalIterations === 1 ? "#785eff" : "red";
-                                                                                            return (
-                                                                                              <p className="iteration0" style={{ color: "#fff", fontWeight: '600', textAlign: "center", border: "1px solid #cbfac8", width: 70, backgroundColor: backgroundColor, padding: 4, borderRadius: 15, fontSize: 8 }}>
-                                                                                                {totalIterations} STOP
-                                                                                              </p>
-                                                                                            );
-                                                                                          })()}
-                                                                                        </div>
+                                                                                        
                                                                                       </>
                                                                                     ) : (
                                                                                       <>
@@ -7137,6 +7168,14 @@ const SearchFlight = () => {
                                                                                                         <span>
                                                                                                           {calculateTravellingTime(pricepoint['air:AirPricingInfo']['air:FlightOptionsList']['air:FlightOption'][0]['air:Option']['$']['TravelTime'])}
                                                                                                         </span>
+                                                                                                        <span className="stop-badge-container">
+                                                                                                          <p className="stop-badge">
+                                                                                                            Non-Stop
+                                                                                                            <div className="tooltip-content">
+                                                                                                              This is a direct flight with no stops.
+                                                                                                            </div>
+                                                                                                          </p>
+                                                                                                        </span>
                                                                                                       </div>
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
@@ -7179,17 +7218,7 @@ const SearchFlight = () => {
                                                                                                         </span>
                                                                                                     </div>
                                                                                                   </span>
-                                                                                                  <div className="flight-line-a" style={{ marginLeft: 10 }}>
-                                                                                                    {(() => {
-                                                                                                      let totalIterations = 0;
-
-                                                                                                      return (
-                                                                                                        <p className="iteration0" style={{ textAlign: "center", border: "1px solid #cbfac8", width: 70, backgroundColor: "#cbfac8", color: "black", padding: 4, borderRadius: 15, fontSize: 8 }}>
-                                                                                                          NON STOP
-                                                                                                        </p>
-                                                                                                      );
-                                                                                                    })()}
-                                                                                                  </div>
+                                                                                                  
 
                                                                                                 </span>
                                                                                               );
@@ -7212,10 +7241,10 @@ const SearchFlight = () => {
                                                                 )
                                                                 }
 
-                                                                <div className="flight-line-b">
+                                                                {/* <div className="flight-line-b">
                                                                   <b onClick={() => handleFlightDetails(priceindex)}>flight details3</b>
                                                                 </div>
-                                                                <div className="clear" />
+                                                                <div className="clear" /> */}
                                                                 {/* // details // */}
 
 
@@ -8829,7 +8858,7 @@ const SearchFlight = () => {
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
                                                                                                 alt="Airline logo"
                                                                                                 width="40px"
-                                                                                              /><br />
+                                                                                              />
                                                                                               <span className='flightnumber1'>
                                                                                                 {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                 {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
@@ -8920,7 +8949,7 @@ const SearchFlight = () => {
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
                                                                                                 alt="Airline logo"
                                                                                                 width="40px"
-                                                                                              /><br />
+                                                                                              />
                                                                                               <span className='flightnumber1'>
                                                                                                 {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                 {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
@@ -9020,7 +9049,7 @@ const SearchFlight = () => {
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
                                                                                                 alt="Airline logo"
                                                                                                 width="40px"
-                                                                                              /><br />
+                                                                                              />
                                                                                               <span className='flightnumber1'>
                                                                                                 {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                 {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
@@ -9108,7 +9137,7 @@ const SearchFlight = () => {
                                                                                                 src={`https://devapi.taxivaxi.com/airline_logo_images/${segmentinfo['$']['Carrier']}.png`}
                                                                                                 alt="Airline logo"
                                                                                                 width="40px"
-                                                                                              /><br />
+                                                                                              />
                                                                                               <span className='flightnumber1'>
                                                                                                 {handleAirline(segmentinfo['$']['Carrier'])}<br />
                                                                                                 {segmentinfo['$']['Carrier']}{segmentinfo['$']['FlightNumber']}
@@ -9522,12 +9551,7 @@ const SearchFlight = () => {
                                                                                                         });
                                                                                                       });
                                                                                                     }
-                                                                                                    {/* <p className="stop-badge" >
-                                                                                                                      {totalIterations} stop via {stopoverCity}
-                                                                                                                          <div className="tooltip-content">
-                                                                                                                            {totalIterations} stop from {stopoverCity} 
-                                                                                                                          </div>
-                                                                                                                        </p> */}
+                                                                                                    
                                                                                                     return (
                                                                                                       <p className="stop-badge" >
                                                                                                         {totalIterations} stop via {stopoverCity}
@@ -9661,23 +9685,7 @@ const SearchFlight = () => {
                                                                                                     </div>
                                                                                                     <span className="lineflights">
                                                                                                       <div className="flight-line-d1"></div>
-                                                                                                      <div
-                                                                                                        className="flight-line-a"
-                                                                                                        width="45px"
-                                                                                                        style={{ textAlign: 'center', marginTop: '7%' }}
-                                                                                                      >
-                                                                                                        <span style={{ marginLeft: '5px', marginRight: '5px' }} >
-                                                                                                          {calculateTravellingTime(pricepoint['air:AirPricingInfo'][0]['air:FlightOptionsList']['air:FlightOption'][1]['air:Option'][0]['$']['TravelTime'])}
-                                                                                                        </span>
-                                                                                                        <span className="stop-badge-container">
-                                                                                                          <p className="stop-badge">
-                                                                                                            Non-Stop
-                                                                                                            <div className="tooltip-content">
-                                                                                                              This is a direct flight with no stops.
-                                                                                                            </div>
-                                                                                                          </p>
-                                                                                                        </span>
-                                                                                                      </div>
+                                                                                                      
 
                                                                                                       <div className="flight-line-d2"></div>
                                                                                                     </span>
@@ -10652,51 +10660,7 @@ const SearchFlight = () => {
                                                                       <b onClick={() => handleFlightDetails(priceindex)}>flight details2</b>
                                                                     </div> */}
 
-                                                                <div className="flt-i-price">
-                                                                  {pricepoint['air:AirPricingInfo'] && (
-                                                                    Array.isArray(pricepoint['air:AirPricingInfo']) ? (
-                                                                      <>
-                                                                        {(() => {
-                                                                          const totalPrice =
-                                                                            pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
-                                                                          const seatType = cabinClass; // Set the seat type dynamically as needed
-                                                                          const fareName = "Base Fare";
-                                                                          const airline = inputOrigin;
-
-                                                                          const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
-
-                                                                          return (
-                                                                            <>
-                                                                              {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                              {Math.floor(finalPrice)}
-                                                                            </>
-                                                                          );
-                                                                        })()}
-                                                                      </>
-                                                                    ) : (
-                                                                      <>
-                                                                        {(() => {
-                                                                          const totalPrice =
-                                                                            pricepoint['air:AirPricingInfo']['$']['TotalPrice'];
-                                                                          const seatType = cabinClass; // Set the seat type dynamically as needed
-                                                                          const fareName = "Base Fare";
-                                                                          const airline = inputOrigin;
-
-                                                                          const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
-
-                                                                          return (
-                                                                            <>
-                                                                              {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                              {Math.floor(finalPrice)} {/* Show final price with markup applied */}
-                                                                            </>
-                                                                          );
-                                                                        })()}
-                                                                      </>
-                                                                    )
-                                                                  )}
-
-
-                                                                </div>
+                                                                
 
 
 
@@ -13037,81 +13001,73 @@ const SearchFlight = () => {
                                                 </div>
                                                 <div className="flt-i-c">
                                                   <div className="flt-i-padding">
-                                                    <div className="flt-i-price-i">
-                                                      <div className="flt-i-price">
-                                                        {pricepoint['air:AirPricingInfo'] && (
-                                                          Array.isArray(pricepoint['air:AirPricingInfo']) ? (
-                                                            <>
-                                                              {(() => {
-                                                                const totalPrice =
-                                                                  pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
-                                                                const seatType = cabinClass; // Set the seat type dynamically as needed
-                                                                const fareName = "Base Fare";
-                                                                const airline = inputOrigin;
-                                                                const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
+                                                  <div className="flt-i-price">
+                                                                  {pricepoint['air:AirPricingInfo'] && (
+                                                                    Array.isArray(pricepoint['air:AirPricingInfo']) ? (
+                                                                      <>
+                                                                        {(() => {
+                                                                          const totalPrice =
+                                                                            pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
+                                                                          const seatType = cabinClass; // Set the seat type dynamically as needed
+                                                                          const fareName = "Base Fare";
+                                                                          const airline = inputOrigin;
 
-                                                                return (
-                                                                  <>
-                                                                    {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                    {Math.floor(finalPrice)} {/* Show final price with markup applied */}
-                                                                  </>
-                                                                );
-                                                              })()}
-                                                            </>
-                                                          ) : (
-                                                            <>
-                                                              {(() => {
-                                                                const totalPrice =
-                                                                  pricepoint['air:AirPricingInfo']['$']['TotalPrice'];
-                                                                const seatType = cabinClass; // Set the seat type dynamically as needed
-                                                                const fareName = "Base Fare";
-                                                                const airline = inputOrigin;
-                                                                const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
+                                                                          const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
+
+                                                                          return (
+                                                                            <>
+                                                                              {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                              {Math.floor(finalPrice)}
+                                                                            </>
+                                                                          );
+                                                                        })()}
+                                                                      </>
+                                                                    ) : (
+                                                                      <>
+                                                                        {(() => {
+                                                                          const totalPrice =
+                                                                            pricepoint['air:AirPricingInfo']['$']['TotalPrice'];
+                                                                          const seatType = cabinClass; // Set the seat type dynamically as needed
+                                                                          const fareName = "Base Fare";
+                                                                          const airline = inputOrigin;
+
+                                                                          const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
+
+                                                                          return (
+                                                                            <>
+                                                                              {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                              {Math.floor(finalPrice)} 
+                                                                            </>
+                                                                          );
+                                                                        })()}
+                                                                      </>
+                                                                    )
+                                                                  )}
 
 
-                                                                return (
-                                                                  <>
-                                                                    {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                    {Math.floor(finalPrice)} {/* Show final price with markup applied */}
-                                                                  </>
-                                                                );
-                                                              })()}
-                                                            </>
-                                                          )
-                                                        )}
+                                                                </div>
+                                                   
 
-                                                      </div>
+
+                                                    <button type="submit"
+                                                      className="srch-btn" variant="primary" style={{ borderRadius: '18px' }}>
+                                                      <span style={{ fontSize: "12px" }}>View Prices</span>
+                                                    </button>
+                                                    <div className="flight-line-b">
+                                                      <b onClick={() => handleFlightDetails(priceindex)}>
+                                                        {visibleFlightIndex === priceindex ? "Hide Flight Details" : "Show Flight Details"}
+                                                      </b>
                                                     </div>
-                                                    {/* <div className="flt-i-price-b">per adult</div>
-                                                        <button type="submit" 
-                                                                className="srch-btn" variant="primary">
-                                                            <span style={{ fontSize: "12px" }}>View Prices</span>
-                                                          </button> */}
-                                                    <div className="flt-i-c">
-                                                      <div className="flt-i-padding">
-
-                                                        <button type="submit"
-                                                          className="srch-btn" variant="primary" style={{ borderRadius: '18px' }}>
-                                                          <span style={{ fontSize: "12px" }}>View Prices</span>
-                                                        </button>
-                                                        <div className="flight-line-b">
-                                                          <b onClick={() => handleFlightDetails(priceindex)}>
-                                                            {visibleFlightIndex === priceindex ? "Hide Flight Details" : "Show Flight Details"}
-                                                          </b>
-                                                        </div>
-                                                        {visibleFlightIndex === priceindex && (
-                                                          <div className="flight-details">
-                                                            {/* Render your flight details here */}
-                                                          </div>
-                                                        )}
-                                                        <div className="clear" />
-
+                                                    {visibleFlightIndex === priceindex && (
+                                                      <div className="flight-details">
+                                                        {/* Render your flight details here */}
                                                       </div>
-                                                    </div>
-
+                                                    )}
+                                                    <div className="clear" />
 
                                                   </div>
                                                 </div>
+                                                
                                                 <div className="clear" />
                                               </div>
                                             </div>
@@ -14985,7 +14941,7 @@ const SearchFlight = () => {
                                                                         {(() => {
                                                                           const totalPrice =
                                                                             pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
-                                                                          const seatType = cabinClass; // Set the seat type dynamically as needed
+                                                                          const seatType = cabinClass; 
                                                                           const fareName = "Base Fare";
                                                                           const airline = inputOrigin;
                                                                           const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
@@ -14993,7 +14949,7 @@ const SearchFlight = () => {
                                                                           return (
                                                                             <>
                                                                               {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                              {Math.floor(finalPrice)} {/* Show final price with markup applied */}
+                                                                              {Math.floor(finalPrice)} 
                                                                             </>
                                                                           );
                                                                         })()}
@@ -15011,7 +14967,7 @@ const SearchFlight = () => {
                                                                           return (
                                                                             <>
                                                                               {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                              {Math.floor(finalPrice)} {/* Show final price with markup applied */}
+                                                                              {Math.floor(finalPrice)} 
                                                                             </>
                                                                           );
                                                                         })()}
@@ -17466,30 +17422,7 @@ const SearchFlight = () => {
                                                                     : '+'
                                                                 }
                                                               </button>
-                                                              {/* <button
-                                                                      className="add-btn"
-                                                                      type="button"
-                                                                      onClick={() => {
-                                                                        const fareName = priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'];
-                                                                        const farePrice = priceParseData['air:AirPricingInfo']['$']['TotalPrice'].replace('INR', '').trim(); // Adjust logic if needed
-
-                                                                        handleSegmentRefClick(priceParseData['air:AirSegmentRef']['$']['Key'], farePrice, fareName); // Call with appropriate values
-                                                                      }}
-                                                                    >
-                                                                      {
-                                                                        selectedFlightss.some(
-                                                                          (flight) =>
-                                                                            flight.segment["$"]["Key"] === priceParseData['air:AirSegmentRef']['$']['Key'] &&
-                                                                            flight.fares.some(
-                                                                              (fare) =>
-                                                                                fare.name === priceParseData['air:AirPricingInfo']['air:FareInfo']['air:Brand']['$']['Name'] &&
-                                                                                fare.price === priceParseData['air:AirPricingInfo']['$']['TotalPrice'].replace('INR', '').trim() // Adjust logic if needed
-                                                                            )
-                                                                        )
-                                                                          ? '-'
-                                                                          : '+'
-                                                                      }
-                                                                    </button> */}
+                                                              
                                                             </div>
 
                                                           ))

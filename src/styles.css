@@ -4755,14 +4755,14 @@ nav ul li {
 }
 
 .flt-i-bb.flight-return {
-  padding-top: 18px;
+  /* padding-top: 18px; */
   margin-bottom: 0px;
 }
 
 .flt-i-c {
   width: 140px;
   float: left;
-  height: 117px;
+  /* height: 117px; */
   overflow: hidden;
   margin: 0 0 0 -91px;
 }

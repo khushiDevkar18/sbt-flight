@@ -171,7 +171,7 @@ const navigate = useNavigate();
                                 <com:Provider Code="ACH"/>
                             </air:PreferredProviders>
                             <air:PermittedCabins>
-                                <com:CabinClass Type="${cabinType}"/>
+                                <com:CabinClass Type="Economy"/>
                             </air:PermittedCabins>
                         </air:AirSearchModifiers>
                         ${searchPassengerADT}

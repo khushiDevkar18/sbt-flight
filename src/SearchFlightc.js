@@ -1757,51 +1757,7 @@ const SearchFlight = () => {
     console.log('fareInfoRefKey', fareInfoRefKey);
     console.log('pricepoint', pricepoint);
     const pricingAttrs = pricepoint?.['$'] || {};
-    const matchingSegInfo = SegmentList.find(
-      (segment) => segment['$']?.Key === fareInfoRefKey?.SegmentRef
-    );
-    console.log('matchingSegInfo', matchingSegInfo);
-    const buildAirSegmentXML = (segment) => {
-      if (!segment || !segment['$']) return '';
     
-      const attrs = segment['$'];
-    
-      let xml = `<AirSegment`;
-      for (const [key, value] of Object.entries(attrs)) {
-        xml += ` ${key}="${value}"`;
-      }
-      xml += `>`;
-    
-      // Add CodeshareInfo if exists
-      if (segment['air:CodeshareInfo']) {
-        const cs = segment['air:CodeshareInfo'];
-        const csAttrs = cs['$'] || {};
-        const csText = cs['_'] || '';
-        xml += `<CodeshareInfo${Object.entries(csAttrs)
-          .map(([k, v]) => ` ${k}="${v}"`)
-          .join('')}>${csText}</CodeshareInfo>`;
-      }
-    
-      // Add AirAvailInfo if exists
-      if (segment['air:AirAvailInfo'] && segment['air:AirAvailInfo']['$']) {
-        const aaAttrs = segment['air:AirAvailInfo']['$'];
-        xml += `<AirAvailInfo${Object.entries(aaAttrs)
-          .map(([k, v]) => ` ${k}="${v}"`)
-          .join('')} />`;
-      }
-    
-      // Add FlightDetailsRef if exists
-      if (segment['air:FlightDetailsRef'] && segment['air:FlightDetailsRef']['$']) {
-        const fdAttrs = segment['air:FlightDetailsRef']['$'];
-        xml += `<FlightDetailsRef${Object.entries(fdAttrs)
-          .map(([k, v]) => ` ${k}="${v}"`)
-          .join('')} />`;
-      }
-    
-      xml += `</AirSegment>`;
-    
-      return xml;
-    };
 
     const matchedHostTokens = HostList
       .filter(host => host['$']?.Key === fareInfoRefKey?.HostTokenRef)
@@ -1810,60 +1766,136 @@ const SearchFlight = () => {
         value: host._
       }));
 
-    const renderHostTokens = (tokens) => {
-      return tokens.map(
-        token => `<common_v52_0:HostToken Key="${token.key}">${token.value}</common_v52_0:HostToken>`
-      ).join('\n');
-    };
+      const buildHostTokenObjects = (tokens) => {
+        return tokens.map(token => ({
+          'common:HostToken': {
+            '$': {
+              'Key': token.key
+            },
+            '_': token.value
+          }
+        }));
+      };
     const matchedFareInfo = FareList.find(
       (fareInfo) => fareInfo['$']?.Key === fareInfoRefKey?.FareInfoRef
     );
     const fareBasisCode = matchedFareInfo?.['$']?.FareBasis || '';
+    const matchingSegInfo = SegmentList.find(
+      (segment) => segment['$']?.Key === fareInfoRefKey?.SegmentRef
+    );
+    console.log('matchingSegInfo', matchingSegInfo);
+    const buildAirSegmentObject = (segment) => {
+      if (!segment || !segment['$']) return null;
+      
+    
+      const obj = {
+        '$': segment['$']
+      };
+      
+      obj['$'].ClassOfService = fareInfoRefKey?.BookingCode;
+      obj['$'].CabinClass = cabinclass;
+      const airAvailInfoAttrs = segment['air:AirAvailInfo']?.$;
+        if (airAvailInfoAttrs?.ProviderCode) { 
+          obj['$'].ProviderCode = airAvailInfoAttrs.ProviderCode;
+        }
+    
+      if (segment['air:CodeshareInfo']) {
+        const cs = segment['air:CodeshareInfo'];
+        obj['air:CodeshareInfo'] = {
+          '$': cs['$'] || {},
+          '_': cs['_'] || ''
+        };
+      }
+    
+      if (segment['air:AirAvailInfo']) {
+        obj['air:AirAvailInfo'] = {
+          '$': segment['air:AirAvailInfo']['$'] || {}
+        };
+      }
+    
+      // if (segment['air:FlightDetailsRef']) {
+      //   obj['air:FlightDetailsRef'] = {
+      //     '$': segment['air:FlightDetailsRef']['$'] || {}
+      //   };
+      // }
+    
+      return obj;
+    };
 
-    // const builder = require('xml2js').Builder;
-    // var quotereq = new builder().buildObject({
-    const quotereq =  `<?xml version="1.0" encoding="utf-16"?>
-    <AirExchangeQuoteReq TargetBranch="${Targetbranch}"
-      xmlns="http://www.travelport.com/schema/air_v47_0"
-      xmlns:common_v47_0="http://www.travelport.com/schema/common_v47_0"
-      xmlns:common="http://www.travelport.com/schema/common_v47_0"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.travelport.com/schema/air_v47_0 file:///C:/Users/NESARA.DH/Documents/Ecommerce/uAPI_WSDLschema_Release-V20.2.1.573/air_v47_0/AirReqRsp.xsd">
+    const builder = require('xml2js').Builder;
 
-      <common:BillingPointOfSaleInfo OriginApplication="UAPI" />
-      <ProviderReservationInfo ProviderCode="ACH" ProviderLocatorCode="${universal_locator_code}"/>
+    const airExchangeQuoteReqObj = {
+      'soap:Envelope': {
+        '$': {
+          'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
+        },
+        'soap:Body': {
+          'air:AirExchangeQuoteReq': {
+            '$': {
+              'TargetBranch': Targetbranch,
+              'xmlns:air': 'http://www.travelport.com/schema/air_v47_0',
+              'xmlns:common': 'http://www.travelport.com/schema/common_v47_0',
+              'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+              'xsi:schemaLocation': 'http://www.travelport.com/schema/air_v47_0 file:///C:/Users/NESARA.DH/Documents/Ecommerce/uAPI_WSDLschema_Release-V20.2.1.573/air_v47_0/AirReqRsp.xsd'
+            },
 
-      <AirPricingSolution
-        Key="${pricingAttrs.Key || ''}"
-        CompleteItinerary="${pricingAttrs.CompleteItinerary || 'true'}"
-        TotalPrice="${pricingAttrs.TotalPrice || ''}"
-        BasePrice="${pricingAttrs.BasePrice || ''}"
-        ApproximateTotalPrice="${pricingAttrs.ApproximateTotalPrice || ''}"
-        ApproximateBasePrice="${pricingAttrs.ApproximateBasePrice || ''}"
-        Taxes="${pricingAttrs.Taxes || ''}"
-        ApproximateTaxes="${pricingAttrs.ApproximateTaxes || ''}"
-      >
-        ${buildAirSegmentXML(matchingSegInfo)}
-      </AirPricingSolution>
+            'common:BillingPointOfSaleInfo': {
+              '$': {
+                'OriginApplication': 'UAPI'
+              }
+            },
 
-      <AirExchangeModifiers BookingDate="${previousdepdate}" />
-      ${renderHostTokens(matchedHostTokens)}
+            'air:ProviderReservationInfo': {
+              '$': {
+                'ProviderCode': 'ACH',
+                'ProviderLocatorCode': universal_locator_code
+              }
+            },
 
-      <RepricingModifiers>
-        <AirSegmentPricingModifiers
-          AirSegmentRef="${fareInfoRefKey?.SegmentRef || ''}"
-          CabinClass="${cabinclass}"
-          FareBasisCode="${fareBasisCode}"
-        />
-      </RepricingModifiers>
+            'air:AirPricingSolution': {
+              '$': {
+                'Key': pricingAttrs.Key || '',
+                'CompleteItinerary': pricingAttrs.CompleteItinerary || 'true',
+                'TotalPrice': pricingAttrs.TotalPrice || '',
+                'BasePrice': pricingAttrs.BasePrice || '',
+                'ApproximateTotalPrice': pricingAttrs.ApproximateTotalPrice || '',
+                'ApproximateBasePrice': pricingAttrs.ApproximateBasePrice || '',
+                'Taxes': pricingAttrs.Taxes || '',
+                'ApproximateTaxes': pricingAttrs.ApproximateTaxes || ''
+              },
+              'air:AirSegment': buildAirSegmentObject(matchingSegInfo)
+            },
 
-    </AirExchangeQuoteReq>`;
+            'air:AirExchangeModifiers': {
+              '$': {
+                'BookingDate': previousdepdate
+              }
+            },
+
+            ...Object.assign({}, ...buildHostTokenObjects(matchedHostTokens)),
+
+            'air:RepricingModifiers': {
+              'air:AirSegmentPricingModifiers': {
+                '$': {
+                  'AirSegmentRef': fareInfoRefKey?.SegmentRef || '',
+                  'CabinClass': cabinclass,
+                  'FareBasisCode': fareBasisCode
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+    const airExchangeQuoteReqXML = new builder({ headless: true }).buildObject(airExchangeQuoteReqObj);
+
+    
 
 
-    console.log('quotereq', quotereq);
+    console.log('quotereq', airExchangeQuoteReqXML);
     const Quoteresponse = await axios.post(
       `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
-      quotereq, { headers: { 'Content-Type': 'text/xml' } }
+      airExchangeQuoteReqXML, { headers: { 'Content-Type': 'text/xml' } }
     );
     const quoteResponse = Quoteresponse.data;
     console.log('quoteResponse', quoteResponse);
