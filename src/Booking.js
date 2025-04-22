@@ -137,11 +137,13 @@ const Booking = () => {
     const [seattravelerparse, setseattravelerparse] = useState(null);
     const [seatOptionalparse, setseatOptionalparse] = useState(null);
     const [segmenttaxivaxisData, setsegmenttaxivaxis] = useState(null);
+    const [Passengers, setPassengers] = useState(null);
 
     const [checkedInBaggage, setCheckedIn] = useState(null);
     const [cabinBaggage, setCabin] = useState(null);
     const [seatrowsParse, setseatrowsparse] = useState(null);
-    console.log('serviceoptionalsOptions', serviceoptionalsOptions);
+    // console.log('serviceoptionalsOptions', serviceoptionalsOptions);
+     const [serviceoptionalsOptions, setserviceoptionalsOptions] = useState([]);
     const [serviceSegments, setserviceSegments] = useState([]);
     const [seatresponseparse, setseatresponseparse] = useState(null);
     const [emptyseatmap, setemptyseatmap] = useState(false);
