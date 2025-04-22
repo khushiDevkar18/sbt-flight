@@ -5,10 +5,6 @@ import { parseString } from 'xml2js';
 import { Nav } from 'react-bootstrap';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-// import Accordion from '@mui/material/Accordion';
-// import AccordionActions from '@mui/material/AccordionActions';
-// import AccordionSummary from '@mui/material/AccordionSummary';
-// import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -21,6 +17,7 @@ import {
     Tooltip,
     IconButton,
   } from "@mui/material";
+
 import Swal from 'sweetalert2';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
@@ -143,9 +140,7 @@ const Booking = () => {
 
     const [checkedInBaggage, setCheckedIn] = useState(null);
     const [cabinBaggage, setCabin] = useState(null);
-    const [Passengers, setPassengers] = useState(null);
     const [seatrowsParse, setseatrowsparse] = useState(null);
-    const [serviceoptionalsOptions, setserviceoptionalsOptions] = useState([]);
     console.log('serviceoptionalsOptions', serviceoptionalsOptions);
     const [serviceSegments, setserviceSegments] = useState([]);
     const [seatresponseparse, setseatresponseparse] = useState(null);
@@ -165,8 +160,6 @@ const Booking = () => {
 
     const providerCodeRef = useRef(null);
     const Targetbranch = 'P4451438';
-
-    
 
     const handleChange = (value) => {
         setValue(value);
@@ -1136,6 +1129,7 @@ const Booking = () => {
         let base_price = 0;
         let total_tax = 0;
         let fare_type = '';
+        let discount = 0;
 
 
         if (packageSelected['air:AirPricingInfo']) {
@@ -1150,11 +1144,21 @@ const Booking = () => {
             if (packageSelected["air:AirPricingInfo"]["$"]["BasePrice"]) {
                 base_price = Math.floor(parseFloat(packageSelected["air:AirPricingInfo"]["$"]["BasePrice"].replace("INR", "").trim()));
                 base_price = base_price * noOfSeats;
-                console.log("base_price c",base_price);
+                console.log("base_price c", base_price);
             }
             if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
                 fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable'] == 'true' ? 'Refundable' : 'Non Refundable';
             }
+            const feeInfo = packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo'];
+
+            if (feeInfo?.["$"]?.["Text"] === 'PromotionDiscount') {
+                const feesRaw = feeInfo?.["$"]?.["Amount"];
+                if (feesRaw) {
+                    const feeAmount = parseFloat(feesRaw.replace("INR", "").trim());
+                    discount = Math.floor(Math.abs(feeAmount)) * parseFloat(noOfSeats || 1);
+                }
+            }
+console.log("discount",discount);
 
         }
         let assignTax = 0; // Initialize assignTax
@@ -1557,232 +1561,261 @@ const Booking = () => {
         var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
         console.log('modifiedXmlString ACH', modifiedXmlString);
 
+        await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+            new URLSearchParams({ booking_id: bookingid,api_data:modifiedXmlString,api_name:'reservationReq' }) // Send booking_id as form data
+        );
 
-        // const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
-        // const reservationresponse = '123';
-        // const reservationResponse = reservationresponse.data;
-        
-        // console.log('reservationResponse', reservationResponse);
-        // let matchesDataInfo;
-        // console.log("re packageSelected",packageSelected);
-        // const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo'])? packageSelected['air:AirPricingInfo']['air:FareInfo'][0]: packageSelected['air:AirPricingInfo']['air:FareInfo'];
+        const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
+        const reservationResponse = reservationresponse.data;
+ 
+        await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+            new URLSearchParams({ booking_id: bookingid,api_data:reservationResponse,api_name:'reservationRes' }) // Send booking_id as form data
+        );
 
-        // fareInfoList['air:Brand']['air:Text'].map((textinfor, textindex) => {
-        //     if (
-        //         textinfor['$'] &&
-        //         textinfor['$']['Type'] === "MarketingConsumer"
-        //     ) {
-        //         const infoText = textinfor['_'];
-        //         const matches = infoText.match(/\b\d+\s?(kgs?|kg)\b/gi);
+        console.log('reservationResponse', reservationResponse);
+        let matchesDataInfo;
+        console.log("re packageSelected", packageSelected);
+        const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo']) ? packageSelected['air:AirPricingInfo']['air:FareInfo'][0] : packageSelected['air:AirPricingInfo']['air:FareInfo'];
 
-        //         if (matches) {
-        //             matchesDataInfo = matches
-        //         }
-        //     }
-        // })
+        fareInfoList['air:Brand']['air:Text'].map((textinfor, textindex) => {
+            if (
+                textinfor['$'] &&
+                textinfor['$']['Type'] === "MarketingConsumer"
+            ) {
+                const infoText = textinfor['_'];
+                const matches = infoText.match(/\b\d+\s?(kgs?|kg)\b/gi);
 
-        // parseString(reservationResponse, { explicitArray: false }, async (err, reservationresult) => {
-        //     if (err) {
-        //         console.error('Error parsing XML:', err);
-        //         return;
-        //     }
-        //     const soapFault = reservationresult?.['SOAP:Envelope']?.['SOAP:Body']?.['SOAP:Fault'];
-        //     if (soapFault) {
-        //         navigate('/tryagainlater');
-        //         return;
+                if (matches) {
+                    matchesDataInfo = matches
+                }
+            }
+        })
 
-        //     }
-        //     const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
-        //     const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
-        //     const mainlocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
+        parseString(reservationResponse, { explicitArray: false }, async (err, reservationresult) => {
+            if (err) {
+                console.error('Error parsing XML:', err);
+                return;
+            }
+            const soapFault = reservationresult?.['SOAP:Envelope']?.['SOAP:Body']?.['SOAP:Fault'];
+            if (soapFault) {
+                navigate('/tryagainlater');
+                return;
+            }
+            
+            const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
+            const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
+            const mainlocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
 
-        //     var UniversalRecordRequest = {
-        //         "soap:Envelope": {
-        //             '$': {
-        //                 "@xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
-        //             },
-        //             "soap:Body": {
-        //                 "univ:UniversalRecordRetrieveReq": {
-        //                     '$': {
-        //                         "@TargetBranch": Targetbranch,
-        //                         "@TraceId": "TVSBP001",
-        //                         "@AuthorizedBy": "TAXIVAXI",
-        //                         "@RetrieveProviderReservationDetails": "true",
-        //                         "@xmlns:univ": "http://www.travelport.com/schema/universal_v52_0",
-        //                         "@xmlns:com": "http://www.travelport.com/schema/common_v52_0",
-        //                     },
-        //                     "com:BillingPointOfSaleInfo": {
-        //                         '$': {
-        //                             "@OriginApplication": "UAPI"
-        //                         }
-        //                     },
-        //                     "univ:ProviderReservationInfo": {
-        //                         '$': {
-        //                             "@ProviderCode": "ACH",
-        //                             "@ProviderLocatorCode": flightpnrCode
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     // const UniversalRecordResponse = await axios.post('${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
+            var UniversalRecordRequest = {
+                "soap:Envelope": {
+                    '$': {
+                        "@xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
+                    },
+                    "soap:Body": {
+                        "univ:UniversalRecordRetrieveReq": {
+                            '$': {
+                                "@TargetBranch": Targetbranch,
+                                "@TraceId": "TVSBP001",
+                                "@AuthorizedBy": "TAXIVAXI",
+                                "@RetrieveProviderReservationDetails": "true",
+                                "@xmlns:univ": "http://www.travelport.com/schema/universal_v52_0",
+                                "@xmlns:com": "http://www.travelport.com/schema/common_v52_0",
+                            },
+                            "com:BillingPointOfSaleInfo": {
+                                '$': {
+                                    "@OriginApplication": "UAPI"
+                                }
+                            },
+                            "univ:ProviderReservationInfo": {
+                                '$': {
+                                    "@ProviderCode": "ACH",
+                                    "@ProviderLocatorCode": flightpnrCode
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // const UniversalRecordResponse = await axios.post('${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
 
+            const flightDetails = {};
 
-        //     const flightDetails = {};
-           
-        //     const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis]
-        //     console.log("formattedsegmenttaxivaxis",formattedsegmenttaxivaxis);
-        //     if (Array.isArray(formattedsegmenttaxivaxis)) {
-        //         formattedsegmenttaxivaxis.forEach((segment, index) => {
-        //             console.log("segment.DepartureDate",segment.DepartureDate);
-        //             console.log("segment.ArrivalDate",segment.ArrivalDate);
-        //             console.log("segment.DepartureTime",segment.DepartureTime);
-        //             console.log("segment.ArrivalTime",segment.ArrivalTime);
-        //             const departureDate = new Date(segment.DepartureTime);
-        //             const arrivalDate = new Date(segment.ArrivalTime);
+            const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis]
 
-        //             const formattedDate = formatDateTime(departureDate);
-        //             const formattedDeparture = new Date(segment.DepartureTime).toLocaleTimeString('en-US', {
-        //                 hour: 'numeric',
-        //                 minute: 'numeric',
-        //                 hour12: false,
-        //             });
-        //             const concatDeptDateTime = formattedDate + " " + formattedDeparture;
+            if (Array.isArray(formattedsegmenttaxivaxis)) {
+                formattedsegmenttaxivaxis.forEach((segment, index) => {
+                    const departureDate = new Date(segment.DepartureTime);
+                    const arrivalDate = new Date(segment.ArrivalTime);
 
-        //             const formattedArrivalDate = formatDateTime(arrivalDate);
-                    
-        //             const formattedArrival = new Date(segment.ArrivalTime).toLocaleTimeString('en-US', {
-        //                 hour: 'numeric',
-        //                 minute: 'numeric',
-        //                 hour12: false,
-        //             });
-        //             const concatArrivalDateTime = formattedArrivalDate + " " + formattedArrival;
+                    const formattedDate = formatDateTime(departureDate);
+                    const formattedDeparture = new Date(segment.DepartureTime).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: false,
+                    });
+                    const concatDeptDateTime = formattedDate + " " + formattedDeparture;
 
-        //             const matchedFlightDetail = actualFlightDetails.find(flight =>
-        //                 flight.$?.Origin === segment.Origin &&
-        //                 flight.$?.Destination === segment.Destination &&
-        //                 flight.$?.DepartureTime == (segment.DepartureTime) &&
-        //                 flight.$?.ArrivalTime == (segment.ArrivalTime)
-        //             );
+                    const formattedArrivalDate = formatDateTime(arrivalDate);
 
-        //             if (fareFamily == 'Corporate Fare') {
-        //                 seat_type='Corporate Economy'
-        //             } else {
-        //                 seat_type = seat_type;
-        //             }
-                    
-        //             flightDetails[`from_${index}`] = segment.Origin;
-        //             flightDetails[`to_${index}`] = segment.Destination;
-        //             flightDetails[`depart_${index}`] = concatDeptDateTime;
-        //             flightDetails[`arrival_${index}`] = concatArrivalDateTime;
-        //             flightDetails[`flight_name_${index}`] = handleAirline(segment.Carrier) + " (" + flightType + ")";
-        //             flightDetails[`flight_no_${index}`] = segment.Carrier + " " + segment.FlightNumber;
-        //             flightDetails[`seat_type_${index}`] = seat_type;
-        //             flightDetails[`pnr_no_${index}`] = flightpnrCode;
-        //             flightDetails[`checked_bg_${index}`] = matchesDataInfo?.[0] || 'NA';
-        //             flightDetails[`cabin_bg_${index}`] = matchesDataInfo?.[1] || 'NA';
-        //             flightDetails[`OriginTerminal_${index}`] = matchedFlightDetail?.$?.OriginTerminal ? `T-${matchedFlightDetail.$.OriginTerminal}` : "";
-        //             flightDetails[`DestinationTerminal_${index}`] = matchedFlightDetail?.$?.DestinationTerminal ? `T-${matchedFlightDetail.$.DestinationTerminal}` : "";
-        //         });
-        //     }
+                    const formattedArrival = new Date(segment.ArrivalTime).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: false,
+                    });
+                    const concatArrivalDateTime = formattedArrivalDate + " " + formattedArrival;
 
-        //     const formatedmergedData = Array.isArray(mergedData) ? mergedData : [mergedData];
-        //     const passengerDetailsFormatted = {};
-        //     if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formatedmergedData)) {
-        //         formattedsegmenttaxivaxis.forEach((segment, flightIndex) => {
-        //             formatedmergedData.forEach((passenger, passengerIndex) => {
-        //                 passengerDetailsFormatted[`people_id_${flightIndex}_${passengerIndex}`] = passenger.id || "NA";
-        //                 passengerDetailsFormatted[`ticket_no_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
-        //                 passengerDetailsFormatted[`meal_include_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
-        //             });
-        //         });
-        //     }
+                    const matchedFlightDetail = actualFlightDetails.find(flight =>
+                        flight.$?.Origin === segment.Origin &&
+                        flight.$?.Destination === segment.Destination &&
+                        flight.$?.DepartureTime == (segment.DepartureTime) &&
+                        flight.$?.ArrivalTime == (segment.ArrivalTime)
+                    );
 
-        //     const seatDetailsFormatted = {};
-        //     console.log("formseat", formseat)
-        //     if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formseat)) {
-        //         segmenttaxivaxis.forEach((segment, flightIndex) => {
-        //             formseat.forEach((seat, passengerIndex) => {
-        //                 seatDetailsFormatted[`seat_no_${flightIndex}_${passengerIndex}`] = seat.seat_no || "NA";
-        //             });
-        //         });
-        //     }
+                    if (fareFamily == 'Corporate Fare') {
+                        seat_type = 'Corporate Economy'
+                    } else {
+                        seat_type = seat_type;
+                    }
 
-        //     const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3)-parseFloat(assignTax);
+                    flightDetails[`from_${index}`] = segment.Origin;
+                    flightDetails[`to_${index}`] = segment.Destination;
+                    flightDetails[`depart_${index}`] = concatDeptDateTime;
+                    flightDetails[`arrival_${index}`] = concatArrivalDateTime;
+                    flightDetails[`flight_name_${index}`] = handleAirline(segment.Carrier) + " (" + flightType + ")";
+                    flightDetails[`flight_no_${index}`] = segment.Carrier + " " + segment.FlightNumber;
+                    flightDetails[`seat_type_${index}`] = seat_type;
+                    flightDetails[`pnr_no_${index}`] = flightpnrCode;
+                    flightDetails[`checked_bg_${index}`] = matchesDataInfo?.[0] || 'NA';
+                    flightDetails[`cabin_bg_${index}`] = matchesDataInfo?.[1] || 'NA';
+                    flightDetails[`OriginTerminal_${index}`] = matchedFlightDetail?.$?.OriginTerminal ? `T-${matchedFlightDetail.$.OriginTerminal}` : "";
+                    flightDetails[`DestinationTerminal_${index}`] = matchedFlightDetail?.$?.DestinationTerminal ? `T-${matchedFlightDetail.$.DestinationTerminal}` : "";
+                });
+            }
 
-        //     const formtaxivaxiData = {
-        //         // ...formtaxivaxi,
-        //         access_token: access_token,
-        //         booking_id: bookingid,
-        //         trip_type: tripType,
-        //         fare_type: 'Refundable',
-        //         is_extra_baggage_included: 0,
-        //         flight_type: flightType,
-        //         total_ex_tax_fees: base_price + assignTax,
-        //         total_price: total_price,
-        //         tax_and_fees: tax_excluding_k3,
-        //         gst_k3: tax_k3,
-        //         mark_up_price: 0,
-        //         no_of_stops: stopCounts,
-        //         no_of_stops_return: returnstopCounts,
-        //         no_of_seats: noOfSeats,
-        //         people_id: 'NULL',
-        //         date_change_charges: 0,
-        //         seat_charges: 0,
-        //         meal_charges: 0,
-        //         extra_baggage_charges: 0,
-        //         fast_forward_charges: 0,
-        //         vip_service_charges: 0,
-        //         pnrcode: flightpnrCode,
-        //         universallocatorCode: mainlocatorCode,
-        //         applied_markup: markup_price,
-        //         actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
-        //         // flightDetails: segmenttaxivaxis,
-        //         ...flightDetails,
-        //         extrabaggage: 'NA',
-        //         // seatdetails: formseat,
-        //         checkedInBaggage: checkedInBaggage,
-        //         cabinBaggage: cabinBaggage,
-        //         returns: returns,
-        //         ...passengerDetailsFormatted,
-        //         ...seatDetailsFormatted
-        //     };
+            const formatedmergedData = Array.isArray(mergedData) ? mergedData : [mergedData];
+            const passengerDetailsFormatted = {};
+            if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formatedmergedData)) {
+                formattedsegmenttaxivaxis.forEach((segment, flightIndex) => {
+                    formatedmergedData.forEach((passenger, passengerIndex) => {
+                        passengerDetailsFormatted[`people_id_${flightIndex}_${passengerIndex}`] = passenger.id || "NA";
+                        passengerDetailsFormatted[`ticket_no_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
+                        passengerDetailsFormatted[`meal_include_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
+                    });
+                });
+            }
 
-        //     console.log('assignFlightPayloadData', formtaxivaxiData);
+            const seatDetailsFormatted = {};
+            if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formseat)) {
+                segmenttaxivaxis.forEach((segment, flightIndex) => {
+                    formseat.forEach((seat, passengerIndex) => {
+                        seatDetailsFormatted[`seat_no_${flightIndex}_${passengerIndex}`] = seat.seat_no || "NA";
+                    });
+                });
+            }
 
-        //     const apiLink = `${CONFIG.MAIN_API}/api/flights/assignSbtCotravFlightBooking`;
+            const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3) - parseFloat(assignTax);
+            const passenger_markup_price = parseFloat(markup_price) * parseFloat(noOfSeats);
+    
+            const responseMessages = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['common_v52_0:ResponseMessage'];
+                     console.log("responseMessages",responseMessages);
+                              
+            let bookingStatus = "";
 
-        //     axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
-        //         headers: {
-        //             'Content-Type': 'application/x-www-form-urlencoded',
-        //         },
-        //     }).then((response) => {
-        //         console.log("responseData", response)
-        //     })
+            responseMessages.forEach((msg) => {
+                const text = msg?._ || "";
+                if (text.includes("Reservation declined")) {
+                bookingStatus = "Booking failed: Reservation declined by vendor.";
+                } else if (text.includes("on hold")) {
+                bookingStatus = "Booking on hold. Please complete payment.";
+                }
+            });
 
-        //     console.log("Condition met, navigating... now in the reservationresult");
-        //     const bookingCompleteData = {
-        //         reservationdata: reservationresponse.data,
-        //         segmentParse: segmentParse,
-        //         Passengers: Passengers,
-        //         PackageSelected: packageSelected,
-        //         Airports: Airports,
-        //         Airlines: Airlines,
-        //         adult: request.adult,
-        //         child: request.child,
-        //         infant: request.infant,
-        //         apiairportsdata: apiairports,
-        //         markup_price: markup_price,
-        //         seat_codes: tempCodes,
-        //         booking_id: bookingid,
-        //         flightDetails: actualFlightDetails,
-        //         // ticketdata: ticketresponse.data 
-        //     };
-        //     console.log('bookingCompleteData', bookingCompleteData);
-        //     navigate('/bookingCompleted', { state: { bookingCompleteData } });
-        //     return;
-        // })
+            const airSegmentStatus = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment']['$']['Status'];
+            console.log("airSegmentStatus",airSegmentStatus);
+            if (airSegmentStatus == 'PN') {
+                bookingStatus= "Booking on hold. Please complete payment.";
+            } else if (airSegmentStatus == 'HK') {
+                bookingStatus= "Flight Booking is confirmed!.";
+            } else if (airSegmentStatus == 'TK') {
+                bookingStatus= "Booking Ticketed.";
+            } else {
+                bookingStatus = bookingStatus;
+            }
+            console.log("bookingStatus1",bookingStatus);
+            const formtaxivaxiData = {
+                access_token: access_token,
+                booking_id: bookingid,
+                trip_type: tripType,
+                fare_type: 'Refundable',
+                is_extra_baggage_included: 0,
+                flight_type: flightType,
+                total_ex_tax_fees: (base_price + assignTax)-discount,
+                total_price: total_price,
+                tax_and_fees: tax_excluding_k3 + discount,
+                gst_k3: tax_k3,
+                mark_up_price: 0,
+                no_of_stops: stopCounts,
+                no_of_stops_return: returnstopCounts,
+                no_of_seats: noOfSeats,
+                people_id: 'NULL',
+                date_change_charges: 0,
+                seat_charges: 0,
+                meal_charges: 0,
+                extra_baggage_charges: 0,
+                fast_forward_charges: 0,
+                vip_service_charges: 0,
+                pnrcode: flightpnrCode,
+                universallocatorCode: mainlocatorCode,
+                applied_markup: passenger_markup_price,
+                actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
+                discount: discount,
+                ...flightDetails,
+                extrabaggage: 'NA',
+                checkedInBaggage: checkedInBaggage,
+                cabinBaggage: cabinBaggage,
+                returns: returns,
+                ...passengerDetailsFormatted,
+                ...seatDetailsFormatted,
+                reservationStatus: bookingStatus
+            };
+
+            console.log('assignFlightPayloadData', formtaxivaxiData);
+
+            const apiLink = `${CONFIG.MAIN_API}/api/flights/assignSbtCotravFlightBooking`;
+
+            axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            }).then((response) => {
+                console.log("responseData", response)
+            })
+
+            console.log("Condition met, navigating... now in the reservationresult");
+
+            const bookingCompleteData = {
+                reservationdata: reservationresponse.data,
+                segmentParse: segmentParse,
+                Passengers: Passengers,
+                PackageSelected: packageSelected,
+                Airports: Airports,
+                Airlines: Airlines,
+                adult: request.adult,
+                child: request.child,
+                infant: request.infant,
+                apiairportsdata: apiairports,
+                markup_price: passenger_markup_price,
+                seat_codes: tempCodes,
+                booking_id: bookingid,
+                flightDetails: actualFlightDetails,
+                discount: discount,
+                bookingStatus:bookingStatus
+                // ticketdata: ticketresponse.data 
+            };
+            console.log('bookingCompleteData', bookingCompleteData);
+            navigate('/bookingCompleted', { state: { bookingCompleteData } });
+            return;
+        })
 
 
     };
@@ -1957,7 +1990,7 @@ const Booking = () => {
 
                             if (category && category.includes("GST")) {
                                 tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                                tax_k3=tax_k3*noOfSeats;
+                                tax_k3 = tax_k3 * noOfSeats;
                                 found = true;
                             }
                         });
@@ -1970,7 +2003,7 @@ const Booking = () => {
 
                                 if (category && category.includes("K3")) {
                                     tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                                    tax_k3=tax_k3*noOfSeats;
+                                    tax_k3 = tax_k3 * noOfSeats;
                                 }
                             });
                         }
@@ -1980,10 +2013,10 @@ const Booking = () => {
 
                         if (category && category.includes("GST")) {
                             tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                            tax_k3=tax_k3*noOfSeats;
+                            tax_k3 = tax_k3 * noOfSeats;
                         } else if (category && category.includes("K3")) {
                             tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                            tax_k3=tax_k3*noOfSeats;
+                            tax_k3 = tax_k3 * noOfSeats;
                         }
                     }
                 });
@@ -1999,7 +2032,7 @@ const Booking = () => {
 
                         if (category && category.includes("GST")) {
                             tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                            tax_k3=tax_k3*noOfSeats;
+                            tax_k3 = tax_k3 * noOfSeats;
                             found = true;
                         }
                     });
@@ -2012,7 +2045,7 @@ const Booking = () => {
 
                             if (category && category.includes("K3")) {
                                 tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                                tax_k3=tax_k3*noOfSeats;
+                                tax_k3 = tax_k3 * noOfSeats;
                             }
                         });
                     }
@@ -2022,10 +2055,10 @@ const Booking = () => {
 
                     if (category && category.includes("GST")) {
                         tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                        tax_k3=tax_k3*noOfSeats;
+                        tax_k3 = tax_k3 * noOfSeats;
                     } else if (category && category.includes("K3")) {
                         tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                        tax_k3=tax_k3*noOfSeats;
+                        tax_k3 = tax_k3 * noOfSeats;
                     }
                 }
             }
@@ -2037,8 +2070,9 @@ const Booking = () => {
             let base_price = 0;
             let total_tax = 0;
             let fare_type = '';
+            let discount = 0;
 
-            console.log("packageSelected at re",packageSelected);
+            console.log("packageSelected at re", packageSelected);
 
             if (packageSelected['air:AirPricingInfo']) {
                 if (packageSelected['air:AirPricingInfo']['$']['TotalPrice']) {
@@ -2052,12 +2086,23 @@ const Booking = () => {
                 if (packageSelected["air:AirPricingInfo"]["$"]["BasePrice"]) {
                     base_price = Math.floor(parseFloat(packageSelected["air:AirPricingInfo"]["$"]["BasePrice"].replace("INR", "").trim()));
                     base_price = base_price * noOfSeats;
-                    console.log("base_price c",base_price);
-                    
+                    console.log("base_price c", base_price);
+
                 }
                 if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
                     fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable'] == 'true' ? 'Refundable' : 'Non Refundable';
                 }
+                const feeInfo = packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo'];
+
+                if (feeInfo?.["$"]?.["Text"] === 'PromotionDiscount') {
+                    const feesRaw = feeInfo?.["$"]?.["Amount"];
+                    if (feesRaw) {
+                        const feeAmount = parseFloat(feesRaw.replace("INR", "").trim());
+                        discount = Math.floor(Math.abs(feeAmount)) * parseFloat(noOfSeats || 1);
+                    }
+                }
+console.log("discount",discount);
+
 
             }
             let assignTax = 0; // Initialize assignTax
@@ -2076,10 +2121,10 @@ const Booking = () => {
 
                         if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
                             let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
-                            console.log("before amount",amount);
+                            console.log("before amount", amount);
                             amount = amount * noOfSeats;
-                            console.log("amount",amount);
-                            
+                            console.log("amount", amount);
+
                             assignTax += Math.floor(amount);
                         }
                     });
@@ -2090,9 +2135,9 @@ const Booking = () => {
 
                     if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
                         let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
-                        console.log("before amount",amount);
+                        console.log("before amount", amount);
                         amount = amount * noOfSeats;
-                        console.log("amount",amount);
+                        console.log("amount", amount);
                         assignTax += Math.floor(amount);
                     }
                 });
@@ -2101,9 +2146,9 @@ const Booking = () => {
 
                 if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
                     let amount = parseFloat(packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount.replace("INR", "").trim());
-                    console.log("before amount",amount);
+                    console.log("before amount", amount);
                     amount = amount * noOfSeats;
-                    console.log("amount",amount);
+                    console.log("amount", amount);
                     assignTax += Math.floor(amount);
                 }
             }
@@ -2471,645 +2516,687 @@ const Booking = () => {
                 var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
                 console.log('modifiedXmlString', modifiedXmlString);
 
-//                 try {
-//                     const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
-//                     const reservationResponse = reservationresponse.data;
-//                     console.log('reservationResponse', reservationResponse);
+                try {
+                    await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+                              new URLSearchParams({ booking_id: bookingid,api_data:modifiedXmlString,api_name:'reservationReq' }) 
+                    );
+                    
+                    const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
+                    const reservationResponse = reservationresponse.data;
+                   
+                    await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+                        new URLSearchParams({ booking_id: bookingid,api_data:reservationResponse,api_name:'reservationRes' }) 
+                    );
+                    
+                    console.log('reservationResponse', reservationResponse);
 
-//                     parseString(reservationResponse, { explicitArray: false }, async (err, reservationresult) => {
-//                         if (err) {
-//                             console.error('Error parsing XML:', err);
-//                             return;
-//                         }
-//                         let matchesDataInfo;
+                    parseString(reservationResponse, { explicitArray: false }, async (err, reservationresult) => {
+                        if (err) {
+                            console.error('Error parsing XML:', err);
+                            return;
+                        }
+                        let matchesDataInfo;
 
-//                         const ReservationRsp = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp'];
-//                         if (ReservationRsp !== null && ReservationRsp !== undefined) {
-//                             const locatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['universal:ProviderReservationInfo']['$']['LocatorCode'];
-//                             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
-//                             const universallocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
-//                             const segmentreservation = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
-//                             const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
-//                             console.log("packageSelected['air:AirPricingInfo'][0]", packageSelected);
-                            
-//                             const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo'])? packageSelected['air:AirPricingInfo']['air:FareInfo'][0]: packageSelected['air:AirPricingInfo']['air:FareInfo'];
-// console.log("fareInfoList",fareInfoList);
+                        const ReservationRsp = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp'];
+                        if (ReservationRsp !== null && ReservationRsp !== undefined) {
+                            const locatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['universal:ProviderReservationInfo']['$']['LocatorCode'];
+                            const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
+                            const universallocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
+                            const segmentreservation = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
+                            const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
+                            console.log("packageSelected['air:AirPricingInfo'][0]", packageSelected);
 
-//                             fareInfoList['air:Brand']['air:Text'].map((textinfor, textindex) => {
-//                                 if (
-//                                     textinfor['$'] &&
-//                                     textinfor['$']['Type'] === "MarketingConsumer"
-//                                 ) {
-//                                     const infoText = textinfor['_'];
-//                                     const matches = infoText.match(/\b\d+\s?(kgs?|kg)\b/gi);
-
-//                                     if (matches) {
-//                                         matchesDataInfo = matches
-//                                     }
-//                                 }
-//                             })
-
-//                             const flightDetails = {};
-
-//                             const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis];
-//                             console.log("formattedsegmenttaxivaxis",formattedsegmenttaxivaxis);
-                            
-//                             if (Array.isArray(formattedsegmenttaxivaxis)) {
-//                                 formattedsegmenttaxivaxis.forEach((segment, index) => {
-//                                     console.log("segment.DepartureTime",segment.DepartureTime);
-//                                     console.log("segment.ArrivalTime", segment.ArrivalTime);
-                                    
-//                                     const departureDate = new Date(segment.DepartureTime);
-//                                     const arrivalDate = new Date(segment.ArrivalTime);
-
-//                                     const formattedDate = formatDateTime(departureDate);
-                                    
-//                                     const formattedDeparture = new Date(segment.DepartureTime).toLocaleTimeString('en-US', {
-//                                         hour: 'numeric',
-//                                         minute: 'numeric',
-//                                         hour12: false,
-//                                     });
-
-//                                     const concatDeptDateTime = formattedDate + " " + formattedDeparture;
-
-//                                     const formattedArrivalDate = formatDateTime(arrivalDate);
-                                    
-//                                     const formattedArrival = new Date(segment.ArrivalTime).toLocaleTimeString('en-US', {
-//                                         hour: 'numeric',
-//                                         minute: 'numeric',
-//                                         hour12: false,
-//                                     });
-//                                     const concatArrivalDateTime = formattedArrivalDate + " " + formattedArrival;
+                            const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo']) ? packageSelected['air:AirPricingInfo']['air:FareInfo'][0] : packageSelected['air:AirPricingInfo']['air:FareInfo'];
 
 
-//                                     const matchedFlightDetail = actualFlightDetails.find(flight =>
-//                                         flight.$?.Origin === segment.Origin &&
-//                                         flight.$?.Destination === segment.Destination &&
-//                                         flight.$?.DepartureTime == (segment.DepartureTime) &&
-//                                         flight.$?.ArrivalTime == (segment.ArrivalTime)
-//                                     );
+                            fareInfoList['air:Brand']['air:Text'].map((textinfor, textindex) => {
+                                if (
+                                    textinfor['$'] &&
+                                    textinfor['$']['Type'] === "MarketingConsumer"
+                                ) {
+                                    const infoText = textinfor['_'];
+                                    const matches = infoText.match(/\b\d+\s?(kgs?|kg)\b/gi);
+
+                                    if (matches) {
+                                        matchesDataInfo = matches
+                                    }
+                                }
+                            })
+
+                            const flightDetails = {};
+
+                            const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis];
+                            console.log("formattedsegmenttaxivaxis", formattedsegmenttaxivaxis);
+
+                            if (Array.isArray(formattedsegmenttaxivaxis)) {
+                                formattedsegmenttaxivaxis.forEach((segment, index) => {
+                                    console.log("segment.DepartureTime", segment.DepartureTime);
+                                    console.log("segment.ArrivalTime", segment.ArrivalTime);
+
+                                    const departureDate = new Date(segment.DepartureTime);
+                                    const arrivalDate = new Date(segment.ArrivalTime);
+
+                                    const formattedDate = formatDateTime(departureDate);
+
+                                    const formattedDeparture = new Date(segment.DepartureTime).toLocaleTimeString('en-US', {
+                                        hour: 'numeric',
+                                        minute: 'numeric',
+                                        hour12: false,
+                                    });
+
+                                    const concatDeptDateTime = formattedDate + " " + formattedDeparture;
+
+                                    const formattedArrivalDate = formatDateTime(arrivalDate);
+
+                                    const formattedArrival = new Date(segment.ArrivalTime).toLocaleTimeString('en-US', {
+                                        hour: 'numeric',
+                                        minute: 'numeric',
+                                        hour12: false,
+                                    });
+                                    const concatArrivalDateTime = formattedArrivalDate + " " + formattedArrival;
 
 
-//                                     console.log("actualFlightDetails", actualFlightDetails)
-//                                     console.log("matchedFlightDetail", matchedFlightDetail)
-//                                     console.log("concatDeptDateTime", concatDeptDateTime);
-//                                     if (fareFamily == 'Corporate Fare') {
-//                                         seat_type='Corporate Economy'
-//                                     } else {
-//                                         seat_type = seat_type;
-//                                     }
-//                                     flightDetails[`from_${index}`] = segment.Origin;
-//                                     flightDetails[`to_${index}`] = segment.Destination;
-//                                     flightDetails[`depart_${index}`] = concatDeptDateTime;
-//                                     flightDetails[`arrival_${index}`] = concatArrivalDateTime;
-//                                     flightDetails[`flight_name_${index}`] = handleAirline(segment.Carrier) + " (" + flightType + ")";
-//                                     flightDetails[`flight_no_${index}`] = segment.Carrier + " " + segment.FlightNumber;
-//                                     flightDetails[`seat_type_${index}`] = seat_type;
-//                                     flightDetails[`pnr_no_${index}`] = flightpnrCode;
-//                                     flightDetails[`checked_bg_${index}`] = matchesDataInfo?.[0] || 'NA';
-//                                     flightDetails[`cabin_bg_${index}`] = matchesDataInfo?.[1] || 'NA';
-//                                     flightDetails[`OriginTerminal_${index}`] = matchedFlightDetail?.$?.OriginTerminal ? `T-${matchedFlightDetail.$.OriginTerminal}` : "";
-//                                     flightDetails[`DestinationTerminal_${index}`] = matchedFlightDetail?.$?.DestinationTerminal ? `T-${matchedFlightDetail.$.DestinationTerminal}` : "";
-
-//                                 });
-//                             }
-
-//                             const formatedmergedData = Array.isArray(mergedData) ? mergedData : [mergedData];
-
-//                             const passengerDetailsFormatted = {};
-//                             if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formatedmergedData)) {
-//                                 formattedsegmenttaxivaxis.forEach((segment, flightIndex) => {
-//                                     formatedmergedData.forEach((passenger, passengerIndex) => {
-//                                         passengerDetailsFormatted[`people_id_${flightIndex}_${passengerIndex}`] = passenger.id || "NA";
-//                                         passengerDetailsFormatted[`ticket_no_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
-//                                         passengerDetailsFormatted[`meal_include_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
-//                                     });
-//                                 });
-//                             }
-
-//                             const seatDetailsFormatted = {};
-//                             if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formseat)) {
-//                                 segmenttaxivaxis.forEach((segment, flightIndex) => {
-//                                     formseat.forEach((seat, passengerIndex) => {
-//                                         seatDetailsFormatted[`seat_no_${flightIndex}_${passengerIndex}`] = seat.seat_no || "NA";
-//                                     });
-//                                 });
-//                             }
-
-//                             if (providerCodeValue?.trim() === "ACH") {
-//                                 console.log("Condition met, navigating...");
-//                                 const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3)-parseFloat(assignTax);
-//                                 const formtaxivaxiData = {
-//                                     access_token: access_token,
-//                                     booking_id: bookingid,
-//                                     trip_type: tripType,
-//                                     fare_type: 'Refundable',
-//                                     is_extra_baggage_included: 0,
-//                                     flight_type: flightType,
-//                                     total_ex_tax_fees: base_price + assignTax,
-//                                     total_price: total_price,
-//                                     tax_and_fees: tax_excluding_k3,
-//                                     gst_k3: tax_k3,
-//                                     no_of_stops: stopCounts,
-//                                     no_of_stops_return: returnstopCounts,
-//                                     no_of_seats: noOfSeats,
-//                                     people_id: 'NULL',
-//                                     date_change_charges: 0,
-//                                     seat_charges: 0,
-//                                     meal_charges: 0,
-//                                     extra_baggage_charges: 0,
-//                                     fast_forward_charges: 0,
-//                                     vip_service_charges: 0,
-//                                     pnrcode: flightpnrCode,
-//                                     universallocatorCode: universallocatorCode,
-//                                     applied_markup: markup_price,
-//                                     actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
-//                                     ...flightDetails,
-//                                     extrabaggage: 'NA',
-//                                     checkedInBaggage: checkedInBaggage,
-//                                     cabinBaggage: cabinBaggage,
-//                                     returns: returns,
-//                                     ...passengerDetailsFormatted,
-//                                     ...seatDetailsFormatted
-//                                 };
-
-//                                 console.log('assignFlightPayloadData', formtaxivaxiData);
-
-//                                 const apiLink = `${CONFIG.MAIN_API}/api/flights/assignSbtCotravFlightBooking`;
-
-//                                 axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
-//                                     headers: {
-//                                         'Content-Type': 'application/x-www-form-urlencoded',
-//                                     },
-//                                 }).then((response) => {
-//                                     console.log("responseData", response)
-//                                 })
-
-//                                 var UniversalRecordRequest = {
-//                                     "soap:Envelope": {
-//                                         '$': {
-//                                             "@xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
-//                                         },
-//                                         "soap:Body": {
-//                                             "univ:UniversalRecordRetrieveReq": {
-//                                                 '$': {
-//                                                     "@TargetBranch": Targetbranch,
-//                                                     "@TraceId": "TVSBP001",
-//                                                     "@AuthorizedBy": "TAXIVAXI",
-//                                                     "@RetrieveProviderReservationDetails": "true",
-//                                                     "@xmlns:univ": "http://www.travelport.com/schema/universal_v52_0",
-//                                                     "@xmlns:com": "http://www.travelport.com/schema/common_v52_0",
-//                                                 },
-//                                                 "com:BillingPointOfSaleInfo": {
-//                                                     '$': {
-//                                                         "@OriginApplication": "UAPI"
-//                                                     }
-//                                                 },
-//                                                 "univ:ProviderReservationInfo": {
-//                                                     '$': {
-//                                                         "@ProviderCode": "ACH",
-//                                                         "@ProviderLocatorCode": flightpnrCode
-//                                                     }
-//                                                 }
-//                                             }
-//                                         }
-//                                     }
-//                                 }
-//                                 // const UniversalRecordResponse = await axios.post('${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
-
-//                                 const bookingCompleteData = {
-//                                     reservationdata: reservationresponse.data,
-//                                     segmentParse: segmentParse,
-//                                     Passengers: Passengers,
-//                                     PackageSelected: packageSelected,
-//                                     Airports: Airports,
-//                                     Airlines: Airlines,
-//                                     adult: request.adult,
-//                                     child: request.child,
-//                                     infant: request.infant,
-//                                     apiairportsdata: apiairports,
-//                                     markup_price: markup_price,
-//                                     booking_id: bookingid,
-//                                     flightDetails: actualFlightDetails,
-//                                     // ticketdata: ticketresponse.data 
-//                                 };
-//                                 console.log('bookingCompleteData', bookingCompleteData);
-//                                 navigate('/bookingCompleted', { state: { bookingCompleteData } });
-//                                 return;
-//                             }
-
-//                             const tax_and_fees = parseFloat(base_price);
-
-//                             const makeGetUnversalCodeRequest = async () => {
-//                                 const username = 'Universal API/uAPI8645980109-af7494fa';
-//                                 const password = 'N-k29Z}my5';
-//                                 const authHeader = `Basic ${btoa(`${username}:${password}`)}`
-
-//                                 const builder = require('xml2js').Builder;
-//                                 var GetUnversalCodeXML = new builder().buildObject({
-//                                     'soap:Envelope': {
-//                                         '$': {
-//                                             'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
-//                                         },
-//                                         'soap:Body': {
-//                                             'univ:UniversalRecordRetrieveReq': {
-//                                                 '$': {
-//                                                     'TargetBranch': Targetbranch,
-//                                                     'RetrieveProviderReservationDetails': 'true',
-//                                                     'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
-//                                                     'xmlns:com': 'http://www.travelport.com/schema/common_v52_0',
-//                                                 },
-//                                                 'com:BillingPointOfSaleInfo': {
-//                                                     '$': {
-//                                                         'OriginApplication': 'UAPI',
-//                                                     },
-//                                                 },
-//                                                 'univ:ProviderReservationInfo': {
-//                                                     '$': {
-//                                                         'ProviderCode': providerCode,
-//                                                         'ProviderLocatorCode': locatorCode
-//                                                     }
-//                                                 }
-//                                             }
-//                                         }
-//                                     }
-//                                 });
-//                                 try {
-//                                     const getUnversalCoderesponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, GetUnversalCodeXML);
-//                                     const GetUnversalCodeResponse = getUnversalCoderesponse.data;
-//                                     console.log("getUnversalCoderesponse", getUnversalCoderesponse)
-//                                 } catch (error) {
-//                                     console.error(error);
-//                                 }
-//                             };
-
-//                             const makeTicketRequest = async () => {
-//                                 const builder = require('xml2js').Builder;
-//                                 var TicketXML = new builder().buildObject({
-//                                     'soapenv:Envelope': {
-//                                         '$': {
-//                                             'xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/'
-//                                         },
-//                                         'soapenv:Header': '',
-//                                         'soapenv:Body': {
-//                                             'air:AirTicketingReq': {
-//                                                 '$': {
-//                                                     'AuthorizedBy': 'TAXIVAXI',
-//                                                     'RetrieveProviderReservationDetails': 'true',
-//                                                     'ReturnInfoOnFail': 'true',
-//                                                     'TargetBranch': Targetbranch,
-//                                                     'TraceId': 'ac191f0b9c0546659065f29389eae552',
-//                                                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
-//                                                     'xmlns:common': 'http://www.travelport.com/schema/common_v52_0',
-//                                                     'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-//                                                     'xsi:schemaLocation': 'http://www.travelport.com/schema/air_v52_0 file:///C:/Users/mukil.kumar/Documents/Ecommerce/WSDL/Release-V17.3.0.35-V17.3/air_v52_0/AirReqRsp.xsd',
-//                                                 },
-//                                                 'common:BillingPointOfSaleInfo': {
-//                                                     '$': {
-//                                                         'OriginApplication': 'UAPI',
-//                                                     },
-//                                                 },
-//                                                 'air:AirReservationLocatorCode': pnrCode
-//                                             }
-//                                         }
-//                                     }
-//                                 });
-
-//                                 console.log(TicketXML);
-
-//                                 try {
-//                                     const ticketresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, TicketXML);
-//                                     const TicketResponse = ticketresponse.data;
-//                                     console.log("ticketresponse1", TicketResponse);
-//                                     return TicketResponse; // ✅ Returning the response
-//                                 } catch (error) {
-//                                     console.error(error);
-//                                     return null; // ✅ Return null in case of error
-//                                 }
-//                             };
-
-//                             const executeCodeTicketSequentially = async () => {
-//                                 let getUnversalCoderesponse, ticketresponse;
-//                                 // let ticketresponse;
-
-//                                 try {
-//                                     getUnversalCoderesponse = await makeGetUnversalCodeRequest();
-//                                     // shall i apply condition for provider code only call for 1G not for ACH
-//                                     ticketresponse = await makeTicketRequest();
-//                                     console.log('ticketresponse2', ticketresponse);
-
-//                                     // if (hasNonEmptyProperties(emptaxivaxi)) {
-//                                     // const sessiondata = async () => {   
-//                                     const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3)-parseFloat(assignTax);
-//                                     const formtaxivaxiData = {
-//                                         // ...formtaxivaxi,
-//                                         access_token: access_token,
-//                                         booking_id: bookingid,
-//                                         trip_type: tripType,
-//                                         fare_type: 'Refundable',
-//                                         is_extra_baggage_included: 0,
-//                                         flight_type: flightType,
-//                                         total_ex_tax_fees: base_price + assignTax,
-//                                         total_price: total_price,
-//                                         tax_and_fees: tax_excluding_k3,
-//                                         gst_k3: tax_k3,
-//                                         mark_up_price: 0,
-//                                         no_of_stops: stopCounts,
-//                                         no_of_stops_return: returnstopCounts,
-//                                         no_of_seats: noOfSeats,
-//                                         people_id: 'NULL',
-//                                         date_change_charges: 0,
-//                                         seat_charges: 0,
-//                                         meal_charges: 0,
-//                                         extra_baggage_charges: 0,
-//                                         fast_forward_charges: 0,
-//                                         vip_service_charges: 0,
-//                                         pnrcode: flightpnrCode,
-//                                         universallocatorCode: universallocatorCode,
-//                                         applied_markup: markup_price,
-//                                         actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
-//                                         // flightDetails: segmenttaxivaxis,
-//                                         ...flightDetails,
-//                                         extrabaggage: 'NA',
-//                                         // seatdetails: formseat,
-//                                         checkedInBaggage: checkedInBaggage,
-//                                         cabinBaggage: cabinBaggage,
-//                                         returns: returns,
-//                                         // passengerdetails: mergedData
-//                                         ...passengerDetailsFormatted,
-//                                         ...seatDetailsFormatted
-//                                     };
-
-//                                     console.log("ticketresponse.data", ticketresponse)
-
-//                                     console.log('assignFlightPayloadData', JSON.stringify(formtaxivaxiData));
-
-//                                     const apiLink = `${CONFIG.MAIN_API}/api/flights/assignSbtCotravFlightBooking`;
-
-//                                     axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
-//                                         headers: {
-//                                             'Content-Type': 'application/x-www-form-urlencoded',
-//                                         },
-//                                     })
-//                                         .then((response) => {
-//                                             console.log("responseData", response)
-//                                             if (response.data.success === "1") {
-//                                                 Swal.fire({
-//                                                     title: "Success!",
-//                                                     text: "Booking Confirmed.",
-//                                                     icon: "success",
-//                                                     confirmButtonText: "OK",
-//                                                 });
-//                                             } else {
-//                                                 Swal.fire({
-//                                                     title: "Error!",
-//                                                     text: response.data.error || "Something went wrong.",
-//                                                     icon: "error",
-//                                                     confirmButtonText: "Retry",
-//                                                 });
-//                                             }
-//                                         })
-//                                         .catch((error) => {
-//                                             Swal.fire({
-//                                                 title: "Error!",
-//                                                 text: "Something went wrong while creating the booking.",
-//                                                 icon: "error",
-//                                                 confirmButtonText: "Retry",
-//                                             });
-//                                         });
-//                                     const bookingCompleteData = {
-//                                         reservationdata: reservationresponse.data,
-//                                         segmentParse: segmentParse,
-//                                         Passengers: Passengers,
-//                                         PackageSelected: packageSelected,
-//                                         Airports: Airports,
-//                                         Airlines: Airlines,
-//                                         adult: request.adult,
-//                                         child: request.child,
-//                                         infant: request.infant,
-//                                         apiairportsdata: apiairports,
-//                                         ticketdata: ticketresponse,
-//                                         markup_price: markup_price,
-//                                         booking_id: bookingid,
-//                                         flightDetails: actualFlightDetails,
-//                                     };
-//                                     console.log('bookingCompleteData', bookingCompleteData);
-//                                     navigate('/bookingCompleted', { state: { bookingCompleteData } });
+                                    const matchedFlightDetail = actualFlightDetails.find(flight =>
+                                        flight.$?.Origin === segment.Origin &&
+                                        flight.$?.Destination === segment.Destination &&
+                                        flight.$?.DepartureTime == (segment.DepartureTime) &&
+                                        flight.$?.ArrivalTime == (segment.ArrivalTime)
+                                    );
 
 
-//                                 } catch (error) {
-//                                     console.error('Error executing requests:', error);
-//                                 }
-//                             };
-//                             executeCodeTicketSequentially();
+                                    console.log("actualFlightDetails", actualFlightDetails)
+                                    console.log("matchedFlightDetail", matchedFlightDetail)
+                                    console.log("concatDeptDateTime", concatDeptDateTime);
+                                    if (fareFamily == 'Corporate Fare') {
+                                        seat_type = 'Corporate Economy'
+                                    } else {
+                                        seat_type = seat_type;
+                                    }
+                                    flightDetails[`from_${index}`] = segment.Origin;
+                                    flightDetails[`to_${index}`] = segment.Destination;
+                                    flightDetails[`depart_${index}`] = concatDeptDateTime;
+                                    flightDetails[`arrival_${index}`] = concatArrivalDateTime;
+                                    flightDetails[`flight_name_${index}`] = handleAirline(segment.Carrier) + " (" + flightType + ")";
+                                    flightDetails[`flight_no_${index}`] = segment.Carrier + " " + segment.FlightNumber;
+                                    flightDetails[`seat_type_${index}`] = seat_type;
+                                    flightDetails[`pnr_no_${index}`] = flightpnrCode;
+                                    flightDetails[`checked_bg_${index}`] = matchesDataInfo?.[0] || 'NA';
+                                    flightDetails[`cabin_bg_${index}`] = matchesDataInfo?.[1] || 'NA';
+                                    flightDetails[`OriginTerminal_${index}`] = matchedFlightDetail?.$?.OriginTerminal ? `T-${matchedFlightDetail.$.OriginTerminal}` : "";
+                                    flightDetails[`DestinationTerminal_${index}`] = matchedFlightDetail?.$?.DestinationTerminal ? `T-${matchedFlightDetail.$.DestinationTerminal}` : "";
+
+                                });
+                            }
+
+                            const formatedmergedData = Array.isArray(mergedData) ? mergedData : [mergedData];
+
+                            const passengerDetailsFormatted = {};
+                            if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formatedmergedData)) {
+                                formattedsegmenttaxivaxis.forEach((segment, flightIndex) => {
+                                    formatedmergedData.forEach((passenger, passengerIndex) => {
+                                        passengerDetailsFormatted[`people_id_${flightIndex}_${passengerIndex}`] = passenger.id || "NA";
+                                        passengerDetailsFormatted[`ticket_no_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
+                                        passengerDetailsFormatted[`meal_include_${flightIndex}_${passengerIndex}`] = passenger.ticket_no || "NA";
+                                    });
+                                });
+                            }
+
+                            const seatDetailsFormatted = {};
+                            if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formseat)) {
+                                segmenttaxivaxis.forEach((segment, flightIndex) => {
+                                    formseat.forEach((seat, passengerIndex) => {
+                                        seatDetailsFormatted[`seat_no_${flightIndex}_${passengerIndex}`] = seat.seat_no || "NA";
+                                    });
+                                });
+                            }
+
+                            if (providerCodeValue?.trim() === "ACH") {
+                                console.log("Condition met, navigating...");
+                                console.log("statusResp",reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['common_v52_0:ResponseMessage']);
+                                const responseMessages = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['common_v52_0:ResponseMessage'];
+                               
+                                let bookingStatus = "";
+
+                                responseMessages.forEach((msg) => {
+                                    const text = msg?._ || "";
+                                    if (text.includes("Reservation declined")) {
+                                    bookingStatus = "Booking failed: Reservation declined by vendor.";
+                                    } else if (text.includes("on hold")) {
+                                    bookingStatus = "Booking on hold. Please complete payment.";
+                                    }
+                                });
+
+                                const airSegmentStatus = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment']['$']['Status'];
+
+                                if (airSegmentStatus == 'PN') {
+                                    bookingStatus= "Booking on hold. Please complete payment.";
+                                } else if (airSegmentStatus == 'HK') {
+                                    bookingStatus= "Flight Booking is confirmed!.";
+                                } else if (airSegmentStatus == 'TK') {
+                                    bookingStatus= "Booking Ticketed.";
+                                } else {
+                                    bookingStatus = bookingStatus;
+                                }
+
+                                
+                                console.log("airSegmentStatus",airSegmentStatus);
+                                console.log("bookingStatus",bookingStatus);
+                                const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3) - parseFloat(assignTax);
+                                const passenger_markup_price = parseFloat(markup_price) * parseFloat(noOfSeats);
+                                const formtaxivaxiData = {
+                                    access_token: access_token,
+                                    booking_id: bookingid,
+                                    trip_type: tripType,
+                                    fare_type: 'Refundable',
+                                    is_extra_baggage_included: 0,
+                                    flight_type: flightType,
+                                    total_ex_tax_fees: (base_price + assignTax)-discount,
+                                    total_price: total_price,
+                                    tax_and_fees: tax_excluding_k3 + discount,
+                                    gst_k3: tax_k3,
+                                    no_of_stops: stopCounts,
+                                    no_of_stops_return: returnstopCounts,
+                                    no_of_seats: noOfSeats,
+                                    people_id: 'NULL',
+                                    date_change_charges: 0,
+                                    seat_charges: 0,
+                                    meal_charges: 0,
+                                    extra_baggage_charges: 0,
+                                    fast_forward_charges: 0,
+                                    vip_service_charges: 0,
+                                    pnrcode: flightpnrCode,
+                                    universallocatorCode: universallocatorCode,
+                                    applied_markup: passenger_markup_price,
+                                    actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
+                                    discount: discount,
+                                    ...flightDetails,
+                                    extrabaggage: 'NA',
+                                    checkedInBaggage: checkedInBaggage,
+                                    cabinBaggage: cabinBaggage,
+                                    returns: returns,
+                                    ...passengerDetailsFormatted,
+                                    ...seatDetailsFormatted,
+                                    reservationStatus:bookingStatus
+                                };
+
+                                console.log('assignFlightPayloadData', formtaxivaxiData);
+
+                                const apiLink = `${CONFIG.MAIN_API}/api/flights/assignSbtCotravFlightBooking`;
+
+                                axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                    },
+                                }).then((response) => {
+                                    console.log("responseData", response)
+                                })
+
+                                var UniversalRecordRequest = {
+                                    "soap:Envelope": {
+                                        '$': {
+                                            "@xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
+                                        },
+                                        "soap:Body": {
+                                            "univ:UniversalRecordRetrieveReq": {
+                                                '$': {
+                                                    "@TargetBranch": Targetbranch,
+                                                    "@TraceId": "TVSBP001",
+                                                    "@AuthorizedBy": "TAXIVAXI",
+                                                    "@RetrieveProviderReservationDetails": "true",
+                                                    "@xmlns:univ": "http://www.travelport.com/schema/universal_v52_0",
+                                                    "@xmlns:com": "http://www.travelport.com/schema/common_v52_0",
+                                                },
+                                                "com:BillingPointOfSaleInfo": {
+                                                    '$': {
+                                                        "@OriginApplication": "UAPI"
+                                                    }
+                                                },
+                                                "univ:ProviderReservationInfo": {
+                                                    '$': {
+                                                        "@ProviderCode": "ACH",
+                                                        "@ProviderLocatorCode": flightpnrCode
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                // const UniversalRecordResponse = await axios.post('${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
+
+                                const bookingCompleteData = {
+                                    reservationdata: reservationresponse.data,
+                                    segmentParse: segmentParse,
+                                    Passengers: Passengers,
+                                    PackageSelected: packageSelected,
+                                    Airports: Airports,
+                                    Airlines: Airlines,
+                                    adult: request.adult,
+                                    child: request.child,
+                                    infant: request.infant,
+                                    apiairportsdata: apiairports,
+                                    markup_price: passenger_markup_price,
+                                    booking_id: bookingid,
+                                    flightDetails: actualFlightDetails,
+                                    discount: discount,
+                                    bookingStatus:bookingStatus
+                                    // ticketdata: ticketresponse.data 
+                                };
+                                console.log('bookingCompleteData', bookingCompleteData);
+                                navigate('/bookingCompleted', { state: { bookingCompleteData } });
+                                return;
+                            }
+
+                            const tax_and_fees = parseFloat(base_price);
+
+                            const makeGetUnversalCodeRequest = async () => {
+                                const username = 'Universal API/uAPI8645980109-af7494fa';
+                                const password = 'N-k29Z}my5';
+                                const authHeader = `Basic ${btoa(`${username}:${password}`)}`
+
+                                const builder = require('xml2js').Builder;
+                                var GetUnversalCodeXML = new builder().buildObject({
+                                    'soap:Envelope': {
+                                        '$': {
+                                            'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
+                                        },
+                                        'soap:Body': {
+                                            'univ:UniversalRecordRetrieveReq': {
+                                                '$': {
+                                                    'TargetBranch': Targetbranch,
+                                                    'RetrieveProviderReservationDetails': 'true',
+                                                    'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0',
+                                                    'xmlns:com': 'http://www.travelport.com/schema/common_v52_0',
+                                                },
+                                                'com:BillingPointOfSaleInfo': {
+                                                    '$': {
+                                                        'OriginApplication': 'UAPI',
+                                                    },
+                                                },
+                                                'univ:ProviderReservationInfo': {
+                                                    '$': {
+                                                        'ProviderCode': providerCode,
+                                                        'ProviderLocatorCode': locatorCode
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                                try {
+                                    const getUnversalCoderesponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, GetUnversalCodeXML);
+                                    const GetUnversalCodeResponse = getUnversalCoderesponse.data;
+                                    console.log("getUnversalCoderesponse", getUnversalCoderesponse)
+                                } catch (error) {
+                                    console.error(error);
+                                }
+                            };
+
+                            const makeTicketRequest = async () => {
+                                const builder = require('xml2js').Builder;
+                                var TicketXML = new builder().buildObject({
+                                    'soapenv:Envelope': {
+                                        '$': {
+                                            'xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/'
+                                        },
+                                        'soapenv:Header': '',
+                                        'soapenv:Body': {
+                                            'air:AirTicketingReq': {
+                                                '$': {
+                                                    'AuthorizedBy': 'TAXIVAXI',
+                                                    'RetrieveProviderReservationDetails': 'true',
+                                                    'ReturnInfoOnFail': 'true',
+                                                    'TargetBranch': Targetbranch,
+                                                    'TraceId': 'ac191f0b9c0546659065f29389eae552',
+                                                    'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
+                                                    'xmlns:common': 'http://www.travelport.com/schema/common_v52_0',
+                                                    'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+                                                    'xsi:schemaLocation': 'http://www.travelport.com/schema/air_v52_0 file:///C:/Users/mukil.kumar/Documents/Ecommerce/WSDL/Release-V17.3.0.35-V17.3/air_v52_0/AirReqRsp.xsd',
+                                                },
+                                                'common:BillingPointOfSaleInfo': {
+                                                    '$': {
+                                                        'OriginApplication': 'UAPI',
+                                                    },
+                                                },
+                                                'air:AirReservationLocatorCode': pnrCode
+                                            }
+                                        }
+                                    }
+                                });
+
+                                console.log(TicketXML);
+
+                                try {
+                                    const ticketresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, TicketXML);
+                                    const TicketResponse = ticketresponse.data;
+                                    console.log("ticketresponse1", TicketResponse);
+                                    return TicketResponse; // ✅ Returning the response
+                                } catch (error) {
+                                    console.error(error);
+                                    return null; // ✅ Return null in case of error
+                                }
+                            };
+
+                            const executeCodeTicketSequentially = async () => {
+                                let getUnversalCoderesponse, ticketresponse;
+                                // let ticketresponse;
+
+                                try {
+                                    getUnversalCoderesponse = await makeGetUnversalCodeRequest();
+                                    // shall i apply condition for provider code only call for 1G not for ACH
+                                    ticketresponse = await makeTicketRequest();
+                                    console.log('ticketresponse2', ticketresponse);
+
+                                    // if (hasNonEmptyProperties(emptaxivaxi)) {
+                                    // const sessiondata = async () => {   
+                                    const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3) - parseFloat(assignTax);
+                                    const passenger_markup_price = parseFloat(markup_price) * parseFloat(noOfSeats);
+                                    const formtaxivaxiData = {
+                                        access_token: access_token,
+                                        booking_id: bookingid,
+                                        trip_type: tripType,
+                                        fare_type: 'Refundable',
+                                        is_extra_baggage_included: 0,
+                                        flight_type: flightType,
+                                        total_ex_tax_fees: (base_price + assignTax)-discount,
+                                        total_price: total_price,
+                                        tax_and_fees: tax_excluding_k3 + discount,
+                                        gst_k3: tax_k3,
+                                        mark_up_price: 0,
+                                        no_of_stops: stopCounts,
+                                        no_of_stops_return: returnstopCounts,
+                                        no_of_seats: noOfSeats,
+                                        people_id: 'NULL',
+                                        date_change_charges: 0,
+                                        seat_charges: 0,
+                                        meal_charges: 0,
+                                        extra_baggage_charges: 0,
+                                        fast_forward_charges: 0,
+                                        vip_service_charges: 0,
+                                        pnrcode: flightpnrCode,
+                                        universallocatorCode: universallocatorCode,
+                                        applied_markup: passenger_markup_price,
+                                        actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
+                                        discount: discount,
+                                        ...flightDetails,
+                                        extrabaggage: 'NA',
+                                        checkedInBaggage: checkedInBaggage,
+                                        cabinBaggage: cabinBaggage,
+                                        returns: returns,
+                                        ...passengerDetailsFormatted,
+                                        ...seatDetailsFormatted
+                                    };
+
+                                    console.log("ticketresponse.data", ticketresponse)
+
+                                    console.log('assignFlightPayloadData', JSON.stringify(formtaxivaxiData));
+
+                                    const apiLink = `${CONFIG.MAIN_API}/api/flights/assignSbtCotravFlightBooking`;
+
+                                    axios.post(apiLink, JSON.stringify(formtaxivaxiData), {
+                                        headers: {
+                                            'Content-Type': 'application/x-www-form-urlencoded',
+                                        },
+                                    }).then((response) => {
+                                            console.log("responseData", response)
+                                            if (response.data.success === "1") {
+                                                Swal.fire({
+                                                    title: "Success!",
+                                                    text: "Booking Confirmed.",
+                                                    icon: "success",
+                                                    confirmButtonText: "OK",
+                                                });
+                                            } else {
+                                                Swal.fire({
+                                                    title: "Error!",
+                                                    text: response.data.error || "Something went wrong.",
+                                                    icon: "error",
+                                                    confirmButtonText: "Retry",
+                                                });
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            Swal.fire({
+                                                title: "Error!",
+                                                text: "Something went wrong while creating the booking.",
+                                                icon: "error",
+                                                confirmButtonText: "Retry",
+                                            });
+                                        });
+                                    const bookingCompleteData = {
+                                        reservationdata: reservationresponse.data,
+                                        segmentParse: segmentParse,
+                                        Passengers: Passengers,
+                                        PackageSelected: packageSelected,
+                                        Airports: Airports,
+                                        Airlines: Airlines,
+                                        adult: request.adult,
+                                        child: request.child,
+                                        infant: request.infant,
+                                        apiairportsdata: apiairports,
+                                        ticketdata: ticketresponse,
+                                        markup_price: passenger_markup_price,
+                                        booking_id: bookingid,
+                                        flightDetails: actualFlightDetails,
+                                        discount: discount,
+                                        // bookingStatus:bookingStatus
+                                    };
+                                    console.log('bookingCompleteData', bookingCompleteData);
+                                    navigate('/bookingCompleted', { state: { bookingCompleteData } });
 
 
-
-
-//                             if (Array.isArray(segmentreservation)) {
-//                                 segmentreservation.forEach(objs => {
-//                                     if (objs['common_v52_0:SellMessage']) {
-//                                         objs['com:SellMessage'] = objs['common_v52_0:SellMessage'];
-//                                         delete objs['common_v52_0:SellMessage'];
-//                                     }
-//                                 });
-//                             } else {
-//                                 if (segmentreservation['common_v52_0:SellMessage']) {
-//                                     segmentreservation['com:SellMessage'] = segmentreservation['common_v52_0:SellMessage'];
-//                                     delete segmentreservation['common_v52_0:SellMessage'];
-//                                 }
-//                             }
-//                             if (seattravelerparse) {
-//                                 seattravelerparse.forEach(obj => {
-//                                     if (obj['common_v52_0:Name']) {
-//                                         obj['com:Name'] = obj['common_v52_0:Name'];
-//                                         delete obj['common_v52_0:Name'];
-//                                     }
-//                                 });
-//                             }
-//                             // console.log(previousSelections);
-//                             if (previousSelections.length !== 0 || serviceoptions || serviceoptions.length > 0) {
-
-
-//                                 const optionalkeyarray = [];
-//                                 if (seatOptionalparse) {
-//                                     seatOptionalparse.forEach(seatOptionalparseinfo => {
-//                                         previousSelections.forEach(seatSelection => {
-//                                             if (seatSelection.optionalkey !== "free" && seatSelection.optionalkey === seatOptionalparseinfo['$']['Key']) {
-//                                                 seatOptionalparseinfo['common_v52_0:ServiceData']['$'].Data = seatSelection.code;
-//                                                 optionalkeyarray.push(seatOptionalparseinfo);
-
-//                                             }
-//                                         });
-//                                     });
-//                                 }
-//                                 const makeMerchandisingRequest = async () => {
-//                                     const username = 'Universal API/uAPI8645980109-af7494fa';
-//                                     const password = 'N-k29Z}my5';
-//                                     const authHeader = `Basic ${btoa(`${username}:${password}`)}`
-//                                     const mergedArray = [...serviceoptions];
-//                                     mergedArray.push(...optionalkeyarray);
+                                } catch (error) {
+                                    console.error('Error executing requests:', error);
+                                }
+                            };
+                            executeCodeTicketSequentially();
 
 
 
-//                                     const builder = require('xml2js').Builder;
-//                                     var MerchandisingrequestXML1 = new builder().buildObject({
-//                                         'soap:Envelope': {
-//                                             '$': {
-//                                                 'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
-//                                             },
-//                                             'soap:Header': {
 
-//                                             },
-//                                             'soap:Body': {
-//                                                 '$': {
-//                                                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
-//                                                     'xmlns:com': 'http://www.travelport.com/schema/common_v52_0',
-//                                                     'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0'
-//                                                 },
-//                                                 'univ:AirMerchandisingFulfillmentReq': {
-//                                                     '$': {
-//                                                         'TargetBranch': Targetbranch
-//                                                     },
-//                                                     'com:BillingPointOfSaleInfo': {
-//                                                         '$': {
-//                                                             'OriginApplication': 'UAPI'
-//                                                         },
-//                                                     },
-//                                                     'air:HostReservation': {
-//                                                         '$': {
-//                                                             'Carrier': 'UK',
-//                                                             'CarrierLocatorCode': pnrCode,
-//                                                             'ProviderCode': providerCode,
-//                                                             'ProviderLocatorCode': locatorCode,
-//                                                             'UniversalLocatorCode': universallocatorCode
-//                                                         },
-//                                                     },
-//                                                     'air:AirSolution': {
-//                                                         'air:SearchTraveler': seattravelerparse,
-//                                                         'air:AirSegment': segmentreservation
-//                                                     },
-//                                                     'air:OptionalServices': {
-//                                                         '$': {
-//                                                             'xmlns:common_v52_0': 'http://www.travelport.com/schema/common_v52_0'
-//                                                         },
-//                                                         'air:OptionalServicesTotal': '',
-//                                                         'air:OptionalService': mergedArray
-//                                                     }
-//                                                 }
-//                                             }
-//                                         }
-//                                     });
-//                                     console.log('1', MerchandisingrequestXML1);
-//                                     try {
-//                                         const Merchandisingresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, MerchandisingrequestXML1, {
-//                                             headers: {
-//                                                 'Content-Type': 'text/xml',
-//                                                 'Authorization': authHeader,
-//                                             },
-//                                         });
-//                                         const MerchandisingResponse = Merchandisingresponse.data;
+                            if (Array.isArray(segmentreservation)) {
+                                segmentreservation.forEach(objs => {
+                                    if (objs['common_v52_0:SellMessage']) {
+                                        objs['com:SellMessage'] = objs['common_v52_0:SellMessage'];
+                                        delete objs['common_v52_0:SellMessage'];
+                                    }
+                                });
+                            } else {
+                                if (segmentreservation['common_v52_0:SellMessage']) {
+                                    segmentreservation['com:SellMessage'] = segmentreservation['common_v52_0:SellMessage'];
+                                    delete segmentreservation['common_v52_0:SellMessage'];
+                                }
+                            }
+                            if (seattravelerparse) {
+                                seattravelerparse.forEach(obj => {
+                                    if (obj['common_v52_0:Name']) {
+                                        obj['com:Name'] = obj['common_v52_0:Name'];
+                                        delete obj['common_v52_0:Name'];
+                                    }
+                                });
+                            }
+                            // console.log(previousSelections);
+                            if (previousSelections.length !== 0 || serviceoptions || serviceoptions.length > 0) {
 
 
-//                                     } catch (error) {
-//                                         console.error(error);
-//                                         // ErrorLogger.logError('merchandising_api',MerchandisingrequestXML1,error);
-//                                     }
-//                                 };
-//                                 makeMerchandisingRequest();
-//                             } else if (serviceoptions && serviceoptions.length > 0) {
-//                                 const makeMerchandisingRequest = async () => {
-//                                     const username = 'Universal API/uAPI8645980109-af7494fa';
-//                                     const password = 'N-k29Z}my5';
-//                                     const authHeader = `Basic ${btoa(`${username}:${password}`)}`
-//                                     const mergedArray = [...serviceoptions];
+                                const optionalkeyarray = [];
+                                if (seatOptionalparse) {
+                                    seatOptionalparse.forEach(seatOptionalparseinfo => {
+                                        previousSelections.forEach(seatSelection => {
+                                            if (seatSelection.optionalkey !== "free" && seatSelection.optionalkey === seatOptionalparseinfo['$']['Key']) {
+                                                seatOptionalparseinfo['common_v52_0:ServiceData']['$'].Data = seatSelection.code;
+                                                optionalkeyarray.push(seatOptionalparseinfo);
 
-//                                     const builder = require('xml2js').Builder;
-//                                     var MerchandisingrequestXML2 = new builder().buildObject({
-//                                         'soap:Envelope': {
-//                                             '$': {
-//                                                 'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
-//                                             },
-//                                             'soap:Header': {
-
-//                                             },
-//                                             'soap:Body': {
-//                                                 '$': {
-//                                                     'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
-//                                                     'xmlns:com': 'http://www.travelport.com/schema/common_v52_0',
-//                                                     'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0'
-//                                                 },
-//                                                 'univ:AirMerchandisingFulfillmentReq': {
-//                                                     '$': {
-//                                                         'TargetBranch': Targetbranch
-//                                                     },
-//                                                     'com:BillingPointOfSaleInfo': {
-//                                                         '$': {
-//                                                             'OriginApplication': 'UAPI'
-//                                                         },
-//                                                     },
-//                                                     'air:HostReservation': {
-//                                                         '$': {
-//                                                             'Carrier': 'UK',
-//                                                             'CarrierLocatorCode': pnrCode,
-//                                                             'ProviderCode': providerCode,
-//                                                             'ProviderLocatorCode': locatorCode,
-//                                                             'UniversalLocatorCode': universallocatorCode
-//                                                         },
-//                                                     },
-//                                                     'air:AirSolution': {
-//                                                         'air:SearchTraveler': seattravelerparse,
-//                                                         'air:AirSegment': segmentreservation
-//                                                     },
-//                                                     'air:OptionalServices': {
-//                                                         '$': {
-//                                                             'xmlns:common_v52_0': 'http://www.travelport.com/schema/common_v52_0'
-//                                                         },
-//                                                         'air:OptionalServicesTotal': '',
-//                                                         'air:OptionalService': mergedArray
-//                                                     }
-//                                                 }
-//                                             }
-//                                         }
-//                                     });
-
-//                                     console.log('2', MerchandisingrequestXML2);
+                                            }
+                                        });
+                                    });
+                                }
+                                const makeMerchandisingRequest = async () => {
+                                    const username = 'Universal API/uAPI8645980109-af7494fa';
+                                    const password = 'N-k29Z}my5';
+                                    const authHeader = `Basic ${btoa(`${username}:${password}`)}`
+                                    const mergedArray = [...serviceoptions];
+                                    mergedArray.push(...optionalkeyarray);
 
 
-//                                     try {
-//                                         const Merchandisingresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, MerchandisingrequestXML2, {
-//                                             headers: {
-//                                                 'Content-Type': 'text/xml',
-//                                                 'Authorization': authHeader,
-//                                             },
-//                                         });
-//                                         const MerchandisingResponse = Merchandisingresponse.data;
+
+                                    const builder = require('xml2js').Builder;
+                                    var MerchandisingrequestXML1 = new builder().buildObject({
+                                        'soap:Envelope': {
+                                            '$': {
+                                                'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
+                                            },
+                                            'soap:Header': {
+
+                                            },
+                                            'soap:Body': {
+                                                '$': {
+                                                    'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
+                                                    'xmlns:com': 'http://www.travelport.com/schema/common_v52_0',
+                                                    'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0'
+                                                },
+                                                'univ:AirMerchandisingFulfillmentReq': {
+                                                    '$': {
+                                                        'TargetBranch': Targetbranch
+                                                    },
+                                                    'com:BillingPointOfSaleInfo': {
+                                                        '$': {
+                                                            'OriginApplication': 'UAPI'
+                                                        },
+                                                    },
+                                                    'air:HostReservation': {
+                                                        '$': {
+                                                            'Carrier': 'UK',
+                                                            'CarrierLocatorCode': pnrCode,
+                                                            'ProviderCode': providerCode,
+                                                            'ProviderLocatorCode': locatorCode,
+                                                            'UniversalLocatorCode': universallocatorCode
+                                                        },
+                                                    },
+                                                    'air:AirSolution': {
+                                                        'air:SearchTraveler': seattravelerparse,
+                                                        'air:AirSegment': segmentreservation
+                                                    },
+                                                    'air:OptionalServices': {
+                                                        '$': {
+                                                            'xmlns:common_v52_0': 'http://www.travelport.com/schema/common_v52_0'
+                                                        },
+                                                        'air:OptionalServicesTotal': '',
+                                                        'air:OptionalService': mergedArray
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                                    console.log('1', MerchandisingrequestXML1);
+                                    try {
+                                        const Merchandisingresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, MerchandisingrequestXML1, {
+                                            headers: {
+                                                'Content-Type': 'text/xml',
+                                                'Authorization': authHeader,
+                                            },
+                                        });
+                                        const MerchandisingResponse = Merchandisingresponse.data;
 
 
-//                                     } catch (error) {
-//                                         console.error(error);
-//                                         // ErrorLogger.logError('merchandising_api',MerchandisingrequestXML2,error);
-//                                     }
-//                                 };
-//                                 makeMerchandisingRequest();
-//                             }
+                                    } catch (error) {
+                                        console.error(error);
+                                        // ErrorLogger.logError('merchandising_api',MerchandisingrequestXML1,error);
+                                    }
+                                };
+                                makeMerchandisingRequest();
+                            } else if (serviceoptions && serviceoptions.length > 0) {
+                                const makeMerchandisingRequest = async () => {
+                                    const username = 'Universal API/uAPI8645980109-af7494fa';
+                                    const password = 'N-k29Z}my5';
+                                    const authHeader = `Basic ${btoa(`${username}:${password}`)}`
+                                    const mergedArray = [...serviceoptions];
 
-//                         } else {
-//                             const error = reservationresult['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
-//                             // ErrorLogger.logError('flight_reservation_api1',modifiedXmlString,error);
-//                             navigate('/tryagainlater');
-//                         }
+                                    const builder = require('xml2js').Builder;
+                                    var MerchandisingrequestXML2 = new builder().buildObject({
+                                        'soap:Envelope': {
+                                            '$': {
+                                                'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
+                                            },
+                                            'soap:Header': {
+
+                                            },
+                                            'soap:Body': {
+                                                '$': {
+                                                    'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
+                                                    'xmlns:com': 'http://www.travelport.com/schema/common_v52_0',
+                                                    'xmlns:univ': 'http://www.travelport.com/schema/universal_v52_0'
+                                                },
+                                                'univ:AirMerchandisingFulfillmentReq': {
+                                                    '$': {
+                                                        'TargetBranch': Targetbranch
+                                                    },
+                                                    'com:BillingPointOfSaleInfo': {
+                                                        '$': {
+                                                            'OriginApplication': 'UAPI'
+                                                        },
+                                                    },
+                                                    'air:HostReservation': {
+                                                        '$': {
+                                                            'Carrier': 'UK',
+                                                            'CarrierLocatorCode': pnrCode,
+                                                            'ProviderCode': providerCode,
+                                                            'ProviderLocatorCode': locatorCode,
+                                                            'UniversalLocatorCode': universallocatorCode
+                                                        },
+                                                    },
+                                                    'air:AirSolution': {
+                                                        'air:SearchTraveler': seattravelerparse,
+                                                        'air:AirSegment': segmentreservation
+                                                    },
+                                                    'air:OptionalServices': {
+                                                        '$': {
+                                                            'xmlns:common_v52_0': 'http://www.travelport.com/schema/common_v52_0'
+                                                        },
+                                                        'air:OptionalServicesTotal': '',
+                                                        'air:OptionalService': mergedArray
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+
+                                    console.log('2', MerchandisingrequestXML2);
 
 
-//                     });
-//                 } catch (error) {
+                                    try {
+                                        const Merchandisingresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, MerchandisingrequestXML2, {
+                                            headers: {
+                                                'Content-Type': 'text/xml',
+                                                'Authorization': authHeader,
+                                            },
+                                        });
+                                        const MerchandisingResponse = Merchandisingresponse.data;
 
-//                     // ErrorLogger.logError('flight_reservation_api2','Error',error);
-//                     navigate('/tryagainlater');
-//                 }
-//                 finally {
-//                     setLoading(false);
-//                 }
+
+                                    } catch (error) {
+                                        console.error(error);
+                                        // ErrorLogger.logError('merchandising_api',MerchandisingrequestXML2,error);
+                                    }
+                                };
+                                makeMerchandisingRequest();
+                            }
+
+                        } else {
+                            const error = reservationresult['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
+                            // ErrorLogger.logError('flight_reservation_api1',modifiedXmlString,error);
+                            navigate('/tryagainlater');
+                        }
+
+
+                    });
+                } catch (error) {
+
+                    // ErrorLogger.logError('flight_reservation_api2','Error',error);
+                    navigate('/tryagainlater');
+                }
+                finally {
+                    setLoading(false);
+                }
             };
             makeReservationRequest();
             // setLoading(false);
@@ -6304,7 +6391,8 @@ const Booking = () => {
 
                                                                                                 name="adult_prefix[]"
                                                                                                 data-index={passengerindex}
-                                                                                                readOnly={bookingid}
+                                                                                                // readOnly={bookingid}
+                                                                                                style={{ pointerEvents: bookingid ? 'none' : 'auto' }}
                                                                                                 defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Female" ? "Mrs" : "Mr"}
                                                                                             >
                                                                                                 <option value="Mr" selected={emptaxivaxi?.[passengerindex]?.gender === "Male"}>Mr.</option>
@@ -6758,228 +6846,8 @@ const Booking = () => {
 
 
                                                 </form>
-                                                <Accordion
-                                                                expanded={accordion6Expanded}
-                                                                onChange={(event, isExpanded) => {
-                                                                    if (mealorbeverage.length > 0) {
-                                                                    setAccordion6Expanded(isExpanded);
-                                                                    }
-                                                                }}
-                                                                >
-                                                                <AccordionSummary
-                                                                    expandIcon={mealorbeverage.length > 0 ? <ExpandMoreIcon /> : null}
-                                                                    aria-controls="panel1-content"
-                                                                    id="panel1-header"
-                                                                    className="accordion"
-                                                                >
-                                                                    <div className="flex items-center gap-2">
-                                                                    <img
-                                                                        src="/img/taxivaxi/meal_seats/user_icon.svg"
-                                                                        width="15px"
-                                                                        alt="User Icon"
-                                                                    />
-                                                                    <span>Meal Or Beverage</span>
-                                                                    {mealorbeverage.length === 0 ? (
-                                                                        <span className="extradisabled">Meal not provided</span>
-                                                                    ) : selectedMeals.length > 0 && (
-                                                                        <>
-                                                                        <span className="text-sm text-gray-500">
-                                                                            &nbsp; ({selectedMeals.length} Selected)
-                                                                        </span>
-                                                                        <Tooltip
-                                                                            title={
-                                                                            <div className="text-sm p-2">
-                                                                                {selectedMeals.map((meal, index) => {
-                                                                                const displayText = meal?.['$']?.DisplayText || 'Meal';
-                                                                                const price = meal?.['$']?.TotalPrice?.replace('INR', '₹').split('.')[0];
-                                                                                return (
-                                                                                    <div
-                                                                                    key={index}
-                                                                                    className="flex justify-between items-center gap-4"
-                                                                                    >
-                                                                                    <div>{displayText}</div>
-                                                                                    <div>{price}</div>
-                                                                                    </div>
-                                                                                );
-                                                                                })}
-                                                                            </div>
-                                                                            }
-                                                                            arrow
-                                                                        >
-                                                                            <IconButton size="small">
-                                                                            <InfoOutlinedIcon fontSize="small" />
-                                                                            </IconButton>
-                                                                        </Tooltip>
-                                                                        </>
-                                                                    )}
-                                                                    </div>
-                                                                </AccordionSummary>
-
-                                                                <AccordionDetails className="flex gap-6">
-                                                                {/* Left: Passenger Tabs */}
-                                                                <div className="w-1/4 border-r pr-4 flex flex-col gap-3">
-                                                                    {Passengers?.keys?.map((key, index) =>
-                                                                    Passengers.codes[index] !== 'INF' ? (
-                                                                        <button
-                                                                        key={index}
-                                                                        type="button"
-                                                                        className={`p-3 rounded-lg border text-left ${
-                                                                            key === selectedPassengerKey
-                                                                            ? 'bg-violet-100 border-violet-500 text-violet-800'
-                                                                            : 'border-gray-300 text-gray-700'
-                                                                        }`}
-                                                                        onClick={() => setSelectedPassengerKey(key)}
-                                                                        >
-                                                                        {Passengers.namesWithPrefix[index]}. {Passengers.firstNames[index]}
-                                                                        <br />
-                                                                        {/* <span className="text-xs text-gray-500">
-                                                                            Seat No.{' '}
-                                                                            {selectedMeals
-                                                                            .filter((m) => m.passengerKey === key)
-                                                                            .map((m) => m?.['$']?.SeatCode)
-                                                                            .join(', ') || 'Not Selected'}
-                                                                        </span> */}
-                                                                        </button>
-                                                                    ) : null
-                                                                    )}
-                                                                </div>
-
-                                                                {/* Right: Segment Tabs + Meals */}
-                                                                <div className="w-3/4">
-                                                                    {/* Segment Tabs */}
-                                                                    <div className="mb-4">
-                                                                    <Tabs
-                                                                        value={selectedSegmentKey}
-                                                                        onChange={handleTabChange}
-                                                                        variant="scrollable"
-                                                                        scrollButtons="auto"
-                                                                    >
-                                                                        {segmentArray1.map((segment, index) => {
-                                                                        const key = segment?.['$']?.Key;
-                                                                        const origin = handleAirport(segment?.['$']?.Origin);
-                                                                        const dest = handleAirport(segment?.['$']?.Destination);
-                                                                        return (
-                                                                            <Tab key={key} label={`${origin} → ${dest}`} value={key} />
-                                                                        );
-                                                                        })}
-                                                                    </Tabs>
-                                                                    </div>
-
-                                                                    {/* Meals Display */}
-                                                                    <div>
-                                                                    {(() => {
-                                                                const flightMeals = mealMapByFlight.find(
-                                                                    (item) => item.flightKey === selectedSegmentKey
-                                                                )?.meals || [];
-
-                                                                const filteredMeals = flightMeals.filter(
-                                                                    (meal) =>
-                                                                    meal?.['common_v52_0:ServiceData']?.['$']?.BookingTravelerRef ===
-                                                                    selectedPassengerKey
-                                                                );
-
-                                                                return filteredMeals.length > 0 ? (
-                                                                    <div className="flex flex-col gap-4">
-                                                                    {filteredMeals.map((item, index) => {
-                                                                        const key = item?.['$']?.Key;
-                                                                        const displayText = item?.['$']?.DisplayText;
-                                                                        const price = item?.['$']?.TotalPrice || '';
-                                                                        const formattedPrice = price.replace('INR', '₹').split('.')[0];
-                                                                        const flightKey = selectedSegmentKey;
-                                                                        const segmentRef =
-                                                                        item?.['common_v52_0:ServiceData']?.['$']?.AirSegmentRef;
-
-                                                                        const isAdded = selectedMeals.some(
-                                                                        (m) =>
-                                                                            m?.['$']?.Key === key &&
-                                                                            m?.flightKey === flightKey &&
-                                                                            m?.passengerKey === selectedPassengerKey
-                                                                        );
-
-                                                                        return (
-                                                                        <div
-                                                                            key={index}
-                                                                            className="flex items-center justify-between border rounded-2xl p-2 mb-3"
-                                                                        >
-                                                                            <div className="flex items-center gap-4">
-                                                                            <div className="p-3 rounded-xl bg-violet-50">
-                                                                                <img
-                                                                                src="/meal-icon.svg"
-                                                                                alt="Meal"
-                                                                                className="h-10 w-10"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <div className="text-sm font-medium">{displayText}</div>
-                                                                            </div>
-                                                                            </div>
-
-                                                                            <div className="flex items-center gap-6">
-                                                                            <div className="font-semibold text-sm">
-                                                                                {formattedPrice}
-                                                                            </div>
-                                                                            <button
-                                                                                type="button"
-                                                                                className={`px-4 py-1 border rounded-xl text-sm ${
-                                                                                isAdded
-                                                                                    ? 'bg-violet-100 text-violet-700 border-violet-500'
-                                                                                    : 'text-violet-600 border-violet-300'
-                                                                                }`}
-                                                                                onClick={() => {
-                                                                                if (isAdded) {
-                                                                                    setSelectedMeals((prev) =>
-                                                                                    prev.filter(
-                                                                                        (m) =>
-                                                                                        !(
-                                                                                            m?.['$']?.Key === key &&
-                                                                                            m?.flightKey === flightKey &&
-                                                                                            m?.passengerKey === selectedPassengerKey
-                                                                                        )
-                                                                                    )
-                                                                                    );
-                                                                                } else {
-                                                                                    const enrichedMeal = {
-                                                                                    ...item,
-                                                                                    segmentRef,
-                                                                                    flightKey,
-                                                                                    };
-                                                                                    handleAddMeal(enrichedMeal, selectedPassengerKey);
-                                                                                }
-                                                                                }}
-                                                                            >
-                                                                                {isAdded ? 'Added' : 'Add'}
-                                                                            </button>
-                                                                            </div>
-                                                                        </div>
-                                                                        );
-                                                                    })}
-                                                                    
-                                                                    </div>
-                                                                    
-                                                                ) : (
-                                                                    <div className="text-sm text-gray-500">No meals available.</div>
-                                                                );
-                                                                })()}
-                                                                    </div>
-                                                                    <div className="add-passenger">
-                                                                        <button
-                                                                            type="button"
-                                                                            id="save-passenger-btn"
-                                                                            className="passenger-submit"
-                                                                            onClick={handleSavemeal(selectedMeals)}
-                                                                        >
-                                                                            Save Meal
-                                                                        </button>
-                                                                    </div>
-                                                        </div>
-                                                        
-                                                        </AccordionDetails>
-
-                                                        <AccordionActions>{/* Footer if needed */}</AccordionActions>
-                                                    </Accordion>
                                                 <form onSubmit={(e) => handleCompleteBooking(e)}>
-                                                
-                                                    <div className="booking-devider" />
+
                                                     <Accordion expanded={seatresponseparse ? accordion3Expanded : false} onChange={(event, isExpanded) => setAccordion3Expanded(isExpanded)}>
                                                         <AccordionSummary
                                                             expandIcon={<ExpandMoreIcon />}
@@ -7757,9 +7625,17 @@ const Booking = () => {
                                                         ) {
                                                             k3Tax = parseFloat(packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "").trim()) || 0;
                                                         }
+                                                        let discount = 0;
 
+                                                        const feeInfo = packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo']?.["$"];
+                                                
+                                                        if (feeInfo?.["Text"] === 'PromotionDiscount' && feeInfo?.["Amount"]) {
+                                                          const feeAmount = parseFloat(feeInfo["Amount"].replace("INR", "").trim());
+                                                          discount = Math.floor(Math.abs(feeAmount)) * parseFloat(noOfSeats || 1);
+                                                        }
+                                                        
                                                         // Ensure the final tax is non-negative and only subtract GST if it exists
-                                                        const finalTax = approximateTaxes - (k3Tax > 0 ? k3Tax : 0) + markup_price;
+                                                        const finalTax = approximateTaxes - (k3Tax > 0 ? k3Tax : 0) + (parseFloat(markup_price) * parseFloat(noOfSeats));
 
                                                         return finalTax >= 0 ? finalTax : 0; // Ensure we don’t return negative values
                                                     })()}
@@ -7773,9 +7649,30 @@ const Booking = () => {
                                         <div className="chk-total">
                                             <div className="chk-total-l">Total Price</div>
                                             <div className="chk-total-r" style={{ fontWeight: 700 }}>
-
+                                             
                                                 {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price)}
+
+                                                {/* {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + (parseFloat(markup_price)*parseFloat(noOfSeats)))} */}
+                                                {
+                                                    (
+                                                        parseFloat(packageSelected?.$?.TotalPrice?.replace('INR', '').trim() || 0) +
+                                                        parseFloat(markup_price || 0) * parseFloat(noOfSeats || 1) +
+                                                        (
+                                                        packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo']?.["$"]?.["Text"] === 'PromotionDiscount'
+                                                            ? Math.floor(
+                                                                Math.abs(
+                                                                parseFloat(
+                                                                    packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo']?.["$"]?.["Amount"]
+                                                                    ?.replace("INR", "")
+                                                                    .trim() || 0
+                                                                )
+                                                                )
+                                                            ) * parseFloat(noOfSeats || 1)
+                                                            : 0
+                                                        )
+                                                    ).toFixed(2)
+                                                    }
+
 
                                             </div>
                                             <div className="clear" />

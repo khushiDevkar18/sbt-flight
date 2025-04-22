@@ -19569,7 +19569,6 @@ button#search-button:hover {
   border-radius: 30px;
 }
 
-
 .location-info {
   font-family: 'Montserrat', sans-serif;
   padding-left: 12px;
@@ -19812,11 +19811,22 @@ button#search-button:hover {
   gap: 5px;
 }
 
-/* Optional: If you want to add an icon */
 .status-chip::before {
   content: "✔";
   font-size: 12px;
 }
+
+/* Red version for "On Hold" or other statuses */
+.status-chip.red {
+  background-color: #fdecea; /* Light red background */
+  color: #d93025; /* Red text */
+}
+
+.status-chip.red::before {
+  content: "✖";
+  font-size: 12px;
+}
+
 
 .flight-details-containerr {
   display: flex;

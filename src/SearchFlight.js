@@ -510,11 +510,20 @@ const SearchFlight = () => {
       console.log('main_prc', pricepointXML);
       // console.log("in api1")
       try {
+        await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+          new URLSearchParams({ booking_id: bookingid,api_data:pricepointXML,api_name:'priceReq' }) // Send booking_id as form data
+        );
+
         const priceresponse = await axios.post(
           `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
           pricepointXML);
 
         const priceResponse = priceresponse.data;
+
+        await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+          new URLSearchParams({ booking_id: bookingid,api_data:priceResponse,api_name:'priceRes' }) // Send booking_id as form data
+        );
+      
         console.log('priceResponse', priceResponse);
         parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
           if (err) {
@@ -800,16 +809,18 @@ const SearchFlight = () => {
 
     const { markup_value, markup_type } = markup[0]; // Extract the first markup object
 
+
     // Calculate the final price based on markup type
     const markupValue = parseFloat(markup_value);
-
+    console.log("markupValue", markupValue);
     if (markup_type === "Fixed") {
-      return numericPrice + markupValue; // Add fixed value
+      return numericPrice + (markupValue*no_of_seats); // Add fixed value
     } else if (markup_type === "Percentage") {
-      return numericPrice + (numericPrice * markupValue) / 100; // Add percentage markup
+
+      return numericPrice + ((numericPrice * markupValue) / 100)*no_of_seats; // Add percentage markup
     }
 
-    // console.log('numericPrice', numericPrice);
+    console.log('numericPrice', numericPrice);
     return numericPrice
 
 
@@ -928,6 +939,7 @@ const SearchFlight = () => {
           setBrandlist(Array.isArray(brandlist) ? brandlist : [brandlist]);
           setFlightDetails(Array.isArray(flightdetailist) ? flightdetailist : [flightdetailist]);
           setActualFlightDetails(Array.isArray(flightdetailist) ? flightdetailist : [flightdetailist]);
+          // sessionStorage.setItem('flightdetailist', flightdetailist);
           setSegment(Array.isArray(Segmentlist) ? Segmentlist : [Segmentlist]);
           setHostlist(Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist]);
           setFarelist(Array.isArray(fareinfolist) ? fareinfolist : [fareinfolist]);
@@ -1484,11 +1496,22 @@ const SearchFlight = () => {
           console.log("in api2")
           // console.log('main_prc', pricepointXML);
           try {
+            await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+              new URLSearchParams({ booking_id: bookingid,api_data:pricepointXML,api_name:'priceReq' }) 
+            );
+                            
+            
             const priceresponse = await axios.post(
               `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
               pricepointXML, { headers: { 'Content-Type': 'text/xml' } }
             );
             const priceResponse = priceresponse.data;
+           
+            await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+              new URLSearchParams({ booking_id: bookingid,api_data:priceresponse.data,api_name:'priceRes' }) 
+            );
+          
+     
             console.log('priceResponse', priceResponse);
 
             parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
@@ -1642,7 +1665,7 @@ const SearchFlight = () => {
 
     const SegmentParse = segmentpriceParse;
     // console.log('HostToken',HostToken);
-    console.log('SegmentParse',SegmentParse);
+    // console.log('SegmentParse',SegmentParse);
     let finaldeparturedate = '';
     let finalreturndate = '';
     let finalarrivaldate = '';
@@ -1828,26 +1851,6 @@ const SearchFlight = () => {
     const year = d.getFullYear();
     return `${day}/${month}/${year}`;
   }
-
-  // function ddmmyyyyformatDate(date) {
-  //   // Ensure the input is a string
-  //   alert(date);
-  //   date = String(date);
-
-  //   let day, month, year;
-
-  //   if (date.includes('-')) {
-  //     // Input format: YYYY-MM-DD
-  //     [year, month, day] = date.split('-');
-  //   } else if (date.includes('/')) {
-  //     // Input format: DD/MM/YYYY
-  //     [day, month, year] = date.split('/');
-  //   } else {
-  //     throw new Error('Unsupported date format. Use "YYYY-MM-DD" or "DD/MM/YYYY".');
-  //   }
-
-  //   return `${day}/${month}/${year}`;
-  // }
 
   let depFormattedDate = null;
   let retFormattedDate = null;
@@ -2710,7 +2713,6 @@ const SearchFlight = () => {
           const no_of_stops = Array.isArray(bookinfo) ? bookinfo.length - 1 : 0;
           // const fareDetails = flight.fare_details;
           const fareDetails = flight?.fare_details || null;
-          console.log('fareDetails', fareDetails);
 
           return {
             flight_no: flightDetail.map((detail) => detail.flight_no).join(", "),
@@ -3744,8 +3746,6 @@ const SearchFlight = () => {
                               )
                             ));
                             let uniqueStopsArray = Array.from(uniqueStops);
-                            
-
 
                             return (
                               <>
@@ -12988,7 +12988,7 @@ const SearchFlight = () => {
                                                                   )
                                                               )}
                                                             </div>
-                                                            {agent_id && (
+                                                            {agent_id && bookingid && (
                                                               <div className='buttonbook'><button type='button' className="continuebutton" style={{ marginTop: "11px", color: "white", backgroundColor: "#785eff", border: "none", padding: "3%", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
                                                             )}
                                                           </div>
@@ -13001,73 +13001,81 @@ const SearchFlight = () => {
                                                 </div>
                                                 <div className="flt-i-c">
                                                   <div className="flt-i-padding">
-                                                  <div className="flt-i-price">
-                                                                  {pricepoint['air:AirPricingInfo'] && (
-                                                                    Array.isArray(pricepoint['air:AirPricingInfo']) ? (
-                                                                      <>
-                                                                        {(() => {
-                                                                          const totalPrice =
-                                                                            pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
-                                                                          const seatType = cabinClass; // Set the seat type dynamically as needed
-                                                                          const fareName = "Base Fare";
-                                                                          const airline = inputOrigin;
+                                                    <div className="flt-i-price-i">
+                                                      <div className="flt-i-price">
+                                                        {pricepoint['air:AirPricingInfo'] && (
+                                                          Array.isArray(pricepoint['air:AirPricingInfo']) ? (
+                                                            <>
+                                                              {(() => {
+                                                                const totalPrice =
+                                                                  pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
+                                                                const seatType = cabinClass; // Set the seat type dynamically as needed
+                                                                const fareName = "Base Fare";
+                                                                const airline = inputOrigin;
+                                                                const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
 
-                                                                          const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
-
-                                                                          return (
-                                                                            <>
-                                                                              {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                              {Math.floor(finalPrice)}
-                                                                            </>
-                                                                          );
-                                                                        })()}
-                                                                      </>
-                                                                    ) : (
-                                                                      <>
-                                                                        {(() => {
-                                                                          const totalPrice =
-                                                                            pricepoint['air:AirPricingInfo']['$']['TotalPrice'];
-                                                                          const seatType = cabinClass; // Set the seat type dynamically as needed
-                                                                          const fareName = "Base Fare";
-                                                                          const airline = inputOrigin;
-
-                                                                          const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
-
-                                                                          return (
-                                                                            <>
-                                                                              {totalPrice.includes('INR') ? '₹ ' : ''}
-                                                                              {Math.floor(finalPrice)} 
-                                                                            </>
-                                                                          );
-                                                                        })()}
-                                                                      </>
-                                                                    )
-                                                                  )}
+                                                                return (
+                                                                  <>
+                                                                    {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                    {Math.floor(finalPrice)} {/* Show final price with markup applied */}
+                                                                  </>
+                                                                );
+                                                              })()}
+                                                            </>
+                                                          ) : (
+                                                            <>
+                                                              {(() => {
+                                                                const totalPrice =
+                                                                  pricepoint['air:AirPricingInfo']['$']['TotalPrice'];
+                                                                const seatType = cabinClass; // Set the seat type dynamically as needed
+                                                                const fareName = "Base Fare";
+                                                                const airline = inputOrigin;
+                                                                const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
 
 
-                                                                </div>
-                                                   
+                                                                return (
+                                                                  <>
+                                                                    {totalPrice.includes('INR') ? '₹ ' : ''}
+                                                                    {Math.floor(finalPrice)} {/* Show final price with markup applied */}
+                                                                  </>
+                                                                );
+                                                              })()}
+                                                            </>
+                                                          )
+                                                        )}
 
-
-                                                    <button type="submit"
-                                                      className="srch-btn" variant="primary" style={{ borderRadius: '18px' }}>
-                                                      <span style={{ fontSize: "12px" }}>View Prices</span>
-                                                    </button>
-                                                    <div className="flight-line-b">
-                                                      <b onClick={() => handleFlightDetails(priceindex)}>
-                                                        {visibleFlightIndex === priceindex ? "Hide Flight Details" : "Show Flight Details"}
-                                                      </b>
-                                                    </div>
-                                                    {visibleFlightIndex === priceindex && (
-                                                      <div className="flight-details">
-                                                        {/* Render your flight details here */}
                                                       </div>
-                                                    )}
-                                                    <div className="clear" />
+                                                    </div>
+                                                    {/* <div className="flt-i-price-b">per adult</div>
+                                                        <button type="submit" 
+                                                                className="srch-btn" variant="primary">
+                                                            <span style={{ fontSize: "12px" }}>View Prices</span>
+                                                          </button> */}
+                                                    <div className="flt-i-c">
+                                                      <div className="flt-i-padding">
+
+                                                        <button type="submit"
+                                                          className="srch-btn" variant="primary" style={{ borderRadius: '18px' }}>
+                                                          <span style={{ fontSize: "12px" }}>View Prices</span>
+                                                        </button>
+                                                        <div className="flight-line-b">
+                                                          <b onClick={() => handleFlightDetails(priceindex)}>
+                                                            {visibleFlightIndex === priceindex ? "Hide Flight Details" : "Show Flight Details"}
+                                                          </b>
+                                                        </div>
+                                                        {visibleFlightIndex === priceindex && (
+                                                          <div className="flight-details">
+                                                            {/* Render your flight details here */}
+                                                          </div>
+                                                        )}
+                                                        <div className="clear" />
+
+                                                      </div>
+                                                    </div>
+
 
                                                   </div>
                                                 </div>
-                                                
                                                 <div className="clear" />
                                               </div>
                                             </div>
@@ -14941,7 +14949,7 @@ const SearchFlight = () => {
                                                                         {(() => {
                                                                           const totalPrice =
                                                                             pricepoint['air:AirPricingInfo'][0]['$']['TotalPrice'];
-                                                                          const seatType = cabinClass; 
+                                                                          const seatType = cabinClass; // Set the seat type dynamically as needed
                                                                           const fareName = "Base Fare";
                                                                           const airline = inputOrigin;
                                                                           const finalPrice = calculateFinalPrice(totalPrice, markupdata, seatType, fareName, airline, flight_type);
@@ -16739,7 +16747,7 @@ const SearchFlight = () => {
                                                                       </div>
                                                                     </div>
                                                                   </div>
-                                                                  {/* {agent_id  && (  */}
+                                                                  {agent_id && bookingid && ( 
 
                                                                   <div className='buttonbook' >
 
@@ -16750,7 +16758,7 @@ const SearchFlight = () => {
                                                                       Book Now
                                                                     </button>
                                                                   </div>
-                                                                  {/* )}   */}
+                                                                  )}   
 
                                                                   <button
                                                                     className="add-btn"
@@ -17374,15 +17382,15 @@ const SearchFlight = () => {
                                                                 )}
                                                               </div>
 
-                                                              {/* {agent_id && ( */}
-                                                              <div className='buttonbook'>
+                                                              {agent_id && bookingid && (
+                                                              <div className='buttonbook' >
                                                                 <button type='button' className="continuebutton"
                                                                   style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }}
                                                                   onClick={() => handleselectedContinue(priceParseindex)}>
                                                                   Book Now
                                                                 </button>
                                                               </div>
-                                                              {/* )} */}
+                                                            )}
                                                               <button
                                                                 className="add-btn"
                                                                 type="button"

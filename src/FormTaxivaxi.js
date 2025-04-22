@@ -21,10 +21,16 @@ const navigate = useNavigate();
   const location = useLocation();
   
   const [emptaxivaxi, setEmptaxivaxi] = useState([]);
-
+  // const searchParams = new URLSearchParams(window.location.search);
+  // const taxivaxidata = searchParams.get('taxivaxidata');
   const searchParams = new URLSearchParams(window.location.search);
   const taxivaxidata = searchParams.get('taxivaxidata');
 
+
+  
+//   alert('okay', taxivaxidata);
+//   console.log('data', taxivaxidata);
+  
 
   const [Airports, setAirportOptions] = useState([]);
   const [allAirportsOrigin, setAllAirportsOrigin] = useState([]);
@@ -38,7 +44,6 @@ const navigate = useNavigate();
     let airlineResponseData;
     let airportResponseData;
     let apiairportData;
-
 
       const apiairportss = async () => {
               try {
@@ -195,12 +200,24 @@ const navigate = useNavigate();
                   sessionStorage.setItem('searchdata', soapEnvelope);
                   console.log('soapenv', soapEnvelope); 
 
+                const reData=await axios.post(
+                                `${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+                                new URLSearchParams({ booking_id: booking_id,api_data:soapEnvelope,api_name:'searchReq' }) // Send booking_id as form data
+                            );
+            
+                            console.log('reData', reData);
+
                 const response = await axios.post(
                     `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, 
                     soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
                   );
                   console.log('search response', response.data);
 
+                  await axios.post(
+                    `${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+                    new URLSearchParams({ booking_id: booking_id,api_data:response.data,api_name:'searchRes' }) // Send booking_id as form data
+                  );
+                
                   const responseData = {
                       responsedata: response.data,
                       searchfromcity: searchfrom,

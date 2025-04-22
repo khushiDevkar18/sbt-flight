@@ -23,10 +23,14 @@ const BookingContinue = () => {
     const Airports = location.state && location.state.bookingCompleteData.Airports;
     const Airlines = location.state && location.state.bookingCompleteData.Airlines;
     const markup_price = location.state && location.state.bookingCompleteData.markup_price;
+    const discount = location.state && location.state.bookingCompleteData.discount;
+    
     const seat_codes = location.state && location.state.bookingCompleteData.seat_codes;
     const bookingid = location.state && location.state.bookingCompleteData.booking_id;
+    const reservationStatus = location.state && location.state.bookingCompleteData.bookingStatus;
     const flightDetails = location.state && location.state.bookingCompleteData.flightDetails;
     console.log("flightDetailsB", flightDetails);
+    console.log("reservationStatus",reservationStatus);
 
     const segmentlist = sessionStorage.getItem('segmentarray');
     console.log('segmentlist', segmentlist);
@@ -169,7 +173,8 @@ const BookingContinue = () => {
                     <div className="wrapper-padding">
                         <span class="bgGradient">
                             <p style={{ color: 'white', marginTop: '33px', marginLeft: '10px', fontSize: '19px' }}>
-                                Your Flight Booking is confirmed!
+                                {/* Your Flight Booking is confirmed! */}
+                                {reservationStatus}
                                 <div style={{ fontSize: '12px' }}>PNR No. {pnr}</div>
                             </p>
                         </span>
@@ -262,9 +267,12 @@ const BookingContinue = () => {
                                                                                     <span className="route">
                                                                                         {handleAirport(segmentinfo['$']['Origin'])} → {handleAirport(segmentinfo['$']['Destination'])}
                                                                                     </span>
-                                                                                    <span className="status-chip">
-                                                                                        Confirmed
+                                                                                    <span className={`status-chip ${reservationStatus === 'Flight Booking is confirmed!.' || reservationStatus === 'Booking Ticketed.' ? '' : 'red'}`}>
+                                                                                    {reservationStatus === 'Flight Booking is confirmed!.' || reservationStatus === 'Booking Ticketed.' ? 'Confirmed' : 'On Hold'}
                                                                                     </span>
+
+
+
                                                                                 </div>
                                                                                 <div className="clear" />
 
@@ -877,7 +885,7 @@ const BookingContinue = () => {
                                                             <div className="reasons-i-lbl">
                                                                 <strong>
                                                                     {packageSelected && packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                                    {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price)}</strong>
+                                                                    {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price + discount)}</strong>
                                                                 {/* {packageSelected && packageSelected.$.TotalPrice.replace('INR', '')} */}
                                                             </div>
                                                         </div>
@@ -957,7 +965,7 @@ const BookingContinue = () => {
                                                             <div className="reasons-i-lbl">
                                                                 {packageSelected && packageSelected.$.ApproximateTaxes.includes('INR') ? '₹ ' : ''}
                                                                 {/* {packageSelected && packageSelected.$.ApproximateTaxes.replace('INR', '')} */}
-                                                                {(parseFloat(packageSelected.$.ApproximateTaxes.replace('INR', '').trim()) + markup_price)}
+                                                                {(parseFloat(packageSelected.$.ApproximateTaxes.replace('INR', '').trim()) + markup_price + discount)}
                                                             </div>
                                                         </div>
                                                     </div>
