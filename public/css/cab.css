@@ -36,7 +36,9 @@
 .card-container {
   padding: 10px 0 50px;
   background-color: white;
-  overflow-x: hidden; /* Changed from overflow-y */
+  overflow-x: hidden; 
+  max-width: 1400px;
+    margin: auto;
 }
 
 @media (min-width: 768px) {
@@ -99,6 +101,25 @@
         font-weight: 500;
         color: black;
       }
+      .cab_image{
+        height: 142px;
 
+      }
+      .Cab_photos_container{
+        width: 107%;
+      }
+.cab_width_adjust{
+  width: 52.666667%;
+}
+.max_height{
+  max-height: 450px;
+}
+.max_height_container{
+  min-height: 100px;
+  /* height: auto; */
+}
+.input_width_cab{
+  width: 70%
+}
       
   

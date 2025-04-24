@@ -122,9 +122,9 @@ const Header = () => {
   }`}
 >
             <div className="header-logo">
-              <a href="index-2.html">
+            
                 <img alt="" src="img/taxivaxi/logo/cotrav_logo.svg" />
-              </a>
+           
             </div>
             <div className="header-right">
               {/* <div className="hdr-srch">

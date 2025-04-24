@@ -703,3 +703,12 @@ html[dir=ltr] .appendRight5 {
    width: 400px;
    max-height: 500px;                                   
 }
+.select_box{
+  max-height: 10px;
+}
+/* In your CSS or Tailwind config */
+.custom-scroll-select {
+  max-height: 150px;
+  overflow-y: auto;
+}
+

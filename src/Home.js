@@ -34,7 +34,7 @@ const NewHome = () => {
    const [origin, setOrigin] = useState([]);
    const [allAirportsOrigin, setAllAirportsOrigin] = useState([]);
    const [airportOriginCodes, setAirportOriginCodes] = useState(null);
- 
+   const [selectSize, setSelectSize] = useState(1);
    // const [inputDestination, setInputDestination] = useState('Delhi (DEL) Indira Gandhi International Airport');
    const [inputDestination, setInputDestination] = useState(() => {
      return localStorage.getItem("lastDestination") || "";
@@ -1362,7 +1362,12 @@ const NewHome = () => {
    useEffect(() => {
      console.log("Errors state updated:", errors);
    }, [errors]);
- 
+   const [expandedIndex, setExpandedIndex] = useState(null);
+
+   const [adultSize, setAdultSize] = useState(1);
+   const [selectageSize, setSelectAgeSize] = useState(1);
+
+   const [childSize, setChildSize] = useState(1);
    const handleSelection = (type, value) => {
      let newRoomAdultCount = roomadultCount;
      let newRoomChildCount = roomchildCount;
@@ -1512,6 +1517,7 @@ const NewHome = () => {
        const data = await response.json();
  
        if (data.Status.Code === 200) {
+        
          setHotelCityList(data.HotelResult || []);
          const payment = "1";
          const searchParams = {
@@ -1921,7 +1927,8 @@ const NewHome = () => {
      const formattedTime = selectedTime ? format(selectedTime, "HH:mm") : "";
  
      const formData = new URLSearchParams();
- 
+     formData.append("access_token", 'afba10e987290e8abb9849c94746aae3');
+     setLoading(true);
      if (selectedCabType === "Local") {
        formData.append("pickup_city", selectedCabCity?.city_name || "");
        formData.append("pickup_time", formattedTime);
@@ -2008,8 +2015,10 @@ const NewHome = () => {
          sessionStorage.setItem('Header_Cab', JSON.stringify(header)); 
       
        }
+       setLoading(false);
      } catch (error) {
        console.error("Error fetching cab data:", error);
+       setLoading(false);
      }
    };
 
@@ -2170,13 +2179,13 @@ const NewHome = () => {
                                     checked={formData.bookingType === "oneway"}
                                     id="departureRadio"
                                   />
-                                  <div
+                                  <label
                                     className="bookingtype onewaybookingtype"
                                     htmlFor="departureRadio"
                                     style={getLabelStyle("oneway")}
                                   >
                                     One-Way
-                                  </div>
+                                  </label>
                                 </div>
 
                                 <div className="Return">
@@ -2189,13 +2198,13 @@ const NewHome = () => {
                                     checked={formData.bookingType === "Return"}
                                     id="returnRadio"
                                   />
-                                  <div
+                                  <label
                                     className="bookingtype returnbookingtype"
                                     htmlFor="returnRadio"
                                     style={getLabelStyle("Return")}
                                   >
                                     Return
-                                  </div>
+                                  </label>
                                 </div>
                                 <div className="clear"></div>
                               </div>
@@ -3144,7 +3153,7 @@ const NewHome = () => {
                         
                                                         <div className="from-hotel-group">
                                                           <div className="location-headers">
-                                                            City, Property Name or Location
+                                                            City Name
                                                           </div>
                                                           <div className="location-details relative">
                                                             <input
@@ -3318,38 +3327,33 @@ const NewHome = () => {
                                                               name="openpassengermodal"
                                                               className="openpassengermodal srch-lbl w-full focus:outline-none cursor-pointer overflow-x"
                                                               placeholder="Select all"
-                                                              value={`${roomCount} Rooms, ${roomadultCount} Adults,${roomchildCount} Children`}
+                                                              value={`${roomCount} Rooms, ${roomadultCount} Adults,${roomchildCount} Childs`}
                                                               onClick={handleToggleHotel}
                                                               readOnly
                                                             />
                                                             {isDropdownOpen && (
                                                               <div className="absolute right-0 bg-white rounded-lg mt-1 p-3 z-10 shadow-lg hotel_forms_home">
-                                                                <div className="mb-2 flex items-center justify-between">
-                                                                  <h6 className="textsizes">Rooms</h6>
-                                                                  <select
-                                                                    className="border border-gray-300 px-3 py-1 focus:outline-none"
-                                                                    value={roomCount}
-                                                                    onChange={(e) =>
-                                                                      handleSelection(
-                                                                        "rooms",
-                                                                        parseInt(e.target.value)
-                                                                      )
-                                                                    }
-                                                                  >
-                                                                    {Array.from(
-                                                                      { length: 21 },
-                                                                      (_, i) => i
-                                                                    ).map((num) => (
-                                                                      <option
-                                                                        key={num}
-                                                                        value={num}
-                                                                        className="max-h-[2px]"
-                                                                      >
-                                                                        {num}
-                                                                      </option>
-                                                                    ))}
-                                                                  </select>
-                                                                </div>
+                                                               <div className="mb-2 flex items-center justify-between">
+    <h6 className="textsizes">Rooms</h6>
+    <select
+      className="border border-gray-300 px-3 py-1 focus:outline-none"
+      value={roomCount}
+      size={selectSize}
+      onClick={() => setSelectSize(5)} // expand on click
+      onChange={(e) => {
+        handleSelection("rooms", parseInt(e.target.value));
+        // delay collapse to let selection register
+        setTimeout(() => setSelectSize(1), 100);
+      }}
+      onBlur={() => setSelectSize(1)} // fallback collapse
+    >
+      {Array.from({ length: 21 }, (_, i) => i).map((num) => (
+        <option key={num} value={num}>
+          {num}
+        </option>
+      ))}
+    </select>
+  </div>
                         
                                                                 {/* Show error message if not enough rooms */}
                                                                 {errorMessage && (
@@ -3362,54 +3366,50 @@ const NewHome = () => {
                                                                 <div className="mb-2 flex items-center justify-between">
                                                                   <h6 className="textsizes">Adults</h6>
                                                                   <select
-                                                                    className="border border-gray-300  px-3 py-1 focus:outline-none"
-                                                                    value={roomadultCount}
-                                                                    onChange={(e) =>
-                                                                      handleSelection(
-                                                                        "adults",
-                                                                        parseInt(e.target.value)
-                                                                      )
-                                                                    }
-                                                                  >
-                                                                    {Array.from(
-                                                                      { length: 41 },
-                                                                      (_, i) => i
-                                                                    ).map((num) => (
-                                                                      <option key={num} value={num}>
-                                                                        {num}
-                                                                      </option>
-                                                                    ))}
-                                                                  </select>
+    className="border border-gray-300 px-3 py-1 focus:outline-none"
+    value={roomadultCount}
+    size={adultSize}
+    onClick={() => setAdultSize(5)}
+    onChange={(e) => {
+      handleSelection("adults", parseInt(e.target.value));
+      setTimeout(() => setAdultSize(1), 100);
+    }}
+    onBlur={() => setAdultSize(1)}
+  >
+    {Array.from({ length: 41 }, (_, i) => i).map((num) => (
+      <option key={num} value={num}>
+        {num}
+      </option>
+    ))}
+  </select>
                                                                 </div>
                         
                                                                 {/* Children Selector */}
                                                                 <div className="mb-2 flex items-center justify-between">
                                                                   <div>
                                                                     <h6 className="textsizes">
-                                                                      Children{" "}
+                                                                      Child{" "}
                                                                     </h6>{" "}
                                                                     <p className="text-xs ">0-17 yrs</p>
                                                                   </div>
                         
                                                                   <select
-                                                                    className="border border-gray-300 px-3 py-1 focus:outline-none"
-                                                                    value={roomchildCount}
-                                                                    onChange={(e) =>
-                                                                      handleSelection(
-                                                                        "children",
-                                                                        parseInt(e.target.value)
-                                                                      )
-                                                                    }
-                                                                  >
-                                                                    {Array.from(
-                                                                      { length: 41 },
-                                                                      (_, i) => i
-                                                                    ).map((num) => (
-                                                                      <option key={num} value={num}>
-                                                                        {num}
-                                                                      </option>
-                                                                    ))}
-                                                                  </select>
+    className="border border-gray-300 px-3 py-1 focus:outline-none"
+    value={roomchildCount}
+    size={childSize}
+    onClick={() => setChildSize(5)}
+    onChange={(e) => {
+      handleSelection("children", parseInt(e.target.value));
+      setTimeout(() => setChildSize(1), 100); // collapse after selection
+    }}
+    onBlur={() => setChildSize(1)} // collapse on click outside
+  >
+    {Array.from({ length: 41 }, (_, i) => i).map((num) => (
+      <option key={num} value={num}>
+        {num}
+      </option>
+    ))}
+  </select>
                                                                 </div>
                         
                                                                 {/* Horizontal Line */}
@@ -3427,43 +3427,35 @@ const NewHome = () => {
                                                                     className="overflow-y-auto grid grid-cols-2 gap-4"
                                                                     style={{ maxHeight: "150px" }}
                                                                   >
-                                                                    {childrenAges
-                                                                      .slice(0, roomchildCount)
-                                                                      .map((age, index) => (
-                                                                        <div
-                                                                          key={index}
-                                                                          className="mb-4 flex items-center gap-4 justify-between"
-                                                                        >
-                                                                          <h6 className="textsizes">
-                                                                            Child&nbsp;{index + 1}
-                                                                          </h6>
-                                                                          <select
-                                                                            className="border border-gray-300 rounded-sm py-1 px-2 w-full focus:outline-none text-xs"
-                                                                            value={age || ""}
-                                                                            onChange={(e) =>
-                                                                              handleChildAgeChange(
-                                                                                index,
-                                                                                parseInt(e.target.value)
-                                                                              )
-                                                                            }
-                                                                          >
-                                                                            <option value="" disabled>
-                                                                              Select
-                                                                            </option>
-                                                                            {Array.from(
-                                                                              { length: 18 },
-                                                                              (_, i) => i
-                                                                            ).map((num) => (
-                                                                              <option
-                                                                                key={num}
-                                                                                value={num}
-                                                                              >
-                                                                                {num} Yrs
-                                                                              </option>
-                                                                            ))}
-                                                                          </select>
-                                                                        </div>
-                                                                      ))}
+                                                                    {childrenAges.map((age, index) => (
+  <div key={index} className="mb-4 flex items-center gap-4 justify-between">
+     <h6 className="textsizes">
+                                      Child&nbsp;{index + 1}
+                                    </h6>
+    <select
+     className="border border-gray-300 rounded-sm py-1 px-2 w-full focus:outline-none text-xs"
+      value={age === 0 ? 0 : age || ""}
+      size={expandedIndex === index ? 5 : 1} // only expand the current one
+      onClick={() => setExpandedIndex(index)} // open only this one
+      onChange={(e) => {
+        const selectedValue = parseInt(e.target.value);
+        handleChildAgeChange(index, selectedValue);
+        setTimeout(() => setExpandedIndex(null), 100); // collapse after select
+      }}
+      onBlur={() => setExpandedIndex(null)} 
+    >
+      
+      {Array.from({ length: 18 }, (_, i) => i).map((num) => (
+        <option key={num} value={num}>
+          {num === 0 ? "0" : `${num} Yrs`}
+        </option>
+      ))}
+    </select>
+
+    
+  </div>
+))}
+
                                                                   </div>
                                                                 )}
                         
@@ -3938,7 +3930,7 @@ const NewHome = () => {
                                                                                       </div>
                                                                                     ))}
                                                 
-                                                                                    <div className="relative">
+                                                                                    {/* <div className="relative">
                                                                                       <button
                                                                                         className="text-sm text-blue-500 py-2 px-2 cursor-pointer hover:text-blue-700 transition-colors"
                                                                                         onClick={handleAddRoundTripStop}
@@ -3948,7 +3940,7 @@ const NewHome = () => {
                                                                                       {RoundTripcityLimitError && (
                                                                                         <div className="text-xs text-red-500 mt-1">{RoundTripcityLimitError}</div>
                                                                                       )}
-                                                                                    </div>
+                                                                                    </div> */}
                                                                                   </></>
                                                 
                                                 

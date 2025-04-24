@@ -37,69 +37,7 @@ const SearchHotel = () => {
   const hotelcityList =
     JSON.parse(sessionStorage.getItem("hotelSearchData"))?.hotelcityList || [];
 
-  // useEffect(() => {
-  //   const fetchCity = async () => {
-  //     const storedHotelList = sessionStorage.getItem("hotelSearchData");
-  //     const hotelcityList = storedHotelList
-  //       ? JSON.parse(storedHotelList).hotelcityList
-  //       : [];
-
-  //     // // // console.log("Parsed hotelcityList:", hotelcityList);
-
-  //     if (!Array.isArray(hotelcityList) || hotelcityList.length === 0) {
-  //       // // // console.log("Hotel list is empty, exiting fetchCity");
-  //       return;
-  //     }
-
-  //     setLoader(true);
-
-  //     const codes = hotelcityList.map((hotel) => hotel.HotelCode);
-  //     // // // console.log("Hotel Codes:", codes);
-
-  //     const hotelcodes = codes.toString(); // Convert array to comma-separated string
-
-  //     try {
-  //       const response = await fetch(
-  //         "https://demo.taxivaxi.com/api/hotels/sbtHotelDetails",
-  //         {
-  //           method: "POST",
-  //           headers: {
-  //             // "Content-Type": "application/json",
-  //             Origin: "*", // Change to your React app's origin
-  //             "Access-Control-Request-Method": "POST", // The method you're going to use
-  //           },
-  //           body: JSON.stringify({
-  //             Hotelcodes: hotelcodes,
-  //             Language: "EN",
-  //           }),
-  //         }
-  //       );
-
-  //       if (!response.ok) {
-  //         throw new Error(`HTTP error! status: ${response.status}`);
-  //       }
-
-  //       const data = await response.json();
-  //       // // // console.log("Hotel data:", data);
-
-  //       if (data.Status && data.Status.Code === 200) {
-  //         setHotelDetails(data.HotelDetails || []);
-  //         sessionStorage.setItem(
-  //           "hotelDetails",
-  //           JSON.stringify(data.HotelDetails || [])
-  //         );
-  //       } else {
-  //         console.error("Error fetching hotels:", data.Status?.Description);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching hotels:", error);
-  //     } finally {
-  //       setLoader(false);
-  //     }
-  //   };
-
-  //   fetchCity();
-  // }, []);
+ 
 
   const combinedHotels = useMemo(() => {
     return hotelDetails.map((hotel) => {
@@ -1413,7 +1351,7 @@ const SearchHotel = () => {
               </div>
             </div>
           )}
-          <div className="yield-content" style={{ background: "#e8e4ff" }}>
+          <div className="yield-content" >
             <div className="flex card-container ">
               <div className="w-1/3 items-center justify-center p-4">
                 <div className="mb-5">
@@ -1459,7 +1397,7 @@ const SearchHotel = () => {
                         navigate("/HotelDetail", { state: { hotel } })
                       }
                     >
-                      <div className="max-w-[57rem] w-full flex flex-cols bg-white shadow-md rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none transition-shadow duration-300 hover:shadow-lg">
+                      <div className="max-w-[61rem] w-full flex flex-cols bg-white shadow-md rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none transition-shadow duration-300 hover:shadow-lg">
                         <div className="py-3 px-3 w-1/3">
                           <div className="photos-container">
                             {Array.isArray(hotel.Images) &&

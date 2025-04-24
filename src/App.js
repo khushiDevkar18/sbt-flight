@@ -22,6 +22,8 @@ import ResultNotFound from './ResultNotFound';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CabResultNotFound from "./CabResultNotFound";
 import NewHome from "./NewHome";
+import CabDetails from "./CabDetails";
+import FinalCab from "./FinalCab";
 
 const App = () => {
   return (
@@ -49,6 +51,8 @@ const App = () => {
           <Route path="/HotelSearch" element={<HotelSearch />}/>
           <Route path="/RowPage" element={<RowPage />}/>
           <Route path="/SearchCab" element={<SearchCab />}/>
+          <Route path="/CabDetails" element={<CabDetails />}/>
+          <Route path="/FinalCab" element={<FinalCab />}/>
           <Route path="/HotelBookingCompleted" element={<HotelBookingCompleted />}/>
           <Route path="*" element={<PageNotFound />} />
         </Routes>
