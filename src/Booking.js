@@ -1447,7 +1447,7 @@ console.log("discount",discount);
                                 '$': {
                                     'CountryCode': "91",
                                     'AreaCode': "011",
-                                    'Number': "9881102875",
+                                    'Number': Passengers.contactNo,
                                     'Location': "DEL",
                                     'Type': "Agency"
                                 }
@@ -1568,6 +1568,7 @@ console.log("discount",discount);
         );
 
         const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
+        // const reservationresponse = '12';
         const reservationResponse = reservationresponse.data;
  
         await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
@@ -1732,7 +1733,12 @@ console.log("discount",discount);
                 }
             });
 
-            const airSegmentStatus = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment']['$']['Status'];
+            // const airSegmentStatus = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment']['$']['Status'];
+            const airSegments = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
+
+            const airSegmentArray = Array.isArray(airSegments) ? airSegments : [airSegments];
+
+            const airSegmentStatus = airSegmentArray[0]['$']['Status'];
             console.log("airSegmentStatus",airSegmentStatus);
             if (airSegmentStatus == 'PN') {
                 bookingStatus= "Booking on hold. Please complete payment.";
@@ -1945,7 +1951,7 @@ console.log("discount",discount);
             console.log("in func");
             setLoading(true)
 
-            if (previousSelections.length > 0 && airPricingCommand) {
+            if (airPricingCommand && (previousSelections.length > 0 || selectedMeals.length > 0)) {
                 fetchPriceData();
                 return;
             }
@@ -2403,7 +2409,7 @@ console.log("discount",discount);
                                         '$': {
                                             'CountryCode': "91",
                                             'AreaCode': "011",
-                                            'Number': "9881102875",
+                                            'Number': Passengers.contactNo,
                                             'Location': "DEL",
                                             'Type': "Agency"
                                         }
@@ -2524,6 +2530,7 @@ console.log("discount",discount);
                     );
                     
                     const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
+                    // const reservationresponse = '12';
                     const reservationResponse = reservationresponse.data;
                    
                     await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
@@ -2668,7 +2675,12 @@ console.log("discount",discount);
                                     }
                                 });
 
-                                const airSegmentStatus = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment']['$']['Status'];
+                                // const airSegmentStatus = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment']['$']['Status'];
+                                const airSegments = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
+
+                                const airSegmentArray = Array.isArray(airSegments) ? airSegments : [airSegments];
+
+                                const airSegmentStatus = airSegmentArray[0]['$']['Status']; 
 
                                 if (airSegmentStatus == 'PN') {
                                     bookingStatus= "Booking on hold. Please complete payment.";
@@ -6848,7 +6860,227 @@ console.log("discount",discount);
 
 
                                                 </form>
+                                                <Accordion
+                                                                                                                expanded={accordion6Expanded}
+                                                                                                                onChange={(event, isExpanded) => {
+                                                                                                                    if (mealorbeverage.length > 0) {
+                                                                                                                    setAccordion6Expanded(isExpanded);
+                                                                                                                    }
+                                                                                                                }}
+                                                                                                                >
+                                                                                                                <AccordionSummary
+                                                                                                                    expandIcon={mealorbeverage.length > 0 ? <ExpandMoreIcon /> : null}
+                                                                                                                    aria-controls="panel1-content"
+                                                                                                                    id="panel1-header"
+                                                                                                                    className="accordion"
+                                                                                                                >
+                                                                                                                    <div className="flex items-center gap-2">
+                                                                                                                    <img
+                                                                                                                        src="/img/taxivaxi/meal_seats/user_icon.svg"
+                                                                                                                        width="15px"
+                                                                                                                        alt="User Icon"
+                                                                                                                    />
+                                                                                                                    <span>Meal Or Beverage</span>
+                                                                                                                    {mealorbeverage.length === 0 ? (
+                                                                                                                        <span className="extradisabled">Meal not provided</span>
+                                                                                                                    ) : selectedMeals.length > 0 && (
+                                                                                                                        <>
+                                                                                                                        <span className="text-sm text-gray-500">
+                                                                                                                            &nbsp; ({selectedMeals.length} Selected)
+                                                                                                                        </span>
+                                                                                                                        <Tooltip
+                                                                                                                            title={
+                                                                                                                            <div className="text-sm p-2">
+                                                                                                                                {selectedMeals.map((meal, index) => {
+                                                                                                                                const displayText = meal?.['$']?.DisplayText || 'Meal';
+                                                                                                                                const price = meal?.['$']?.TotalPrice?.replace('INR', '₹').split('.')[0];
+                                                                                                                                return (
+                                                                                                                                    <div
+                                                                                                                                    key={index}
+                                                                                                                                    className="flex justify-between items-center gap-4"
+                                                                                                                                    >
+                                                                                                                                    <div>{displayText}</div>
+                                                                                                                                    <div>{price}</div>
+                                                                                                                                    </div>
+                                                                                                                                );
+                                                                                                                                })}
+                                                                                                                            </div>
+                                                                                                                            }
+                                                                                                                            arrow
+                                                                                                                        >
+                                                                                                                            <IconButton size="small">
+                                                                                                                            <InfoOutlinedIcon fontSize="small" />
+                                                                                                                            </IconButton>
+                                                                                                                        </Tooltip>
+                                                                                                                        </>
+                                                                                                                    )}
+                                                                                                                    </div>
+                                                                                                                </AccordionSummary>
+                                                
+                                                                                                                <AccordionDetails className="flex gap-6">
+                                                                                                                {/* Left: Passenger Tabs */}
+                                                                                                                <div className="w-1/4 border-r pr-4 flex flex-col gap-3">
+                                                                                                                    {Passengers?.keys?.map((key, index) =>
+                                                                                                                    Passengers.codes[index] !== 'INF' ? (
+                                                                                                                        <button
+                                                                                                                        key={index}
+                                                                                                                        type="button"
+                                                                                                                        className={`p-3 rounded-lg border text-left ${
+                                                                                                                            key === selectedPassengerKey
+                                                                                                                            ? 'bg-violet-100 border-violet-500 text-violet-800'
+                                                                                                                            : 'border-gray-300 text-gray-700'
+                                                                                                                        }`}
+                                                                                                                        onClick={() => setSelectedPassengerKey(key)}
+                                                                                                                        >
+                                                                                                                        {Passengers.namesWithPrefix[index]}. {Passengers.firstNames[index]}
+                                                                                                                        <br />
+                                                                                                                        {/* <span className="text-xs text-gray-500">
+                                                                                                                            Seat No.{' '}
+                                                                                                                            {selectedMeals
+                                                                                                                            .filter((m) => m.passengerKey === key)
+                                                                                                                            .map((m) => m?.['$']?.SeatCode)
+                                                                                                                            .join(', ') || 'Not Selected'}
+                                                                                                                        </span> */}
+                                                                                                                        </button>
+                                                                                                                    ) : null
+                                                                                                                    )}
+                                                                                                                </div>
+                                                
+                                                                                                                {/* Right: Segment Tabs + Meals */}
+                                                                                                                <div className="w-3/4">
+                                                                                                                    {/* Segment Tabs */}
+                                                                                                                    <div className="mb-4">
+                                                                                                                    <Tabs
+                                                                                                                        value={selectedSegmentKey}
+                                                                                                                        onChange={handleTabChange}
+                                                                                                                        variant="scrollable"
+                                                                                                                        scrollButtons="auto"
+                                                                                                                    >
+                                                                                                                        {segmentArray1.map((segment, index) => {
+                                                                                                                        const key = segment?.['$']?.Key;
+                                                                                                                        const origin = handleAirport(segment?.['$']?.Origin);
+                                                                                                                        const dest = handleAirport(segment?.['$']?.Destination);
+                                                                                                                        return (
+                                                                                                                            <Tab key={key} label={`${origin} → ${dest}`} value={key} />
+                                                                                                                        );
+                                                                                                                        })}
+                                                                                                                    </Tabs>
+                                                                                                                    </div>
+                                                
+                                                                                                                    {/* Meals Display */}
+                                                                                                                    <div>
+                                                                                                                    {(() => {
+                                                                                                                const flightMeals = mealMapByFlight.find(
+                                                                                                                    (item) => item.flightKey === selectedSegmentKey
+                                                                                                                )?.meals || [];
+                                                
+                                                                                                                const filteredMeals = flightMeals.filter(
+                                                                                                                    (meal) =>
+                                                                                                                    meal?.['common_v52_0:ServiceData']?.['$']?.BookingTravelerRef ===
+                                                                                                                    selectedPassengerKey
+                                                                                                                );
+                                                
+                                                                                                                return filteredMeals.length > 0 ? (
+                                                                                                                    <div className="flex flex-col gap-4">
+                                                                                                                    {filteredMeals.map((item, index) => {
+                                                                                                                        const key = item?.['$']?.Key;
+                                                                                                                        const displayText = item?.['$']?.DisplayText;
+                                                                                                                        const price = item?.['$']?.TotalPrice || '';
+                                                                                                                        const formattedPrice = price.replace('INR', '₹').split('.')[0];
+                                                                                                                        const flightKey = selectedSegmentKey;
+                                                                                                                        const segmentRef =
+                                                                                                                        item?.['common_v52_0:ServiceData']?.['$']?.AirSegmentRef;
+                                                
+                                                                                                                        const isAdded = selectedMeals.some(
+                                                                                                                        (m) =>
+                                                                                                                            m?.['$']?.Key === key &&
+                                                                                                                            m?.flightKey === flightKey &&
+                                                                                                                            m?.passengerKey === selectedPassengerKey
+                                                                                                                        );
+                                                
+                                                                                                                        return (
+                                                                                                                        <div
+                                                                                                                            key={index}
+                                                                                                                            className="flex items-center justify-between border rounded-2xl p-2 mb-3"
+                                                                                                                        >
+                                                                                                                            <div className="flex items-center gap-4">
+                                                                                                                            <div className="p-3 rounded-xl bg-violet-50">
+                                                                                                                                <img
+                                                                                                                                src="/meal-icon.svg"
+                                                                                                                                alt="Meal"
+                                                                                                                                className="h-10 w-10"
+                                                                                                                                />
+                                                                                                                            </div>
+                                                                                                                            <div>
+                                                                                                                                <div className="text-sm font-medium">{displayText}</div>
+                                                                                                                            </div>
+                                                                                                                            </div>
+                                                
+                                                                                                                            <div className="flex items-center gap-6">
+                                                                                                                            <div className="font-semibold text-sm">
+                                                                                                                                {formattedPrice}
+                                                                                                                            </div>
+                                                                                                                            <button
+                                                                                                                                type="button"
+                                                                                                                                className={`px-4 py-1 border rounded-xl text-sm ${
+                                                                                                                                isAdded
+                                                                                                                                    ? 'bg-violet-100 text-violet-700 border-violet-500'
+                                                                                                                                    : 'text-violet-600 border-violet-300'
+                                                                                                                                }`}
+                                                                                                                                onClick={() => {
+                                                                                                                                if (isAdded) {
+                                                                                                                                    setSelectedMeals((prev) =>
+                                                                                                                                    prev.filter(
+                                                                                                                                        (m) =>
+                                                                                                                                        !(
+                                                                                                                                            m?.['$']?.Key === key &&
+                                                                                                                                            m?.flightKey === flightKey &&
+                                                                                                                                            m?.passengerKey === selectedPassengerKey
+                                                                                                                                        )
+                                                                                                                                    )
+                                                                                                                                    );
+                                                                                                                                } else {
+                                                                                                                                    const enrichedMeal = {
+                                                                                                                                    ...item,
+                                                                                                                                    segmentRef,
+                                                                                                                                    flightKey,
+                                                                                                                                    };
+                                                                                                                                    handleAddMeal(enrichedMeal, selectedPassengerKey);
+                                                                                                                                }
+                                                                                                                                }}
+                                                                                                                            >
+                                                                                                                                {isAdded ? 'Added' : 'Add'}
+                                                                                                                            </button>
+                                                                                                                            </div>
+                                                                                                                        </div>
+                                                                                                                        );
+                                                                                                                    })}
+                                                                                                                    
+                                                                                                                    </div>
+                                                                                                                    
+                                                                                                                ) : (
+                                                                                                                    <div className="text-sm text-gray-500">No meals available.</div>
+                                                                                                                );
+                                                                                                                })()}
+                                                                                                                    </div>
+                                                                                                                    <div className="add-passenger">
+                                                                                                                        <button
+                                                                                                                            type="button"
+                                                                                                                            id="save-passenger-btn"
+                                                                                                                            className="passenger-submit"
+                                                                                                                            onClick={handleSavemeal(selectedMeals)}
+                                                                                                                        >
+                                                                                                                            Save Meal
+                                                                                                                        </button>
+                                                                                                                    </div>
+                                                                                                        </div>
+                                                                                                        
+                                                                                                        </AccordionDetails>
+                                                
+                                                                                                        <AccordionActions>{/* Footer if needed */}</AccordionActions>
+                                                                                                    </Accordion>
                                                 <form onSubmit={(e) => handleCompleteBooking(e)}>
+                                                <div className="booking-devider" />
 
                                                     <Accordion expanded={seatresponseparse ? accordion3Expanded : false} onChange={(event, isExpanded) => setAccordion3Expanded(isExpanded)}>
                                                         <AccordionSummary

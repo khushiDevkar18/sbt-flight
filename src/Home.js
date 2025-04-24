@@ -479,109 +479,66 @@ function Home() {
     };
     
     const fetchToken = async () => {
-        const storedToken = localStorage.getItem('authToken');
-        const tokenTimestamp = localStorage.getItem('authTokenTimestamp');
-        const currentDate = new Date();
+        const tokenKey = 'authToken';
+        const timestampKey = 'authTokenTimestamp';
+        
+        const storedToken = localStorage.getItem(tokenKey);
+        const tokenTimestamp = localStorage.getItem(timestampKey);
+        const now = Date.now();
     
-        // console.log('storedToken:', storedToken);
-        // console.log('tokenTimestamp:', tokenTimestamp);
+        // Check if stored token and timestamp exist
+        if (storedToken && storedToken !== 'null' && tokenTimestamp) {
+            const timeElapsed = now - new Date(tokenTimestamp).getTime();
+            const twentyFourHours = 24 * 60 * 60 * 1000;
     
-        // Check if both storedToken and tokenTimestamp are available and valid
-        if (storedToken && storedToken !== 'null') {
-            // console.log('Token exists.');
-            
-            if (tokenTimestamp) {
-                // console.log('Timestamp exists.');
-                
-                // Check if the stored token's timestamp matches today's date
-                if (new Date(tokenTimestamp).toDateString() === currentDate.toDateString()) {
-                    console.log('Token is valid and current.');
-                    return storedToken; // Return the stored token if valid
-                } else {
-                    console.log('Token is expired (date mismatch).');
-                }
+            // If token is still valid (within 24 hours), return it
+            if (timeElapsed < twentyFourHours) {
+                console.log('✅ Reusing valid token.');
+                return storedToken;
             } else {
-                console.log('Timestamp is missing, fetching new token...');
+                console.log('⚠️ Token expired (older than 24 hours).');
             }
         } else {
-            console.log('Token is missing, fetching new token...');
+            console.log('ℹ️ No valid token or timestamp found.');
         }
-
+    
+        // Fetch new token
         const authPayload = {
             ClientId: "ApiIntegrationNew",
             UserName: "BAI",
             Password: "Bai@12345",
-            EndUserIp: '192.168.11.120',
-        };
-    
-        try {
+            EndUserIp: "192.168.11.120"
+            };
+
+            try {
             const authResponse = await axios.post(
-                'https://cors-anywhere.herokuapp.com/http://api.tektravels.com/SharedServices/SharedData.svc/rest/Authenticate',
+                "https://cors-anywhere.herokuapp.com/http://sharedapi.tektravels.com/SharedData.svc/rest/Authenticate",
                 JSON.stringify(authPayload),
                 {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Forwarded-For': '192.168.11.120',
-                    }
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                }
                 }
             );
-            // console.log('authResponse',authResponse.data);
+
+            
+            console.log('authResponse', authResponse);
     
             const newToken = authResponse.data.TokenId;
-            localStorage.setItem('authToken', newToken);
-            localStorage.setItem('authTokenTimestamp', currentDate.toISOString());
     
-            console.log('New token saved:', newToken);
+            // Store new token and current timestamp
+            localStorage.setItem(tokenKey, newToken);
+            localStorage.setItem(timestampKey, new Date().toISOString());
+    
+            console.log('✅ New token fetched and stored.');
             return newToken;
         } catch (error) {
-            console.error('Error fetching token:', error);
-            throw new Error('Authentication failed');
+            console.error('❌ Error fetching token:', error);
+            // throw new Error('Authentication failed');
         }
     };
-
-    async function getAccessToken() {
-        const tokenKey = 'ndc_access_token';
-        const expirationKey = 'ndc_token_expiration';
-        const now = Date.now();
-      
-        const storedToken = localStorage.getItem(tokenKey);
-        const storedExpiration = localStorage.getItem(expirationKey);
-      
-        // Use cached token if it's valid
-        if (storedToken && storedExpiration && now < Number(storedExpiration)) {
-        //   console.log('Using cached token');
-          return storedToken;
-        }
-      
-        const url = 'https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeNDCAuthenticationApiRequest';
-      
-        try {
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-          });
-      
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-      
-          const data = await response.json();
-          const token = data.access_token;
-          const expirationTime = now + 24 * 60 * 60 * 1000; // 24 hours validity
-      
-          // Store the token and expiration time in localStorage
-          localStorage.setItem(tokenKey, token);
-          localStorage.setItem(expirationKey, expirationTime.toString());
-      
-        //   console.log('Access token fetched successfully:', token);
-          return token;
-        } catch (error) {
-          console.error('Failed to fetch access token:', error.message);
-          throw error;
-        }
-      }
+// fetchToken();
       
     //   getAccessToken();
     const queryParams = new URLSearchParams(window.location.search);
@@ -831,62 +788,55 @@ function Home() {
                 console.log("searchresponse", response);
                 console.timeEnd("API Call");
             
-
-            const requestBody = {
-                "CatalogProductOfferingsQueryRequest": {
-                  "CatalogProductOfferingsRequest": {
-                    "@type": "CatalogProductOfferingsRequestAir",
-                    "maxNumberOfUpsellsToReturn": 4,
-                    "offersPerPage": 10,
-                    "contentSourceList": ["NDC"],
-                    "PassengerCriteria": [
-                      { "number": 1, "passengerTypeCode": "ADT" },
-                      { "number": 1, "passengerTypeCode": "CHD" },
-                      { "number": 1, "passengerTypeCode": "INF" },
-                    ],
-                    "SearchCriteriaFlight": [
-                      {
-                        "departureDate": dynamicDepTime,
-                        "From": { "value": dynamicCityCode }, 
-                        "To": { "value": dynamicDestinationCode },
-                      },
-                    ],
-                    "SearchModifiersAir": {
-                      "@type": "SearchModifiersAir",
-                      "CarrierPreference": [
-                        {
-                          "preferenceType": "Preferred",
-                          "carriers": ["AI"],
-                        },
-                      ],
-                    },
-                  },
-                },
-              };
-            //   console.log('requestbody', requestBody);
-            // const endpoint = `${baseURL}/${version}/air/catalog/search/catalogproductofferings`; 
-            
-            //     const requestBdy = {
-            //     request: requestBody,
-            //     endpoint: endpoint
+            // let token;
+            // try {
+            //     token = await fetchToken(); // Call your token function
+            //     console.log('token', token);
+            // } catch (error) {
+            //     console.error("Error fetching token:", error.message);
+            //     return;
+            // }
+            // const payload = {
+            //     EndUserIp: "192.168.11.120",
+            //     TokenId: "faf5a049-dec4-48f4-a602-1bfa26ddf91e",
+            //     AdultCount: PassengerCodeADT,
+            //     ChildCount: PassengerCodeCNN,
+            //     InfantCount: PassengerCodeINF,
+            //     DirectFlight: "false",
+            //     OneStopFlight: "false",
+            //     JourneyType: "1",
+            //     PreferredAirlines: null,
+            //     Segments: [
+            //       {
+            //         Origin: dynamicCityCode,
+            //         Destination: dynamicDestinationCode,
+            //         FlightCabinClass: "1",
+            //         PreferredDepartureTime: dynamicDepTime,
+            //         PreferredArrivalTime: dynamicDepTime
+            //       }
+            //     ],
+            //     Sources: null
             //   };
-      
-                //   console.log('requestbody', requestBody);
-            let token;
-            try {
-                token = await getAccessToken(); // Call your token function
-                // console.log('token', token);
-            } catch (error) {
-                console.error("Error fetching token:", error.message);
-                return;
-            }
-            const apiUrl = `https://${baseURL}/${version}/air/catalog/search/catalogproductofferings`;
-            const requestData = JSON.stringify(requestBody);
-                const formBody = {
-                    url: apiUrl,
-                    requestData: requestData,
-                    token: token
-                  };
+            //   console.log('payload', payload);
+            //   const tboresponse = await axios.post(
+            //     "https://cors-anywhere.herokuapp.com/http://api.tektravels.com/BookingEngineService_Air/AirService.svc/rest/Search",
+            //     payload,
+            //     {
+            //       headers: {
+            //         "Content-Type": "application/json",
+            //         "X-Requested-With": "XMLHttpRequest"
+            //       }
+            //     }
+            //   );
+          
+            //   console.log("Flight Search Response:", tboresponse.data);
+            // const apiUrl = `https://${baseURL}/${version}/air/catalog/search/catalogproductofferings`;
+            // const requestData = JSON.stringify(requestBody);
+            //     const formBody = {
+            //         url: apiUrl,
+            //         requestData: requestData,
+            //         token: token
+            //       };
         
             // Send the POST request
             // const ndcresponse = await axios.post(

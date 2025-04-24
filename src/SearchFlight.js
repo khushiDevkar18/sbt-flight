@@ -303,7 +303,7 @@ const SearchFlight = () => {
   const [pricesegment, setpricesegment] = useState([]);
   const [loadingIndex, setLoadingIndex] = useState(null);
   const [fareInfoRefsState, setFareInfoRefsState] = useState([]);
-  console.log('fareInfoRefsState', fareInfoRefsState);
+  // console.log('fareInfoRefsState', fareInfoRefsState);
   const [allSegmentKeys, setAllSegmentKeys] = useState([]);
   const [isbookingpage, setBookingpage] = useState(false);
 
@@ -2968,7 +2968,7 @@ const SearchFlight = () => {
     setFilteredFlights([]); // Clear previous flights
 
     flightOptions.forEach((pricepoint) => {
-      console.log('inuseeffect', pricepoint);
+      // console.log('inuseeffect', pricepoint);
       setTimeout(() => {
         const options = pricepoint['air:AirPricingInfo']?.['air:FlightOptionsList']?.['air:FlightOption']?.['air:Option'];
         const optionsArray = Array.isArray(options) ? options : options ? [options] : [];
