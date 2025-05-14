@@ -19,14 +19,14 @@ const CabDetails = () => {
     const decodedHtml = decodeHtmlEntities(html);
     return decodedHtml.replace(/<\/?[^>]+(>|$)/g, "");
   };
-const [AdvancePayment , setAdvancePayment]= useState();
-  useEffect(()=>{
-   const Value = item.payment.estimated_price;
-   const percentage = item.fare_rules.advance_percentage;
-   const result = (percentage / 100) * Value;
-   console.log(result);
-   setAdvancePayment(result); 
-  })
+  const [AdvancePayment, setAdvancePayment] = useState();
+  useEffect(() => {
+    const Value = item.payment.estimated_price;
+    const percentage = item.fare_rules.advance_percentage;
+    const result = (percentage / 100) * Value;
+    console.log(result);
+    setAdvancePayment(result);
+  });
   const [pickupAddress, setpickupAddress] = useState();
   const [dropAddress, setDropAddress] = useState();
   const [formData, setFormData] = useState({
@@ -71,23 +71,20 @@ const [AdvancePayment , setAdvancePayment]= useState();
 
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-   
     setErrors((prevErrors) => ({
       ...prevErrors,
-      [name]: "", 
+      [name]: "",
     }));
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-   
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
 
-   
     if (errors) {
       setErrors((prev) => ({
         ...prev,
@@ -98,80 +95,104 @@ const [AdvancePayment , setAdvancePayment]= useState();
 
   const validateForm = () => {
     const newErrors = {};
-  
+
     if (!formData.pickupAddress)
       newErrors.pickupAddress = "Pick-up location is required";
-  
+
     if (!formData.dropAddress)
       newErrors.dropAddress = "Drop location is required";
-  
-    if (!formData.name)
-      newErrors.name = "Name is required";
-  
-    if (!formData.gender)
-      newErrors.gender = "Please select gender";
-  
-    if (!formData.email)
-      newErrors.email = "Email is required";
-  
-    const phoneDigits = formData.contact.replace(/\D/g, ""); 
+
+    if (!formData.name) newErrors.name = "Name is required";
+
+    if (!formData.gender) newErrors.gender = "Please select gender";
+
+    if (!formData.email) newErrors.email = "Email is required";
+
+    const phoneDigits = formData.contact.replace(/\D/g, "");
     if (phoneDigits.length < 10)
       newErrors.contact = "Enter a valid 10-digit phone number";
-  
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+  const warningRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+    if (item?.warnings?.wallet_warning && warningRef.current) {
+      warningRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      return;
+    }
     Swal.fire({
-      title: 'Cab Booking Confirmation',
+      title: "Cab Booking Confirmation",
       text: `We would like to inform you that ₹${AdvancePayment} will be deducted from your wallet for cab booking. Do you want to continue?`,
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Yes, continue!',
-      cancelButtonText: 'No!',
-      reverseButtons: true
+      confirmButtonText: "Yes, continue!",
+      cancelButtonText: "No!",
+      reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
         handleCabBooking(); // call your function here
       }
     });
-    
-
-    
   };
 
   const calculateDays = (pickupDate, dropDate) => {
     const start = new Date(pickupDate);
     const end = new Date(dropDate);
-  
+
     // Get time difference in milliseconds
     const diffTime = end - start;
-  
+
     // Convert to days
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
+
     return diffDays;
   };
   const numberOfDays = calculateDays(Header.pickup_date, Header.Drop_date);
   console.log(numberOfDays);
-  
+  // useEffect(() => {
+  //   const fetchCities = async () => {
+  //     try {
+  //       const response = await fetch('https://demo.fleet247.in/api/tbo_bus/sbtCityList', {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //       });
+
+  //       if (!response.ok) {
+  //         throw new Error('Network response was not ok');
+  //       }
+
+  //       const data = await response.json();
+  //       console.log('City List:', data);
+  //       // setCities(data); // You can store this in state
+  //     } catch (error) {
+  //       console.error('Error fetching city list:', error);
+  //     }
+  //   };
+
+  //   fetchCities();
+  // }, []);
+
   const handleCabBooking = async (e) => {
     try {
       const data = new URLSearchParams();
       let apiUrl = "";
-  
-      
+
       if (Header.selectType === "Local") {
         data.append("tour_type", "0");
         data.append("days", "0");
         data.append("is_local", "1");
-  
-     
-        apiUrl = "https://demo.fleet247.in/api/corporate_apis/v1/recordTripDetails";
+
+        apiUrl =
+          "https://demo.fleet247.in/api/corporate_apis/v1/recordTripDetails";
       } else if (
         Header.selectType === "Round Trip (Outstation)" ||
         Header.selectType === "MultiCity (Outstation)"
@@ -179,21 +200,19 @@ const [AdvancePayment , setAdvancePayment]= useState();
         data.append("tour_type", "2");
         data.append("is_local", "0");
         data.append("days", numberOfDays.toString());
-  
-        apiUrl = "https://demo.fleet247.in/api/corporate_apis/v1/recordTripDetailsOutstation";
-      }
-      else if (
-        Header.selectType === "Oneway"
-      
-      ) {
+
+        apiUrl =
+          "https://demo.fleet247.in/api/corporate_apis/v1/recordTripDetailsOutstation";
+      } else if (Header.selectType === "Oneway") {
         data.append("type_of_tour", "1");
         data.append("is_local", "0");
-        data.append("days","0");
-  
-        apiUrl = "https://demo.fleet247.in/api/corporate_apis/v1/recordOneWayTripDetails";
+        data.append("days", "0");
+
+        apiUrl =
+          "https://demo.fleet247.in/api/corporate_apis/v1/recordOneWayTripDetails";
       }
 
-      data.append("token_id", "afba10e987290e8abb9849c94746aae3");
+      data.append("token_id", "5268d5792d02df568cdf2f8146577eba");
       data.append("package", item.package.package_name);
       data.append("pickup_location", Header.pickup_city.google_city_name);
       data.append("pickup_location_detail", pickupAddress);
@@ -220,7 +239,7 @@ const [AdvancePayment , setAdvancePayment]= useState();
       data.append("rate_id", item.package.rate_id);
       data.append("corporate_id", "2");
       data.append("service_tax", item.payment.gst);
-  
+
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -228,13 +247,19 @@ const [AdvancePayment , setAdvancePayment]= useState();
         },
         body: data.toString(),
       });
-  
+
       const result = await response.json();
-      console.log("Booking result:", result);
-  
+      const daa = result.data.booking_id;
+      console.log("Booking result:", daa);
+
       if (result.success === "true") {
-      
-        navigate("/FinalCab", { state: { cabData: item} });
+        navigate("/FinalCab", {
+          state: {
+            cabData: item,
+
+            BookingId: daa,
+          },
+        });
       } else {
         Swal.fire({
           title: "Something Went Wrong",
@@ -249,7 +274,7 @@ const [AdvancePayment , setAdvancePayment]= useState();
       alert("Something went wrong. Please try again.");
     }
   };
-  
+
   const formattedPickup = `${format(
     new Date(Header.pickup_date + " " + Header.pickup_time),
     "eee, dd MMM ''yy, hh:mm a"
@@ -274,11 +299,26 @@ const [AdvancePayment , setAdvancePayment]= useState();
             <h5 className="text-xl font-semibold text-white">
               Review your Cab Details
             </h5>
+
             <h6 className="text-white text-sm">
-              {Header.Cities?.filter(Boolean)
-                .map((city) => city.split(",")[0].trim())
+              {(typeof Header.Cities === "string"
+                ? Header.Cities.split(",")
+                : Header.Cities || []
+              )
+                .filter(Boolean)
+                .map((city) => city.trim())
                 .join(" → ")}
             </h6>
+            <h6 className="text-white text-sm">
+              {(typeof Header.SearchCities === "string"
+                ? Header.SearchCities.split(",")
+                : Header.SearchCities || []
+              )
+                .filter(Boolean)
+                .map((city) => city.trim())
+                .join(" → ")}
+            </h6>
+
             <h6 className="text-white text-sm">
               {Header.selectType} | Pickup: {formattedPickup}
             </h6>
@@ -286,7 +326,7 @@ const [AdvancePayment , setAdvancePayment]= useState();
         </div>
         <div className="mb-5  h-full space-y-5 floating-bookings">
           {/* <div className="w-full space-y-5"> */}
-          <div className="max-w-[74rem] w-full grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr] bg-white dark:bg-[#191e3a] border border-gray-200 dark:border-[#1b2e4b] rounded-md shadow-md p-6 gap-6 transition-all duration-300 hover:shadow-lg">
+          <div className="max-w-[74rem] w-full grid grid-cols-1 md:grid-cols-[1fr_2fr_1fr] bg-white dark:bg-[#191e3a] border border-gray-200 dark:border-[#1b2e4b] rounded-md shadow-md p-6 gap-6 transition-all duration-300 ">
             {/* Vehicle Image */}
             <div className="flex items-center justify-center p-3 bg-gray-50 dark:bg-[#1d263a] rounded-lg border border-gray-100 dark:border-[#25324d]">
               <img
@@ -347,6 +387,24 @@ const [AdvancePayment , setAdvancePayment]= useState();
               </div>
             </div>
           </div>
+          {item.warnings !== null && item.warnings !== undefined && (
+            <div
+              className="max-w-[74rem] w-full bg-white rounded-md border border-gray-200 shadow p-3"
+              ref={warningRef}
+            >
+              <span className="ltr:pr-2 rtl:pl-2">
+                <strong className="ltr:mr-2 rtl:ml-2 text-red-400">
+                  {item.warnings.wallet_warning}
+                </strong>
+              </span>
+              <button
+                type="button"
+                className="ltr:ml-auto rtl:mr-auto hover:opacity-80"
+              >
+                {/* <IconX className="w-5 h-5" /> */}
+              </button>
+            </div>
+          )}
 
           <div className="max-w-[74rem] w-full bg-white rounded-md border border-gray-200 shadow p-6">
             <div className="grid grid-cols-1 md:grid-cols-2  divide-y md:divide-y-0 md:divide-x divide-gray-300">
@@ -570,29 +628,29 @@ const [AdvancePayment , setAdvancePayment]= useState();
               className="flex-grow p-3 border-t border-b border-r rounded-r-md placeholder-gray-400 text-xs h-2 "
             />
           </div> */}
-                 <PhoneInput
-  country={"in"}
-  enableAreaCodes={true}
-  isValid={(value, country) => {
-    const digits = value.replace(/\D/g, "");
-    return digits.length >= 10;
-  }}
-  value={formData.contact}
-  onChange={(phone) => {
-    handleChange({
-      target: {
-        name: "contact", // ✅ Fix here
-        value: phone,
-      },
-    });
-  }}
-  onlyCountries={["us", "gb", "in", "au", "de", "fr", "jp"]}
-  disableDropdown={false}
-  buttonClass="show-flag"
-  containerClass="custom-phone-input"
-  inputClass="contact-number-input"
-  style={{ width: "70%" }}
-/>
+                  <PhoneInput
+                    country={"in"}
+                    enableAreaCodes={true}
+                    isValid={(value, country) => {
+                      const digits = value.replace(/\D/g, "");
+                      return digits.length >= 10;
+                    }}
+                    value={formData.contact}
+                    onChange={(phone) => {
+                      handleChange({
+                        target: {
+                          name: "contact", // ✅ Fix here
+                          value: phone,
+                        },
+                      });
+                    }}
+                    onlyCountries={["us", "gb", "in", "au", "de", "fr", "jp"]}
+                    disableDropdown={false}
+                    buttonClass="show-flag"
+                    containerClass="custom-phone-input"
+                    inputClass="contact-number-input"
+                    style={{ width: "70%" }}
+                  />
 
                   {errors.contact && (
                     <p className="text-red-500 text-xs">{errors.contact}</p>

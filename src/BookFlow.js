@@ -36,7 +36,6 @@ const BookFlow = () => {
     const segmentpriceparseRef = useRef([]);
     const [flightairoption, setFlightAirOptions] = useState([]);
     const flightairoptionRef = useRef([]);
-    // console.log('flightairoptionRef', flightairoptionRef);
     const [Airlines, setAirlineOptions] = useState([]);
       const [Airports, setAirportOptions] = useState([]);
       const isPriceLoadingRef = useRef(false);
@@ -1079,7 +1078,7 @@ const Targetbranch = 'P4451438';
                                         pricepointXML);
                                      
                                       const priceResponse = priceresponse.data;
-                                      console.log('priceResponse', priceResponse);
+                                    //   console.log('priceResponse', priceResponse);
                                       parseString(priceResponse, { explicitArray: false }, (err, priceresult) => {
                                         if (err) {
                                           console.error('Error parsing XML:', err);

@@ -21,16 +21,10 @@ const navigate = useNavigate();
   const location = useLocation();
   
   const [emptaxivaxi, setEmptaxivaxi] = useState([]);
-  // const searchParams = new URLSearchParams(window.location.search);
-  // const taxivaxidata = searchParams.get('taxivaxidata');
+
   const searchParams = new URLSearchParams(window.location.search);
   const taxivaxidata = searchParams.get('taxivaxidata');
 
-
-  
-//   alert('okay', taxivaxidata);
-//   console.log('data', taxivaxidata);
-  
 
   const [Airports, setAirportOptions] = useState([]);
   const [allAirportsOrigin, setAllAirportsOrigin] = useState([]);
@@ -44,6 +38,7 @@ const navigate = useNavigate();
     let airlineResponseData;
     let airportResponseData;
     let apiairportData;
+
 
       const apiairportss = async () => {
               try {
@@ -76,7 +71,8 @@ const navigate = useNavigate();
                   const searchto = formtaxivaxiData['to_city']; 
                   const searchtoMatch = searchto.match(/\((\w+)\)/);
                   const searchtoCode = searchtoMatch[1];
-                  const searchdeparture = formtaxivaxiData['departure_date'];       
+                  const searchdeparture = formtaxivaxiData['departure_date'];     
+                  const previousdepdate = formtaxivaxiData['previous_departure_date']  
                   const searchdeparturee = formtaxivaxiData['departure_date'].split('-').reverse().join('/');
                   const formattedsearchdeparture = formatDate(searchdeparture);
                   console.log('formattedsearchdeparture',formattedsearchdeparture);
@@ -96,8 +92,9 @@ const navigate = useNavigate();
                   const flight_type = formtaxivaxiData['flight_type'];
                   const access_token = formtaxivaxiData['access_token'];
                   const agent_id = formtaxivaxiData['agentId'];
+                  const universal_locator_code = formtaxivaxiData['universal_locator_code'];
                   
-                  const adult = no_of_seats;
+                  const adult = no_of_seats || 1;
                   const child = 0;
                   const infant = 0;
                   const classtype = formtaxivaxiData['seat_type'];
@@ -119,11 +116,11 @@ const navigate = useNavigate();
                   const dynamicDestinationCode = searchtoCode; 
                   const dynamicDepTime = formattedsearchdeparture;
                   const returndynamicDepTime = formattedsearchreturnDate;
-                  const dynamicCabinType = cabinclass; 
+                  const dynamicCabinType = cabinclass || 'Economy';
                   const PassengerCodeADT = adult; 
                   const PassengerCodeCNN = child; 
                   const PassengerCodeINF = infant; 
-                //   console.log('helo');
+                  console.log('helo');
                   const createSoapEnvelope = (
                       cityCode,
                       destinationCode,
@@ -174,7 +171,7 @@ const navigate = useNavigate();
                                 <com:Provider Code="ACH"/>
                             </air:PreferredProviders>
                             <air:PermittedCabins>
-                                <com:CabinClass Type="${cabinType}"/>
+                                <com:CabinClass Type="Economy"/>
                             </air:PermittedCabins>
                         </air:AirSearchModifiers>
                         ${searchPassengerADT}
@@ -200,24 +197,12 @@ const navigate = useNavigate();
                   sessionStorage.setItem('searchdata', soapEnvelope);
                   console.log('soapenv', soapEnvelope); 
 
-                const reData=await axios.post(
-                                `${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
-                                new URLSearchParams({ booking_id: booking_id,api_data:soapEnvelope,api_name:'searchReq' }) // Send booking_id as form data
-                            );
-            
-                            console.log('reData', reData);
-
                 const response = await axios.post(
                     `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, 
                     soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
                   );
                   console.log('search response', response.data);
 
-                  await axios.post(
-                    `${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
-                    new URLSearchParams({ booking_id: booking_id,api_data:response.data,api_name:'searchRes' }) // Send booking_id as form data
-                  );
-                
                   const responseData = {
                       responsedata: response.data,
                       searchfromcity: searchfrom,
@@ -232,27 +217,29 @@ const navigate = useNavigate();
                       selectclass: cabinclass,
                       bookingtype: bookingtype,
                       apiairportsdata: apiairportData,
-                      requesttype: request_type,
-                      spocemail: spoc_email,
-                      additionalemail: additional_emails,
-                      ccmail: ccmail,
-                      clientname:client_name,
-                      spocname:spoc_name,
+                      // requesttype: request_type,
+                      // spocemail: spoc_email,
+                      // additionalemail: additional_emails,
+                      // ccmail: ccmail,
+                      // clientname:client_name,
+                      // spocname:spoc_name,
                       markupdata: markup,
                       bookingid: booking_id,
-                      isapproved: is_approved,
+                      // isapproved: is_approved,
                       no_of_seats: no_of_seats,
-                      request_id: request_id,
-                      clientid: client_id,
-                      is_gst_benefit: is_gst_benefit,
+                      // request_id: request_id,
+                      // clientid: client_id,
+                      // is_gst_benefit: is_gst_benefit,
                       flighttype: flight_type,
                       accessToken:access_token,
-                      agent_id: agent_id
+                      agent_id: agent_id,
+                      universal_locator_code: universal_locator_code,
+                      previousdepdate: previousdepdate
                   };
                   // console.log('resp', responseData);
  
                   
-                  navigate('/SearchFlight', { state: { responseData } });
+                  navigate('/SearchFlightc', { state: { responseData } });
                   await new Promise(resolve => setTimeout(resolve, 1000));
               
               } catch (error) {

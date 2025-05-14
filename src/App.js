@@ -11,6 +11,8 @@ import SearchHotel from './SearchHotel';
 import HotelDetail from './HotelDetail';
 import HotelBooking from './HotelBooking';
 import HotelPayment from './HotelPayment';
+import DateChange from './DateChange';
+import SearchFlightc from './SearchFlightc';
 import PageNotFound from './PageNotFound';
 import TryAgainLater from './TryAgainLater';
 import HotelSearch from './HotelSearch';
@@ -24,6 +26,9 @@ import CabResultNotFound from "./CabResultNotFound";
 import NewHome from "./NewHome";
 import CabDetails from "./CabDetails";
 import FinalCab from "./FinalCab";
+import SearchBus from "./SearchBus";
+import TESTPAGE from "./TESTPAGE";
+
 
 const App = () => {
   return (
@@ -39,6 +44,8 @@ const App = () => {
           <Route path="/bookingProcess" element={<Booking />}/>
           <Route path="/bookingCompleted" element={<BookingComplete />}/>
           <Route path="/BookFlow" element={<BookFlow />}/>
+          <Route path="/DateChange" element={<DateChange />}/>
+          <Route path="/SearchFlightc" element={<SearchFlightc />}/>
           <Route path="/pagenotfound" element={<PageNotFound />}/>
           <Route path="/ResultNotFound" element={<ResultNotFound />}/>
           <Route path="/CabResultNotFound" element={<CabResultNotFound />}/>
@@ -55,6 +62,10 @@ const App = () => {
           <Route path="/FinalCab" element={<FinalCab />}/>
           <Route path="/HotelBookingCompleted" element={<HotelBookingCompleted />}/>
           <Route path="*" element={<PageNotFound />} />
+          <Route path="/SearchBus" element={<SearchBus />} />
+         
+          <Route path="/TESTPAGE" element={<TESTPAGE />} />
+          
         </Routes>
         </div>
         <Footer />

@@ -4638,14 +4638,14 @@ nav ul li {
 }
 
 .flt-i-bb.flight-return {
-  padding-top: 18px;
+  /* padding-top: 18px; */
   margin-bottom: 0px;
 }
 
 .flt-i-c {
   width: 140px;
   float: left;
-  height: 117px;
+  /* height: 117px; */
   overflow: hidden;
   margin: 0 0 0 -91px;
 }
@@ -19862,6 +19862,77 @@ button#search-button:hover {
 .airport-cabin-class {
   margin-left: auto;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+}
+
+.route {
+  color: #000;
+}
+
+.status-chip {
+  background-color: #e6f9ea; /* Light green background */
+  color: #128c3c; /* Dark green text */
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-chip::before {
+  content: "✔";
+  font-size: 12px;
+}
+
+/* Red version for "On Hold" or other statuses */
+.status-chip.red {
+  background-color: #fdecea; /* Light red background */
+  color: #d93025; /* Red text */
+}
+
+.status-chip.red::before {
+  content: "✖";
+  font-size: 12px;
+}
+
+
+.flight-details-containerr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 15px;
+  /* border-radius: 10px;
+  border: 1px solid #ddd; */
+  width: 95%;
+}
+
+/* Left Section - Airline Info */
+.flight-details-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.airline-logoo {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+}
+
+.airline-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.airline-name {
+  font-weight: bold;
+  font-size: 16px;
   color: #333;
   margin-right: 2%;
 }

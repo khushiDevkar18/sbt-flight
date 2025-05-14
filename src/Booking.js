@@ -5,10 +5,6 @@ import { parseString } from 'xml2js';
 import { Nav } from 'react-bootstrap';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-// import Accordion from '@mui/material/Accordion';
-// import AccordionActions from '@mui/material/AccordionActions';
-// import AccordionSummary from '@mui/material/AccordionSummary';
-// import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -21,6 +17,7 @@ import {
     Tooltip,
     IconButton,
   } from "@mui/material";
+
 import Swal from 'sweetalert2';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
@@ -62,45 +59,6 @@ const Booking = () => {
 
     const packageSelectedRef = useRef(null);
     const segmentParseRef = useRef(null);
-
-    const [mealorbeverage, setMealorbeverage] = useState([]);
-    console.log('mealorbeverage', mealorbeverage);
-    const [selectedMeals, setSelectedMeals] = useState([]);
-    const [currentSlide, setCurrentSlide] = useState(0); // Track current flight
-    console.log('selectedMeals', selectedMeals);
-
-    // const handleAddMeal = (meal) => {
-    //     console.log('meal', meal);
-    //     const newKey = meal?.['$']?.Key;
-      
-    //     const alreadyAdded = selectedMeals.some(
-    //       (m) => m?.['$']?.Key === newKey
-    //     );
-      
-    //     if (!alreadyAdded) {
-    //       setSelectedMeals((prev) => [...prev, meal]);
-    //     }
-    //   };
-    const handleAddMeal = (meal) => {
-        const newKey = meal?.['$']?.Key;
-        const segmentRef = meal?.segmentRef;
-        const flightKey = meal?.flightKey;
-      
-        const alreadyAdded = selectedMeals.some((m) => m?.['$']?.Key === newKey);
-      
-        if (!alreadyAdded) {
-          const mealWithMeta = {
-            ...meal,
-            segmentRef,
-            flightKey, // ✅ ensure it's added
-          };
-      
-          setSelectedMeals((prev) => [...prev, mealWithMeta]);
-        }
-      };
-    
-      
-
     const [packageSelected, setPackageSelected] = useState(packageSelectedd);
     console.log('asdfasdfkjasdfasd', packageSelected);
     useEffect(() => {
@@ -113,7 +71,13 @@ const Booking = () => {
           : [];
       
         setMealorbeverage(mealOrBeverageItems); // safe to call here
-      }, [packageSelected]); // runs only when packageSelected changes
+      }, [packageSelected]);
+ 
+    
+    
+      
+
+     // runs only when packageSelected changes
     // const serviceoptionalsss = packageSelected?.['air:OptionalServices']?.['air:OptionalService'];
 
     // const mealOrBeverageItems = Array.isArray(serviceoptionalsss)
@@ -173,13 +137,13 @@ const Booking = () => {
     const [seattravelerparse, setseattravelerparse] = useState(null);
     const [seatOptionalparse, setseatOptionalparse] = useState(null);
     const [segmenttaxivaxisData, setsegmenttaxivaxis] = useState(null);
+    const [Passengers, setPassengers] = useState(null);
 
     const [checkedInBaggage, setCheckedIn] = useState(null);
     const [cabinBaggage, setCabin] = useState(null);
-    const [Passengers, setPassengers] = useState(null);
     const [seatrowsParse, setseatrowsparse] = useState(null);
-    const [serviceoptionalsOptions, setserviceoptionalsOptions] = useState([]);
-    console.log('serviceoptionalsOptions', serviceoptionalsOptions);
+    // console.log('serviceoptionalsOptions', serviceoptionalsOptions);
+     const [serviceoptionalsOptions, setserviceoptionalsOptions] = useState([]);
     const [serviceSegments, setserviceSegments] = useState([]);
     const [seatresponseparse, setseatresponseparse] = useState(null);
     const [emptyseatmap, setemptyseatmap] = useState(false);
@@ -214,6 +178,162 @@ const Booking = () => {
 
     const mergedData = { ...emptaxivaxi };
     const [currentSegmentKey, setCurrentSegmentKey] = useState('');
+
+    const [mealorbeverage, setMealorbeverage] = useState([]);
+    console.log('mealorbeverage', mealorbeverage);
+    const [selectedMeals, setSelectedMeals] = useState([]);
+    console.log('selectedMeals', selectedMeals);
+    const [selectedPassengerKey, setSelectedPassengerKey] = useState(Passengers?.keys?.[0] || '');
+
+      const handleAddMeal = (meal, passengerKey) => {
+        const newKey = meal?.['$']?.Key;
+        const segmentRef = meal?.segmentRef;
+        const flightKey = meal?.flightKey;
+      
+        const alreadyAdded = selectedMeals.some(
+          (m) =>
+            m?.['$']?.Key === newKey &&
+            m?.flightKey === flightKey &&
+            m?.passengerKey === passengerKey
+        );
+      
+        if (!alreadyAdded) {
+          const mealWithMeta = {
+            ...meal,
+            segmentRef,
+            flightKey,
+            passengerKey, // ✅
+          };
+          setSelectedMeals((prev) => [...prev, mealWithMeta]);
+        }
+      };
+      const handleSavemeal = (meals) => async () => {
+        console.log('Saving meals:', meals);
+      
+        const optionalMealXML = {
+          "air:OptionalServices": {
+            "air:OptionalService": meals.map(meal => {
+              // Remove unwanted fields
+              delete meal["air:BrandingInfo"];
+      
+              return {
+                "$": meal["$"],
+                "com:ServiceData": {
+                  "$": {
+                    "BookingTravelerRef": meal["common_v52_0:ServiceData"]["$"].BookingTravelerRef,
+                    "AirSegmentRef": meal["common_v52_0:ServiceData"]["$"].AirSegmentRef
+                  }
+                },
+                "com:ServiceInfo": {
+                  "com:Description": meal["common_v52_0:ServiceInfo"]["common_v52_0:Description"]
+                }
+              };
+            })
+          }
+        };
+      
+        console.log('Formatted Meal OptionalServices:', optionalMealXML);
+        const builder = require('xml2js').Builder;
+        var pricepointXMLpc = new builder().buildObject({
+            'soap:Envelope': {
+                '$': {
+                    'xmlns:soap': 'http://schemas.xmlsoap.org/soap/envelope/'
+                },
+                'soap:Body': {
+                    'air:AirPriceReq': {
+                        '$': {
+                            'AuthorizedBy': 'TAXIVAXI',
+                            'TargetBranch': Targetbranch,
+                            'FareRuleType': 'short',
+                            'TraceId': 'TVSBP001',
+                            'xmlns:air': 'http://www.travelport.com/schema/air_v52_0',
+                            'xmlns:com': 'http://www.travelport.com/schema/common_v52_0'
+                        },
+                        'BillingPointOfSaleInfo': {
+                            '$': {
+                                'OriginApplication': 'UAPI',
+                                'xmlns': 'http://www.travelport.com/schema/common_v52_0'
+                            },
+                        },
+                        'air:AirItinerary': {
+                            'air:AirSegment': segmentParsee,
+                            'com:HostToken': comHostTokens1,
+                        },
+                        'air:AirPricingModifiers': {
+                            '$': {
+                                'InventoryRequestType': 'DirectAccess',
+                                'ETicketability': 'Yes',
+                                'FaresIndicator': "AllFares"
+                            },
+                            'air:PermittedCabins': {
+                                'com:CabinClass': {
+                                    '$': {
+                                        'Type': classType,
+                                    },
+                                },
+                            },
+                            'air:BrandModifiers': {
+                                'air:FareFamilyDisplay': {
+                                    '$': {
+                                        'ModifierType': 'FareFamily',
+                                    },
+                                },
+                            },
+                        },
+                        'com:SearchPassenger': Passengerxml,
+                        'air:AirPricingCommand': airPricingCommand,
+                        ...optionalMealXML,
+                        // 'com:FormOfPayment': {
+                        //     '$': {
+                        //         'Type': "Credit"
+                        //     },
+                        //     'com:CreditCard': {
+                        //         '$': {
+                        //             'BankCountryCode': "IN",
+                        //             'CVV': "737",
+                        //             'ExpDate': "2026-11",
+                        //             'Name': "Pavan Patil",
+                        //             'Number': "4111111111111111",
+                        //             'Type': "VI",
+                        //         },
+                        //         'com:BillingAddress': {
+                        //             'com:AddressName': "Home",
+                        //             'com:Street': "A-304 Relicon Felicia,Pashan,Pune",
+                        //             'com:City': "Pune",
+                        //             'com:State': "Maharashtra",
+                        //             'com:PostalCode': "411011",
+                        //             'com:Country': "IN",
+                        //         }
+                        //     },
+                        // },
+
+                        'com:FormOfPayment': {
+                            '$': {
+                                'Type': 'AgencyPayment'
+                            },
+                            'com:AgencyPayment': {
+                                '$': {
+                                    'AgencyBillingIdentifier': 'KTDEL283',
+                                    'AgencyBillingPassword': 'Baiinfo@2024'
+                                }
+                            }
+                        },
+                    }
+                }
+            }
+        });
+        console.log('pricepointXMLpc', pricepointXMLpc);
+        const response = await axios.post(
+            `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
+            pricepointXMLpc
+        );
+        console.log('response for data', response.data)
+      
+        // Optional: save or use this XML structure as needed
+        // sessionStorage.setItem('mealOptionalXML', JSON.stringify(optionalMealXML));
+      
+        // alert('Meals saved successfully!');
+      };
 
     const mealMapByFlight = segmentArray1.map((segment) => {
         const flightKey = segment?.['$']?.Key;
@@ -793,6 +913,39 @@ const Booking = () => {
                     })
             }
         };
+        const optionalMealXML = {
+            "air:OptionalServices": {
+              "air:OptionalService": selectedMeals.map(meal => {
+                // Remove unwanted fields
+                delete meal["air:BrandingInfo"];
+        
+                return {
+                  "$": meal["$"],
+                  "com:ServiceData": {
+                    "$": {
+                      "BookingTravelerRef": meal["common_v52_0:ServiceData"]["$"].BookingTravelerRef,
+                      "AirSegmentRef": meal["common_v52_0:ServiceData"]["$"].AirSegmentRef
+                    }
+                  },
+                  "com:ServiceInfo": {
+                    "com:Description": meal["common_v52_0:ServiceInfo"]["common_v52_0:Description"]
+                  }
+                };
+              })
+            }
+          };
+          const combinedOptionalServicesXML = {
+            "air:OptionalServices": {
+              "air:OptionalService": [
+                ...(optionalServicesXML["air:OptionalServices"]?.["air:OptionalService"] || []),
+                ...(optionalMealXML["air:OptionalServices"]?.["air:OptionalService"] || [])
+              ]
+            }
+          };
+          console.log('combinedOptionalServicesXML', combinedOptionalServicesXML);
+          console.log('optionalServicesXML', optionalServicesXML);
+          console.log('optionalMealXML', optionalMealXML);
+
         const builder = require('xml2js').Builder;
         var pricepointXMLpc = new builder().buildObject({
             'soap:Envelope': {
@@ -842,7 +995,7 @@ const Booking = () => {
                         },
                         'com:SearchPassenger': Passengerxml,
                         'air:AirPricingCommand': airPricingCommand,
-                        ...optionalServicesXML,
+                        ...combinedOptionalServicesXML,
                         // 'com:FormOfPayment': {
                         //     '$': {
                         //         'Type': "Credit"
@@ -978,6 +1131,7 @@ const Booking = () => {
         let base_price = 0;
         let total_tax = 0;
         let fare_type = '';
+        let discount = 0;
 
 
         if (packageSelected['air:AirPricingInfo']) {
@@ -992,11 +1146,21 @@ const Booking = () => {
             if (packageSelected["air:AirPricingInfo"]["$"]["BasePrice"]) {
                 base_price = Math.floor(parseFloat(packageSelected["air:AirPricingInfo"]["$"]["BasePrice"].replace("INR", "").trim()));
                 base_price = base_price * noOfSeats;
-                console.log("base_price c",base_price);
+                console.log("base_price c", base_price);
             }
             if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
                 fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable'] == 'true' ? 'Refundable' : 'Non Refundable';
             }
+            const feeInfo = packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo'];
+
+            if (feeInfo?.["$"]?.["Text"] === 'PromotionDiscount') {
+                const feesRaw = feeInfo?.["$"]?.["Amount"];
+                if (feesRaw) {
+                    const feeAmount = parseFloat(feesRaw.replace("INR", "").trim());
+                    discount = Math.floor(Math.abs(feeAmount)) * parseFloat(noOfSeats || 1);
+                }
+            }
+console.log("discount",discount);
 
         }
         let assignTax = 0; // Initialize assignTax
@@ -1283,7 +1447,7 @@ const Booking = () => {
                                 '$': {
                                     'CountryCode': "91",
                                     'AreaCode': "011",
-                                    'Number': "9881102875",
+                                    'Number': Passengers.contactNo,
                                     'Location': "DEL",
                                     'Type': "Agency"
                                 }
@@ -1399,14 +1563,22 @@ const Booking = () => {
         var modifiedXmlString = new XMLSerializer().serializeToString(xmlDoc);
         console.log('modifiedXmlString ACH', modifiedXmlString);
 
+        await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+            new URLSearchParams({ booking_id: bookingid,api_data:modifiedXmlString,api_name:'reservationReq' }) // Send booking_id as form data
+        );
 
         const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
+        // const reservationresponse = '12';
         const reservationResponse = reservationresponse.data;
-        
+ 
+        await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+            new URLSearchParams({ booking_id: bookingid,api_data:reservationResponse,api_name:'reservationRes' }) // Send booking_id as form data
+        );
+
         console.log('reservationResponse', reservationResponse);
         let matchesDataInfo;
-        console.log("re packageSelected",packageSelected);
-        const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo'])? packageSelected['air:AirPricingInfo']['air:FareInfo'][0]: packageSelected['air:AirPricingInfo']['air:FareInfo'];
+        console.log("re packageSelected", packageSelected);
+        const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo']) ? packageSelected['air:AirPricingInfo']['air:FareInfo'][0] : packageSelected['air:AirPricingInfo']['air:FareInfo'];
 
         fareInfoList['air:Brand']['air:Text'].map((textinfor, textindex) => {
             if (
@@ -1431,8 +1603,8 @@ const Booking = () => {
             if (soapFault) {
                 navigate('/tryagainlater');
                 return;
-
             }
+            
             const pnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['$']['LocatorCode']; //carrierlocator
             const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
             const mainlocatorCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['$']['LocatorCode']; //universal
@@ -1469,17 +1641,12 @@ const Booking = () => {
             }
             // const UniversalRecordResponse = await axios.post('${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightUniversalRecordService')
 
-
             const flightDetails = {};
-           
+
             const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis]
-            console.log("formattedsegmenttaxivaxis",formattedsegmenttaxivaxis);
+
             if (Array.isArray(formattedsegmenttaxivaxis)) {
                 formattedsegmenttaxivaxis.forEach((segment, index) => {
-                    console.log("segment.DepartureDate",segment.DepartureDate);
-                    console.log("segment.ArrivalDate",segment.ArrivalDate);
-                    console.log("segment.DepartureTime",segment.DepartureTime);
-                    console.log("segment.ArrivalTime",segment.ArrivalTime);
                     const departureDate = new Date(segment.DepartureTime);
                     const arrivalDate = new Date(segment.ArrivalTime);
 
@@ -1492,7 +1659,7 @@ const Booking = () => {
                     const concatDeptDateTime = formattedDate + " " + formattedDeparture;
 
                     const formattedArrivalDate = formatDateTime(arrivalDate);
-                    
+
                     const formattedArrival = new Date(segment.ArrivalTime).toLocaleTimeString('en-US', {
                         hour: 'numeric',
                         minute: 'numeric',
@@ -1508,11 +1675,11 @@ const Booking = () => {
                     );
 
                     if (fareFamily == 'Corporate Fare') {
-                        seat_type='Corporate Economy'
+                        seat_type = 'Corporate Economy'
                     } else {
                         seat_type = seat_type;
                     }
-                    
+
                     flightDetails[`from_${index}`] = segment.Origin;
                     flightDetails[`to_${index}`] = segment.Destination;
                     flightDetails[`depart_${index}`] = concatDeptDateTime;
@@ -1541,7 +1708,6 @@ const Booking = () => {
             }
 
             const seatDetailsFormatted = {};
-            console.log("formseat", formseat)
             if (Array.isArray(formattedsegmenttaxivaxis) && Array.isArray(formseat)) {
                 segmenttaxivaxis.forEach((segment, flightIndex) => {
                     formseat.forEach((seat, passengerIndex) => {
@@ -1550,19 +1716,50 @@ const Booking = () => {
                 });
             }
 
-            const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3)-parseFloat(assignTax);
+            const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3) - parseFloat(assignTax);
+            const passenger_markup_price = parseFloat(markup_price) * parseFloat(noOfSeats);
+    
+            const responseMessages = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['common_v52_0:ResponseMessage'];
+                     console.log("responseMessages",responseMessages);
+                              
+            let bookingStatus = "";
 
+            responseMessages.forEach((msg) => {
+                const text = msg?._ || "";
+                if (text.includes("Reservation declined")) {
+                bookingStatus = "Booking failed: Reservation declined by vendor.";
+                } else if (text.includes("on hold")) {
+                bookingStatus = "Booking on hold. Please complete payment.";
+                }
+            });
+
+            // const airSegmentStatus = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment']['$']['Status'];
+            const airSegments = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
+
+            const airSegmentArray = Array.isArray(airSegments) ? airSegments : [airSegments];
+
+            const airSegmentStatus = airSegmentArray[0]['$']['Status'];
+            console.log("airSegmentStatus",airSegmentStatus);
+            if (airSegmentStatus == 'PN') {
+                bookingStatus= "Booking on hold. Please complete payment.";
+            } else if (airSegmentStatus == 'HK') {
+                bookingStatus= "Flight Booking is confirmed!.";
+            } else if (airSegmentStatus == 'TK') {
+                bookingStatus= "Booking Ticketed.";
+            } else {
+                bookingStatus = bookingStatus;
+            }
+            console.log("bookingStatus1",bookingStatus);
             const formtaxivaxiData = {
-                // ...formtaxivaxi,
                 access_token: access_token,
                 booking_id: bookingid,
                 trip_type: tripType,
                 fare_type: 'Refundable',
                 is_extra_baggage_included: 0,
                 flight_type: flightType,
-                total_ex_tax_fees: base_price + assignTax,
+                total_ex_tax_fees: (base_price + assignTax)-discount,
                 total_price: total_price,
-                tax_and_fees: tax_excluding_k3,
+                tax_and_fees: tax_excluding_k3 + discount,
                 gst_k3: tax_k3,
                 mark_up_price: 0,
                 no_of_stops: stopCounts,
@@ -1577,17 +1774,17 @@ const Booking = () => {
                 vip_service_charges: 0,
                 pnrcode: flightpnrCode,
                 universallocatorCode: mainlocatorCode,
-                applied_markup: markup_price,
+                applied_markup: passenger_markup_price,
                 actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
-                // flightDetails: segmenttaxivaxis,
+                discount: discount,
                 ...flightDetails,
                 extrabaggage: 'NA',
-                // seatdetails: formseat,
                 checkedInBaggage: checkedInBaggage,
                 cabinBaggage: cabinBaggage,
                 returns: returns,
                 ...passengerDetailsFormatted,
-                ...seatDetailsFormatted
+                ...seatDetailsFormatted,
+                reservationStatus: bookingStatus
             };
 
             console.log('assignFlightPayloadData', formtaxivaxiData);
@@ -1603,6 +1800,7 @@ const Booking = () => {
             })
 
             console.log("Condition met, navigating... now in the reservationresult");
+
             const bookingCompleteData = {
                 reservationdata: reservationresponse.data,
                 segmentParse: segmentParse,
@@ -1614,10 +1812,12 @@ const Booking = () => {
                 child: request.child,
                 infant: request.infant,
                 apiairportsdata: apiairports,
-                markup_price: markup_price,
+                markup_price: passenger_markup_price,
                 seat_codes: tempCodes,
                 booking_id: bookingid,
                 flightDetails: actualFlightDetails,
+                discount: discount,
+                bookingStatus:bookingStatus
                 // ticketdata: ticketresponse.data 
             };
             console.log('bookingCompleteData', bookingCompleteData);
@@ -1751,7 +1951,7 @@ const Booking = () => {
             console.log("in func");
             setLoading(true)
 
-            if (previousSelections.length > 0 && airPricingCommand) {
+            if (airPricingCommand && (previousSelections.length > 0 || selectedMeals.length > 0)) {
                 fetchPriceData();
                 return;
             }
@@ -1798,7 +1998,7 @@ const Booking = () => {
 
                             if (category && category.includes("GST")) {
                                 tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                                tax_k3=tax_k3*noOfSeats;
+                                tax_k3 = tax_k3 * noOfSeats;
                                 found = true;
                             }
                         });
@@ -1811,7 +2011,7 @@ const Booking = () => {
 
                                 if (category && category.includes("K3")) {
                                     tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                                    tax_k3=tax_k3*noOfSeats;
+                                    tax_k3 = tax_k3 * noOfSeats;
                                 }
                             });
                         }
@@ -1821,10 +2021,10 @@ const Booking = () => {
 
                         if (category && category.includes("GST")) {
                             tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                            tax_k3=tax_k3*noOfSeats;
+                            tax_k3 = tax_k3 * noOfSeats;
                         } else if (category && category.includes("K3")) {
                             tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                            tax_k3=tax_k3*noOfSeats;
+                            tax_k3 = tax_k3 * noOfSeats;
                         }
                     }
                 });
@@ -1840,7 +2040,7 @@ const Booking = () => {
 
                         if (category && category.includes("GST")) {
                             tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                            tax_k3=tax_k3*noOfSeats;
+                            tax_k3 = tax_k3 * noOfSeats;
                             found = true;
                         }
                     });
@@ -1853,7 +2053,7 @@ const Booking = () => {
 
                             if (category && category.includes("K3")) {
                                 tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                                tax_k3=tax_k3*noOfSeats;
+                                tax_k3 = tax_k3 * noOfSeats;
                             }
                         });
                     }
@@ -1863,10 +2063,10 @@ const Booking = () => {
 
                     if (category && category.includes("GST")) {
                         tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                        tax_k3=tax_k3*noOfSeats;
+                        tax_k3 = tax_k3 * noOfSeats;
                     } else if (category && category.includes("K3")) {
                         tax_k3 += Math.floor(parseFloat(amountStr.replace("INR", "").trim()));
-                        tax_k3=tax_k3*noOfSeats;
+                        tax_k3 = tax_k3 * noOfSeats;
                     }
                 }
             }
@@ -1878,8 +2078,9 @@ const Booking = () => {
             let base_price = 0;
             let total_tax = 0;
             let fare_type = '';
+            let discount = 0;
 
-            console.log("packageSelected at re",packageSelected);
+            console.log("packageSelected at re", packageSelected);
 
             if (packageSelected['air:AirPricingInfo']) {
                 if (packageSelected['air:AirPricingInfo']['$']['TotalPrice']) {
@@ -1893,12 +2094,23 @@ const Booking = () => {
                 if (packageSelected["air:AirPricingInfo"]["$"]["BasePrice"]) {
                     base_price = Math.floor(parseFloat(packageSelected["air:AirPricingInfo"]["$"]["BasePrice"].replace("INR", "").trim()));
                     base_price = base_price * noOfSeats;
-                    console.log("base_price c",base_price);
-                    
+                    console.log("base_price c", base_price);
+
                 }
                 if (packageSelected['air:AirPricingInfo']['$']['Refundable']) {
                     fare_type = packageSelected['air:AirPricingInfo']['$']['Refundable'] == 'true' ? 'Refundable' : 'Non Refundable';
                 }
+                const feeInfo = packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo'];
+
+                if (feeInfo?.["$"]?.["Text"] === 'PromotionDiscount') {
+                    const feesRaw = feeInfo?.["$"]?.["Amount"];
+                    if (feesRaw) {
+                        const feeAmount = parseFloat(feesRaw.replace("INR", "").trim());
+                        discount = Math.floor(Math.abs(feeAmount)) * parseFloat(noOfSeats || 1);
+                    }
+                }
+console.log("discount",discount);
+
 
             }
             let assignTax = 0; // Initialize assignTax
@@ -1917,10 +2129,10 @@ const Booking = () => {
 
                         if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
                             let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
-                            console.log("before amount",amount);
+                            console.log("before amount", amount);
                             amount = amount * noOfSeats;
-                            console.log("amount",amount);
-                            
+                            console.log("amount", amount);
+
                             assignTax += Math.floor(amount);
                         }
                     });
@@ -1931,9 +2143,9 @@ const Booking = () => {
 
                     if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
                         let amount = parseFloat(taxreservationpricinginfo.$.Amount.replace("INR", "").trim());
-                        console.log("before amount",amount);
+                        console.log("before amount", amount);
                         amount = amount * noOfSeats;
-                        console.log("amount",amount);
+                        console.log("amount", amount);
                         assignTax += Math.floor(amount);
                     }
                 });
@@ -1942,9 +2154,9 @@ const Booking = () => {
 
                 if (category && ["RCF", "TTF", "PHF"].includes(category.trim())) {
                     let amount = parseFloat(packageSelected['air:AirPricingInfo']['air:TaxInfo'].$.Amount.replace("INR", "").trim());
-                    console.log("before amount",amount);
+                    console.log("before amount", amount);
                     amount = amount * noOfSeats;
-                    console.log("amount",amount);
+                    console.log("amount", amount);
                     assignTax += Math.floor(amount);
                 }
             }
@@ -2197,7 +2409,7 @@ const Booking = () => {
                                         '$': {
                                             'CountryCode': "91",
                                             'AreaCode': "011",
-                                            'Number': "9881102875",
+                                            'Number': Passengers.contactNo,
                                             'Location': "DEL",
                                             'Type': "Agency"
                                         }
@@ -2313,8 +2525,18 @@ const Booking = () => {
                 console.log('modifiedXmlString', modifiedXmlString);
 
                 try {
+                    await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+                              new URLSearchParams({ booking_id: bookingid,api_data:modifiedXmlString,api_name:'reservationReq' }) 
+                    );
+                    
                     const reservationresponse = await axios.post(`${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, modifiedXmlString);
+                    // const reservationresponse = '12';
                     const reservationResponse = reservationresponse.data;
+                   
+                    await axios.post(`${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
+                        new URLSearchParams({ booking_id: bookingid,api_data:reservationResponse,api_name:'reservationRes' }) 
+                    );
+                    
                     console.log('reservationResponse', reservationResponse);
 
                     parseString(reservationResponse, { explicitArray: false }, async (err, reservationresult) => {
@@ -2332,9 +2554,9 @@ const Booking = () => {
                             const segmentreservation = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
                             const flightpnrCode = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['common_v52_0:SupplierLocator']['$']['SupplierLocatorCode'];
                             console.log("packageSelected['air:AirPricingInfo'][0]", packageSelected);
-                            
-                            const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo'])? packageSelected['air:AirPricingInfo']['air:FareInfo'][0]: packageSelected['air:AirPricingInfo']['air:FareInfo'];
-console.log("fareInfoList",fareInfoList);
+
+                            const fareInfoList = Array.isArray(packageSelected['air:AirPricingInfo']['air:FareInfo']) ? packageSelected['air:AirPricingInfo']['air:FareInfo'][0] : packageSelected['air:AirPricingInfo']['air:FareInfo'];
+
 
                             fareInfoList['air:Brand']['air:Text'].map((textinfor, textindex) => {
                                 if (
@@ -2353,18 +2575,18 @@ console.log("fareInfoList",fareInfoList);
                             const flightDetails = {};
 
                             const formattedsegmenttaxivaxis = Array.isArray(segmenttaxivaxis) ? segmenttaxivaxis : [segmenttaxivaxis];
-                            console.log("formattedsegmenttaxivaxis",formattedsegmenttaxivaxis);
-                            
+                            console.log("formattedsegmenttaxivaxis", formattedsegmenttaxivaxis);
+
                             if (Array.isArray(formattedsegmenttaxivaxis)) {
                                 formattedsegmenttaxivaxis.forEach((segment, index) => {
-                                    console.log("segment.DepartureTime",segment.DepartureTime);
+                                    console.log("segment.DepartureTime", segment.DepartureTime);
                                     console.log("segment.ArrivalTime", segment.ArrivalTime);
-                                    
+
                                     const departureDate = new Date(segment.DepartureTime);
                                     const arrivalDate = new Date(segment.ArrivalTime);
 
                                     const formattedDate = formatDateTime(departureDate);
-                                    
+
                                     const formattedDeparture = new Date(segment.DepartureTime).toLocaleTimeString('en-US', {
                                         hour: 'numeric',
                                         minute: 'numeric',
@@ -2374,7 +2596,7 @@ console.log("fareInfoList",fareInfoList);
                                     const concatDeptDateTime = formattedDate + " " + formattedDeparture;
 
                                     const formattedArrivalDate = formatDateTime(arrivalDate);
-                                    
+
                                     const formattedArrival = new Date(segment.ArrivalTime).toLocaleTimeString('en-US', {
                                         hour: 'numeric',
                                         minute: 'numeric',
@@ -2395,7 +2617,7 @@ console.log("fareInfoList",fareInfoList);
                                     console.log("matchedFlightDetail", matchedFlightDetail)
                                     console.log("concatDeptDateTime", concatDeptDateTime);
                                     if (fareFamily == 'Corporate Fare') {
-                                        seat_type='Corporate Economy'
+                                        seat_type = 'Corporate Economy'
                                     } else {
                                         seat_type = seat_type;
                                     }
@@ -2439,7 +2661,42 @@ console.log("fareInfoList",fareInfoList);
 
                             if (providerCodeValue?.trim() === "ACH") {
                                 console.log("Condition met, navigating...");
-                                const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3)-parseFloat(assignTax);
+                                console.log("statusResp",reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['common_v52_0:ResponseMessage']);
+                                const responseMessages = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['common_v52_0:ResponseMessage'];
+                               
+                                let bookingStatus = "";
+
+                                responseMessages.forEach((msg) => {
+                                    const text = msg?._ || "";
+                                    if (text.includes("Reservation declined")) {
+                                    bookingStatus = "Booking failed: Reservation declined by vendor.";
+                                    } else if (text.includes("on hold")) {
+                                    bookingStatus = "Booking on hold. Please complete payment.";
+                                    }
+                                });
+
+                                // const airSegmentStatus = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment']['$']['Status'];
+                                const airSegments = reservationresult['SOAP:Envelope']['SOAP:Body']['universal:AirCreateReservationRsp']['universal:UniversalRecord']['air:AirReservation']['air:AirSegment'];
+
+                                const airSegmentArray = Array.isArray(airSegments) ? airSegments : [airSegments];
+
+                                const airSegmentStatus = airSegmentArray[0]['$']['Status']; 
+
+                                if (airSegmentStatus == 'PN') {
+                                    bookingStatus= "Booking on hold. Please complete payment.";
+                                } else if (airSegmentStatus == 'HK') {
+                                    bookingStatus= "Flight Booking is confirmed!.";
+                                } else if (airSegmentStatus == 'TK') {
+                                    bookingStatus= "Booking Ticketed.";
+                                } else {
+                                    bookingStatus = bookingStatus;
+                                }
+
+                                
+                                console.log("airSegmentStatus",airSegmentStatus);
+                                console.log("bookingStatus",bookingStatus);
+                                const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3) - parseFloat(assignTax);
+                                const passenger_markup_price = parseFloat(markup_price) * parseFloat(noOfSeats);
                                 const formtaxivaxiData = {
                                     access_token: access_token,
                                     booking_id: bookingid,
@@ -2447,9 +2704,9 @@ console.log("fareInfoList",fareInfoList);
                                     fare_type: 'Refundable',
                                     is_extra_baggage_included: 0,
                                     flight_type: flightType,
-                                    total_ex_tax_fees: base_price + assignTax,
+                                    total_ex_tax_fees: (base_price + assignTax)-discount,
                                     total_price: total_price,
-                                    tax_and_fees: tax_excluding_k3,
+                                    tax_and_fees: tax_excluding_k3 + discount,
                                     gst_k3: tax_k3,
                                     no_of_stops: stopCounts,
                                     no_of_stops_return: returnstopCounts,
@@ -2463,15 +2720,17 @@ console.log("fareInfoList",fareInfoList);
                                     vip_service_charges: 0,
                                     pnrcode: flightpnrCode,
                                     universallocatorCode: universallocatorCode,
-                                    applied_markup: markup_price,
+                                    applied_markup: passenger_markup_price,
                                     actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
+                                    discount: discount,
                                     ...flightDetails,
                                     extrabaggage: 'NA',
                                     checkedInBaggage: checkedInBaggage,
                                     cabinBaggage: cabinBaggage,
                                     returns: returns,
                                     ...passengerDetailsFormatted,
-                                    ...seatDetailsFormatted
+                                    ...seatDetailsFormatted,
+                                    reservationStatus:bookingStatus
                                 };
 
                                 console.log('assignFlightPayloadData', formtaxivaxiData);
@@ -2529,9 +2788,11 @@ console.log("fareInfoList",fareInfoList);
                                     child: request.child,
                                     infant: request.infant,
                                     apiairportsdata: apiairports,
-                                    markup_price: markup_price,
+                                    markup_price: passenger_markup_price,
                                     booking_id: bookingid,
                                     flightDetails: actualFlightDetails,
+                                    discount: discount,
+                                    bookingStatus:bookingStatus
                                     // ticketdata: ticketresponse.data 
                                 };
                                 console.log('bookingCompleteData', bookingCompleteData);
@@ -2641,18 +2902,18 @@ console.log("fareInfoList",fareInfoList);
 
                                     // if (hasNonEmptyProperties(emptaxivaxi)) {
                                     // const sessiondata = async () => {   
-                                    const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3)-parseFloat(assignTax);
+                                    const tax_excluding_k3 = parseFloat(total_tax) - parseFloat(tax_k3) - parseFloat(assignTax);
+                                    const passenger_markup_price = parseFloat(markup_price) * parseFloat(noOfSeats);
                                     const formtaxivaxiData = {
-                                        // ...formtaxivaxi,
                                         access_token: access_token,
                                         booking_id: bookingid,
                                         trip_type: tripType,
                                         fare_type: 'Refundable',
                                         is_extra_baggage_included: 0,
                                         flight_type: flightType,
-                                        total_ex_tax_fees: base_price + assignTax,
+                                        total_ex_tax_fees: (base_price + assignTax)-discount,
                                         total_price: total_price,
-                                        tax_and_fees: tax_excluding_k3,
+                                        tax_and_fees: tax_excluding_k3 + discount,
                                         gst_k3: tax_k3,
                                         mark_up_price: 0,
                                         no_of_stops: stopCounts,
@@ -2667,16 +2928,14 @@ console.log("fareInfoList",fareInfoList);
                                         vip_service_charges: 0,
                                         pnrcode: flightpnrCode,
                                         universallocatorCode: universallocatorCode,
-                                        applied_markup: markup_price,
+                                        applied_markup: passenger_markup_price,
                                         actual_markup: formtaxivaxi.markup_details?.[0]?.actual_markup_value,
-                                        // flightDetails: segmenttaxivaxis,
+                                        discount: discount,
                                         ...flightDetails,
                                         extrabaggage: 'NA',
-                                        // seatdetails: formseat,
                                         checkedInBaggage: checkedInBaggage,
                                         cabinBaggage: cabinBaggage,
                                         returns: returns,
-                                        // passengerdetails: mergedData
                                         ...passengerDetailsFormatted,
                                         ...seatDetailsFormatted
                                     };
@@ -2691,8 +2950,7 @@ console.log("fareInfoList",fareInfoList);
                                         headers: {
                                             'Content-Type': 'application/x-www-form-urlencoded',
                                         },
-                                    })
-                                        .then((response) => {
+                                    }).then((response) => {
                                             console.log("responseData", response)
                                             if (response.data.success === "1") {
                                                 Swal.fire({
@@ -2730,9 +2988,11 @@ console.log("fareInfoList",fareInfoList);
                                         infant: request.infant,
                                         apiairportsdata: apiairports,
                                         ticketdata: ticketresponse,
-                                        markup_price: markup_price,
+                                        markup_price: passenger_markup_price,
                                         booking_id: bookingid,
                                         flightDetails: actualFlightDetails,
+                                        discount: discount,
+                                        // bookingStatus:bookingStatus
                                     };
                                     console.log('bookingCompleteData', bookingCompleteData);
                                     navigate('/bookingCompleted', { state: { bookingCompleteData } });
@@ -6145,7 +6405,8 @@ console.log("fareInfoList",fareInfoList);
 
                                                                                                 name="adult_prefix[]"
                                                                                                 data-index={passengerindex}
-                                                                                                readOnly={bookingid}
+                                                                                                // readOnly={bookingid}
+                                                                                                style={{ pointerEvents: bookingid ? 'none' : 'auto' }}
                                                                                                 defaultValue={emptaxivaxi?.[passengerindex]?.gender === "Female" ? "Mrs" : "Mr"}
                                                                                             >
                                                                                                 <option value="Mr" selected={emptaxivaxi?.[passengerindex]?.gender === "Male"}>Mr.</option>
@@ -6599,165 +6860,228 @@ console.log("fareInfoList",fareInfoList);
 
 
                                                 </form>
-                                                <form onSubmit={(e) => handleCompleteBooking(e)}>
                                                 <Accordion
-  expanded={accordion6Expanded}
-  onChange={(event, isExpanded) => {
-    if (mealorbeverage.length > 0) {
-      setAccordion6Expanded(isExpanded);
-    }
-  }}
->
-  <AccordionSummary
-    expandIcon={mealorbeverage.length > 0 ? <ExpandMoreIcon /> : null}
-    aria-controls="panel1-content"
-    id="panel1-header"
-    className="accordion"
-  >
-    <div className="flex items-center gap-2">
-      <img
-        src="/img/taxivaxi/meal_seats/user_icon.svg"
-        width="15px"
-        alt="User Icon"
-      />
-      <span>Meal Or Beverage</span>
-      {mealorbeverage.length === 0 ? (
-        <span className="extradisabled">Meal not provided</span>
-      ) : selectedMeals.length > 0 && (
-        <>
-          <span className="text-sm text-gray-500">
-            &nbsp; ({selectedMeals.length} Selected)
-          </span>
-          <Tooltip
-            title={
-              <div className="text-sm p-2">
-                {selectedMeals.map((meal, index) => {
-                  const displayText = meal?.['$']?.DisplayText || 'Meal';
-                  const price = meal?.['$']?.TotalPrice?.replace('INR', '₹').split('.')[0];
-                  return (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center gap-4"
-                    >
-                      <div>{displayText}</div>
-                      <div>{price}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            }
-            arrow
-          >
-            <IconButton size="small">
-              <InfoOutlinedIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </>
-      )}
-    </div>
-  </AccordionSummary>
+                                                                                                                expanded={accordion6Expanded}
+                                                                                                                onChange={(event, isExpanded) => {
+                                                                                                                    if (mealorbeverage.length > 0) {
+                                                                                                                    setAccordion6Expanded(isExpanded);
+                                                                                                                    }
+                                                                                                                }}
+                                                                                                                >
+                                                                                                                <AccordionSummary
+                                                                                                                    expandIcon={mealorbeverage.length > 0 ? <ExpandMoreIcon /> : null}
+                                                                                                                    aria-controls="panel1-content"
+                                                                                                                    id="panel1-header"
+                                                                                                                    className="accordion"
+                                                                                                                >
+                                                                                                                    <div className="flex items-center gap-2">
+                                                                                                                    <img
+                                                                                                                        src="/img/taxivaxi/meal_seats/user_icon.svg"
+                                                                                                                        width="15px"
+                                                                                                                        alt="User Icon"
+                                                                                                                    />
+                                                                                                                    <span>Meal Or Beverage</span>
+                                                                                                                    {mealorbeverage.length === 0 ? (
+                                                                                                                        <span className="extradisabled">Meal not provided</span>
+                                                                                                                    ) : selectedMeals.length > 0 && (
+                                                                                                                        <>
+                                                                                                                        <span className="text-sm text-gray-500">
+                                                                                                                            &nbsp; ({selectedMeals.length} Selected)
+                                                                                                                        </span>
+                                                                                                                        <Tooltip
+                                                                                                                            title={
+                                                                                                                            <div className="text-sm p-2">
+                                                                                                                                {selectedMeals.map((meal, index) => {
+                                                                                                                                const displayText = meal?.['$']?.DisplayText || 'Meal';
+                                                                                                                                const price = meal?.['$']?.TotalPrice?.replace('INR', '₹').split('.')[0];
+                                                                                                                                return (
+                                                                                                                                    <div
+                                                                                                                                    key={index}
+                                                                                                                                    className="flex justify-between items-center gap-4"
+                                                                                                                                    >
+                                                                                                                                    <div>{displayText}</div>
+                                                                                                                                    <div>{price}</div>
+                                                                                                                                    </div>
+                                                                                                                                );
+                                                                                                                                })}
+                                                                                                                            </div>
+                                                                                                                            }
+                                                                                                                            arrow
+                                                                                                                        >
+                                                                                                                            <IconButton size="small">
+                                                                                                                            <InfoOutlinedIcon fontSize="small" />
+                                                                                                                            </IconButton>
+                                                                                                                        </Tooltip>
+                                                                                                                        </>
+                                                                                                                    )}
+                                                                                                                    </div>
+                                                                                                                </AccordionSummary>
+                                                
+                                                                                                                <AccordionDetails className="flex gap-6">
+                                                                                                                {/* Left: Passenger Tabs */}
+                                                                                                                <div className="w-1/4 border-r pr-4 flex flex-col gap-3">
+                                                                                                                    {Passengers?.keys?.map((key, index) =>
+                                                                                                                    Passengers.codes[index] !== 'INF' ? (
+                                                                                                                        <button
+                                                                                                                        key={index}
+                                                                                                                        type="button"
+                                                                                                                        className={`p-3 rounded-lg border text-left ${
+                                                                                                                            key === selectedPassengerKey
+                                                                                                                            ? 'bg-violet-100 border-violet-500 text-violet-800'
+                                                                                                                            : 'border-gray-300 text-gray-700'
+                                                                                                                        }`}
+                                                                                                                        onClick={() => setSelectedPassengerKey(key)}
+                                                                                                                        >
+                                                                                                                        {Passengers.namesWithPrefix[index]}. {Passengers.firstNames[index]}
+                                                                                                                        <br />
+                                                                                                                        {/* <span className="text-xs text-gray-500">
+                                                                                                                            Seat No.{' '}
+                                                                                                                            {selectedMeals
+                                                                                                                            .filter((m) => m.passengerKey === key)
+                                                                                                                            .map((m) => m?.['$']?.SeatCode)
+                                                                                                                            .join(', ') || 'Not Selected'}
+                                                                                                                        </span> */}
+                                                                                                                        </button>
+                                                                                                                    ) : null
+                                                                                                                    )}
+                                                                                                                </div>
+                                                
+                                                                                                                {/* Right: Segment Tabs + Meals */}
+                                                                                                                <div className="w-3/4">
+                                                                                                                    {/* Segment Tabs */}
+                                                                                                                    <div className="mb-4">
+                                                                                                                    <Tabs
+                                                                                                                        value={selectedSegmentKey}
+                                                                                                                        onChange={handleTabChange}
+                                                                                                                        variant="scrollable"
+                                                                                                                        scrollButtons="auto"
+                                                                                                                    >
+                                                                                                                        {segmentArray1.map((segment, index) => {
+                                                                                                                        const key = segment?.['$']?.Key;
+                                                                                                                        const origin = handleAirport(segment?.['$']?.Origin);
+                                                                                                                        const dest = handleAirport(segment?.['$']?.Destination);
+                                                                                                                        return (
+                                                                                                                            <Tab key={key} label={`${origin} → ${dest}`} value={key} />
+                                                                                                                        );
+                                                                                                                        })}
+                                                                                                                    </Tabs>
+                                                                                                                    </div>
+                                                
+                                                                                                                    {/* Meals Display */}
+                                                                                                                    <div>
+                                                                                                                    {(() => {
+                                                                                                                const flightMeals = mealMapByFlight.find(
+                                                                                                                    (item) => item.flightKey === selectedSegmentKey
+                                                                                                                )?.meals || [];
+                                                
+                                                                                                                const filteredMeals = flightMeals.filter(
+                                                                                                                    (meal) =>
+                                                                                                                    meal?.['common_v52_0:ServiceData']?.['$']?.BookingTravelerRef ===
+                                                                                                                    selectedPassengerKey
+                                                                                                                );
+                                                
+                                                                                                                return filteredMeals.length > 0 ? (
+                                                                                                                    <div className="flex flex-col gap-4">
+                                                                                                                    {filteredMeals.map((item, index) => {
+                                                                                                                        const key = item?.['$']?.Key;
+                                                                                                                        const displayText = item?.['$']?.DisplayText;
+                                                                                                                        const price = item?.['$']?.TotalPrice || '';
+                                                                                                                        const formattedPrice = price.replace('INR', '₹').split('.')[0];
+                                                                                                                        const flightKey = selectedSegmentKey;
+                                                                                                                        const segmentRef =
+                                                                                                                        item?.['common_v52_0:ServiceData']?.['$']?.AirSegmentRef;
+                                                
+                                                                                                                        const isAdded = selectedMeals.some(
+                                                                                                                        (m) =>
+                                                                                                                            m?.['$']?.Key === key &&
+                                                                                                                            m?.flightKey === flightKey &&
+                                                                                                                            m?.passengerKey === selectedPassengerKey
+                                                                                                                        );
+                                                
+                                                                                                                        return (
+                                                                                                                        <div
+                                                                                                                            key={index}
+                                                                                                                            className="flex items-center justify-between border rounded-2xl p-2 mb-3"
+                                                                                                                        >
+                                                                                                                            <div className="flex items-center gap-4">
+                                                                                                                            <div className="p-3 rounded-xl bg-violet-50">
+                                                                                                                                <img
+                                                                                                                                src="/meal-icon.svg"
+                                                                                                                                alt="Meal"
+                                                                                                                                className="h-10 w-10"
+                                                                                                                                />
+                                                                                                                            </div>
+                                                                                                                            <div>
+                                                                                                                                <div className="text-sm font-medium">{displayText}</div>
+                                                                                                                            </div>
+                                                                                                                            </div>
+                                                
+                                                                                                                            <div className="flex items-center gap-6">
+                                                                                                                            <div className="font-semibold text-sm">
+                                                                                                                                {formattedPrice}
+                                                                                                                            </div>
+                                                                                                                            <button
+                                                                                                                                type="button"
+                                                                                                                                className={`px-4 py-1 border rounded-xl text-sm ${
+                                                                                                                                isAdded
+                                                                                                                                    ? 'bg-violet-100 text-violet-700 border-violet-500'
+                                                                                                                                    : 'text-violet-600 border-violet-300'
+                                                                                                                                }`}
+                                                                                                                                onClick={() => {
+                                                                                                                                if (isAdded) {
+                                                                                                                                    setSelectedMeals((prev) =>
+                                                                                                                                    prev.filter(
+                                                                                                                                        (m) =>
+                                                                                                                                        !(
+                                                                                                                                            m?.['$']?.Key === key &&
+                                                                                                                                            m?.flightKey === flightKey &&
+                                                                                                                                            m?.passengerKey === selectedPassengerKey
+                                                                                                                                        )
+                                                                                                                                    )
+                                                                                                                                    );
+                                                                                                                                } else {
+                                                                                                                                    const enrichedMeal = {
+                                                                                                                                    ...item,
+                                                                                                                                    segmentRef,
+                                                                                                                                    flightKey,
+                                                                                                                                    };
+                                                                                                                                    handleAddMeal(enrichedMeal, selectedPassengerKey);
+                                                                                                                                }
+                                                                                                                                }}
+                                                                                                                            >
+                                                                                                                                {isAdded ? 'Added' : 'Add'}
+                                                                                                                            </button>
+                                                                                                                            </div>
+                                                                                                                        </div>
+                                                                                                                        );
+                                                                                                                    })}
+                                                                                                                    
+                                                                                                                    </div>
+                                                                                                                    
+                                                                                                                ) : (
+                                                                                                                    <div className="text-sm text-gray-500">No meals available.</div>
+                                                                                                                );
+                                                                                                                })()}
+                                                                                                                    </div>
+                                                                                                                    <div className="add-passenger">
+                                                                                                                        <button
+                                                                                                                            type="button"
+                                                                                                                            id="save-passenger-btn"
+                                                                                                                            className="passenger-submit"
+                                                                                                                            onClick={handleSavemeal(selectedMeals)}
+                                                                                                                        >
+                                                                                                                            Save Meal
+                                                                                                                        </button>
+                                                                                                                    </div>
+                                                                                                        </div>
+                                                                                                        
+                                                                                                        </AccordionDetails>
+                                                
+                                                                                                        <AccordionActions>{/* Footer if needed */}</AccordionActions>
+                                                                                                    </Accordion>
+                                                <form onSubmit={(e) => handleCompleteBooking(e)}>
+                                                <div className="booking-devider" />
 
-  <AccordionDetails>
-  {/* Tabs for each flight segment */}
-  <div className="mb-4">
-    <Tabs
-      value={selectedSegmentKey}
-      onChange={handleTabChange}
-      variant="scrollable"
-      scrollButtons="auto"
-    >
-      {segmentArray1.map((segment, index) => {
-        const key = segment?.['$']?.Key;
-        const origin = handleAirport(segment?.['$']?.Origin);
-        const dest = handleAirport(segment?.['$']?.Destination);
-        return (
-          <Tab key={key} label={`${origin} → ${dest}`} value={key} />
-        );
-      })}
-    </Tabs>
-  </div>
-
-  {/* Show meal list of selected segment */}
-  <div>
-    {selectedFlightData ? (
-      <div className="grid grid-cols-2 gap-4">
-        {selectedFlightData.meals.map((item, index) => {
-          const key = item?.['$']?.Key;
-          const displayText = item?.['$']?.DisplayText;
-          const price = item?.['$']?.TotalPrice || '';
-          const formattedPrice = price.replace('INR', '₹').split('.')[0];
-          const flightKey = selectedFlightData.flightKey;
-          const segmentRef =
-            item?.['common_v52_0:ServiceData']?.['$']?.AirSegmentRef;
-
-          const isAdded = selectedMeals.some(
-            (m) => m?.['$']?.Key === key && m?.flightKey === flightKey
-          );
-
-          return (
-            <div
-              key={index}
-              className="flex items-center justify-between border rounded-2xl p-2 mb-3"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-violet-50">
-                  <img
-                    src="/meal-icon.svg"
-                    alt="Meal"
-                    className="h-10 w-10"
-                  />
-                </div>
-                <div>
-                  <div className="text-sm font-medium">{displayText}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-6">
-                <div className="font-semibold text-sm">{formattedPrice}</div>
-                <button
-                  type="button"
-                  className={`px-4 py-1 border rounded-xl text-sm ${
-                    isAdded
-                      ? 'bg-violet-100 text-violet-700 border-violet-500'
-                      : 'text-violet-600 border-violet-300'
-                  }`}
-                  onClick={() => {
-                    if (isAdded) {
-                      setSelectedMeals((prev) =>
-                        prev.filter(
-                          (m) =>
-                            !(
-                              m?.['$']?.Key === key &&
-                              m?.flightKey === flightKey
-                            )
-                        )
-                      );
-                    } else {
-                      const enrichedMeal = {
-                        ...item,
-                        segmentRef,
-                        flightKey,
-                      };
-                      handleAddMeal(enrichedMeal);
-                    }
-                  }}
-                >
-                  {isAdded ? 'Added' : 'Add'}
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    ) : (
-      <div className="text-sm text-gray-500">No meals available.</div>
-    )}
-  </div>
-</AccordionDetails> 
-
-  <AccordionActions>{/* Footer if needed */}</AccordionActions>
-</Accordion>
-                                                    <div className="booking-devider" />
                                                     <Accordion expanded={seatresponseparse ? accordion3Expanded : false} onChange={(event, isExpanded) => setAccordion3Expanded(isExpanded)}>
                                                         <AccordionSummary
                                                             expandIcon={<ExpandMoreIcon />}
@@ -7535,9 +7859,17 @@ console.log("fareInfoList",fareInfoList);
                                                         ) {
                                                             k3Tax = parseFloat(packageSelected["air:AirPricingInfo"]["air:TaxInfo"]["$"]["Amount"].replace("INR", "").trim()) || 0;
                                                         }
+                                                        let discount = 0;
 
+                                                        const feeInfo = packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo']?.["$"];
+                                                
+                                                        if (feeInfo?.["Text"] === 'PromotionDiscount' && feeInfo?.["Amount"]) {
+                                                          const feeAmount = parseFloat(feeInfo["Amount"].replace("INR", "").trim());
+                                                          discount = Math.floor(Math.abs(feeAmount)) * parseFloat(noOfSeats || 1);
+                                                        }
+                                                        
                                                         // Ensure the final tax is non-negative and only subtract GST if it exists
-                                                        const finalTax = approximateTaxes - (k3Tax > 0 ? k3Tax : 0) + markup_price;
+                                                        const finalTax = approximateTaxes - (k3Tax > 0 ? k3Tax : 0) + (parseFloat(markup_price) * parseFloat(noOfSeats));
 
                                                         return finalTax >= 0 ? finalTax : 0; // Ensure we don’t return negative values
                                                     })()}
@@ -7551,9 +7883,30 @@ console.log("fareInfoList",fareInfoList);
                                         <div className="chk-total">
                                             <div className="chk-total-l">Total Price</div>
                                             <div className="chk-total-r" style={{ fontWeight: 700 }}>
-
+                                             
                                                 {packageSelected.$.TotalPrice.includes('INR') ? '₹ ' : ''}
-                                                {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + markup_price)}
+
+                                                {/* {(parseFloat(packageSelected.$.TotalPrice.replace('INR', '').trim()) + (parseFloat(markup_price)*parseFloat(noOfSeats)))} */}
+                                                {
+                                                    (
+                                                        parseFloat(packageSelected?.$?.TotalPrice?.replace('INR', '').trim() || 0) +
+                                                        parseFloat(markup_price || 0) * parseFloat(noOfSeats || 1) +
+                                                        (
+                                                        packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo']?.["$"]?.["Text"] === 'PromotionDiscount'
+                                                            ? Math.floor(
+                                                                Math.abs(
+                                                                parseFloat(
+                                                                    packageSelected?.["air:AirPricingInfo"]?.['air:FeeInfo']?.["$"]?.["Amount"]
+                                                                    ?.replace("INR", "")
+                                                                    .trim() || 0
+                                                                )
+                                                                )
+                                                            ) * parseFloat(noOfSeats || 1)
+                                                            : 0
+                                                        )
+                                                    ).toFixed(2)
+                                                    }
+
 
                                             </div>
                                             <div className="clear" />
