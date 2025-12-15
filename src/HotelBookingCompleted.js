@@ -5,174 +5,111 @@ import Modal from "./Modal";
 import dayjs from "dayjs";
 import { Token } from "@mui/icons-material";
 import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import Swal from "sweetalert2";
 
 const HotelBookingCompleted = () => {
-  const [loader, setLoader] = useState(false);
+ 
   const searchParams =
     JSON.parse(sessionStorage.getItem("hotelData_header")) || {};
   const location = useLocation();
   const hotel = location.state?.combinedHotels;
-
-  console.log(hotel); // This prevents errors if Rooms is undefined or empty
+// const [loading, setLoading] = useState(false);
+  // console.log(hotel);
 
   const [hotelBooking, setHotelBooking] = useState([]);
   // // console.log(hotelBooking);
-  useLayoutEffect(() => {
-    if (!hotel?.[0] || !hotel?.[0].Rooms || hotel?.[0].Rooms.length === 0) {
-      // console.error("Hotel or Rooms data is missing!");
-      return; // Exit early if data is invalid
-    }
+ 
 
-    const fetchPriBooking = async () => {
-      try {
-        const BookingCode_1 = hotel.Rooms[0];
-        const BookingCode = BookingCode_1?.BookingCode; // Ensure BookingCode exists
-        // // console.log(BookingCode);
-        if (!BookingCode) {
-          console.error("BookingCode is missing!");
-          return;
-        }
-
-        // // console.log(BookingCode);
-
-        const response = await fetch(
-          "https://demo.taxivaxi.com/api/hotels/sbtHotelPreBook",
-          {
-            method: "POST",
-            headers: {
-              Origin: "http://localhost:3000", // Change to your React app's origin
-              "Access-Control-Request-Method": "POST",
-            },
-            body: JSON.stringify({
-              BookingCode: BookingCode,
-              Language: "EN",
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        // // console.log("Hotel data:", data);
-
-        if (data.Status?.Code === 200) {
-          setHotelBooking(data.HotelResult || []);
-        } else {
-          console.error(
-            "Error fetching hotels:",
-            data.response?.Status?.Description
-          );
-        }
-      } catch (error) {
-        // console.error("Error fetching hotels:", error);
-      }
-    };
-
-    fetchPriBooking();
-  }, []);
-
-  const hotelData = hotel?.[0]; // Get the first hotel object
+  const hotelData = hotel?.[0];
   const [IP, setIP] = useState();
   const [Token, setToken] = useState();
-  const [BookingId, setBookingId] = useState();
-  useEffect(() => {
-    if (!hotelData || !hotelData.Rooms || hotelData.Rooms.length === 0) {
-      console.error("Hotel or Rooms data is missing!");
-      return; // Exit early if data is invalid
-    }
+  const [BookingId, setBookingId] = useState(null);
+  const [loader, setLoader] = useState(false);
+useEffect(() => {
 
-    const gstDetails = sessionStorage.getItem("gstDetails");
-    const personData = sessionStorage.getItem("personData");
 
-    const parsedGstDetails = gstDetails ? JSON.parse(gstDetails) : {};
-    const parsedPersonData = personData ? JSON.parse(personData) : [];
+  const gstDetails   = JSON.parse(sessionStorage.getItem("gstDetails") || "{}");
+  const personData   = JSON.parse(sessionStorage.getItem("personData") || "[]");
 
-    const fetchHotelBooking = async () => {
-      try {
-        setLoader(true);
-        const BookingCode = hotelData.Rooms[0]?.BookingCode;
-        const price = hotelData.Rooms[0]?.NetAmount;
+  const fetchHotelBooking = async () => {
+    try {
+      setLoader(true);
+      const { BookingCode, NetAmount: price } = hotelData.Rooms[0] ?? {};
+      if (!BookingCode) throw new Error("Booking code missing");
 
-        if (!BookingCode) {
-          console.error("Booking Code is missing!");
-          return;
+      const hotelPassengers = personData.map((p) => ({
+        Title: p.title || "Mr.",
+        FirstName: p.firstName,
+        LastName:  p.lastName,
+        Email:     p.email || null,
+        PaxType:   1,
+        LeadPassenger: true,
+        Age: 0,
+        PassportNo: null,
+        PassportIssueDate: null,
+        PassportExpDate:  null,
+        Phoneno: p.contact_no || null,
+        PaxId: 0,
+        GSTCompanyAddress:  gstDetails.cAddr   || null,
+        GSTCompanyContactNumber: gstDetails.contactNo || null,
+        GSTCompanyName:    gstDetails.cName   || null,
+        GSTNumber:         gstDetails.gstNo   || null,
+        GSTCompanyEmail:   gstDetails.email   || null,
+        PAN: "BBBBB5056Q",
+      }));
+
+      const request = {
+        BookingCode,
+        IsVoucherBooking: true,
+        GuestNationality: "IN",
+        EndUserIp: "192.168.11.120",
+        RequestedBookingMode: 5,
+        // NetAmount: Number(price?.toFixed(3)),
+        NetAmount: price,
+        HotelRoomsDetails: [{ HotelPassenger: hotelPassengers }],
+      };
+
+      const res = await fetch(
+        "https://demo.taxivaxi.com/api/hotels/sbtHotelBook",
+        {
+          method: "POST",
+          headers: {Origin:"*" },
+          body: JSON.stringify(request),
         }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        const hotelPassengers = parsedPersonData.map((person) => ({
-          Title: person.title || "Mr.",
-          FirstName: person.firstName,
-          LastName: person.lastName,
-          Email: person.email || null,
-          PaxType: 1,
-          LeadPassenger: true,
-          Age: 0,
-          PassportNo: null,
-          PassportIssueDate: null,
-          PassportExpDate: null,
-          Phoneno: person.contact_no || null,
-          PaxId: 0,
-          GSTCompanyAddress: parsedGstDetails?.cAddr || null,
-          GSTCompanyContactNumber: parsedGstDetails?.contactNo || null,
-          GSTCompanyName: parsedGstDetails?.cName || null,
-          GSTNumber: parsedGstDetails?.gstNo || null,
-          GSTCompanyEmail: parsedGstDetails?.email || null,
-          PAN: "BBBBB5056Q",
-        }));
+      const data = await res.json();
 
-        const request = {
-          BookingCode,
-          IsVoucherBooking: true,
-          GuestNationality: "IN",
-          EndUserIp: "192.168.11.120",
-          RequestedBookingMode: 5,
-          NetAmount: price,
-          HotelRoomsDetails: [{ HotelPassenger: hotelPassengers }],
-        };
-
-        // Encode Basic Authentication credentials
-        const authHeader = `Basic ${btoa("BAI:Bai@12345")}`;
-
-        const response = await fetch(
-          "https://demo.taxivaxi.com/api/hotels/sbtHotelBook",
-          {
-            method: "POST",
-            headers: {
-              // "Content-Type": "application/json",
-              // "Authorization": authHeader,
-              Origin: "*",
-              "Access-Control-Request-Method": "POST",
-            },
-            body: JSON.stringify(request),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        // console.log("API Response:", data);
-        const Booking_id = data.BookResult.BookingId;
-        setBookingId(Booking_id);
-        // console.log(Booking_id);
-        const IP = data.enduserip;
-        const Token = data.tokenid;
-        setIP(IP);
-        setToken(Token);
-      } catch (error) {
-        console.error("Error fetching hotels:", error);
+      const { Error: apiErr = {}, BookingId } = data.BookResult ?? {};
+      if (apiErr.ErrorCode !== 0) {
+        Swal.fire({
+          // icon: 'error',
+          title: 'Booking failed',
+          text: apiErr.ErrorMessage || 'Unknown error',
+        });
+        return;                                   // stop; keep loader? your call
       }
-    };
+      setBookingId(data.BookResult.BookingId);
+      setIP(data.enduserip);
+      setToken(data.tokenid);
+      setLoader(false);                    // 2️⃣ hide spinner *only here*
+    } catch (err) {
+      console.error(err);
+      // decide whether to keep the loader spinning on error
+      // or clear it and show an error message instead:
+      // setLoader(false);
+    }
+  };
 
-    fetchHotelBooking();
-  }, [hotelData]); // Depend on `hotelData` instead of `hotel`
+  fetchHotelBooking();
+}, [hotelData]);
+
 
   useEffect(() => {
     const fetchVoucherApi = async () => {
       // if (!BookingId || !IP || !Token) {
-      //   return; // Prevent API call if data is not available
+      //   return; 
       // }
 
       try {
@@ -209,87 +146,91 @@ const HotelBookingCompleted = () => {
     };
 
     fetchVoucherApi();
-  }, [BookingId, IP, Token]); // Runs when these values are set
-  useEffect(() => {
-    const FetchBook = async () => {
-      // if(BookingId){
-      try {
-        // if (!hotelData || !hotelData.Rooms || hotelData.Rooms.length === 0) {
-        //   console.error("Hotel data is missing or incomplete.");
-        //   return;
-        // }
+  }, [BookingId, IP, Token]); 
+
+//Assigned Booking Api For the Cotrav
   
-        // Extract required values
-        const roomName = hotelData.Rooms[0].Name?.join(" ") || "";
-        const inclusion = hotelData.Inclusion || "";
-        const mealType = hotelData.MealType || "";
+  // useEffect(() => {
+  //   const FetchBook = async () => {
+  //     // if(BookingId){
+  //     try {
+  //       if (!hotelData || !hotelData.Rooms || hotelData.Rooms.length === 0) {
+  //         console.error("Hotel data is missing or incomplete.");
+  //         return;
+  //       }
   
-        // Determine assigned_room_type
-        let assignedRoomType = "";
-        if (/deluxe|superior|Club|classic/i.test(roomName)) {
-          assignedRoomType = roomName;
-        }
+        
+  //       const roomName = hotelData.Rooms[0].Name?.join(" ") || "";
+  //       const inclusion = hotelData.Inclusion || "";
+  //       const mealType = hotelData.MealType || "";
   
-        // Determine daily_breakfast
-        const dailyBreakfast = inclusion.toLowerCase().includes("breakfast") ? "1" : "0";
+        
+  //       let assignedRoomType = "";
+  //       if (/deluxe|superior|Club|classic/i.test(roomName)) {
+  //         assignedRoomType = roomName;
+  //       }
   
-        // Determine meal_plan
-        const mealPlan = mealType.toLowerCase() === "breakfast" ? "1" : "0";
+       
+  //       const dailyBreakfast = inclusion.toLowerCase().includes("breakfast") ? "1" : "0";
   
-        // Prepare form data
-        const formData = new URLSearchParams();
-        formData.append("access_token", "8aaf1c9d9941e795e5b0c62e5252c537");
-        formData.append("assigned_hotel", hotelData.HotelName);
-        formData.append("booking_id", "62298");
-        formData.append("assigned_hotel_address", hotelData.Address);
-        // formData.append("hotel_contact", hotelData.PhoneNumber);
-        formData.append("assigned_room_type", assignedRoomType);
-        formData.append("daily_breakfast", dailyBreakfast);
-        formData.append("meal_plan", mealPlan);
-        formData.append("portal_used", "sbt");
-        formData.append("is_prepaid_booking", "0");
-        formData.append("is_ac_room", "0");
-        formData.append("room_price", hotelData.Rooms[0].TotalFare);
-        formData.append("hotel_id", hotelData.HotelCode);
-        formData.append("vendor_taxable_amount", "6000");
-        formData.append("vendor_amount_paid_to", "2000");
-        formData.append("vendor_tax_paid_to", "300");
-        formData.append("vendor_room_nights", "2000");
-        formData.append("commission_earned", "1000");
-        formData.append("vendor_invoice_comment", "800");
-        formData.append("is_vendor_gst_applicable ", "1");
-  console.log(formData.toString());
-        const response = await fetch("https://demo.taxivaxi.com/api/hotels/assignSBTHotelBooking", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: formData.toString(),
-        });
+      
+  //       const mealPlan = mealType.toLowerCase() === "breakfast" ? "1" : "0";
   
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+  //     if(searchParams.booking_id){
+  //       const formData = new URLSearchParams();
+  //       formData.append("access_token", "8aaf1c9d9941e795e5b0c62e5252c537");
+  //       formData.append("assigned_hotel", hotelData.HotelName);
+  //       formData.append("booking_id", searchParams.booking_id);
+  //       formData.append("assigned_hotel_address", hotelData.Address);
+  //       // formData.append("hotel_contact", hotelData.PhoneNumber);
+  //       formData.append("assigned_room_type",hotelData.Rooms[0].Name[0] );
+  //       formData.append("daily_breakfast", dailyBreakfast);
+  //       formData.append("meal_plan", mealPlan);
+  //       formData.append("portal_used", "sbt");
+  //       formData.append("is_prepaid_booking", "0");
+  //       formData.append("is_ac_room", "0");
+  //       formData.append("room_price", hotelData.Rooms[0].TotalFare);
+  //       formData.append("hotel_id", hotelData.HotelCode);
+  //       formData.append("vendor_taxable_amount", hotelData.Rooms[0].TotalTax);
+  //       formData.append("vendor_amount_paid_to", hotelData.Rooms[0].TotalFare);
+  //       formData.append("vendor_tax_paid_to", "0");
+  //       formData.append("vendor_room_nights", hotelData.Rooms[0].DayRates[0].length);
+  //       formData.append("commission_earned", "");
+  //       formData.append("vendor_invoice_comment", "NA");
+  //       formData.append("is_vendor_gst_applicable ", "1");
+  // console.log(formData.toString());
+  //       const response = await fetch("https://demo.taxivaxi.com/api/hotels/assignSBTHotelBooking", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/x-www-form-urlencoded",
+  //         },
+  //         body: formData.toString(),
+  //       });
   
-        const data = await response.json();
-        console.log("API Response:", data);
-      } 
-    catch (error) {
-        console.error("Error fetching voucher API:", error);
-      }
-    // }
-    };
+  //       if (!response.ok) {
+  //         throw new Error(`HTTP error! Status: ${response.status}`);
+  //       }
   
-    FetchBook();
-  }, [hotelData]);
+  //       const data = await response.json();
+  //       console.log("API Response:", data);
+  //     } 
+  //   }
+  //   catch (error) {
+  //       console.error("Error fetching voucher API:", error);
+  //     }
+  //   // }
+  //   };
+  
+  //   FetchBook();
+  // }, [hotelData]);
   
   const combinedHotels = useMemo(() => {
-    if (!hotel && hotelBooking.length === 0) return []; // Return empty if both are missing
+    if (!hotel && hotelBooking.length === 0) return []; 
 
-    // Convert `hotel` into an array if it exists
+   
     const hotelArray = hotel ? [hotel] : [];
 
-    // Merge hotelArray and hotelBooking
+    
     const mergedHotels = [...hotelArray, ...hotelBooking].reduce(
       (acc, curr) => {
         const existingIndex = acc.findIndex(
@@ -297,10 +238,10 @@ const HotelBookingCompleted = () => {
         );
 
         if (existingIndex !== -1) {
-          // Merge existing hotel with the new data
+        
           acc[existingIndex] = { ...acc[existingIndex], ...curr };
         } else {
-          // Add new hotel if not already in the list
+          
           acc.push(curr);
         }
 
@@ -336,17 +277,17 @@ const HotelBookingCompleted = () => {
       return ["No cancellation policies available."];
     }
 
-    const today = new Date(); // Get today's date
-    today.setHours(0, 0, 0, 0); // Remove time part for accurate comparison
+    const today = new Date(); 
+    today.setHours(0, 0, 0, 0);
 
     return CancelPolicies.filter((policy) => {
-      // Convert FromDate to a Date object
+    
       const policyDate = new Date(
         policy.FromDate.split(" ")[0].split("-").reverse().join("-")
       );
-      return policyDate >= today; // Only keep future or current dates
+      return policyDate >= today; 
     }).map((policy) => {
-      const formattedDate = policy.FromDate.split(" ")[0]; // Extract only DD-MM-YYYY
+      const formattedDate = policy.FromDate.split(" ")[0]; 
       if (policy.ChargeType === "Fixed" && policy.CancellationCharge === 0) {
         return `Free Cancellation till check-in`;
       } else if (policy.ChargeType === "Fixed") {
@@ -361,7 +302,7 @@ const HotelBookingCompleted = () => {
   const cleanRateConditions = (conditions) => {
     return conditions.map(
       (condition) =>
-        decodeHtmlEntities(condition).replace(/<\/?[^>]+(>|$)/g, "") // Removes all HTML tags
+        decodeHtmlEntities(condition).replace(/<\/?[^>]+(>|$)/g, "") 
     );
   };
   const formatDate1 = (date) => dayjs(date).format("ddd D MMM YYYY");
@@ -413,14 +354,14 @@ const checkOutTime =
   };
   const mapContainerStyle = {
     width: "100%",
-    height: "400px", // Ensure height is set, otherwise the map won't show
+    height: "400px",
   };
   const [mapCenter, setMapCenter] = useState(null);
 
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenImage, setIsOpenImage] = useState(false);
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: "AIzaSyCnfQ-TTa0kZzAPvcgc9qyorD34aIxaZhk", // Use environment variables for security
+    googleMapsApiKey: "AIzaSyCnfQ-TTa0kZzAPvcgc9qyorD34aIxaZhk", 
   });
   useEffect(() => {
     if (hotel?.length > 0 && hotel[0]?.Map) {
@@ -429,18 +370,18 @@ const checkOutTime =
 
       if (!isNaN(coords[0]) && !isNaN(coords[1])) {
         setMapCenter({ lat: coords[0], lng: coords[1] });
-        // console.log("Setting Map Center:", { lat: coords[0], lng: coords[1] }); // Log final map center
+        // console.log("Setting Map Center:", { lat: coords[0], lng: coords[1] });
       } else {
-        console.error("Invalid Coordinates:", coords); // Log error if coordinates are invalid
+        console.error("Invalid Coordinates:", coords); 
       }
     } else {
       console.warn("hotel[0].Map is undefined or hotel array is empty");
     }
   }, [hotel]);
-  const [remarks, setRemarks] = useState(""); // State for storing input value
+  const [remarks, setRemarks] = useState(""); 
   const [apiResponse, setApiResponse] = useState(null);
   const handleSubmit = async () => {
-    //   console.log("Entered Remarks:", remarks); // Get value from input
+    //   console.log("Entered Remarks:", remarks);
     try {
       const requestBody = {
         BookingMode: 5,
@@ -457,7 +398,7 @@ const checkOutTime =
           headers: {
             // "Content-Type": "application/json",
             Origin: "http://localhost:3000",
-            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Method": "POST",  
           },
           body: JSON.stringify(requestBody),
         }
@@ -471,7 +412,7 @@ const checkOutTime =
       console.log("API Response3:", data);
       setApiResponse(data.HotelChangeRequestResult);
     } catch {}
-    setShowModal3(false); // Close modal after submission
+    setShowModal3(false); 
     setRemarks("");
   };
   const responseStatusMap = {
@@ -488,7 +429,11 @@ const checkOutTime =
         <h5 className="text-xl font-semibold text-white">
           Your booking is comfirmed no need to call for Hotel information
         </h5>
-        <p className="text-sm text-white uppercase">Booking ID: {BookingId}</p>
+       {BookingId && (
+  <p className="text-sm text-white uppercase">
+    Booking&nbsp;ID:&nbsp;{BookingId}
+  </p>
+)}
       </div>
       {loader ? (
         <>
@@ -526,7 +471,7 @@ const checkOutTime =
                         <div className="w-full border box-color  overflow-hidden">
                           <div className="py-4 px-6">
                             <div className="flex items-center justify-between">
-                              {/* Check-In Section */}
+                            
                               <div className="text-center">
                                 <h5 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                                   Check In
@@ -539,7 +484,7 @@ const checkOutTime =
                                 </p>
                               </div>
 
-                              {/* Nights Count Button */}
+                           
                               <button
                                 className=" font-semibold btn-color  text-xs px-5 py-1 rounded-full shadow-md transition duration-300 hover:shadow-lg hover:scale-105"
                                 style={{ width: "148px" }}
@@ -547,7 +492,7 @@ const checkOutTime =
                                 {nights} {nights === 1 ? "Night" : "Nights"}
                               </button>
 
-                              {/* Check-Out Section */}
+                        
                               <div className="text-center">
                                 <h5 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                                   Check Out
@@ -668,7 +613,6 @@ const checkOutTime =
                               </p>
                             )}
 
-                            {/* Overlay Text */}
                             <h6 className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-gray-700 text-xs font-semibold mb-4 bg-white p-2 rounded">
                               View MAP
                             </h6>
@@ -694,7 +638,7 @@ const checkOutTime =
                       Important Information
                     </h5>
 
-                    {/* Display First 4 RateConditions */}
+                  
                     <ul className="list-disc pl-5 text-sm text-gray-700 dark:text-white-light">
                       {hotelItem[0]?.RateConditions?.slice(0, 4).map(
                         (condition, index) => (
@@ -709,11 +653,11 @@ const checkOutTime =
                       </button>
                     </ul>
 
-                    {/* View More Button */}
+                   
                   </div>
                 </div>
 
-                {/* Modal for Full RateConditions */}
+           
                 {showModal && (
                   <Modal
                     title="All Hotel Rules"
@@ -748,7 +692,7 @@ const checkOutTime =
                       </div>
                       <div>
                         {apiResponse ? (
-                          // ✅ Show this when API response exists
+                       
                           <div>
                             <h5 className="text-[#785ef7] text-sm font-semibold dark:text-white-light">
                               Cancel Booking
@@ -767,7 +711,7 @@ const checkOutTime =
                             </div>
                           </div>
                         ) : (
-                          // ❌ Show this when there is NO API response
+                          
                           <div>
                             <h5 className="text-[#785ef7] text-sm font-semibold dark:text-white-light">
                               Change In Plans

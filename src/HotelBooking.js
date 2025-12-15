@@ -129,7 +129,7 @@ const HotelBooking = () => {
   // console.log(combinedHotels);
   const navigate = useNavigate();
   const agent_portal = sessionStorage.getItem("1");
-  const [showGSTDetails, setShowGSTDetails] = useState(false);
+  const [showGSTDetails, setShowGSTDetails] = useState(true);
   const [showTaxDetails, setShowTaxDetails] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showModal3, setShowModal3] = useState(false);
@@ -804,6 +804,7 @@ const HotelBooking = () => {
                     </h5>
 
                     <form>
+                      <div className="border-b">
                       {(peopleData.length > 0
                         ? peopleData
                         : [
@@ -990,29 +991,30 @@ const HotelBooking = () => {
                             )}
                         </div>
                       ))}
+                      </div>
 
                       <div className="guestDtls__row mb-4">
                         <div>
                           <div className="makeFlex hrtlCenter spaceBetween appendBottom15 mt-3 mb-4 ">
                             <span className="checkmarkOuter gap-2">
-                              <input
+                              {/* <input
                                 type="checkbox"
                                 id="gstVisible"
                                 className="w-4 h-4"
                                 onChange={(e) =>
                                   setShowGSTDetails(e.target.checked)
                                 }
-                              />
+                              /> */}
                               <label
                                 className="makeFlex hrtlCenter gap-1"
                                 htmlFor="gstVisible"
                               >
-                                <span className="font14 blackText appendRight5">
+                                <span className="text-lg blackText appendRight5 font-semibold">
                                   Enter GST Details
                                 </span>
-                                <span className="font11 grayText">
+                                {/* <span className="font11 grayText">
                                   (Optional)
-                                </span>
+                                </span> */}
                               </label>
                             </span>
                           </div>

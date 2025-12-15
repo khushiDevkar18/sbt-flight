@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import clsx from "clsx";
+
+
+
 const SearchBus = () => {
   const location = useLocation();
   const { searchHeader, busResults } = location.state || {};
@@ -9,40 +13,10 @@ const SearchBus = () => {
   const [header, setHeader] = useState(searchHeader);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  console.log(busResults);
-  console.log(searchHeader);
-  const reSearch = async () => {
-    try {
-      setIsLoading(true);
-      const formData = new URLSearchParams();
-      formData.append("DateOfJourney", header.DateOfJourney);
-      formData.append("OriginId", header.FromCity.CityId);
-      formData.append("DestinationId", header.ToCity.CityId);
-
-      const response = await fetch(
-        "https://demo.fleet247.in/api/tbo_bus/searchBus",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formData,
-        }
-      );
-
-      const data = await response.json();
-      if (data.success === "true") {
-        setResults(data);
-        setError("");
-      } else {
-        setError("No buses found");
-      }
-    } catch (err) {
-      setError("Error fetching buses");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // console.log(busResults);
+  // console.log(searchHeader);
+ 
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (!header || !results) {
       setError("No search data found.");
@@ -59,24 +33,29 @@ const SearchBus = () => {
   const [isToLoading, setIsToLoading] = useState(false);
   const [toError, setToError] = useState("");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const selectedDate = new Date(header.DateOfJourney);
+  
+const [selectedDate, setSelectedDate] = useState(() =>
+  header?.DateOfJourney ? new Date(header.DateOfJourney) : new Date()
+);
+
 
   const fetchCitiesBus = async () => {
     setIsLoading(true);
     setError("");
     try {
+       const formData = new URLSearchParams();
+      formData.append("TokenId", "c7012f05-09a4-4db3-8c27-1aa75332538e");
+   
+    
       const response = await fetch(
-        "https://demo.fleet247.in/api/tbo_bus/getBusCityList",
+        `https://demo.fleet247.in/api/tbo_bus/getBusCityList`,
         {
           method: "POST",
           headers: {
-            Origin: "*",
+            "Content-Type": "application/x-www-form-urlencoded",
+            // "Origin": "*",
           },
-          // body: JSON.stringify({
-          //   TokenId: "6f393c10-615e-4420-943a-0ca6a50dab0",
-          //   IpAddress: "27.107.132.171",
-          //   ClientId: "ApiIntegrationNew",
-          // }),
+          body: formData.toString(),
         }
       );
 
@@ -99,6 +78,41 @@ const SearchBus = () => {
   useEffect(() => {
     fetchCitiesBus();
   }, []);
+ const reSearch = async (event) => {
+  event.preventDefault();
+  try {
+    setLoading(true);
+    const formData = new URLSearchParams();
+    formData.append("DateOfJourney", selectedDate.toISOString().slice(0, 10));
+    formData.append('OriginId', "8463");
+    formData.append('DestinationId', "9573");
+    formData.append('TokenId', "c7012f05-09a4-4db3-8c27-1aa75332538e");
+
+    const response = await fetch(
+      "https://demo.fleet247.in/api/tbo_bus/searchBus",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+    if (data.success === "true") {
+      setResults(data);
+      setError("");
+       setLoading(false);
+    } else {
+      setError("No buses found");
+    }
+  } catch (err) {
+    setError("Error fetching buses");
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     if (searchTerm) {
@@ -148,14 +162,19 @@ const SearchBus = () => {
     setIsToDropdownOpen(true);
     setToSearchTerm("");
   };
-  const handleDateChange = (date) => {
-    const formattedDate = date.toISOString().split("T")[0];
-    setHeader((prev) => ({
-      ...prev,
-      DateOfJourney: formattedDate,
-    }));
-    setIsDatePickerOpen(false);
-  };
+const handleDateChange = (date) => {
+  // 1️⃣  keep the raw Date object in local state
+  setSelectedDate(date);
+
+  // 2️⃣  put the string version in `header`
+  const formattedDate = date.toISOString().split("T")[0]; // ⇒ YYYY-MM-DD
+  setHeader((prev) => ({
+    ...prev,
+    DateOfJourney: formattedDate,
+  }));
+
+  setIsDatePickerOpen(false);
+};
 
   const formatDisplayDate = (dateString) => {
     const [year, month, day] = dateString.split("-");
@@ -184,43 +203,88 @@ const SearchBus = () => {
 
   const [boardingPoints, setBoardingPoints] = useState([]);
   const [droppingPoints, setDroppingPoints] = useState([]);
+ 
   const [selectedLayout, setSelectedLayout] = useState({
     resultIndex: null,
     html: "",
-    seatDetails: []
+    seatDetails: [],
+    selectedSeats: [],
   });
-  
+
   const handleSeatLayout = async (resultIndex) => {
     try {
       const formData = new URLSearchParams();
       formData.append("ResultIndex", resultIndex);
       formData.append("TraceId", traceID);
-      formData.append("TokenId", "e3c6172f-fef3-47f3-9e7f-536ec33e7ab9");
-  
+      formData.append("TokenId", "c7012f05-09a4-4db3-8c27-1aa75332538e");
+
       const response = await fetch(`https://demo.fleet247.in/api/tbo_bus/GetBusSeatLayOut`, {
         method: "POST",
-        headers: {
-          Origin: "*",
-        },
+        headers: { Origin: "*" },
         body: formData,
       });
-  
+
       const data = await response.json();
-  
+
       if (data.success === "true") {
         const html = data.data.GetBusSeatLayOutResult.SeatLayoutDetails.HTMLLayout;
         const seatDetails = data.data.GetBusSeatLayOutResult.SeatLayoutDetails.SeatLayout.SeatDetails.flat();
-        setSelectedLayout({ resultIndex, html, seatDetails });
+        setSelectedLayout({ resultIndex, html, seatDetails, selectedSeats: [] });
       } else {
-        const errorMsg = data.Error?.ErrorMessage || "Failed to fetch seat layout";
-        alert(errorMsg);
+        alert(data.Error?.ErrorMessage || "Failed to fetch seat layout");
       }
     } catch (err) {
       console.error("Error fetching seat layout:", err);
       alert("Network error occurred while fetching seat layout");
     }
   };
-  
+
+  const toggleSeat = (seat) => {
+    setSelectedLayout((prev) => {
+      const isSelected = prev.selectedSeats?.some((s) => s.SeatIndex === seat.SeatIndex);
+      const updatedSeats = isSelected
+        ? prev.selectedSeats.filter((s) => s.SeatIndex !== seat.SeatIndex)
+        : [...prev.selectedSeats, seat];
+      return { ...prev, selectedSeats: updatedSeats };
+    });
+  };
+
+  const calculateTotal = () => {
+    return selectedLayout.selectedSeats?.reduce((sum, seat) => sum + (seat.SeatFare || 0), 0) || 0;
+  };
+
+  const renderSeat = (seat) => {
+    const isUnavailable = seat.SeatStatus === false;
+    const isSelected = selectedLayout.selectedSeats?.some((s) => s.SeatIndex === seat.SeatIndex);
+    const seatClasses = clsx(
+      "relative w-7 h-7 border rounded-sm flex items-center justify-center",
+      {
+        "bg-gray-400  cursor-not-allowed": isUnavailable,
+        "bg-green-400 cursor-pointer": isSelected,
+        "bg-white     cursor-pointer hover:bg-green-200": !isUnavailable && !isSelected,
+      }
+    );
+    const Img = seat.SeatType === 1 ? "./img/Seater-11.svg" : "./img/Sleeper-12.svg";
+
+
+    return (
+      <div
+        key={seat.SeatIndex}
+        className={seatClasses}
+        onClick={() => !isUnavailable && toggleSeat(seat)}
+      >
+        <img src={Img} alt="" className="w-full h-full" />
+        {seat.SeatType === 2 && (
+          <span className="absolute bottom-[2px] right-[2px] text-[9px] text-gray-700">
+            {seat.IsUpper ? "U" : "L"}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  const availableSeatsCount = selectedLayout.seatDetails?.filter((s) => s.SeatStatus !== false)?.length;
+
   const handleLocation = async (resultIndex) => {
     if (activeResultIndex === resultIndex) {
       setActiveResultIndex(null);
@@ -234,7 +298,7 @@ const SearchBus = () => {
       const formData = new URLSearchParams();
       formData.append("ResultIndex", resultIndex);
       formData.append("TraceId", traceID);
-      formData.append("TokenId", "e3c6172f-fef3-47f3-9e7f-536ec33e7ab9");
+      formData.append("TokenId", "c7012f05-09a4-4db3-8c27-1aa75332538e");
 
       const response = await fetch(
         `https://demo.fleet247.in/api/tbo_bus/GetBoardingPointDetails`,
@@ -416,23 +480,7 @@ const toggleCancellation = (resultIndex) => {
     
     return true;
   });
-  const renderSeat = (seat) => {
-    const isSelected = selectedLayout.selectedSeats?.some(s => s.SeatIndex === seat.SeatIndex);
-    let seatClass = "seat";
-    if (seat.IsBooked) seatClass += " booked";
-    else if (seat.IsLadiesSeat) seatClass += " ladies";
-    else if (isSelected) seatClass += " selected";
-
-    return (
-      <div
-        key={seat.SeatIndex}
-        className={seatClass}
-        // onClick={() => !seat.IsBooked && handleSeatSelect(seat)}
-      >
-        <div className="seat-handle" />
-      </div>
-    );
-  };
+ ;
   // Handle filter changes
   const handleFilterChange = (filterName, value) => {
     setFilters(prev => ({
@@ -533,17 +581,14 @@ const toggleSeatSelection = (seat) => {
   });
 };
 
-const calculateTotal = () => {
-  return selectedLayout.selectedSeats?.reduce((sum, seat) => sum + (seat?.SeatFare || 0), 0) || 0;
-};
 
-const availableSeatsCount = selectedLayout.seatDetails?.filter(seat => seat?.SeatStatus).length || 0;
 
 
   return (
     <div>
+
       <header className="search-bar2" id="widgetHeader">
-        <form onSubmit={reSearch}>
+        <form>
           <div id="search-widget" className="hsw v2">
             <div className="hsw_inner px-2">
               <div className="hsw_inputBox tripTypeWrapper grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 md:gap-4">
@@ -676,7 +721,7 @@ const availableSeatsCount = selectedLayout.seatDetails?.filter(seat => seat?.Sea
 
                     {isDatePickerOpen && (
                       <div className="absolute z-10 mt-1">
-                        <DatePicker
+                        {/* <DatePicker
                           selected={selectedDate}
                           onChange={handleDateChange}
                           dateFormat="dd/MM/yyyy"
@@ -684,13 +729,24 @@ const availableSeatsCount = selectedLayout.seatDetails?.filter(seat => seat?.Sea
                           inline
                           onClickOutside={() => setIsDatePickerOpen(false)}
                           onSelect={() => setIsDatePickerOpen(false)} // Close when date is selected
-                        />
+                        /> */}
+                        <DatePicker
+  selected={selectedDate}
+  // onChange={(date) => setSelectedDate(date)}
+  onChange={handleDateChange}
+  dateFormat="dd/MM/yyyy"
+  minDate={new Date()}
+  inline
+  onClickOutside={() => setIsDatePickerOpen(false)}
+  onSelect={() => setIsDatePickerOpen(false)}
+/>
+
                       </div>
                     )}
                   </div>
                 </div>
 
-                <button className="search-buttonn rounded-lg col-span-1 md:col-span-3 lg:col-span-1 h-[50px] mt-auto">
+                <button className="search-buttonn rounded-lg col-span-1 md:col-span-3 lg:col-span-1 h-[50px] mt-auto" type="button" onClick={reSearch}> 
                   Search
                 </button>
               </div>
@@ -698,6 +754,18 @@ const availableSeatsCount = selectedLayout.seatDetails?.filter(seat => seat?.Sea
           </div>
         </form>
       </header>
+      {loading && (
+        <div className="page-center-loader flex items-center justify-center">
+          <div className="big-loader flex items-center justify-center">
+            <img
+              className="loader-gif"
+              src="/img/cotravloader.gif"
+              alt="Loader"
+            />
+            <p className="text-center ml-4 text-gray-600 text-lg"></p>
+          </div>
+        </div>
+      )}
       <div className="card-container ">
         <div className="flex flex-col md:flex-row px-3 gap-3">
         <div className="p-3 bg-white rounded-xl shadow-md border max-w-xs  overflow-y-auto sticky top-4">
@@ -1173,109 +1241,146 @@ const availableSeatsCount = selectedLayout.seatDetails?.filter(seat => seat?.Sea
                         </button>
                       </div>
                     </div>
-                    {selectedLayout.resultIndex === busData?.ResultIndex &&
-    selectedLayout.seatDetails?.length > 0 && (
-      <div className="p-6 bg-gray-50 rounded-lg shadow-md max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Select Your Seats</h2>
-          <div className="text-sm text-gray-600">
-            {availableSeatsCount} seats available
+                   {selectedLayout.resultIndex === busData?.ResultIndex &&
+  selectedLayout.seatDetails?.length > 0 && (
+    <div className="mt-4">
+
+      {/* ── Legend ── */}
+      <div className="flex gap-8 mb-4 justify-center">
+        {[
+          { icon: "/img/Seater-11.svg", label: "Seater" },
+          { icon: "/img/Sleeper-12.svg", label: "Sleeper" },
+          { className: "bg-gray-400", label: "Booked" },
+          { className: "bg-green-400", label: "Selected" },
+        ].map(({ icon, className = "bg-transparent", label }) => (
+          <div key={label} className="flex items-center gap-2 text-sm">
+            {icon ? (
+              <img src={icon} alt="" className="w-6 h-6 border border-gray-400 rounded-sm" />
+            ) : (
+              <div className={`w-5 h-5 border border-gray-400 rounded-sm ${className}`} />
+            )}
+            <span>{label}</span>
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* Legend */}
-        <div className="flex gap-6 mb-6">
-          {[
-            { className: "bg-white", label: "Available" },
-            { className: "bg-gray-400", label: "Booked" },
-            { className: "bg-red-300", label: "Ladies Seat" },
-            { className: "bg-green-400", label: "Selected" },
-          ].map(({ className, label }) => (
-            <div key={label} className="flex items-center gap-2 text-sm">
-              <div className={`w-6 h-6 border border-gray-400 rounded-sm ${className}`} />
-              <span>{label}</span>
-            </div>
-          ))}
-        </div>
+      {/* ── LOWER + UPPER side-by-side ── */}
+      <div className="flex gap-10 justify-center">
 
-        {/* Lower Deck */}
-        <div className="mb-6">
-          <h3 className="font-semibold text-gray-700 mb-2">Lower Deck</h3>
-          <div className="flex items-start">
-            {/* Driver */}
-            <div className="mr-4 flex flex-col items-center">
-              <div className="text-2xl">🧑‍✈️</div>
-              <div className="text-sm mt-1">Driver</div>
-            </div>
+        {/* LOWER BERTH */}
+        <div className="flex flex-col items-center">
+          <h4 className="text-sm font-semibold text-gray-700 mb-2 uppercase">
+            LOWER BERTH ({selectedLayout.seatDetails.filter(s => !s.IsUpper).length})
+          </h4>
+          <div className="relative border border-gray-300 rounded-lg p-4">
+            <img
+              src="/img/Staring_bus.svg"
+              alt=""
+              className="absolute top-3 right-3 w-10 h-9 mb-3"
+            />
+            <div className="grid grid-cols-3 gap-x-8 gap-y-4">
+              {selectedLayout.seatDetails.filter(s => !s.IsUpper).map(seat => {
+                const isBooked   = seat.SeatStatus === false;
+                const isSelected = selectedLayout.selectedSeats?.some(s => s.SeatIndex === seat.SeatIndex);
+                const Icon       = seat.SeatType === 1 ? "/img/Seater-11.svg" : "/img/Sleeper-12.svg";
 
-            {/* Seats */}
-            <div className="grid grid-cols-6 gap-2">
-              {selectedLayout.seatDetails
-                ?.filter(seat => !seat?.IsUpper)
-                .map(seat => renderSeat(seat))}
-            </div>
-          </div>
-        </div>
-
-        {/* Upper Deck */}
-        <div className="mb-6">
-          <h3 className="font-semibold text-gray-700 mb-2">Upper Deck</h3>
-          <div className="flex items-start">
-            {/* Blank for alignment */}
-            <div className="mr-4 w-[40px]" />
-            <div className="grid grid-cols-6 gap-2">
-              {selectedLayout.seatDetails
-                ?.filter(seat => seat?.IsUpper)
-                .map(seat => renderSeat(seat))}
-            </div>
-          </div>
-        </div>
-
-        {/* Exit Door */}
-        <div className="flex justify-end mb-6">
-          <div className="bg-gray-400 w-6 h-10 rounded-sm flex items-center justify-center relative">
-            <div className="w-1 h-6 bg-white" />
-          </div>
-        </div>
-
-        {/* Selection Summary */}
-        <div className="mb-4">
-          <h3 className="font-semibold mb-2">Your Selection</h3>
-          {selectedLayout.selectedSeats?.length > 0 ? (
-            <>
-              <div className="grid grid-cols-2 gap-2 text-sm mb-2">
-                {selectedLayout.selectedSeats.map(seat => (
-                  seat && (
-                    <div key={seat.SeatIndex} className="flex justify-between">
-                      <span>Seat {seat.SeatName}</span>
-                      <span>₹{seat.SeatFare}</span>
+                return (
+                  <div key={seat.SeatIndex} className="flex flex-col items-center">
+                    <div
+                      onClick={() => !isBooked && toggleSeat(seat)}
+                      className={`relative w-8 h-8 border rounded-sm flex items-center justify-center
+                        ${isBooked ? "bg-gray-300 cursor-not-allowed opacity-50" : ""}
+                        ${isSelected ? "bg-green-400" : ""}
+                        ${!isBooked && !isSelected ? "bg-white hover:bg-green-200 cursor-pointer" : ""}`}
+                    >
+                      <img src={Icon} alt="" className="w-full h-full" />
+                      {seat.SeatType === 2 && (
+                        <span className="absolute bottom-[1px] right-[1px] text-[8px] text-gray-700">
+                          {seat.IsUpper ? "U" : "L"}
+                        </span>
+                      )}
                     </div>
-                  )
-                ))}
-              </div>
-              <div className="text-right font-semibold text-lg">
-                Total: ₹{calculateTotal()}
-              </div>
-            </>
-          ) : (
-            <div className="text-sm text-gray-500">No seats selected yet</div>
-          )}
+                    <span className="text-xs mt-1">₹{seat.SeatFare}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        {/* Proceed Button */}
+        {/* UPPER BERTH */}
+        <div className="flex flex-col items-center">
+          <h4 className="text-sm font-semibold text-gray-700 mb-2 uppercase">
+            UPPER BERTH ({selectedLayout.seatDetails.filter(s => s.IsUpper).length})
+          </h4>
+          <div className="border border-gray-300 rounded-lg p-4">
+            <div className="grid grid-cols-3 gap-x-8 gap-y-4">
+              {selectedLayout.seatDetails.filter(s => s.IsUpper).map(seat => {
+                const isBooked   = seat.SeatStatus === false;
+                const isSelected = selectedLayout.selectedSeats?.some(s => s.SeatIndex === seat.SeatIndex);
+                const Icon       = seat.SeatType === 1 ? "/img/Seater-11.svg" : "/img/Sleeper-12.svg";
+
+                return (
+                  <div key={seat.SeatIndex} className="flex flex-col items-center">
+                    <div
+                      onClick={() => !isBooked && toggleSeat(seat)}
+                      className={`relative w-8 h-8 border rounded-sm flex items-center justify-center
+                        ${isBooked ? "bg-gray-300 cursor-not-allowed opacity-50" : ""}
+                        ${isSelected ? "bg-green-400" : ""}
+                        ${!isBooked && !isSelected ? "bg-white hover:bg-green-200 cursor-pointer" : ""}`}
+                    >
+                      <img src={Icon} alt="" className="w-full h-full" />
+                      {seat.SeatType === 2 && (
+                        <span className="absolute bottom-[1px] right-[1px] text-[8px] text-gray-700">
+                          {seat.IsUpper ? "U" : "L"}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs mt-1">₹{seat.SeatFare}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Summary section */}
+      <div className="mt-6 max-w-4xl mx-auto">
+        <h3 className="font-semibold mb-2 text-sm">Your Selection</h3>
+
+        {selectedLayout.selectedSeats?.length ? (
+          <>
+            <div className="grid grid-cols-2 gap-2 text-sm mb-2">
+              {selectedLayout.selectedSeats.map(seat => (
+                <div key={seat.SeatIndex} className="flex justify-between">
+                  <span>Seat {seat.SeatName}</span>
+                  <span>₹{seat.SeatFare}</span>
+                </div>
+              ))}
+            </div>
+            <div className="text-right font-semibold text-lg">
+              Total: ₹{calculateTotal()}
+            </div>
+          </>
+        ) : (
+          <div className="text-sm text-gray-500">No seats selected yet</div>
+        )}
+
         <button
-          className={`w-full py-2 rounded-md text-white font-semibold ${
+          disabled={!selectedLayout.selectedSeats?.length}
+          className={`w-full py-2 mt-4 rounded-md text-white font-semibold ${
             selectedLayout.selectedSeats?.length
               ? "bg-blue-600 hover:bg-blue-700"
               : "bg-gray-400 cursor-not-allowed"
           }`}
-          disabled={!selectedLayout.selectedSeats || selectedLayout.selectedSeats.length === 0}
         >
           Proceed to Book
         </button>
       </div>
-    )}
+    </div>
+)}
+
   
 
                     {hasFetched &&
@@ -1391,7 +1496,7 @@ const availableSeatsCount = selectedLayout.seatDetails?.filter(seat => seat?.Sea
             })
           ) : (
             <div className="text-center py-10">
-              <h3 className="text-lg font-medium text-gray-700">No buses found matching your filters</h3>
+              <h3 className="text-lg font-medium text-gray-700">No buses found </h3>
               <p className="text-gray-500 mt-2">Try adjusting your filters or clear all filters to see more options</p>
               <button 
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

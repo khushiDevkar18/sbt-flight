@@ -13,8 +13,9 @@ import {
 const HotelDetails = () => {
   const location = useLocation();
   const hotel = location.state?.hotel;
-  console.log(hotel);
+  // console.log(hotel);
   const agent_portal = sessionStorage.getItem("agent_portal");
+  const booking_access = sessionStorage.getItem("has_search_access");
   const [showModal2, setShowModal2] = useState(false);
   const [showModal3, setShowModal3] = useState(false);
   const navigate = useNavigate();
@@ -211,13 +212,16 @@ const HotelDetails = () => {
         <div className="hoteldetail-conatiner mt-5">
           {agent_portal != null && String(agent_portal) === "0" && (
             <div className="text-sm text-gray-600 flex gap-2 py-4 px-5">
-              <span
-                className="cursor-pointer text-blue-600 hover:underline"
-                onClick={() => navigate("/")}
-              >
-                Home
-              </span>
-              <span>&gt;</span>
+              {booking_access == "1" && (
+
+            
+              <><span
+                  className="cursor-pointer text-blue-600 hover:underline"
+                  onClick={() => navigate("/")}
+                >
+                  Home
+                </span><span>&gt;</span></>
+              )}
               <span
                 className="cursor-pointer text-blue-600 hover:underline"
                 onClick={() => navigate("/SearchHotel")}

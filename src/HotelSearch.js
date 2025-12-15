@@ -71,8 +71,9 @@ const [personDetails , setPersonDetails]= useState();
       fetchHotelCodes();
     }
   }, []);
-  const passengerId1 = formtaxivaxiData["passengerDetailsArray[0][id]"];
-  const passengerId2 = formtaxivaxiData["passengerDetailsArray[1][id]"];
+  // const passengerId1 = formtaxivaxiData["passengerDetailsArray[0][id]"];
+  // const passengerId2 = formtaxivaxiData["passengerDetailsArray[1][id]"];
+  const passengerId = formtaxivaxiData.passengerDetailsArray;
   
 //  const search = formtaxivaxiData.request_type;
  sessionStorage.setItem("agent_portal", 0);
@@ -86,8 +87,7 @@ const [personDetails , setPersonDetails]= useState();
   
         const requestBody = {
           people_ids: [
-            passengerId1,
-            passengerId2
+         passengerId
           ],
         };
   console.log(requestBody)
@@ -196,6 +196,8 @@ const [personDetails , setPersonDetails]= useState();
               booknow: '0'|formtaxivaxiData.booknow ,
             
             };
+              sessionStorage.setItem("has_Booking_access", 0);
+               sessionStorage.setItem("has_search_access", 0);
             sessionStorage.setItem(
               "hotelData_header",
               JSON.stringify(searchParams)

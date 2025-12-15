@@ -254,8 +254,8 @@ textarea {
 }
 
 .body-wrapper {
-  padding-bottom: 50px;
-  padding-top: 10px;
+  padding-bottom: 30px;
+  /* padding-top: 10px; */
   background-color: #e8e4ff;
 }
 
@@ -340,6 +340,7 @@ textarea {
 .main-cont {
   width: 100%;
   min-width: 300px;
+  margin-top:30px;
 }
 
 .header-a {
@@ -1318,11 +1319,11 @@ cursor: pointer;
  
 .search-asvanced {
   display: block;
-  padding: 15px;
+  padding: 12px;
   background-color: #f9f9f9;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  width: 560px;
+  box-shadow: 0px 1px 10px silver;
+  width: 480px;
   margin-left: 47.5%;
   margin-top: -6%;
   position: absolute;
@@ -2409,8 +2410,8 @@ padding-left: 12px;
 
 .select-wrapper1 label {
   display: inline-block;
-    width: 30px; /* Adjusted width */
-    height: 30px; /* Adjusted height */
+    width: 21px; /* Adjusted width */
+    height: 21px; /* Adjusted height */
     background-color: #fff;
     border: 1px solid #ced4da;
 
@@ -2420,7 +2421,7 @@ padding-left: 12px;
     position: relative;
     vertical-align: middle;
     text-align: center;
-    line-height: 30px; /* Center the text */
+    line-height: 18px; /* Center the text */
     color: #8a8a8a;
     transition: all 0.3s;
 }
@@ -2436,10 +2437,10 @@ padding-left: 12px;
   color: black;
 }
 
-.select-wrapper2 label {
-  width: 175px;
+.select-wrapper2 label {  
+  width: 150px;
     text-transform: capitalize;
-    font-size: 12px;
+    font-size: 11px;
     height: 25px;
 }
 
@@ -2479,9 +2480,9 @@ padding-left: 12px;
 }
 .row-container {
   display: flex;
-  justify-content: space-between; /* Add space between the two divs */
+  /* justify-content: space-between; Add space between the two divs */
   align-items: flex-start; /* Align items at the top */
-  gap: 10px; /* Optional: Add space between the divs */
+  gap: 48px; /* Optional: Add space between the divs */
 }
 
 .mp-popular {
@@ -4773,10 +4774,10 @@ nav ul li {
 }
 
 .flight-line-a span {
-  font-size: 13px;
-  color: black;
-  font-family: 'Open Sans';
-  font-family: 'Montserrat';
+    font-size: 13px;
+    color: black;
+    font-family: 'Open Sans';
+    font-family: 'Montserrat';
 }
 
 .flight-line-d1 {
@@ -4884,6 +4885,7 @@ sup {
 .flt-i-price1 {
   font-family: 'Montserrat';
   margin-bottom: 4px;
+  margin-top: 30px;
   line-height: 23px;
   font-weight: bold;
   font-size: 15px;
@@ -7740,7 +7742,7 @@ preferences-list-alt li {
   font-family: 'Raleway';
   margin-bottom: 0px;
   padding: 9px;
-  background-color: #bd8100;
+  background-color: #785eff;
   font-size: 16px;
   color: #fff;
 }
@@ -9075,7 +9077,7 @@ preferences-list-alt li {
   background: #fff;
   margin-bottom: 28px;
   font-family: 'Open Sans';
-  margin-top: 14%;
+  margin-top: 13%;
 }
 
 .checkout-head {
@@ -12914,7 +12916,7 @@ html {
   &:nth-child(1) {
 
     margin-left: 60px;
-    margin-right: -1.714286%;
+    margin-right: -0.065714%;
 
   }
 }
@@ -17409,7 +17411,7 @@ input:checked+.slider:before {
 
 .selectcontainer .optionsflights {
   margin: 1% 1%;
-  padding: 7px 10px;
+  padding: 6px 8px;
   font-size: 12px;
   cursor: pointer;
   width: 27%;
@@ -17731,8 +17733,8 @@ color: #fff;
   
 }
 .modal-header{
-  background-color: #785eff;
-    color: #fff;
+  /* background-color: #785eff; */
+    color: #785eff;
 }
 .modal-header .modal-title{
   font-weight: 700;
@@ -18048,7 +18050,7 @@ color: #fff;
 }
 .catalog-row .catalog_filters .pricefilter{
   text-align: center;
-  padding-left: 13%;
+  padding-left: 3%;
   cursor: pointer;
 }
 .packagehead{
@@ -18217,12 +18219,13 @@ background-color: #fff !important;
   font-size: 11px;
 }
 .headingofflights{
-  padding: 2%;
-  padding-left: 6%;
-  font-weight: 700;
-  text-transform: capitalize;
-  color: black;
-  font-family: 'Montserrat'
+  padding: 5%;
+  /* padding-left: 3%; */
+  font-weight: 600;
+  /* text-transform: capitalize; */
+  color: black !important;
+  font-family: 'Montserrat';
+  font-size:12px !important;
 }
 .seatbutton,.baggagebutton{
 float: inline-end;
@@ -18451,17 +18454,20 @@ body::-webkit-scrollbar-thumb:hover {
 }
 .extradisabled{
   font-family: 'Montserrat';
-    color: #000;
+    color: white;
     background: red;
-    padding: 0 5px;
-    margin: 0 5px;
+    padding: 3px 10px;
+    margin-left:  5px;
     font-weight: 500;
     text-transform: capitalize;
+    border-radius: 2px;
+    font-size: 10px;
 }
 .apiairportresult{
   width: 150px;
   display: inline-block;
   white-space: normal;
+  margin-top: 1px;
   /* opacity: 1; */
   color: #a0a0a0 !important;
   font-size: 9px !important;
@@ -18819,11 +18825,12 @@ ul.dropdown-menu li a:hover {
   right: 0;
   width: 100%;
   max-width: 400px;
-  background-color: #281f55; /* Dark blue background */
+  background-color: #281f55;
   color: #fff;
   border-radius: 10px 10px 0 0;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
   padding: 10px;
+
 }
 
 .selected-flight-header {
@@ -19204,8 +19211,8 @@ button#search-button:hover {
   pointer-events: none; /* Prevent interference with the dropdown */
 }
 .custom-modal-header {
-  color: white;
-  padding: 15px 20px;
+  color: #785eff;
+  padding: 10px 15px !important;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -19214,15 +19221,15 @@ button#search-button:hover {
 
 .custom-modal-header .close-btn {
   background: none;
-  color: white;
+  color: red;
   border: none;
-  font-size: 20px;
+  font-size: 25px;
   cursor: pointer;
 }
 
 /* Modal Body */
 .custom-modal-body {
-  padding: 20px;
+  padding: 10px;
   font-family: Arial, sans-serif;
 }
 
@@ -19233,16 +19240,16 @@ button#search-button:hover {
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   flex: 1;
   
 }
 
 .form-group label {
   display: block;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
 }
 
 .form-group input,
@@ -19253,6 +19260,7 @@ button#search-button:hover {
   font-size: 14px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  height:35px;
 }
 
 .form-group select {
@@ -19332,7 +19340,7 @@ button#search-button:hover {
 }
 
 .send-button:hover {
-  background-color: #1565c0;
+  background-color: #503FAA;
 }
 .invalid {
   border: 2px solid red;
@@ -19461,16 +19469,15 @@ button#search-button:hover {
 .search-buttonn {
   background-color: #785ef7;
   color: #fff;
-  padding: 8px 35px;
+  /* padding: 8px 35px; */
   border-radius: 25px;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  width:160px;
+  width:91px;
   margin-top: 20px; /* Add spacing above the button */
   margin: auto;
-
  
 }
 .airline-logo {
@@ -19819,13 +19826,14 @@ button#search-button:hover {
   max-width: 100%;
   display: flex;
   flex-direction: column;
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
 }
 
 .mobile-input-wrapper {
   display: flex;
   align-items: center;
   width: 100%;
+  height: 36px;
 }
 .phone-input {
   width: 100%;
@@ -19942,4 +19950,99 @@ button#search-button:hover {
   justify-content: space-between; /* Aligns elements in a row */
   width: 100%;
   padding: 8px 12px;
+}
+
+.seat-map {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.seat-row {
+  display: flex;
+  align-items: center;
+  margin: 4px 0;
+}
+.header {
+  font-weight: bold;
+}
+.seat-label,
+.row-number,
+.spacer {
+  width: 32px;
+  text-align: center;
+}
+.seat-gap {
+  width: 20px;
+}
+.seat-box {
+  width: 32px;
+  height: 32px;
+  background-color: #80d4ff;
+  border-radius: 6px;
+  margin: 0 2px;
+}
+.seat-box:hover {
+  background-color: #3399ff;
+  cursor: pointer;
+}
+.seat.empty-seat {
+  visibility: hidden;
+  width: 40px; /* Adjust width as needed */
+}
+ol[class^="seatsolrow"] {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  /* gap: 10px; */
+  list-style: none;
+  padding-left: 0;
+}
+.abcspan {
+  /* font-weight: bold; */
+  font-size: 10px;
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+}
+.mandatory-star {
+  /* position: absolute; */
+  /* right: -10px; */
+  /* left: 23%; */
+  top: -8%;
+  color: red;
+  font-size: 18px;
+  font-weight: bold;
+}
+.policy_container{
+  table{
+    width: 100%;
+  }
+  td, th{
+    border: 1px solid black;
+    padding: 4px;
+  }
+
+  pre{
+    li{
+      white-space: normal;
+    }
+  }
+}
+.Searchresult{
+    text-align: center;
+    background: transparent;
+    padding: 8px;
+    height: 55vh;
+    /* display: flex;  */
+    justify-content: center;
+    align-items: center;
+}
+
+.css-13cymwt-control{
+  height:36px !important;
+  font-size: 13px !important;
+}
+.react-select_control--menu-is-open{
+  font-size: 11px !important;
 }

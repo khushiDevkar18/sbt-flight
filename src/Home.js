@@ -32,7 +32,7 @@ const NewHome = () => {
   const [origin, setOrigin] = useState([]);
   const [allAirportsOrigin, setAllAirportsOrigin] = useState([]);
   const [airportOriginCodes, setAirportOriginCodes] = useState(null);
-  const [selectSize, setSelectSize] = useState(1);
+
   // const [inputDestination, setInputDestination] = useState('Delhi (DEL) Indira Gandhi International Airport');
   const [inputDestination, setInputDestination] = useState(() => {
     return localStorage.getItem("lastDestination") || "";
@@ -163,7 +163,7 @@ const NewHome = () => {
         );
 
         setAirportResponse(response);
-
+        // console.log(response)
         // XML Parsing Logic
         parseString(response.data, { explicitArray: false }, (errs, result) => {
           if (errs) {
@@ -172,7 +172,7 @@ const NewHome = () => {
           }
           const airportList =
             result["SOAP:Envelope"]["SOAP:Body"][
-              "util:ReferenceDataRetrieveRsp"
+            "util:ReferenceDataRetrieveRsp"
             ]["util:ReferenceDataItem"];
           setAirportOptions(airportList);
 
@@ -183,7 +183,7 @@ const NewHome = () => {
 
           setAirportOriginCodes(tempAirportCodes);
           setAllAirportsOrigin(airportList);
-
+          // console.log('Airport list',airportList)
           setAirportDestinationCodes(tempAirportCodes);
           setAllAirportsDestination(airportList);
         });
@@ -262,7 +262,7 @@ const NewHome = () => {
     // console.log('adminid', adminid)
     const payload = {
       admin_id: adminid,
-      flight_type: "Domestic",
+      // flight_type: "Domestic",
     };
     // console.log('payload', payload);
 
@@ -337,6 +337,7 @@ const NewHome = () => {
           value: airport.$.Code,
           div: airport.$.Name,
           airportName: matchedAirport ? matchedAirport.airport_name : "", // Add airport name from apiairports
+          countrycode: matchedAirport ? matchedAirport.airport_iso_country : '',
         };
       })
       .sort((a, b) => a.div.localeCompare(b.div));
@@ -351,7 +352,6 @@ const NewHome = () => {
 
   const handleDestinationChange = (inputValue) => {
     setInputDestination(inputValue);
-
     const filteredOptions = allAirportsDestination
       .filter((airport) =>
         airport.$.Name.toLowerCase().includes(inputValue.toLowerCase())
@@ -364,12 +364,14 @@ const NewHome = () => {
           value: airport.$.Code,
           div: airport.$.Name,
           airportName: matchedAirport ? matchedAirport.airport_name : "",
+          countrycode: matchedAirport ? matchedAirport.airport_iso_country : '',
         };
       })
       .sort((a, b) => a.div.localeCompare(b.div));
     setDestination(filteredOptions);
     setShowDestinationDropdown(true);
   };
+
   const handleDestination = (value, airportName) => {
     setInputDestination(
       `${airportDestinationCodes[value]} (${value}) ${airportName}`
@@ -399,7 +401,7 @@ const NewHome = () => {
     returnDate: null,
     flightOrigin: localStorage.getItem("lastorigin") || "",
     flightDestination: localStorage.getItem("lastDestination") || "",
-    bookingType: "oneway",
+    bookingType: "One Way",
     adult: "1",
     child: "0",
     infant: "0",
@@ -407,7 +409,7 @@ const NewHome = () => {
   });
 
   const handleReturnDateInitialization = (bookingType) => {
-    if (bookingType === "oneway") {
+    if (bookingType === "One Way") {
       setReturnEnabled(false);
       setFormData({ ...formData, bookingType, returnDate: null });
     } else {
@@ -439,15 +441,7 @@ const NewHome = () => {
     handleReturnDateInitialization(value);
   };
 
-  // const handleDepartureDateChange = (date) => {
-  //     setdepIsOpen(false);
-  //     if(formData.returnDate){
-  //         setFormData({ ...formData, departureDate: date, returnDate: date });
-  //     }else{
-  //         setFormData({ ...formData, departureDate: date });
-  //     }
-  //     // setReturnEnabled(true);
-  // };
+
   const handleDepartureDateChange = (date) => {
     setFormData((prev) => ({
       ...prev,
@@ -536,346 +530,7 @@ const NewHome = () => {
   const queryParams = new URLSearchParams(window.location.search);
   const agentId = queryParams.get("agent_id");
 
-  // console.log(agentId);
 
-  //  const handleSubmit = async (event) => {
-  //    setSearchresponse(true);
-  //    event.preventDefault();
-  //    console.time("make api request");
-  //    let searchfrom = event.target.searchfrom.value.trim();
-
-  //    // let searchfrom = formActual;
-  //    let searchto = event.target.searchto.value.trim();
-  //    let searchdeparture = event.target.searchdeparture.value.trim();
-  //    let searchreturnDate = event.target.searchreturnDate.value.trim();
-  //    const originerror = document.querySelector(".redorigin");
-  //    const originerror1 = document.querySelector(".redorigin1");
-  //    const destinationerror = document.querySelector(".redestination");
-  //    const destinationerror1 = document.querySelector(".redestination1");
-  //    const searchdepartureerror = document.querySelector(".redsearchdeparture");
-  //    const searchreturnerror = document.querySelector(".redsearchreturn");
-  //    const searchdepartureerror1 = document.querySelector(
-  //      ".redsearchdeparture1"
-  //    );
-  //    const searchreturnerror1 = document.querySelector(".redsearchreturn1");
-  //    const passengererror = document.querySelector(".redpassenger");
-  //    const infanterror = document.querySelector(".infantmore");
-
-  //    let totalpassenger =
-  //      parseInt(adultCount) + parseInt(childCount) + parseInt(infantCount);
-  //    let isValidPassenger = true;
-  //    localStorage.setItem("lastorigin", searchfrom);
-  //    localStorage.setItem("lastDestination", searchto);
-
-  //    if (infantCount > adultCount) {
-  //      isValidPassenger = false;
-  //      infanterror.style.display = "block";
-  //    } else {
-  //      infanterror.style.display = "none";
-  //    }
-  //    const formatPattern = /\((.*?)\)/;
-  //    const dateFormatPattern = /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
-  //    if (!searchfrom) {
-  //      isValidPassenger = false;
-  //      originerror.style.display = "block";
-  //    } else if (!formatPattern.test(searchfrom)) {
-  //      isValidPassenger = false;
-  //      originerror1.style.display = "block";
-  //    } else {
-  //      originerror1.style.display = "none";
-  //      originerror.style.display = "none";
-  //    }
-  //    if (!searchto) {
-  //      isValidPassenger = false;
-  //      destinationerror.style.display = "block";
-  //    } else if (!formatPattern.test(searchto)) {
-  //      isValidPassenger = false;
-  //      destinationerror1.style.display = "block";
-  //    } else {
-  //      destinationerror.style.display = "none";
-  //      destinationerror1.style.display = "none";
-  //    }
-  //    if (!searchdeparture) {
-  //      isValidPassenger = false;
-  //      searchdepartureerror.style.display = "block";
-  //    } else if (!dateFormatPattern.test(searchdeparture)) {
-  //      isValidPassenger = false;
-  //      searchdepartureerror1.style.display = "block";
-  //    } else {
-  //      searchdepartureerror.style.display = "none";
-  //      searchdepartureerror1.style.display = "none";
-  //    }
-  //    if (formData.bookingType === "Return") {
-  //      if (!searchreturnDate) {
-  //        isValidPassenger = false;
-  //        searchreturnerror.style.display = "block";
-  //      } else {
-  //        searchreturnerror.style.display = "none";
-  //      }
-  //    } else {
-  //      searchreturnerror.style.display = "none";
-  //    }
-
-  //    if (searchreturnDate && !dateFormatPattern.test(searchreturnDate)) {
-  //      isValidPassenger = false;
-  //      searchreturnerror1.style.display = "block";
-  //    } else {
-  //      searchreturnerror1.style.display = "none";
-  //    }
-  //    if (totalpassenger > 9) {
-  //      isValidPassenger = false;
-  //      passengererror.style.display = "block";
-  //    } else {
-  //      passengererror.style.display = "none";
-  //    }
-  //    if (isValidPassenger) {
-  //      setLoading(true);
-  //      // const token = await ndcToken();
-
-  //      const formatDate = (inputDate) => {
-  //        const parsedDate = parse(inputDate, "dd/MM/yyyy", new Date());
-  //        if (!isValid(parsedDate)) {
-  //          return null;
-  //        } else {
-  //          const formattedDate = format(parsedDate, "yyyy-MM-dd");
-  //          return formattedDate;
-  //        }
-  //      };
-
-  //      const searchfrom = event.target.searchfrom.value;
-  //      const searchfromMatch = searchfrom.match(/\((\w+)\)/);
-  //      const searchfromCode = searchfromMatch[1];
-  //      const searchto = event.target.searchto.value;
-  //      const searchtoMatch = searchto.match(/\((\w+)\)/);
-  //      const searchtoCode = searchtoMatch[1];
-  //      const searchdeparture = event.target.searchdeparture.value;
-  //      const searchreturnDate = event.target.searchreturnDate.value;
-  //      const formattedsearchdeparture = formatDate(searchdeparture);
-  //      const formattedsearchreturnDate = formatDate(searchreturnDate);
-
-  //      const adult = event.target.adult.value;
-  //      const child = event.target.child.value;
-  //      const infant = event.target.infant.value;
-  //      const classtype = event.target.classtype.value;
-  //      let cabinclass = classtype;
-  //      let bookingtype = "";
-  //      if (searchreturnDate) {
-  //        bookingtype = "Return";
-  //      } else {
-  //        bookingtype = "oneway";
-  //      }
-  //      if (classtype === "Economy/Premium Economy") {
-  //        cabinclass = "Economy";
-  //      } else {
-  //        cabinclass = classtype;
-  //      }
-  //      try {
-  //        const dynamicCityCode = searchfromCode;
-  //        const dynamicDestinationCode = searchtoCode;
-  //        const dynamicDepTime = formattedsearchdeparture;
-  //        const returndynamicDepTime = formattedsearchreturnDate;
-  //        const dynamicCabinType = cabinclass;
-  //        const PassengerCodeADT = adult;
-  //        const PassengerCodeCNN = child;
-  //        const PassengerCodeINF = infant;
-
-  //        const createSoapEnvelope = (
-  //          cityCode,
-  //          destinationCode,
-  //          depTime,
-  //          returnDepTime,
-  //          cabinType,
-  //          passengerCodeADT,
-  //          passengerCodeCNN,
-  //          passengerCodeINF
-  //        ) => {
-  //          const generatePassengerElements = (age, count, type) => {
-  //            return Array.from(
-  //              { length: count },
-  //              (_, index) =>
-  //                `<com:SearchPassenger Code="${type}"${age ? ` Age="${age}"` : ""
-  //                }/>`
-  //            ).join("");
-  //          };
-  //          const searchPassengerADT = generatePassengerElements(
-  //            "",
-  //            passengerCodeADT,
-  //            "ADT"
-  //          );
-  //          const searchPassengerCNN = generatePassengerElements(
-  //            "10",
-  //            passengerCodeCNN,
-  //            "CNN"
-  //          );
-  //          const searchPassengerINF = generatePassengerElements(
-  //            "01",
-  //            passengerCodeINF,
-  //            "INF"
-  //          );
-
-  //          const returnLegSection = returnDepTime
-  //            ? `<air:SearchAirLeg>
-  //                    <air:SearchOrigin>
-  //                    <com:CityOrAirport Code="${destinationCode}"/>
-  //                    </air:SearchOrigin>
-  //                    <air:SearchDestination>
-  //                    <com:CityOrAirport Code="${cityCode}"/>
-  //                    </air:SearchDestination>
-  //                    <air:SearchDepTime PreferredTime="${returnDepTime}"/>
-  //                </air:SearchAirLeg>`
-  //            : "";
-
-  //          return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-  //                    <soap:Body>
-  //                    <air:LowFareSearchReq TargetBranch="${Targetbranch}" TraceId="TVSBP001" SolutionResult="false" DistanceUnits="Km" AuthorizedBy="TAXIVAXI" xmlns:air="http://www.travelport.com/schema/air_v52_0" xmlns:com="http://www.travelport.com/schema/common_v52_0">
-  //                        <com:BillingPointOfSaleInfo OriginApplication="UAPI"/>
-  //                        <air:SearchAirLeg>
-  //                            <air:SearchOrigin>
-  //                                <com:CityOrAirport Code="${cityCode}"/>
-  //                            </air:SearchOrigin>
-  //                            <air:SearchDestination>
-  //                                <com:CityOrAirport Code="${destinationCode}"/>
-  //                            </air:SearchDestination>
-  //                            <air:SearchDepTime PreferredTime="${depTime}"/>
-  //                        </air:SearchAirLeg>
-  //                        ${returnLegSection}
-  //                        <air:AirSearchModifiers ETicketability="Yes" FaresIndicator="AllFares">
-  //                            <air:PreferredProviders>
-  //                                <com:Provider Code="ACH"/>
-  //                                <com:Provider Code="1G"/>
-  //                            </air:PreferredProviders>
-  //                            <air:PermittedCabins>
-  //                                <com:CabinClass Type="${cabinType}"/>
-  //                            </air:PermittedCabins>
-  //                        </air:AirSearchModifiers>
-  //                        ${searchPassengerADT}
-  //                        ${searchPassengerCNN}
-  //                        ${searchPassengerINF}
-  //                    </air:LowFareSearchReq>
-  //                </soap:Body>
-  //                </soap:Envelope>`;
-  //        };
-
-  //        var soapEnvelope = createSoapEnvelope(
-  //          dynamicCityCode,
-  //          dynamicDestinationCode,
-  //          dynamicDepTime,
-  //          returndynamicDepTime,
-  //          dynamicCabinType,
-  //          PassengerCodeADT,
-  //          PassengerCodeCNN,
-  //          PassengerCodeINF
-  //        );
-  //        // console.timeEnd("make api request");
-
-  //        sessionStorage.setItem("searchdata", soapEnvelope);
-  //        console.log("search data", soapEnvelope);
-  //        // console.time("API Call");
-  //        const response = await axios.post(
-  //          `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
-  //          soapEnvelope,
-  //          { headers: { "Content-Type": "text/xml" } }
-  //        );
-  //        console.log("searchresponse", response);
-  //        console.timeEnd("API Call");
-
-  //        const requestBody = {
-  //          CatalogProductOfferingsQueryRequest: {
-  //            CatalogProductOfferingsRequest: {
-  //              "@type": "CatalogProductOfferingsRequestAir",
-  //              maxNumberOfUpsellsToReturn: 4,
-  //              offersPerPage: 10,
-  //              contentSourceList: ["NDC"],
-  //              PassengerCriteria: [
-  //                { number: 1, passengerTypeCode: "ADT" },
-  //                { number: 1, passengerTypeCode: "CHD" },
-  //                { number: 1, passengerTypeCode: "INF" },
-  //              ],
-  //              SearchCriteriaFlight: [
-  //                {
-  //                  departureDate: dynamicDepTime,
-  //                  From: { value: dynamicCityCode },
-  //                  To: { value: dynamicDestinationCode },
-  //                },
-  //              ],
-  //              SearchModifiersAir: {
-  //                "@type": "SearchModifiersAir",
-  //                CarrierPreference: [
-  //                  {
-  //                    preferenceType: "Preferred",
-  //                    carriers: ["AI"],
-  //                  },
-  //                ],
-  //              },
-  //            },
-  //          },
-  //        };
-  //        //   console.log('requestbody', requestBody);
-  //        // const endpoint = `${baseURL}/${version}/air/catalog/search/catalogproductofferings`;
-
-  //        //     const requestBdy = {
-  //        //     request: requestBody,
-  //        //     endpoint: endpoint
-  //        //   };
-
-  //        //   console.log('requestbody', requestBody);
-  //        let token;
-  //        try {
-  //          token = await getAccessToken(); // Call your token function
-  //          // console.log('token', token);
-  //        } catch (error) {
-  //          console.error("Error fetching token:", error.message);
-  //          return;
-  //        }
-  //        const apiUrl = `https://${baseURL}/${version}/air/catalog/search/catalogproductofferings`;
-  //        const requestData = JSON.stringify(requestBody);
-  //        const formBody = {
-  //          url: apiUrl,
-  //          requestData: requestData,
-  //          token: token,
-  //        };
-
-  //        // Send the POST request
-  //        // const ndcresponse = await axios.post(
-  //        //     "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeNDCApiRequest",
-  //        //     formBody
-  //        // );
-  //        // console.log('ndcresponse', ndcresponse);
-  //        console.time("redirect");
-  //        const responseData = {
-  //          responsedata: response.data,
-  //          // ndcresponse :ndcresponse.data,
-  //          clientname: inputCompany,
-  //          markupdata: ClientMarkupDetails,
-  //          searchfromcity: searchfrom,
-  //          searchtocity: searchto,
-  //          searchdeparture: searchdeparture,
-  //          searchreturnDate: searchreturnDate,
-  //          airlinedata: airlineData.data,
-  //          airportData: airportData.data,
-  //          selectadult: adult,
-  //          selectchild: child,
-  //          selectinfant: infant,
-  //          selectclass: cabinclass,
-  //          bookingtype: bookingtype,
-  //          apiairportsdata: apiairports,
-  //          requesttype: "book",
-  //          fromcotrav: "1",
-  //          agent_id: agentId,
-  //          admin_id: adminid,
-  //          global: agentId ? 1 : 0,
-  //        };
-  //        console.timeEnd("redirect");
-  //        console.log("searchresponse", responseData);
-  //        navigate("/SearchFlight", { state: { responseData } });
-  //      } catch (error) {
-  //        // ErrorLogger.logError('search_api',soapEnvelope,error);
-  //        navigate("/tryagainlater");
-  //      } finally {
-  //        // setLoading(false);
-  //      }
-  //    }
-  //  };
   const handleSubmit = async (event) => {
     setSearchresponse(true);
     event.preventDefault();
@@ -1007,7 +662,6 @@ const NewHome = () => {
       const searchreturnDate = event.target.searchreturnDate.value;
       const formattedsearchdeparture = formatDate(searchdeparture);
       const formattedsearchreturnDate = formatDate(searchreturnDate);
-
       const adult = event.target.adult.value;
       const child = event.target.child.value;
       const infant = event.target.infant.value;
@@ -1017,14 +671,34 @@ const NewHome = () => {
       if (searchreturnDate) {
         bookingtype = "Return";
       } else {
-        bookingtype = "oneway";
+        bookingtype = "One Way";
       }
       if (classtype === "Economy/Premium Economy") {
         cabinclass = "Economy";
       } else {
         cabinclass = classtype;
       }
+      const airportOrigin = apiairports.find(
+        (airport) => airport.airport_iata_code === searchfromCode
+      );
+
+      const OriginCountryCode = airportOrigin?.airport_iso_country;
+      
+       const airportdest = apiairports.find(
+        (airport) => airport.airport_iata_code === searchtoCode
+      );
+
+      const destinationCountryCode = airportdest?.airport_iso_country;
+
+      let flight_type ='';
+      if(destinationCountryCode == 'IN' && OriginCountryCode == 'IN'){
+        flight_type = 'Domestic';
+      }else{
+        flight_type = 'International'
+      }
+      console.log("Flight_type",flight_type)
       try {
+
         const dynamicCityCode = searchfromCode;
         const dynamicDestinationCode = searchtoCode;
         const dynamicDepTime = formattedsearchdeparture;
@@ -1049,8 +723,7 @@ const NewHome = () => {
             return Array.from(
               { length: count },
               (_, index) =>
-                `<com:SearchPassenger Code="${type}"${
-                  age ? ` Age="${age}"` : ""
+                `<com:SearchPassenger Code="${type}"${age ? ` Age="${age}"` : ""
                 }/>`
             ).join("");
           };
@@ -1128,73 +801,14 @@ const NewHome = () => {
         sessionStorage.setItem("searchdata", soapEnvelope);
         console.log("search data", soapEnvelope);
         // console.time("API Call");
-        const response = await axios.post(
-          `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
-          soapEnvelope,
-          { headers: { "Content-Type": "text/xml" } }
-        );
-        console.log("searchresponse", response);
-        console.timeEnd("API Call");
-
-        // let token;
-        // try {
-        //     token = await fetchToken(); // Call your token function
-        //     console.log('token', token);
-        // } catch (error) {
-        //     console.error("Error fetching token:", error.message);
-        //     return;
-        // }
-        // const payload = {
-        //     EndUserIp: "192.168.11.120",
-        //     TokenId: "faf5a049-dec4-48f4-a602-1bfa26ddf91e",
-        //     AdultCount: PassengerCodeADT,
-        //     ChildCount: PassengerCodeCNN,
-        //     InfantCount: PassengerCodeINF,
-        //     DirectFlight: "false",
-        //     OneStopFlight: "false",
-        //     JourneyType: "1",
-        //     PreferredAirlines: null,
-        //     Segments: [
-        //       {
-        //         Origin: dynamicCityCode,
-        //         Destination: dynamicDestinationCode,
-        //         FlightCabinClass: "1",
-        //         PreferredDepartureTime: dynamicDepTime,
-        //         PreferredArrivalTime: dynamicDepTime
-        //       }
-        //     ],
-        //     Sources: null
-        //   };
-        //   console.log('payload', payload);
-        //   const tboresponse = await axios.post(
-        //     "https://cors-anywhere.herokuapp.com/http://api.tektravels.com/BookingEngineService_Air/AirService.svc/rest/Search",
-        //     payload,
-        //     {
-        //       headers: {
-        //         "Content-Type": "application/json",
-        //         "X-Requested-With": "XMLHttpRequest"
-        //       }
-        //     }
-        //   );
-
-        //   console.log("Flight Search Response:", tboresponse.data);
-        // const apiUrl = `https://${baseURL}/${version}/air/catalog/search/catalogproductofferings`;
-        // const requestData = JSON.stringify(requestBody);
-        //     const formBody = {
-        //         url: apiUrl,
-        //         requestData: requestData,
-        //         token: token
-        //       };
-
-        // Send the POST request
-        // const ndcresponse = await axios.post(
-        //     "https://devapi.taxivaxi.com/reactSelfBookingApi/v1/makeNDCApiRequest",
-        //     formBody
+        // const response = await axios.post(
+        //   `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`,
+        //   soapEnvelope,
+        //   { headers: { "Content-Type": "text/xml" } }
         // );
-        // console.log('ndcresponse', ndcresponse);
-        console.time("redirect");
+
         const responseData = {
-          responsedata: response.data,
+          // responsedata: response.data,
           // ndcresponse :ndcresponse.data,
           clientname: inputCompany,
           markupdata: ClientMarkupDetails,
@@ -1202,23 +816,25 @@ const NewHome = () => {
           searchtocity: searchto,
           searchdeparture: searchdeparture,
           searchreturnDate: searchreturnDate,
-          airlinedata: airlineData.data,
-          airportData: airportData.data,
+          flight_type: flight_type,
+          // airlinedata: airlineData.data,
+          // airportData: airportData.data,
           selectadult: adult,
           selectchild: child,
           selectinfant: infant,
           selectclass: cabinclass,
           bookingtype: bookingtype,
-          apiairportsdata: apiairports,
-          requesttype: "book",
+          // apiairportsdata: apiairports,
+          // requesttype: "search",
           fromcotrav: "1",
           agent_id: agentId,
           admin_id: adminid,
           global: agentId ? 1 : 0,
         };
-        console.timeEnd("redirect");
-        console.log("searchresponse", responseData);
+        // console.log(responseData);
+        localStorage.setItem("apiairportsdata",JSON.stringify(apiairports))
         navigate("/SearchFlight", { state: { responseData } });
+      
       } catch (error) {
         // ErrorLogger.logError('search_api',soapEnvelope,error);
         navigate("/tryagainlater");
@@ -1522,7 +1138,7 @@ const NewHome = () => {
   };
   const [hotelDetails, setHotelDetails] = useState();
   const [errorMessage, setErrorMessage] = useState("");
-
+  const [selectSize, setSelectSize] = useState(1);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Control dropdown visibility
   const [roomCount, setRoomCount] = useState("");
   const [roomadultCount, setRoomAdultCount] = useState("");
@@ -1795,7 +1411,7 @@ const NewHome = () => {
       },
     };
 
-    console.log("Request Body:", requestBody);
+    // console.log("Request Body:", requestBody);
 
     try {
       const response = await fetch(
@@ -1832,6 +1448,8 @@ const NewHome = () => {
           filteredCities,
           payment,
         };
+        sessionStorage.setItem("has_Booking_access", 0);
+        sessionStorage.setItem("has_search_access", 1);
         sessionStorage.setItem("agent_portal", 0);
         sessionStorage.setItem(
           "hotelData_header",
@@ -2077,9 +1695,8 @@ const NewHome = () => {
       !selectedCabCity ||
       (selectedCabCity &&
         inputValue !==
-          `${selectedCabCity.city_name || ""}, ${
-            selectedCabCity.state_name || ""
-          }`)
+        `${selectedCabCity.city_name || ""}, ${selectedCabCity.state_name || ""
+        }`)
     ) {
       setSelectedCabCity(null);
 
@@ -2130,9 +1747,8 @@ const NewHome = () => {
       !selectedDropCity ||
       (selectedDropCity &&
         inputValue !==
-          `${selectedDropCity.city_name || ""}, ${
-            selectedDropCity.state_name || ""
-          }`)
+        `${selectedDropCity.city_name || ""}, ${selectedDropCity.state_name || ""
+        }`)
     ) {
       setSelectedDropCity(null);
 
@@ -2330,7 +1946,7 @@ const NewHome = () => {
 
         // Save into sessionStorage
         navigate("/SearchCab");
-        
+
       }
       setLoading(false);
     } catch (error) {
@@ -2357,12 +1973,12 @@ const NewHome = () => {
   const fetchCitiesBus = async () => {
     setIsLoading(true);
     setError("");
-  
+
     try {
       const formData = new URLSearchParams();
-      formData.append("TokenId", "e3c6172f-fef3-47f3-9e7f-536ec33e7ab9");
-   
-    
+      formData.append("TokenId", "c7012f05-09a4-4db3-8c27-1aa75332538e");
+
+
       const response = await fetch(
         `https://demo.fleet247.in/api/tbo_bus/getBusCityList`,
         {
@@ -2374,9 +1990,9 @@ const NewHome = () => {
           body: formData.toString(),
         }
       );
-  
+
       const data = await response.json();
-  
+
       if (data.Status === 1 && Array.isArray(data.BusCities)) {
         setCityListBus(data.BusCities);
         setFilteredCitiesBus(data.BusCities);
@@ -2391,7 +2007,7 @@ const NewHome = () => {
       setIsLoading(false);
     }
   };
-  
+
 
   useEffect(() => {
     fetchCitiesBus();
@@ -2400,32 +2016,32 @@ const NewHome = () => {
   const handleInputChangeBus = (e) => {
     const input = e.target.value;
     setSelectedInputBus(input);
-  
+
     const filtered = cityListBus.filter((city) =>
       city.CityName.toLowerCase().includes(input.toLowerCase())
     );
     setFilteredCitiesBus(filtered);
     setShowDropdownBus(true);
   };
-  
+
   const handleCitySelectBus = (city) => {
     setSelectedInputBus(city.CityName);
     setSelectedFromCityId(city.CityId);
     setShowDropdownBus(false);
   };
-  
+
   const handleToCityInputChange = (e) => {
     const input = e.target.value;
     setToCityInput(input);
-  
+
     const filtered = toCityList.filter((city) =>
       city.CityName.toLowerCase().includes(input.toLowerCase())
     );
-    
+
     setFilteredToCities(filtered);
     setShowToCityDropdown(true);
   };
-  
+
   const handleToCitySelect = (city) => {
     setToCityInput(city.CityName);
     setSelectedToCityId(city.CityId);
@@ -2436,7 +2052,7 @@ const NewHome = () => {
     toCityError: "",
     travelDateError: "",
   });
-  
+
   const validateFormBus = () => {
     let isValid = true;
     const newErrors = {
@@ -2444,7 +2060,7 @@ const NewHome = () => {
       toCityError: "",
       travelDateError: "",
     };
-  
+
     // Validate From City - add null checks
     if (!selectedInputBus || !selectedInputBus.trim()) {
       newErrors.fromCityError = "Please select a departure city";
@@ -2453,7 +2069,7 @@ const NewHome = () => {
       newErrors.fromCityError = "Please select a valid city from the list";
       isValid = false;
     }
-  
+
     // Validate To City - add null checks
     if (!toCityInput || !toCityInput.trim()) {
       newErrors.toCityError = "Please select a destination city";
@@ -2465,7 +2081,7 @@ const NewHome = () => {
       newErrors.toCityError = "Departure and destination cannot be the same";
       isValid = false;
     }
-  
+
     // Validate Travel Date
     if (!travelDate) {
       newErrors.travelDateError = "Please select a travel date";
@@ -2474,11 +2090,11 @@ const NewHome = () => {
       newErrors.travelDateError = "Travel date cannot be in the past";
       isValid = false;
     }
-  
+
     setFormErrors(newErrors);
     return isValid;
   };
-  
+
   const handleBusSearch = async (e) => {
     e.preventDefault();
 
@@ -2498,7 +2114,7 @@ const NewHome = () => {
       // formData.append('DestinationId', selectedToCityId);
       formData.append('OriginId', "8463");
       formData.append('DestinationId', "9573");
-      formData.append('TokenId', "e3c6172f-fef3-47f3-9e7f-536ec33e7ab9");
+      formData.append('TokenId', "c7012f05-09a4-4db3-8c27-1aa75332538e");
 
       const response = await fetch('https://demo.fleet247.in/api/tbo_bus/searchBus', {
         method: 'POST',
@@ -2557,11 +2173,10 @@ const NewHome = () => {
       <div className="main_wrapper">
         <div className="module_container">
           <div
-            className={`gap-1 flex items-center border-b ${
-              activeForm === "flight"
-                ? "information_button border-b  active_tabs"
-                : "border-b-2 border-transparent"
-            }`}
+            className={`gap-1 flex items-center border-b ${activeForm === "flight"
+              ? "information_button border-b  active_tabs"
+              : "border-b-2 border-transparent"
+              }`}
             onClick={() => handleIconClick("flight")}
             style={{ cursor: "pointer" }}
           >
@@ -2588,11 +2203,10 @@ const NewHome = () => {
           </div>
 
           <div
-            className={`gap-1 flex items-center ${
-              activeForm === "hotel"
-                ? "information_button  border-b  active_tabs"
-                : "border-b-2 border-transparent"
-            }`}
+            className={`gap-1 flex items-center ${activeForm === "hotel"
+              ? "information_button  border-b  active_tabs"
+              : "border-b-2 border-transparent"
+              }`}
             onClick={() => handleIconClick("hotel")}
             style={{ cursor: "pointer" }}
           >
@@ -2621,11 +2235,10 @@ const NewHome = () => {
             </span>
           </div>
           <div
-            className={`gap-1 flex items-center ${
-              activeForm === "cab"
-                ? "information_button  border-b  active_tabs"
-                : "border-b-2 border-transparent"
-            }`}
+            className={`gap-1 flex items-center ${activeForm === "cab"
+              ? "information_button  border-b  active_tabs"
+              : "border-b-2 border-transparent"
+              }`}
             onClick={() => handleIconClick("cab")}
             style={{ cursor: "pointer" }}
           >
@@ -2654,11 +2267,10 @@ const NewHome = () => {
             </span>
           </div>
           <div
-            className={`gap-1 flex items-center ${
-              activeForm === "bus"
-                ? "information_button  border-b  active_tabs"
-                : "border-b-2 border-transparent"
-            }`}
+            className={`gap-1 flex items-center ${activeForm === "bus"
+              ? "information_button  border-b  active_tabs"
+              : "border-b-2 border-transparent"
+              }`}
             onClick={() => handleIconClick("bus")}
             style={{ cursor: "pointer" }}
           >
@@ -2713,13 +2325,13 @@ const NewHome = () => {
                       name="bookingtype"
                       value="oneway"
                       onChange={handleRadioChange}
-                      checked={formData.bookingType === "oneway"}
+                      checked={formData.bookingType === "One Way"}
                       id="departureRadio"
                     />
                     <label
                       className="bookingtype onewaybookingtype"
                       htmlFor="departureRadio"
-                      style={getLabelStyle("oneway")}
+                      style={getLabelStyle("One Way")}
                     >
                       One-Way
                     </label>
@@ -3033,7 +2645,7 @@ const NewHome = () => {
                                 200
                               );
                             }}
-                            // style={{ width: '100%', textAlign: 'center', height: '100%', border: 'none', outline: 'none' }}
+                          // style={{ width: '100%', textAlign: 'center', height: '100%', border: 'none', outline: 'none' }}
                           />
                           {/* Dropdown */}
 
@@ -3350,23 +2962,9 @@ const NewHome = () => {
               >
                 <div className="search-large-i">
                   <div className="srch-tab-line no-margin-bottom">
-                    <div
-                      style={{
-                        textAlign: "left",
-                        marginBottom: "0px",
-                      }}
-                    >
-                      Adults (12y +)
-                    </div>
-                    <p
-                      style={{
-                        color: "#7b7777",
-                        fontSize: "small",
-                        marginBottom: "1px",
-                      }}
-                    >
-                      on the day of travel
-                    </p>
+
+                    <label style={{ textAlign: 'left', marginBottom: '0px' }}>Adults (12y +)</label>
+                    <p style={{ color: '#7b7777', fontSize: 'small', marginBottom: '1px' }}>on the day of travel</p>
                     <div className="select-wrapper1">
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
                         <React.Fragment key={value}>
@@ -3376,13 +2974,9 @@ const NewHome = () => {
                             id={`adult${value}`}
                             value={value}
                             onChange={(e) => handleAdult(e.target.value)}
-                            checked={
-                              Cookies.get("cookiesData")
-                                ? value.toString() === adultCount.toString()
-                                : value === 1
-                            }
+                            checked={Cookies.get('cookiesData') ? value.toString() === adultCount.toString() : value === 1}
                           />
-                          <div htmlFor={`adult${value}`}>{value}</div>
+                          <label htmlFor={`adult${value}`}>{value}</label>
                         </React.Fragment>
                       ))}
                       <input
@@ -3392,28 +2986,14 @@ const NewHome = () => {
                         value={10}
                         onChange={(e) => handleAdult(e.target.value)}
                       />
-                      <div htmlFor="adultgreater9">&gt;9</div>
+                      <label htmlFor="adultgreater9">&gt;9</label>
                     </div>
                   </div>
                   <div className="row-container">
                     <div className="srch-tab-line no-margin-bottom">
-                      <div
-                        style={{
-                          textAlign: "left",
-                          marginBottom: "0px",
-                        }}
-                      >
-                        Children (2y - 12y)
-                      </div>
-                      <p
-                        style={{
-                          color: "#7b7777",
-                          fontSize: "small",
-                          marginBottom: "1px",
-                        }}
-                      >
-                        on the day of travel
-                      </p>
+
+                      <label style={{ textAlign: 'left', marginBottom: '0px' }}>Children (2y - 12y)</label>
+                      <p style={{ color: '#7b7777', fontSize: 'small', marginBottom: '1px' }}>on the day of travel</p>
                       <div className="select-wrapper1">
                         {[0, 1, 2, 3, 4, 5, 6].map((value) => (
                           <React.Fragment key={value}>
@@ -3423,13 +3003,9 @@ const NewHome = () => {
                               id={`child${value}`}
                               value={value}
                               onChange={(e) => handleChild(e.target.value)}
-                              checked={
-                                Cookies.get("cookiesData")
-                                  ? value.toString() === childCount.toString()
-                                  : value === 0
-                              }
+                              checked={Cookies.get('cookiesData') ? value.toString() === childCount.toString() : value === 0}
                             />
-                            <div htmlFor={`child${value}`}>{value}</div>
+                            <label htmlFor={`child${value}`}>{value}</label>
                           </React.Fragment>
                         ))}
                         <input
@@ -3439,27 +3015,13 @@ const NewHome = () => {
                           value={7}
                           onChange={(e) => handleChild(e.target.value)}
                         />
-                        <div htmlFor="childgreater6">&gt;6</div>
+                        <label htmlFor="childgreater6">&gt;6</label>
                       </div>
                     </div>
                     <div className="srch-tab-line no-margin-bottom">
-                      <div
-                        style={{
-                          textAlign: "left",
-                          marginBottom: "0px",
-                        }}
-                      >
-                        Infants (below 2y)
-                      </div>
-                      <p
-                        style={{
-                          color: "#7b7777",
-                          fontSize: "small",
-                          marginBottom: "1px",
-                        }}
-                      >
-                        on the day of travel
-                      </p>
+
+                      <label style={{ textAlign: 'left', marginBottom: '0px' }}>Infants (below 2y)</label>
+                      <p style={{ color: '#7b7777', fontSize: 'small', marginBottom: '1px' }}>on the day of travel</p>
                       <div className="select-wrapper1">
                         {[0, 1, 2, 3, 4, 5, 6].map((value) => (
                           <React.Fragment key={value}>
@@ -3469,13 +3031,9 @@ const NewHome = () => {
                               id={`infant${value}`}
                               value={value}
                               onChange={(e) => handleInfant(e.target.value)}
-                              checked={
-                                Cookies.get("cookiesData")
-                                  ? value.toString() === infantCount.toString()
-                                  : value === 0
-                              }
+                              checked={Cookies.get('cookiesData') ? value.toString() === infantCount.toString() : value === 0}
                             />
-                            <div htmlFor={`infant${value}`}>{value}</div>
+                            <label htmlFor={`infant${value}`}>{value}</label>
                           </React.Fragment>
                         ))}
                         <input
@@ -3485,56 +3043,37 @@ const NewHome = () => {
                           value={7}
                           onChange={(e) => handleInfant(e.target.value)}
                         />
-                        <div htmlFor="infantgreater6">&gt;6</div>
+                        <label htmlFor="infantgreater6">&gt;6</label>
                       </div>
                     </div>
                   </div>
                 </div>
-                {/* Travel Class Selection */}
+
                 <div className="search-large-i1">
                   <div className="srch-tab-line no-margin-bottom">
-                    <div
-                      style={{
-                        marginBottom: "1%",
-                        textAlign: "left",
-                      }}
-                    >
-                      Choose Travel Class
-                    </div>
+
+                    <label style={{ marginBottom: '1%', textAlign: 'left' }}>Choose Travel Class</label>
                     <div className="select-wrapper1 select-wrapper2">
-                      {["Economy/Premium Economy", "Business", "First"].map(
-                        (value) => (
-                          <React.Fragment key={value}>
-                            <input
-                              type="radio"
-                              name="classtype"
-                              id={`classtype${value}`}
-                              value={value}
-                              onChange={(e) => handleClasstype(e.target.value)}
-                              checked={
-                                Cookies.get("cookiesData")
-                                  ? value.toString() === cabinClass.toString()
-                                  : value === "Economy/Premium Economy"
-                              }
-                            />
-                            <div
-                              style={{ lineHeight: "2" }}
-                              htmlFor={`classtype${value}`}
-                            >
-                              {value === "Economy/Premium Economy"
-                                ? value
-                                : `${value} class`}
-                            </div>
-                          </React.Fragment>
-                        )
-                      )}
+                      {['Economy/Premium Economy', 'Business', 'First'].map((value) => (
+                        <React.Fragment key={value}>
+                          <input
+                            type="radio"
+                            name="classtype"
+                            id={`classtype${value}`}
+                            value={value}
+                            onChange={(e) => handleClasstype(e.target.value)}
+                            checked={cabinClass?.toString() === "Economy" && value === "Economy/Premium Economy" ? true : cabinClass?.toString() === value}
+                          />
+                          <label style={{ lineHeight: '2' }} htmlFor={`classtype${value}`}>{value === "Economy/Premium Economy" ? value : `${value} class`}</label>
+                        </React.Fragment>
+                      ))}
                     </div>
                   </div>
                 </div>
                 <button
                   type="button"
                   className="search-buttonn"
-                  style={{ marginLeft: "69%" }}
+                  style={{ marginLeft: "80%", height: '30px' }}
                   onClick={() => {
                     setIsOpen(false);
                   }}
@@ -3542,6 +3081,7 @@ const NewHome = () => {
                   Apply
                 </button>
               </div>
+
             </form>
           )}
           {activeForm === "hotel" && (
@@ -3951,7 +3491,7 @@ const NewHome = () => {
           {activeForm === "cab" && (
             <div
               className="cab-form "
-              // onSubmit={handleCabSearch}
+            // onSubmit={handleCabSearch}
             >
               <div className=" cab-box ">
                 <div className="flex gap-4">
@@ -4679,7 +4219,7 @@ const NewHome = () => {
                       )}
                     </div>
                   </>
-                ) : selectedCabType === "Oneway" ? (
+                ) : selectedCabType === "One Way" ? (
                   <from className="cab-container flex flex-cols ">
                     <div className="from-cab-group">
                       <div className="location-headers">Pickup City</div>
@@ -4900,127 +4440,125 @@ const NewHome = () => {
           {activeForm === "bus" && (
             <div
               className="cab-form "
-              // onSubmit={handleCabSearch}
+            // onSubmit={handleCabSearch}
             >
-             <div className="cab-box">
-  <form className="cab-container flex flex-cols" >
-    <div className="from-cab-group">
-      <div className="location-headers">From City</div>
-      <div className="location-details relative">
-    <input
-  type="text"
-  className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
-  placeholder="Select From City"
-  value={selectedInputBus}
-  onChange={handleInputChangeBus}
-  onFocus={() => setShowDropdownBus(true)}
-  onBlur={() => setTimeout(() => setShowDropdownBus(false), 200)} // Add slight delay
-/>
-      {showDropdownBus && filteredCitiesBus.length > 0 && (
-  <ul className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full mt-1 max-h-60 overflow-y-auto">
-    {filteredCitiesBus.map((city) => (
-      <li
-        key={city.CityId}
-        className="px-3 py-2 hover:bg-gray-200 cursor-pointer"
-        onClick={() => handleCitySelectBus(city)}  // Changed from onMouseDown to onClick
-      >
-        {city.CityName}
-      </li>
-    ))}
-  </ul>
-)}
+              <div className="cab-box">
+                <form className="cab-container flex flex-cols" >
+                  <div className="from-cab-group">
+                    <div className="location-headers">From City</div>
+                    <div className="location-details relative">
+                      <input
+                        type="text"
+                        className="w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name"
+                        placeholder="Select From City"
+                        value={selectedInputBus}
+                        onChange={handleInputChangeBus}
+                        onFocus={() => setShowDropdownBus(true)}
+                        onBlur={() => setTimeout(() => setShowDropdownBus(false), 200)} // Add slight delay
+                      />
+                      {showDropdownBus && filteredCitiesBus.length > 0 && (
+                        <ul className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full mt-1 max-h-60 overflow-y-auto">
+                          {filteredCitiesBus.map((city) => (
+                            <li
+                              key={city.CityId}
+                              className="px-3 py-2 hover:bg-gray-200 cursor-pointer"
+                              onClick={() => handleCitySelectBus(city)}  // Changed from onMouseDown to onClick
+                            >
+                              {city.CityName}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
 
-        {formErrors.fromCityError && (
-          <div className="text-red-500 text-xs mt-1 px-2.5">
-            {formErrors.fromCityError}
-          </div>
-        )}
-        {/* Rest of your dropdown code... */}
-      </div>
-    </div>
+                      {formErrors.fromCityError && (
+                        <div className="text-red-500 text-xs mt-1 px-2.5">
+                          {formErrors.fromCityError}
+                        </div>
+                      )}
+                      {/* Rest of your dropdown code... */}
+                    </div>
+                  </div>
 
-    <div className="from-cab-group">
-  <div className="cab-headers">To City</div>
-  <div className="location-details relative">
-    <input
-      type="text"
-      className={`w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name ${
-        formErrors.toCityError ? "border-red-500" : ""
-      }`}
-      placeholder="Select To City"
-      value={toCityInput}
-      onChange={handleToCityInputChange}
-      onFocus={() => setShowToCityDropdown(true)}
-      onBlur={() => setTimeout(() => setShowToCityDropdown(false), 200)}
-      disabled={loadingToCities}
-    />
+                  <div className="from-cab-group">
+                    <div className="cab-headers">To City</div>
+                    <div className="location-details relative">
+                      <input
+                        type="text"
+                        className={`w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name ${formErrors.toCityError ? "border-red-500" : ""
+                          }`}
+                        placeholder="Select To City"
+                        value={toCityInput}
+                        onChange={handleToCityInputChange}
+                        onFocus={() => setShowToCityDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowToCityDropdown(false), 200)}
+                        disabled={loadingToCities}
+                      />
 
-    {showToCityDropdown && (
-      <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full mt-1 max-h-60 overflow-y-auto">
-        {loadingToCities ? (
-          <div className="text-center py-2">Loading...</div>
-        ) : filteredToCities.length > 0 ? (
-          filteredToCities.map((city) => (
-            <div
-              key={city.CityId}
-              className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
-              onMouseDown={(e) => e.preventDefault()} // Prevent blur from happening
-              onClick={() => {
-                handleToCitySelect(city)
-                setToCityInput(city.CityName);
-                setSelectedToCityId(city.CityId);
-                setShowToCityDropdown(false);
-              }}
-            >
-              <div className="font-medium">{city.CityName}</div>
-            </div>
-          ))
-        ) : (
-          <div className="text-center py-2 text-gray-500">No cities found</div>
-        )}
-      </div>
-    )}
+                      {showToCityDropdown && (
+                        <div className="absolute z-10 bg-white border border-gray-300 rounded-lg w-full mt-1 max-h-60 overflow-y-auto">
+                          {loadingToCities ? (
+                            <div className="text-center py-2">Loading...</div>
+                          ) : filteredToCities.length > 0 ? (
+                            filteredToCities.map((city) => (
+                              <div
+                                key={city.CityId}
+                                className="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                                onMouseDown={(e) => e.preventDefault()} // Prevent blur from happening
+                                onClick={() => {
+                                  handleToCitySelect(city)
+                                  setToCityInput(city.CityName);
+                                  setSelectedToCityId(city.CityId);
+                                  setShowToCityDropdown(false);
+                                }}
+                              >
+                                <div className="font-medium">{city.CityName}</div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-center py-2 text-gray-500">No cities found</div>
+                          )}
+                        </div>
+                      )}
 
-    {formErrors.toCityError && (
-      <div className="text-red-500 text-xs mt-1 px-2.5">
-        {formErrors.toCityError}
-      </div>
-    )}
-  </div>
-</div>
+                      {formErrors.toCityError && (
+                        <div className="text-red-500 text-xs mt-1 px-2.5">
+                          {formErrors.toCityError}
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-    <div className="from-cab-group">
-      <div className="cab-headers">Travel Date</div>
-      <div className="location-details relative">
-        <DatePicker
-          className={`w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name ${
-            formErrors.travelDateError ? "border-red-500" : ""
-          }`}
-          placeholderText="Select Travel Date"
-          selected={travelDate}
-          onChange={(date) => {
-            setTravelDate(date);
-            setFormErrors(prev => ({...prev, travelDateError: ""}));
-            setShowTravelDateDropdown(false);
-          }}
-          dateFormat="dd/MM/yyyy"
-          minDate={new Date()}
-          onFocus={() => setShowTravelDateDropdown(true)}
-          onBlur={() => setTimeout(() => setShowTravelDateDropdown(false), 200)}
-          open={showTravelDateDropdown}
-          onClickOutside={() => setShowTravelDateDropdown(false)}
-        />
-        {formErrors.travelDateError && (
-          <div className="text-red-500 text-xs mt-1 px-2.5">
-            {formErrors.travelDateError}
-          </div>
-        )}
-      </div>
-    </div>
+                  <div className="from-cab-group">
+                    <div className="cab-headers">Travel Date</div>
+                    <div className="location-details relative">
+                      <DatePicker
+                        className={`w-full rounded-lg px-3 py-2 focus:outline-none hotel-city-name ${formErrors.travelDateError ? "border-red-500" : ""
+                          }`}
+                        placeholderText="Select Travel Date"
+                        selected={travelDate}
+                        onChange={(date) => {
+                          setTravelDate(date);
+                          setFormErrors(prev => ({ ...prev, travelDateError: "" }));
+                          setShowTravelDateDropdown(false);
+                        }}
+                        dateFormat="dd/MM/yyyy"
+                        minDate={new Date()}
+                        onFocus={() => setShowTravelDateDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowTravelDateDropdown(false), 200)}
+                        open={showTravelDateDropdown}
+                        onClickOutside={() => setShowTravelDateDropdown(false)}
+                      />
+                      {formErrors.travelDateError && (
+                        <div className="text-red-500 text-xs mt-1 px-2.5">
+                          {formErrors.travelDateError}
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-    
-  </form>
-</div>
+
+                </form>
+              </div>
               <button
                 type="submit"
                 className="search-buttonn serach_button"

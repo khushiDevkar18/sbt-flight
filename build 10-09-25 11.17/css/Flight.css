@@ -1,0 +1,82 @@
+.Theme_color{
+    color:#785EFF;
+}
+.theme_bg{
+    background-color:#785EFF;
+}
+.font-Montserrat{
+    font-family:'Montserrat';
+}
+.cardbody_font{
+    font-size: 11px;
+}
+.flight-line-d1 {
+    /* margin-left: 5px; */
+    margin-right: 5px;
+  }
+  .flight-line-d2,
+  .flight-line-d4 {
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+  .flight-line-d1 {
+  display: inline-block;
+  vertical-align: middle;
+  width: 115px;
+  height: 13px;
+  background: url(../public/img/DOTT_LINE.svg) left top no-repeat;
+  margin: 10px 0px 0px 13px;
+}
+
+.flight-line-d2 {
+  display: inline-block;
+  vertical-align: middle;
+  width: 115px;
+  height: 13px;
+  background: url(../public/img/FLIGHT_LINE.svg) left top no-repeat;
+  margin: 5px 11px 0px 0px;
+}
+
+.Bookingheading{
+  background-color: #0E0E3E;
+  color: #fcfafa;
+  box-shadow: 0 0px 8px 0 rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 18px;
+  width: 100% !important; 
+  border: none;
+  display: block;
+  text-align: left;
+  outline: none;
+  font-size: 13px;
+  font-family: Arial, Helvetica, sans-serif;
+  transition: 0.4s;
+  margin: 0px 0px;
+}
+.Bookingsuccessful{
+  border-color: #104b02 !important;
+  background-color: #fcfafa;
+  color: #104b02;
+  box-shadow: 0 0px 8px 0 rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 18px;
+  width: 100% !important; 
+  border: none;
+  display: block;
+  text-align: left;
+  outline: none;
+  font-size: 13px;
+  font-family: Arial, Helvetica, sans-serif;
+  transition: 0.4s;
+  margin: 0px 0px;
+}
+.bsp-page-r{
+    width: 348px;
+    float: left;
+    overflow: hidden;
+    margin: -4px 0 0 -348px;
+}

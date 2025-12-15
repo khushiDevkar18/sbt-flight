@@ -72,14 +72,14 @@ const navigate = useNavigate();
                 //   console.log('searchfrom', searchfrom);
                   const searchfromMatch = searchfrom.match(/\((\w+)\)/);
                   const searchfromCode = searchfromMatch[1];
-                  console.log('sechfromcode', searchfromCode);
+                  // console.log('sechfromcode', searchfromCode);
                   const searchto = formtaxivaxiData['to_city']; 
                   const searchtoMatch = searchto.match(/\((\w+)\)/);
                   const searchtoCode = searchtoMatch[1];
                   const searchdeparture = formtaxivaxiData['departure_date'];       
                   const searchdeparturee = formtaxivaxiData['departure_date'].split('-').reverse().join('/');
                   const formattedsearchdeparture = formatDate(searchdeparture);
-                  console.log('formattedsearchdeparture',formattedsearchdeparture);
+                  // console.log('formattedsearchdeparture',formattedsearchdeparture);
                   const spoc_email = formtaxivaxiData['email'];
                   const additional_emails = formtaxivaxiData['additional_emails'];
                   const ccmail = formtaxivaxiData['cc_email'];
@@ -198,7 +198,7 @@ const navigate = useNavigate();
                   const password = 'tN=54gT+%Y'; 
                   const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
                   sessionStorage.setItem('searchdata', soapEnvelope);
-                  console.log('soapenv', soapEnvelope); 
+                  // console.log('soapenv', soapEnvelope); 
 
                 const reData=await axios.post(
                                 `${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
@@ -211,13 +211,13 @@ const navigate = useNavigate();
                     `${CONFIG.DEV_API}/reactSelfBookingApi/v1/makeFlightAirServiceRequest`, 
                     soapEnvelope, { headers: { 'Content-Type': 'text/xml'  }}
                   );
-                  console.log('search response', response.data);
+                  // console.log('search response', response.data);
 
                   await axios.post(
                     `${CONFIG.MAIN_API}/api/flights/saveUAPILogs`,
                     new URLSearchParams({ booking_id: booking_id,api_data:response.data,api_name:'searchRes' }) // Send booking_id as form data
                   );
-                
+              
                   const responseData = {
                       responsedata: response.data,
                       searchfromcity: searchfrom,

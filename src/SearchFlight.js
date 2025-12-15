@@ -43,7 +43,7 @@ const FlightInfoDepartureDate = ({ DepartureDate, onFlightDepartureDateChange })
 
 const SearchFlight = () => {
   const [loadingg, setLoadingg] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const location = useLocation();
   const [formtaxivaxi, setFormtaxivaxi] = useState([]);
   let storedFormData = sessionStorage.getItem('formtaxivaxiData');
@@ -64,6 +64,7 @@ const SearchFlight = () => {
   const [BrandList, setBrandlist] = useState([]);
   // console.log('flightOptions', flightOptions);
   const [flightairoption, setFlightAirOptions] = useState([]);
+  // console.log('flightairoption', flightairoption);
   const [flightairoptionarray, setFlightAirOptionsArray] = useState([]);
   // console.log('flightairoptionarray', flightairoptionarray);
   const [flightDetails, setFlightDetails] = useState([]);
@@ -80,7 +81,7 @@ const SearchFlight = () => {
   const [showModal, setShowModal] = useState(false);
   const [newpayload, setPayload] = useState("");
   const contentRef = useRef(null);
-  const Targetbranch = 'P7206253';
+  const Targetbranch = 'P4451438';
   // console.log('TaxList', TaxList);
 
   const getFareDetails = (brandName) => {
@@ -127,7 +128,7 @@ const SearchFlight = () => {
   useEffect(() => {
     if (!airlines) {
       const fetchAirlines = async () => {
-        setLoading(true);
+        // setLoading(true);
 
         try {
           const airlineRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
@@ -150,7 +151,7 @@ const SearchFlight = () => {
         } catch (error) {
           console.error("Error fetching airlines:", error);
         } finally {
-          setLoading(false);
+          // setLoading(false);
         }
       };
 
@@ -176,7 +177,7 @@ const SearchFlight = () => {
   useEffect(() => {
     if (!airports) {
       const fetchAirports = async () => {
-        setLoading(true);
+        // setLoading(true);
         try {
           const airportRequest = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:util="http://www.travelport.com/schema/util_v50_0" xmlns:com="http://www.travelport.com/schema/common_v50_0">
             <soapenv:Header/>
@@ -193,12 +194,12 @@ const SearchFlight = () => {
             airportRequest,
             { headers: { 'Content-Type': 'text/xml' } }
           );
-
+      
           setAirports(response.data);
         } catch (error) {
           console.error("Error fetching airports:", error);
         } finally {
-          setLoading(false);
+          // setLoading(false);
         }
       };
 
@@ -305,18 +306,22 @@ const SearchFlight = () => {
   const [fareInfoRefsState, setFareInfoRefsState] = useState([]);
   // console.log('fareInfoRefsState', fareInfoRefsState);
   const [allSegmentKeys, setAllSegmentKeys] = useState([]);
+  // console.log('allSegmentKeys', allSegmentKeys);
   const [isbookingpage, setBookingpage] = useState(false);
+  const [matchedselected, setMatchedselected] = useState([]);
 
   const taxesRef = useRef(null);
   // console.log('taxesRef', taxesRef);
 
   const handleSegmentKeyMatch = (segmentKey) => {
-    console.log('segmentKey', segmentKey);
+    // console.log('segmentKey', segmentKey);
     setFareInfoRefsState([]);
     const segmentKeys = Array.isArray(segmentKey) ? segmentKey : [segmentKey];
     const matchedBookingInfo = flightairoptionarray.filter((option) => {
       const bookingInfos = option["air:BookingInfo"];
+      // console.log('bookingInfos', bookingInfos);
       const normalizedBookingInfos = Array.isArray(bookingInfos) ? bookingInfos : [bookingInfos];
+      // console.log('normalizedBookingInfos', normalizedBookingInfos);
   
       // Must match length
       if (normalizedBookingInfos.length !== segmentKeys.length) return false;
@@ -324,20 +329,24 @@ const SearchFlight = () => {
       const segmentRefsInOption = normalizedBookingInfos.map(
         (b) => b?.["$"]?.SegmentRef
       );
+      // console.log('segmentRefsInOption', segmentRefsInOption); 
   
       // Must contain exactly the same SegmentRefs as the segmentKeys (unordered match)
       const isExactMatch =
         segmentRefsInOption.every((ref) => segmentKeys.includes(ref)) &&
         segmentKeys.every((ref) => segmentRefsInOption.includes(ref));
+        // console.log('isExactMatch', isExactMatch);
   
       return isExactMatch;
     });
-    console.log('matchedBookingInfo', matchedBookingInfo);
+    setMatchedselected(matchedBookingInfo);
+    // console.log('matchedBookingInfo', matchedBookingInfo);
     const firstBookingInfos = matchedBookingInfo.map((item) => {
       const bookingInfos = item["air:BookingInfo"];
       const normalizedBookingInfos = Array.isArray(bookingInfos) ? bookingInfos : [bookingInfos];
       return normalizedBookingInfos[0]?.["$"] || {}; // Flatten the $
     });
+    // console.log('firstBookingInfos',firstBookingInfos);
     setFareInfoRefsState([...firstBookingInfos]);
   };
   // console.log('hello');
@@ -348,11 +357,19 @@ const SearchFlight = () => {
     setBookingpage(true);
     const bookingCode = fareInfoRefKey['BookingCode'];
 
-    const matchedData = flightairoption.filter(
-      (fareInfo) =>
-        fareInfo.BookingCode === bookingCode &&
-        allSegmentKeys.includes(fareInfo.SegmentRef) // Use allSegmentKeys from state for connecting flights
-    );
+    // const matchedData = flightairoption.filter(
+    //   (fareInfo) =>
+    //     fareInfo.BookingCode === bookingCode &&
+    //     allSegmentKeys.includes(fareInfo.SegmentRef) // Use allSegmentKeys from state for connecting flights
+    // );
+    const matchedData = matchedselected
+  .flatMap((item) => item["air:BookingInfo"]) // first go inside each air:BookingInfo array
+  .map((info) => info["$"]) // pick the $ from each
+  .filter(
+    (fareInfo) =>
+      fareInfo.BookingCode === bookingCode &&
+      allSegmentKeys.includes(fareInfo.SegmentRef)
+  );
     console.log("matchedData", matchedData);
 
     const matchingFareInfo = FareList.find(
@@ -780,7 +797,7 @@ const SearchFlight = () => {
         navigate('/tryagainlater');
       }
       finally {
-        setLoadingg(false);
+        setLoading(false);
 
       }
     };
@@ -1030,7 +1047,6 @@ const SearchFlight = () => {
   // console.log('selectedairline', selectedAirlines);
   const [selectedreturnAirlines, setreturnSelectedAirlines] = useState([]);
   const [selectedStops, setSelectedStops] = useState([]);
-  // const [selectedStops, setSelectedStops] = useState([]);
   const [selectedreturnStops, setreturnSelectedStops] = useState([]);
   const [selectedTimeRange, setSelectedTimeRange] = useState([]);
   // console.log('selectedTimeRange', selectedTimeRange);
@@ -1073,7 +1089,6 @@ const SearchFlight = () => {
   const handleStopCheckboxChange = (stops) => {
     setSelectedStops((prevStops) =>
       prevStops.includes(stops)
-
         ? prevStops.filter((selected) => selected !== stops) // Remove if already selected
         : [...prevStops, stops] // Add if not selected
     );
@@ -1271,7 +1286,7 @@ const SearchFlight = () => {
 
   // useEffect(() => {
   const handlePriceSubmit = (event, priceindex, taxes) => {
-    // console.log('taxes', taxes);
+    // console.log('hi');
     taxesRef.current = null;
     const tax = Math.floor(parseFloat(taxes.replace("INR", "").trim()));
 
@@ -1362,7 +1377,7 @@ const SearchFlight = () => {
 
         setPassengerxml(passengerKeysXml);
         var segmentArrayJSON = Array.from(searchData.getAll('Segmentarray[]'));
-        console.log('segmentArrayJSON', segmentArrayJSON);
+        // console.log('segmentArrayJSON', segmentArrayJSON);
         var BookingInfoJSON = Array.from(searchData.getAll('BookingInfoData[]'));
         const passengerKeysXmlString = JSON.stringify(passengerKeysXml);
         sessionStorage.setItem('passengerKeysXml', passengerKeysXmlString);
@@ -1403,7 +1418,7 @@ const SearchFlight = () => {
         // console.log('updatedsegmentar', segmentArray);
 
         if (providerCodeValue === '1G') {
-          console.log('hi');
+          // console.log('hi');
           segmentArray.forEach(segment => {
             if (segment['$']) {
               segment['$'].ProviderCode = '1G';
@@ -1482,9 +1497,11 @@ const SearchFlight = () => {
         }
 
         else if (providerCodeValue === 'ACH') {
+          // console.log('123');
           const segmentKeys = segmentArray.map((segment) => segment["$"]["Key"]); // Get all segment keys
           setAllSegmentKeys(segmentKeys);
           const key = segmentArray[0]["$"]["Key"];
+
           handleSegmentKeyMatch(segmentKeys);
           setLoading(false);
           return;
@@ -2216,7 +2233,7 @@ const SearchFlight = () => {
           PassengerCodeINF,
         );
         sessionStorage.setItem('searchdata', soapEnvelope);
-        // console.log('soap', soapEnvelope);
+        console.log('soap', soapEnvelope);
 
 
         const eresponse = await axios.post(
@@ -2224,7 +2241,7 @@ const SearchFlight = () => {
           soapEnvelope, { headers: { 'Content-Type': 'text/xml' } }
         );
         const eResponse = eresponse.data;
-        // console.log('eResponse', eResponse);
+        console.log('eResponse', eResponse);
         // setSearchFinalResponse(eResponse);
 
         // parseString(eResponse, { explicitArray: false }, (err, result) => {
@@ -2318,7 +2335,67 @@ const SearchFlight = () => {
             // console.log("pricepointlist", pricepointlist)
             setHostlist(Array.isArray(hosttokenlist) ? hosttokenlist : [hosttokenlist]);
             setFarelist(Array.isArray(fareinfolist) ? fareinfolist : [fareinfolist]);
+            
             // console.log("Parsed XML successfully");
+
+            const extractedBookingInfo = [];
+          const extractedTaxInfo = [];
+          const extractedOptionsArray = []; // <-- This is what you're asking for
+
+          const pricepointlistArray = Array.isArray(pricepointlist) ? pricepointlist : [pricepointlist];
+
+          // Iterate through the AirPricePoint list
+          pricepointlistArray.forEach((airPricePoint) => {
+            const airPricingInfo = airPricePoint['air:AirPricingInfo'];
+            if (!airPricingInfo) return;
+
+            // Tax Info extraction
+            const taxInfoList = airPricingInfo['air:TaxInfo'];
+            const taxInfoArray = Array.isArray(taxInfoList) ? taxInfoList : taxInfoList ? [taxInfoList] : [];
+
+            taxInfoArray.forEach((taxInfo) => {
+              if (taxInfo?.["$"]?.SupplierCode === "6E") {
+                extractedTaxInfo.push(taxInfo["$"]);
+              }
+            });
+
+            const flightOptionsList = airPricingInfo['air:FlightOptionsList'];
+            if (!flightOptionsList) return;
+
+            const flightOptions = flightOptionsList['air:FlightOption'];
+            const flightOptionArray = Array.isArray(flightOptions) ? flightOptions : [flightOptions];
+
+            flightOptionArray.forEach((flightOption) => {
+              const options = flightOption['air:Option'];
+              const optionsArray = Array.isArray(options) ? options : [options];
+
+              optionsArray.forEach((airOption) => {
+                const bookingInfo = airOption['air:BookingInfo'];
+                const bookingInfoArray = Array.isArray(bookingInfo) ? bookingInfo : [bookingInfo];
+
+                bookingInfoArray.forEach((info) => {
+                  if (info && info["$"]) {
+                    extractedBookingInfo.push(info["$"]);
+                  }
+                });
+
+                // 💡 Push only the 'air:BookingInfo' for each option (no '$' field)
+                extractedOptionsArray.push({
+                  "air:BookingInfo": Array.isArray(airOption["air:BookingInfo"])
+                    ? airOption["air:BookingInfo"]
+                    : [airOption["air:BookingInfo"]]
+                });
+              });
+            });
+          });
+
+
+          // console.log("extractedOptionsArray:", extractedOptionsArray);
+          setFlightAirOptionsArray(extractedOptionsArray)
+          setTaxlist(Array.isArray(extractedTaxInfo) ? extractedTaxInfo : [extractedTaxInfo]);
+
+
+            
 
           } else {
             const error = result['SOAP:Envelope']['SOAP:Body']['SOAP:Fault']['faultstring'];
@@ -2805,6 +2882,7 @@ const SearchFlight = () => {
         if (response.data.success === "1") {
           setHtmlContent(response.data.data);
           setShowModal(true);
+
           // Swal.fire({
           //   title: "Success!",
           //   text: "Flight options have been sent successfully.",
@@ -12990,7 +13068,7 @@ const SearchFlight = () => {
                                                                   )
                                                               )}
                                                             </div>
-                                                            {agent_id && bookingid && (
+                                                            {requesttype === "book" && (
                                                               <div className='buttonbook'><button type='button' className="continuebutton" style={{ marginTop: "11px", color: "white", backgroundColor: "#785eff", border: "none", padding: "3%", borderRadius: "3px" }} onClick={() => handleselectedContinue(priceParseindex)}>Book Now</button></div>
                                                             )}
                                                           </div>
@@ -16749,7 +16827,7 @@ const SearchFlight = () => {
                                                                       </div>
                                                                     </div>
                                                                   </div>
-                                                                  {agent_id && bookingid && ( 
+                                                                  {/* {requesttype === "book" && ( */}
 
                                                                   <div className='buttonbook' >
 
@@ -16760,7 +16838,7 @@ const SearchFlight = () => {
                                                                       Book Now
                                                                     </button>
                                                                   </div>
-                                                                  )}   
+                                                                  {/* )}    */}
 
                                                                   <button
                                                                     className="add-btn"
@@ -17384,7 +17462,7 @@ const SearchFlight = () => {
                                                                 )}
                                                               </div>
 
-                                                              {agent_id && bookingid && (
+                                                              {/* {requesttype === "book" && ( */}
                                                               <div className='buttonbook' >
                                                                 <button type='button' className="continuebutton"
                                                                   style={{ marginTop: "5px", color: "white", backgroundColor: "#785eff", border: "none", padding: "4px 10px", fontSize: '14px', marginLeft: '7px', marginRight: '5px', borderRadius: "3px" }}
@@ -17392,7 +17470,7 @@ const SearchFlight = () => {
                                                                   Book Now
                                                                 </button>
                                                               </div>
-                                                            )}
+                                                            {/* )} */}
                                                               <button
                                                                 className="add-btn"
                                                                 type="button"

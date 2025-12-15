@@ -1,0 +1,450 @@
+
+{
+    "code": 200,
+    "status": true,
+    "message": "Ticked Booked Successfully.",
+    "data": {
+        "Response": {
+            "B2B2BStatus": false,
+            "Error": {
+                "ErrorCode": 0,
+                "ErrorMessage": ""
+            },
+            "ResponseStatus": 1,
+            "TraceId": "3cd6feb9-daf9-4694-92ed-17304e73e657",
+            "Response": {
+                "ItineraryChangeList": null,
+                "PNR": "S81T6P",
+                "BookingId": 2006193,
+                "SSRDenied": false,
+                "SSRMessage": null,
+                "Status": 1,
+                "IsPriceChanged": false,
+                "IsTimeChanged": false,
+                "FlightItinerary": {
+                    "CommentDetails": null,
+                    "IsAutoReissuanceAllowed": true,
+                    "IsSeatsBooked": true,
+                    "IssuancePcc": "APITESTID",
+                    "JourneyType": 1,
+                    "SearchCombinationType": 2,
+                    "TripIndicator": 1,
+                    "BookingAllowedForRoamer": true,
+                    "BookingId": 2006193,
+                    "IsCouponAppilcable": true,
+                    "IsManual": false,
+                    "PNR": "S81T6P",
+                    "AgentReferenceNo": "DELB007",
+                    "IsDomestic": true,
+                    "ResultFareType": "RegularFare",
+                    "Source": 3,
+                    "Origin": "PNQ",
+                    "Destination": "DEL",
+                    "AirlineCode": "SG",
+                    "LastTicketDate": "9999-12-30T23:55:00",
+                    "ValidatingAirlineCode": "SG",
+                    "AirlineRemark": "SpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet MainSpiceJet Main",
+                    "IsLCC": true,
+                    "NonRefundable": false,
+                    "FareType": "PUB",
+                    "CreditNoteNo": null,
+                    "Fare": {
+                        "ServiceFeeDisplayType": 0,
+                        "Currency": "INR",
+                        "BaseFare": 3400,
+                        "Tax": 1751,
+                        "TaxBreakup": [
+                            {
+                                "key": "K3",
+                                "value": 220
+                            },
+                            {
+                                "key": "UDF",
+                                "value": 465
+                            },
+                            {
+                                "key": "YR",
+                                "value": 50
+                            },
+                            {
+                                "key": "YQTax",
+                                "value": 900
+                            },
+                            {
+                                "key": "TotalTax",
+                                "value": 1751
+                            },
+                            {
+                                "key": "OtherTaxes",
+                                "value": 66
+                            }
+                        ],
+                        "YQTax": 900,
+                        "AdditionalTxnFeeOfrd": 0,
+                        "AdditionalTxnFeePub": 0,
+                        "PGCharge": 0,
+                        "OtherCharges": 1.77,
+                        "ChargeBU": [
+                            {
+                                "key": "TBOMARKUP",
+                                "value": 0
+                            },
+                            {
+                                "key": "GLOBALPROCUREMENTCHARGE",
+                                "value": 0
+                            },
+                            {
+                                "key": "OTHERCHARGE",
+                                "value": 1.77
+                            },
+                            {
+                                "key": "CONVENIENCECHARGE",
+                                "value": 0
+                            }
+                        ],
+                        "Discount": 0,
+                        "PublishedFare": 7386.77,
+                        "CommissionEarned": 250.92,
+                        "PLBEarned": 215.25,
+                        "IncentiveEarned": 232.4,
+                        "OfferedFare": 6967.63,
+                        "TdsOnCommission": 100.37,
+                        "TdsOnPLB": 86.1,
+                        "TdsOnIncentive": 92.96,
+                        "ServiceFee": 0,
+                        "TotalBaggageCharges": 1800,
+                        "TotalMealCharges": 434,
+                        "TotalSeatCharges": 0,
+                        "TotalSpecialServiceCharges": 0
+                    },
+                    "CreditNoteCreatedOn": null,
+                    "Passenger": [
+                        {
+                            "BarcodeDetails": {
+                                "Id": 3247680,
+                                "Barcode": [
+                                    {
+                                        "Index": 1,
+                                        "Format": "PDF417",
+                                        "Content": "M1KANOLKAR/VAISHNAVI   S81T6P PNQDELSG 6600 265Y029B0000 000",
+                                        "BarCodeInBase64": null,
+                                        "JourneyWayType": 3
+                                    }
+                                ]
+                            },
+                            "DocumentDetails": [
+                                {
+                                    "DocumentNumber": "",
+                                    "DocumentTypeId": "Passport",
+                                    "PaxId": 0,
+                                    "ResultFareType": 0
+                                }
+                            ],
+                            "GuardianDetails": null,
+                            "PaxId": 3247680,
+                            "Title": "Mr",
+                            "FirstName": "Vaishnavi",
+                            "LastName": "Kanolkar",
+                            "PaxType": 1,
+                            "DateOfBirth": "2001-08-01T00:00:00",
+                            "Gender": 1,
+                            "IsPANRequired": false,
+                            "IsPassportRequired": false,
+                            "PAN": "",
+                            "PassportNo": "",
+                            "AddressLine1": "Dighi",
+                            "AddressLine2": "Samarth Nagar Gighi",
+                            "Fare": {
+                                "ServiceFeeDisplayType": 0,
+                                "Currency": "INR",
+                                "BaseFare": 3400,
+                                "Tax": 1751,
+                                "TaxBreakup": [
+                                    {
+                                        "key": "K3",
+                                        "value": 220
+                                    },
+                                    {
+                                        "key": "UDF",
+                                        "value": 465
+                                    },
+                                    {
+                                        "key": "YR",
+                                        "value": 50
+                                    },
+                                    {
+                                        "key": "YQTax",
+                                        "value": 900
+                                    },
+                                    {
+                                        "key": "TotalTax",
+                                        "value": 1751
+                                    },
+                                    {
+                                        "key": "OtherTaxes",
+                                        "value": 66
+                                    }
+                                ],
+                                "YQTax": 900,
+                                "AdditionalTxnFeeOfrd": 0,
+                                "AdditionalTxnFeePub": 0,
+                                "PGCharge": 0,
+                                "OtherCharges": 1.77,
+                                "ChargeBU": [
+                                    {
+                                        "key": "TBOMARKUP",
+                                        "value": 0
+                                    },
+                                    {
+                                        "key": "GLOBALPROCUREMENTCHARGE",
+                                        "value": 0
+                                    },
+                                    {
+                                        "key": "OTHERCHARGE",
+                                        "value": 1.77
+                                    },
+                                    {
+                                        "key": "CONVENIENCECHARGE",
+                                        "value": 0
+                                    }
+                                ],
+                                "Discount": 0,
+                                "PublishedFare": 7386.77,
+                                "CommissionEarned": 250.92,
+                                "PLBEarned": 215.25,
+                                "IncentiveEarned": 232.4,
+                                "OfferedFare": 6967.63,
+                                "TdsOnCommission": 100.37,
+                                "TdsOnPLB": 86.1,
+                                "TdsOnIncentive": 92.96,
+                                "ServiceFee": 0,
+                                "TotalBaggageCharges": 1800,
+                                "TotalMealCharges": 434,
+                                "TotalSeatCharges": 0,
+                                "TotalSpecialServiceCharges": 0
+                            },
+                            "City": "Pune",
+                            "CountryCode": "IN",
+                            "CountryName": "India",
+                            "Nationality": "IN",
+                            "ContactNo": "8805280487",
+                            "Email": "vaishnavi.kanolkar@taxivaxi.com",
+                            "IsLeadPax": true,
+                            "FFAirlineCode": null,
+                            "FFNumber": null,
+                            "Baggage": [
+                                {
+                                    "AirlineCode": "SG",
+                                    "FlightNumber": "6600",
+                                    "WayType": 2,
+                                    "Code": "EB03",
+                                    "Description": 2,
+                                    "Weight": 3,
+                                    "Currency": "INR",
+                                    "Price": 1800,
+                                    "Origin": "PNQ",
+                                    "Destination": "DEL"
+                                }
+                            ],
+                            "MealDynamic": [
+                                {
+                                    "AirlineCode": "SG",
+                                    "FlightNumber": "6600",
+                                    "WayType": 2,
+                                    "Code": "NVSW",
+                                    "Description": 2,
+                                    "AirlineDescription": "\"Roast chicken, sundried tomato and basil sandwich in marble bread\"",
+                                    "Quantity": 1,
+                                    "Currency": "INR",
+                                    "Price": 434,
+                                    "Origin": "PNQ",
+                                    "Destination": "DEL"
+                                }
+                            ],
+                            "SeatDynamic": [
+                                {
+                                    "AirlineCode": "SG",
+                                    "FlightNumber": "6600",
+                                    "CraftType": "B-737-800 (Y189)",
+                                    "Origin": "PNQ",
+                                    "Destination": "DEL",
+                                    "AvailablityType": 1,
+                                    "Description": 2,
+                                    "Code": "29B",
+                                    "RowNo": "29",
+                                    "SeatNo": "B",
+                                    "SeatType": 3,
+                                    "SeatWayType": 2,
+                                    "Compartment": 1,
+                                    "Deck": 1,
+                                    "Currency": "INR",
+                                    "Price": 0
+                                }
+                            ],
+                            "Ssr": [],
+                            "Ticket": {
+                                "TicketId": 2282472,
+                                "TicketNumber": "S81T6P",
+                                "IssueDate": "2025-08-01T11:26:26",
+                                "ValidatingAirline": "001",
+                                "Remarks": "",
+                                "ServiceFeeDisplayType": "ShowInTax",
+                                "Status": "OK",
+                                "ConjunctionNumber": "",
+                                "TicketType": "N"
+                            },
+                            "GSTCompanyAddress": "1 1075 1 2 GF 4 MEHRAULI NEW DELHI 110030",
+                            "GSTCompanyContactNumber": "9881102875",
+                            "GSTCompanyEmail": "flight@cotrav.co",
+                            "GSTCompanyName": "Bai Infosolution Private Limited",
+                            "GSTNumber": "07AAGCB3556P1Z7",
+                            "SegmentAdditionalInfo": [
+                                {
+                                    "FareBasis": "USAV",
+                                    "NVA": "",
+                                    "NVB": "",
+                                    "Baggage": "15 KG|3",
+                                    "Meal": "1 Platter",
+                                    "Seat": "29B",
+                                    "SpecialService": "",
+                                    "CabinBaggage": "7 KG"
+                                }
+                            ]
+                        }
+                    ],
+                    "CancellationCharges": null,
+                    "Segments": [
+                        {
+                            "Baggage": "15 KG",
+                            "CabinBaggage": "7 KG",
+                            "CabinClass": 2,
+                            "SupplierFareClass": null,
+                            "TripIndicator": 1,
+                            "SegmentIndicator": 1,
+                            "Airline": {
+                                "AirlineCode": "SG",
+                                "AirlineName": "SpiceJet",
+                                "FlightNumber": "6600",
+                                "FareClass": "U",
+                                "OperatingCarrier": ""
+                            },
+                            "AirlinePNR": "",
+                            "Origin": {
+                                "Airport": {
+                                    "AirportCode": "PNQ",
+                                    "AirportName": "Lohegaon",
+                                    "Terminal": "",
+                                    "CityCode": "PNQ",
+                                    "CityName": "Pune",
+                                    "CountryCode": "IN",
+                                    "CountryName": "India"
+                                },
+                                "DepTime": "2025-09-22T06:00:00"
+                            },
+                            "Destination": {
+                                "Airport": {
+                                    "AirportCode": "DEL",
+                                    "AirportName": "Indira Gandhi Airport",
+                                    "Terminal": "1D",
+                                    "CityCode": "DEL",
+                                    "CityName": "Delhi",
+                                    "CountryCode": "IN",
+                                    "CountryName": "India"
+                                },
+                                "ArrTime": "2025-09-22T08:10:00"
+                            },
+                            "Duration": 130,
+                            "GroundTime": 0,
+                            "Mile": 0,
+                            "StopOver": false,
+                            "FlightInfoIndex": "",
+                            "StopPoint": "",
+                            "StopPointArrivalTime": "0001-01-01T00:00:00",
+                            "StopPointDepartureTime": "0001-01-01T00:00:00",
+                            "Craft": "73H",
+                            "Remark": "Saver (Regular)",
+                            "IsETicketEligible": true,
+                            "FlightStatus": "Confirmed",
+                            "Status": "HK",
+                            "FareClassification": null
+                        }
+                    ],
+                    "FareRules": [
+                        {
+                            "Origin": "PNQ",
+                            "Destination": "DEL",
+                            "Airline": "SG",
+                            "FareBasisCode": "USAV",
+                            "FareRuleDetail": "The FareBasisCode is: USAV<br /> \r\n\r\n Changes and cancellations are permitted as per applicable rules and charges.\r <br/> <br/><ul><li>APART FROM AIRLINE CHARGES,GST+RAF+ APPLICABLE CHARGES IF ANY, WILL BE CHARGED.</li><li>MENTIONED FEE ARE INDICATIVE PER PAX AND PER SECTOR.</li><li>FOR DOMESTIC BOOKINGS, PASSENGERS ARE REQUIRED TO SUBMIT THE CANCELLATION OR REISSUE REQUEST AT LEAST 2 HOURS BEFORE THE AIRLINES CANCELLATION AND REISSUE POLICY.</li><li>FOR INTERNATIONAL BOOKINGS, PASSENGERS ARE REQUIRED TO SUBMIT THE CANCELLATION OR REISSUE REQUEST AT LEAST 4 HOURS BEFORE THE AIRLINES CANCELLATION AND REISSUE POLICY.</li></ul>",
+                            "FareRestriction": null,
+                            "FareInclusions": []
+                        }
+                    ],
+                    "MiniFareRules": [
+                        {
+                            "JourneyPoints": "PNQ-DEL",
+                            "Type": "Reissue",
+                            "From": "0",
+                            "To": "96",
+                            "Unit": "HOURS",
+                            "Details": "INR 2950",
+                            "OnlineReissueAllowed": false,
+                            "OnlineRefundAllowed": false
+                        },
+                        {
+                            "JourneyPoints": "PNQ-DEL",
+                            "Type": "Reissue",
+                            "From": "96",
+                            "To": "",
+                            "Unit": "HOURS",
+                            "Details": "INR 2250",
+                            "OnlineReissueAllowed": false,
+                            "OnlineRefundAllowed": false
+                        },
+                        {
+                            "JourneyPoints": "PNQ-DEL",
+                            "Type": "Cancellation",
+                            "From": "0",
+                            "To": "96",
+                            "Unit": "HOURS",
+                            "Details": "INR 3950",
+                            "OnlineReissueAllowed": false,
+                            "OnlineRefundAllowed": false
+                        },
+                        {
+                            "JourneyPoints": "PNQ-DEL",
+                            "Type": "Cancellation",
+                            "From": "96",
+                            "To": "",
+                            "Unit": "HOURS",
+                            "Details": "INR 2950",
+                            "OnlineReissueAllowed": false,
+                            "OnlineRefundAllowed": false
+                        }
+                    ],
+                    "PenaltyCharges": [],
+                    "Status": 5,
+                    "Invoice": [
+                        {
+                            "CreditNoteGSTIN": null,
+                            "GSTIN": null,
+                            "InvoiceCreatedOn": "2025-08-01T11:26:27",
+                            "InvoiceId": 17604,
+                            "InvoiceNo": "DW/2526/17604",
+                            "InvoiceAmount": 6968,
+                            "Remarks": "",
+                            "InvoiceStatus": 3
+                        }
+                    ],
+                    "InvoiceAmount": 6968,
+                    "InvoiceNo": "DW/2526/17604",
+                    "InvoiceStatus": 3,
+                    "InvoiceCreatedOn": "2025-08-01T11:26:27",
+                    "Remarks": "",
+                    "IsWebCheckInAllowed": false
+                },
+                "TicketStatus": 1
+            }
+        }
+    }
+}

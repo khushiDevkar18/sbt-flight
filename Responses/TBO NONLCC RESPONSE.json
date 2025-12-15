@@ -1,0 +1,27 @@
+{
+    "code": 200,
+    "status": true,
+    "message": "Flight Booked Successfully.",
+    "data": {
+        "Response": {
+            "B2B2BStatus": false,
+            "Error": {
+                "ErrorCode": 0,
+                "ErrorMessage": ""
+            },
+            "ResponseStatus": 1,
+            "TraceId": "845be4b5-e3a8-4fd5-a5e0-af3a4218baea",
+            "Response": {
+                "ItineraryChangeList": null,
+                "PNR": "7FFA3I",
+                "BookingId": 2006330,
+                "SSRDenied": false,
+                "SSRMessage": null,
+                "IsPriceChanged": false,
+                "IsTimeChanged": false,
+                "Message": "Auto ticket not allowed by supplier.",
+                "TicketStatus": 4
+            }
+        }
+    }
+}

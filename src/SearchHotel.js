@@ -167,7 +167,10 @@ const SearchHotel = () => {
   }, [loader, searchParams]); // Runs when isLoading or searchParams change
 
   const agent_portal = sessionStorage.getItem("agent_portal");
+    const booking_access = sessionStorage.getItem("has_Booking_access");
+    const Search_access = sessionStorage.getItem("has_search_access");
   const booknow = searchParams.booknow;
+  console.log(booknow);
   const [showModal2, setShowModal2] = useState(false);
   const [selectedHotels, setSelectedHotels] = useState([]);
   const [showModal1, setShowModal1] = useState(false);
@@ -186,7 +189,7 @@ const SearchHotel = () => {
           code: hotel.HotelCode, // Ensure this property exists in API response
           price: hotel.Rooms?.[0]?.TotalFare || 0, // Store TotalFare properly
           tax: hotel.Rooms?.[0]?.TotalTax || 0, // Store TotalTax properly
-          City_name: hotel.CityName,
+          CityName: hotel.CityName,
           Description: hotel.Description,
           Address: hotel.Address,
           BookingCode: hotel.Rooms?.[0]?.BookingCode || 0,
@@ -207,6 +210,7 @@ const SearchHotel = () => {
       total: hotel.price, // Use stored price value
       BookingCode: hotel.BookingCode,
       Address: hotel.Address,
+       CityName: hotel.CityName,
     }));
 
     // console.log(sharedHotels); // This should now log correct hotel data
@@ -448,13 +452,20 @@ const SearchHotel = () => {
     setCheckOutIsOpen(false);
   };
   const [errorMessage, setErrorMessage] = useState("");
-
+  const clearFieldError = (fieldName) => {
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[fieldName];
+      return newErrors;
+    });
+  };
+  const [selectSize, setSelectSize] = useState(1);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [roomCount, setRoomCount] = useState(searchParams.Rooms);
   const [roomadultCount, setRoomAdultCount] = useState(searchParams.Adults);
   const [roomchildCount, setRoomChildCount] = useState(searchParams.Children);
   const [childrenAges, setChildrenAges] = useState(searchParams.ChildAge || []);
-  const calculateRequiredRooms = (adults, children) => {
+   const calculateRequiredRooms = (adults, children) => {
     // Each room can have:
     // - Max 8 adults AND
     // - Max 4 children AND
@@ -464,7 +475,11 @@ const SearchHotel = () => {
     const roomsBasedOnChildren = Math.ceil(children / 2);
     const roomsBasedOnTotal = Math.ceil((adults + children) / 4);
 
-    return Math.max(roomsBasedOnAdults, roomsBasedOnChildren, roomsBasedOnTotal);
+    return Math.max(
+      roomsBasedOnAdults,
+      roomsBasedOnChildren,
+      roomsBasedOnTotal
+    );
   };
 
   const handleApply = () => {
@@ -475,17 +490,21 @@ const SearchHotel = () => {
     const requiredRooms = calculateRequiredRooms(totalAdults, totalChildren);
 
     if (selectedRooms > requiredRooms) {
-      setErrorMessage(`Minimum ${requiredRooms} rooms required based on your selection.`);
+      setErrorMessage(
+        `Minimum ${requiredRooms} rooms required based on your selection.`
+      );
       return;
     }
 
     if (selectedRooms < requiredRooms) {
-      setErrorMessage(`Minimum ${requiredRooms} rooms required based on your selection.`);
+      setErrorMessage(
+        `Minimum ${requiredRooms} rooms required based on your selection.`
+      );
       return;
     }
 
     // Validate children ages
-    if (totalChildren > 0 && childrenAges.some(age => age === "")) {
+    if (totalChildren > 0 && childrenAges.some((age) => age === "")) {
       setErrorMessage("Please specify ages for all children");
       return;
     }
@@ -493,64 +512,59 @@ const SearchHotel = () => {
     setErrorMessage("");
     setIsDropdownOpen(false);
   };
-  const handleSelection = (type, value) => {
-    let newRoomAdultCount = roomadultCount;
-    let newRoomChildCount = roomchildCount;
-    let newRoomCount = roomCount;
-
-    if (type === "adults") {
-      newRoomAdultCount = value;
-      setRoomAdultCount(value);
-    } else if (type === "children") {
-      newRoomChildCount = value;
-      setRoomChildCount(value);
-
-      setChildrenAges((prevAges) => {
-        if (value > prevAges.length) {
-          return [...prevAges, ...new Array(value - prevAges.length).fill("")];
-        } else {
-          return prevAges.slice(0, value);
-        }
-      });
-    } else if (type === "rooms") {
-      newRoomCount = value;
-      setRoomCount(value);
-    }
-
-    // Convert to numbers for calculations
-    const totalAdults = parseInt(newRoomAdultCount) || 0;
-    const totalChildren = parseInt(newRoomChildCount) || 0;
-    const selectedRooms = parseInt(newRoomCount) || 0;
-
-    const requiredRooms = calculateRequiredRooms(totalAdults, totalChildren);
-
-    if (selectedRooms < requiredRooms) {
-      setErrorMessage(`Minimum ${requiredRooms} rooms required based on your selection.`);
-    } else {
-      setErrorMessage(""); // Clear error message when valid selection
-    }
-  };
-
-  const handleChildAgeChange = (index, age) => {
-    const updatedAges = [...childrenAges];
-    updatedAges[index] = age;
-    setChildrenAges(updatedAges);
-  };
-
-  // const handleSelection = (type, value) => {
-  //   if (type === "rooms") setRoomCount(value);
-  //   if (type === "adults") setRoomAdultCount(value);
-  //   if (type === "children") {
-  //     setRoomChildCount(value);
-  //     setChildrenAges(Array(value).fill(null));
-  //   }
-  // };
-
-  // const handleChildAgeChange = (index, value) => {
-  //   const updatedAges = [...childrenAges];
-  //   updatedAges[index] = value;
-  //   setChildrenAges(updatedAges);
-  // };
+   const [expandedIndex, setExpandedIndex] = useState(null);
+  
+    const [adultSize, setAdultSize] = useState(1);
+    const [selectageSize, setSelectAgeSize] = useState(1);
+  
+    const [childSize, setChildSize] = useState(1);
+    const handleSelection = (type, value) => {
+      let newRoomAdultCount = roomadultCount;
+      let newRoomChildCount = roomchildCount;
+      let newRoomCount = roomCount;
+  
+      if (type === "adults") {
+        newRoomAdultCount = value;
+        setRoomAdultCount(value);
+      } else if (type === "children") {
+        newRoomChildCount = value;
+        setRoomChildCount(value);
+  
+        setChildrenAges((prevAges) => {
+          if (value > prevAges.length) {
+            return [...prevAges, ...new Array(value - prevAges.length).fill("")];
+          } else {
+            return prevAges.slice(0, value);
+          }
+        });
+      } else if (type === "rooms") {
+        newRoomCount = value;
+        if (value > 0) clearFieldError("roomCount");
+        setRoomCount(value);
+      }
+  
+      // Convert to numbers for calculations
+      const totalAdults = parseInt(newRoomAdultCount) || 0;
+      const totalChildren = parseInt(newRoomChildCount) || 0;
+      const selectedRooms = parseInt(newRoomCount) || 0;
+  
+      const requiredRooms = calculateRequiredRooms(totalAdults, totalChildren);
+  
+      if (selectedRooms < requiredRooms) {
+        setErrorMessage(
+          `Minimum ${requiredRooms} rooms required based on your selection.`
+        );
+      } else {
+        setErrorMessage(""); // Clear error message when valid selection
+      }
+    };
+  
+    const handleChildAgeChange = (index, age) => {
+      const updatedAges = [...childrenAges];
+      updatedAges[index] = age;
+      setChildrenAges(updatedAges);
+    };
+  
   const handleSubmitForm = async (e) => {
     e.preventDefault();
     if (errorMessage) {
@@ -1053,32 +1067,32 @@ const SearchHotel = () => {
                         {roomchildCount} Childs
                       </p>
 
-                      {isDropdownOpen && (
+                       {isDropdownOpen && (
                         <div className="absolute right-0 bg-white rounded-lg mt-1 p-3 z-10 shadow-lg hotel_forms_home">
                           <div className="mb-2 flex items-center justify-between">
                             <h6 className="textsizes">Rooms</h6>
                             <select
                               className="border border-gray-300 px-3 py-1 focus:outline-none"
                               value={roomCount}
-                              onChange={(e) =>
+                              size={selectSize}
+                              onClick={() => setSelectSize(5)} // expand on click
+                              onChange={(e) => {
                                 handleSelection(
                                   "rooms",
                                   parseInt(e.target.value)
-                                )
-                              }
+                                );
+                                // delay collapse to let selection register
+                                setTimeout(() => setSelectSize(1), 100);
+                              }}
+                              onBlur={() => setSelectSize(1)} // fallback collapse
                             >
-                              {Array.from(
-                                { length: 21 },
-                                (_, i) => i
-                              ).map((num) => (
-                                <option
-                                  key={num}
-                                  value={num}
-                                  className="max-h-[2px]"
-                                >
-                                  {num}
-                                </option>
-                              ))}
+                              {Array.from({ length: 21 }, (_, i) => i).map(
+                                (num) => (
+                                  <option key={num} value={num}>
+                                    {num}
+                                  </option>
+                                )
+                              )}
                             </select>
                           </div>
 
@@ -1093,61 +1107,64 @@ const SearchHotel = () => {
                           <div className="mb-2 flex items-center justify-between">
                             <h6 className="textsizes">Adults</h6>
                             <select
-                              className="border border-gray-300  px-3 py-1 focus:outline-none"
+                              className="border border-gray-300 px-3 py-1 focus:outline-none"
                               value={roomadultCount}
-                              onChange={(e) =>
+                              size={adultSize}
+                              onClick={() => setAdultSize(5)}
+                              onChange={(e) => {
                                 handleSelection(
                                   "adults",
                                   parseInt(e.target.value)
-                                )
-                              }
+                                );
+                                setTimeout(() => setAdultSize(1), 100);
+                              }}
+                              onBlur={() => setAdultSize(1)}
                             >
-                              {Array.from(
-                                { length: 41 },
-                                (_, i) => i
-                              ).map((num) => (
-                                <option key={num} value={num}>
-                                  {num}
-                                </option>
-                              ))}
+                              {Array.from({ length: 41 }, (_, i) => i).map(
+                                (num) => (
+                                  <option key={num} value={num}>
+                                    {num}
+                                  </option>
+                                )
+                              )}
                             </select>
                           </div>
 
                           {/* Children Selector */}
                           <div className="mb-2 flex items-center justify-between">
                             <div>
-                              <h6 className="textsizes">
-                                Children{" "}
-                              </h6>{" "}
+                              <h6 className="textsizes">Child </h6>{" "}
                               <p className="text-xs ">0-17 yrs</p>
                             </div>
 
                             <select
                               className="border border-gray-300 px-3 py-1 focus:outline-none"
                               value={roomchildCount}
-                              onChange={(e) =>
+                              size={childSize}
+                              onClick={() => setChildSize(5)}
+                              onChange={(e) => {
                                 handleSelection(
                                   "children",
                                   parseInt(e.target.value)
-                                )
-                              }
+                                );
+                                setTimeout(() => setChildSize(1), 100); // collapse after selection
+                              }}
+                              onBlur={() => setChildSize(1)} // collapse on click outside
                             >
-                              {Array.from(
-                                { length: 41 },
-                                (_, i) => i
-                              ).map((num) => (
-                                <option key={num} value={num}>
-                                  {num}
-                                </option>
-                              ))}
+                              {Array.from({ length: 41 }, (_, i) => i).map(
+                                (num) => (
+                                  <option key={num} value={num}>
+                                    {num}
+                                  </option>
+                                )
+                              )}
                             </select>
                           </div>
 
                           {/* Horizontal Line */}
                           <p className="textcolor ">
-                            Please provide the correct number of
-                            children along with their ages for the
-                            best options and prices.
+                            Please provide the correct number of children along
+                            with their ages for the best options and prices.
                           </p>
                           <hr className="my-4 border-gray-500" />
 
@@ -1158,43 +1175,45 @@ const SearchHotel = () => {
                               className="overflow-y-auto grid grid-cols-2 gap-4"
                               style={{ maxHeight: "150px" }}
                             >
-                              {childrenAges
-                                .slice(0, roomchildCount)
-                                .map((age, index) => (
-                                  <div
-                                    key={index}
-                                    className="mb-4 flex items-center gap-4 justify-between"
+                              {childrenAges.map((age, index) => (
+                                <div
+                                  key={index}
+                                  className="mb-4 flex items-center gap-4 justify-between"
+                                >
+                                  <h6 className="textsizes">
+                                    Child&nbsp;{index + 1}
+                                  </h6>
+                                  <select
+                                    className="border border-gray-300 rounded-sm py-1 px-2 w-full focus:outline-none text-xs"
+                                    value={age === 0 ? 0 : age || ""}
+                                    size={expandedIndex === index ? 5 : 1} // only expand the current one
+                                    onClick={() => setExpandedIndex(index)} // open only this one
+                                    onChange={(e) => {
+                                      const selectedValue = parseInt(
+                                        e.target.value
+                                      );
+                                      handleChildAgeChange(
+                                        index,
+                                        selectedValue
+                                      );
+                                      setTimeout(
+                                        () => setExpandedIndex(null),
+                                        100
+                                      ); // collapse after select
+                                    }}
+                                    onBlur={() => setExpandedIndex(null)}
                                   >
-                                    <h6 className="textsizes">
-                                      Child&nbsp;{index + 1}
-                                    </h6>
-                                    <select
-                                      className="border border-gray-300 rounded-sm py-1 px-2 w-full focus:outline-none text-xs"
-                                      value={age || ""}
-                                      onChange={(e) =>
-                                        handleChildAgeChange(
-                                          index,
-                                          parseInt(e.target.value)
-                                        )
-                                      }
-                                    >
-                                      <option value="" disabled>
-                                        Select
+                                    {Array.from(
+                                      { length: 18 },
+                                      (_, i) => i
+                                    ).map((num) => (
+                                      <option key={num} value={num}>
+                                        {num === 0 ? "0" : `${num} Yrs`}
                                       </option>
-                                      {Array.from(
-                                        { length: 18 },
-                                        (_, i) => i
-                                      ).map((num) => (
-                                        <option
-                                          key={num}
-                                          value={num}
-                                        >
-                                          {num} Yrs
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                ))}
+                                    ))}
+                                  </select>
+                                </div>
+                              ))}
                             </div>
                           )}
 
@@ -1209,9 +1228,13 @@ const SearchHotel = () => {
                         </div>
                       )}
                     </div>
-                    <button className="search-buttonn rounded-lg">
-                      Search
-                    </button>
+                   <button
+  className={`search-buttonn rounded-lg ${Search_access === "0" ? "opacity-50 cursor-not-allowed" : ""}`}
+  disabled={Search_access === "0"}
+>
+  Search
+</button>
+
                   </div>
                 </div>
               </div>
@@ -1393,9 +1416,7 @@ const SearchHotel = () => {
                     <div
                       key={hotel.HotelCode}
                       className="w-full py-2 px-3 transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
-                      onClick={() =>
-                        navigate("/HotelDetail", { state: { hotel } })
-                      }
+                      
                     >
                       <div className="max-w-[61rem] w-full flex flex-cols bg-white shadow-md rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a] dark:shadow-none transition-shadow duration-300 hover:shadow-lg">
                         <div className="py-3 px-3 w-1/3">
@@ -1532,25 +1553,19 @@ const SearchHotel = () => {
                             )}
                           </div>
 
-                          <div className="mb-3">
-                            {hotel?.Rooms?.[0]?.Inclusion && (
-                              <div className="text-xs  mt-1 flex gap-2 ">
-                                {hotel.Rooms[0].Inclusion.split(",").map(
-                                  (item, index) => (
-                                    <div
-                                      key={index}
-                                      className="flex items-center"
-                                    >
-                                      <span className="text-black-500 mr-1">
-                                        ✓
-                                      </span>
-                                      <span>{item.trim()}</span>
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            )}
-                          </div>
+                        <div className="mb-3">
+  {hotel?.Rooms?.[0]?.Inclusion && (
+    <div className="text-xs mt-1 flex gap-2 flex-wrap">
+      {hotel.Rooms[0].Inclusion.split(",").slice(0, 3).map((item, index) => (
+        <div key={index} className="flex items-center">
+          <span className="text-black-500 mr-1">✓</span>
+          <span>{item.trim()}</span>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
 
                           <div className="text-xs text-green-700">
                             {formatCancelPolicies(
@@ -1603,11 +1618,11 @@ const SearchHotel = () => {
                               + ₹ {hotel.Rooms?.[0]?.TotalTax || "0"} taxes &
                               fees
                             </span>
-                            {hoveredHotel === hotel.HotelCode && hotel.Rooms?.[0] && (
+                            {/* {hoveredHotel === hotel.HotelCode && hotel.Rooms?.[0] && (
                               <div className="fixed right-0 mt-2 w-80 bg-white shadow-lg rounded-lg p-3 border border-gray-300 z-50">
-                                {/* Get Room[0] Details */}
+                               
                                 {hotel.Rooms[0].DayRates?.map((dayRateArray, index) => {
-                                  // Calculate total base fare for this dayRate array
+                                 
                                   const totalBaseFare = dayRateArray.reduce(
                                     (total, rate) => total + (rate?.BasePrice || 0),
                                     0
@@ -1615,7 +1630,7 @@ const SearchHotel = () => {
 
                                   return (
                                     <div key={index}>
-                                      {/* Title & Total Price Section */}
+                                     
                                       <div className="flex justify-between items-center pb-2">
                                         <h6 className="font-semibold text-gray-700 text-xs">
                                           Room {index + 1} price × {dayRateArray.length} Days
@@ -1628,7 +1643,7 @@ const SearchHotel = () => {
                                   );
                                 })}
                               </div>
-                            )}
+                            )} */}
 
                           </div>
 
@@ -1666,8 +1681,10 @@ const SearchHotel = () => {
                               </button>
                             )}
                             {/* Conditionally show "Book Now" button */}
-                            {agent_portal === "0" && (
-                              <button className="button_book text-xs w-[91px] h-7">
+                            {agent_portal === "0" && booknow === 1 &&  (
+                              <button className="button_book text-xs w-[91px] h-7" onClick={() =>
+                        navigate("/HotelDetail", { state: { hotel } })
+                      }>
                                 Book Now
                               </button>
                             )}
@@ -1707,7 +1724,10 @@ const SearchHotel = () => {
                               {hotel.name}
                             </span>
                             <p className="text-xs font-semibold hotel-form-text-color">
-                              {hotel.cityName || "No City Available"} |{" "}
+                           {hotel.CityName !== undefined && hotel.CityName !== null && hotel.CityName !== ""
+  ? hotel.CityName
+  : "No City Available"}
+|{" "}
                               <span className="text-xs text-gray-500">
                                 {extractAttraction(hotel.Description)}
                               </span>
@@ -1771,7 +1791,7 @@ const SearchHotel = () => {
                                 name="clientName"
                                 type="text"
                                 placeholder="Enter Client Name"
-                                className="frmTextInput2"
+                                className="flex flex-wrap gap-2 border border-gray-300 rounded-md p-2 text-xs w-full"
                                 value={searchParams.corporate_name}
                               // onChange={handleChange}
                               />
@@ -1793,7 +1813,7 @@ const SearchHotel = () => {
                                 name="spocName"
                                 type="text"
                                 placeholder="SPOC Name"
-                                className="frmTextInput2"
+                                className="flex flex-wrap gap-2 border border-gray-300 rounded-md p-2 text-xs w-full"
                                 value={formData.spocName}
                                 onChange={handleChange}
                               />
@@ -1816,7 +1836,7 @@ const SearchHotel = () => {
                               name="spocEmail"
                               type="text"
                               placeholder="Enter Email"
-                              className="frmTextInput2"
+                              className="flex flex-wrap gap-2 border border-gray-300 rounded-md p-2 text-xs w-full"
                               value={formData.spocEmail}
                               onChange={handleChange}
                             />
@@ -1945,7 +1965,7 @@ const SearchHotel = () => {
                               id="remark"
                               name="remark"
                               type="text"
-                              className="frmTextAreaInput2"
+                              className="flex flex-wrap gap-2 border border-gray-300 rounded-md p-2 text-xs w-full"
                               value={formData.remark}
                               onChange={(e) =>
                                 setFormData({

@@ -1,0 +1,39 @@
+{
+  "files": {
+    "main.css": "/static/css/main.47e4eb7a.css",
+    "main.js": "/static/js/main.a82b6c4d.js",
+    "static/js/453.a0467717.chunk.js": "/static/js/453.a0467717.chunk.js",
+    "static/media/fa-solid-900.ttf": "/static/media/fa-solid-900.ad1782c70927ebc5bc87.ttf",
+    "static/media/Landing_Page_IMG.jpg": "/static/media/Landing_Page_IMG.a00e059d7ee042418f24.jpg",
+    "static/media/theme-teaser.jpg": "/static/media/theme-teaser.8e8277783325077fcfe7.jpg",
+    "static/media/fa-brands-400.ttf": "/static/media/fa-brands-400.26b80c8830bebf340211.ttf",
+    "static/media/fa-solid-900.woff2": "/static/media/fa-solid-900.83a538a018a9e44b023a.woff2",
+    "static/media/fa-brands-400.woff2": "/static/media/fa-brands-400.fdbb558523a380307689.woff2",
+    "static/media/fa-regular-400.ttf": "/static/media/fa-regular-400.05fdd87be89f7f8f0a1e.ttf",
+    "static/media/fa-regular-400.woff2": "/static/media/fa-regular-400.4f6a2dabee9c092d09b9.woff2",
+    "index.html": "/index.html",
+    "static/media/fa-v4compatibility.ttf": "/static/media/fa-v4compatibility.fa86b3c85e77abbd2ebd.ttf",
+    "static/media/fraction.cjs": "/static/media/fraction.7992481f3d8339b77604.cjs",
+    "static/media/Business_Current_copy_18.svg": "/static/media/Business_Current_copy_18.d0c4d88bb420b69f1175.svg",
+    "static/media/Business_Booked_copy.svg": "/static/media/Business_Booked_copy.df7c25e6aa503f5f67ce.svg",
+    "static/media/fa-v4compatibility.woff2": "/static/media/fa-v4compatibility.c3ea317a0f10f201597f.woff2",
+    "static/media/bus_line.svg": "/static/media/bus_line.7a9ce85b2467b21d9016.svg",
+    "static/media/FLIGHT_LINE.svg": "/static/media/FLIGHT_LINE.5a0aedbf75fab18ae4b5.svg",
+    "static/media/depart-icon1.svg": "/static/media/depart-icon1.8343cf58b77fcfd4c6f6.svg",
+    "static/media/DOTT_LINE.svg": "/static/media/DOTT_LINE.0d34d0998d7927abafe4.svg",
+    "static/media/bue_choosen_sleeper_seat.svg": "/static/media/bue_choosen_sleeper_seat.596dac3343d8aaf2ad99.svg",
+    "static/media/bus_sleeper_seat_select.svg": "/static/media/bus_sleeper_seat_select.33e99941981ab6bfba9e.svg",
+    "static/media/bue_available_sleeper_seat.svg": "/static/media/bue_available_sleeper_seat.0e9bdeed5a5a77250f94.svg",
+    "static/media/bue_seater_seat_white.svg": "/static/media/bue_seater_seat_white.3e1d67f5ff98789f8d7b.svg",
+    "static/media/bue_seater_seat_disabled.svg": "/static/media/bue_seater_seat_disabled.f80051421f18301e8cbe.svg",
+    "static/media/bue_seater_seat_orange.svg": "/static/media/bue_seater_seat_orange.c04ec5ec31b6801ed73e.svg",
+    "static/media/index.cjs": "/static/media/index.cd351d7c31d0d3fccf96.cjs",
+    "main.47e4eb7a.css.map": "/static/css/main.47e4eb7a.css.map",
+    "main.a82b6c4d.js.map": "/static/js/main.a82b6c4d.js.map",
+    "453.a0467717.chunk.js.map": "/static/js/453.a0467717.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.47e4eb7a.css",
+    "static/js/main.a82b6c4d.js"
+  ]
+}
