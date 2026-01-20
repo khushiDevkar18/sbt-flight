@@ -18,6 +18,8 @@ const CompleteFlightbookingReturn = () => {
   const hasFetchedRef = useRef(false);
   const hasFetched = useRef(false);
   const FinalDetails = location.state && location.state.FlightBooking;
+    const FareDetails = location.state && location.state.fares;
+  console.log(FareDetails);
   // console.log(FinalDetails);
   const Passenger = localStorage.getItem("Passengerdetails");
   const PassengerInfo = JSON.parse(Passenger);
@@ -233,30 +235,30 @@ useEffect(() => {
       booking_id: responseData?.bookingid,
       flight_type: responseData?.flighttype,
       trip_type: responseData?.bookingtype,
-      fare_type: "Refundable",
+      fare_type: FlightDetails?.fareType[0],
       is_extra_baggage_included: FlightDetails?.is_extra_baggage_included,
       extra_baggage: FlightDetails?.baggage_count,
       no_of_stops: FlightDetails?.no_of_stops,
       no_of_seats: responseData?.no_of_seats,
       universallocatorCode: FlightDetails?.universallocatorCode,
       discount: FlightDetails?.discount,
-      date_change_charges: FlightDetails?.date_change_charges,
-      seat_charges: FlightDetails?.seat_charges,
-      meal_charges: FlightDetails?.meal_charges,
+      date_change_charges:( FlightDetails?.date_change_charges || 0)+ ( FlightDetailsReturn?.date_change_charges || 0),
+      seat_charges:( FlightDetails?.seat_charges || 0)+ ( FlightDetailsReturn?.seat_charges || 0),
+      meal_charges:( FlightDetails?.meal_charges || 0)+ ( FlightDetailsReturn?.meal_charges || 0),
       extra_baggage_charges: FlightDetails?.extra_baggage_charges,
       fast_forward_charges: 0,
       vip_service_charges: 0,
-      applied_markup: "",
+      applied_markup: (FareDetails?.OnwardMarkup || 0) + (FareDetails?.ReturnMarkup || 0),
       actual_markup: "",
-      total_ex_tax_fees: FlightDetails?.fareDetails?.total_ex_tax_fees,
+      total_ex_tax_fees: (FlightDetails?.fareDetails?.total_ex_tax_fees || 0) + (FlightDetailsReturn?.fareDetails?.total_ex_tax_fees || 0),
       // total_price: removeCurrency(Totalprice) + removeCurrency(seatcharge)+removeCurrency(mealcharge),
-      tax_and_fees: FlightDetails?.fareDetails?.tax_and_fees,
-      gst_k3: FlightDetails?.fareDetails?.gst_k3,
+      tax_and_fees: (FlightDetails?.fareDetails?.tax_and_fees || 0) + (FlightDetailsReturn?.fareDetails?.tax_and_fees || 0) ,
+      gst_k3:  (FlightDetails?.fareDetails?.gst_k3 || 0) + (FlightDetailsReturn?.fareDetails?.gst_k3 || 0),
       //
 
       portal_used: FlightDetails?.portal_used,
       portal_used_return: FlightDetailsReturn?.portal_used,
-      fare_type_return: "Refundable",
+      fare_type_return: FlightDetailsReturn?.fareType[0],
       is_extra_baggage_included_return:
       FlightDetailsReturn?.is_extra_baggage_included,
       no_of_stops_return: FlightDetailsReturn?.no_of_stops,
@@ -1224,18 +1226,72 @@ console.log("Request Data for Assign Booking", requestData);
 
                         <div className="clear" />
                       </div>
+                        <div className="chk-line relative items-start gap-2">
+                        <div className="chk-l">Client Price Per Pax</div>
+                        <span className="chk-r">
+                          <button
+                            className="cursor-pointer"
+                            onClick={() => setShowTooltip9((prev) => !prev)}
+                          >
+                            <img
+                              src="../img/i_icon.svg"
+                              alt="Info"
+                              className="w-4 h-4 cursor-pointer mt-1"
+                            />
+                          </button>
+                        </span>
+
+                        {showTooltip9 && (
+                          <div
+                            className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
+                            onMouseLeave={() => setShowTooltip9(false)}
+                          >
+                            <div className="flex gap-2">
+                              <p className="font-semibold text-xs text-gray-800 mb-1">
+                                Onward Airlines:
+                              </p>
+                              <span className="chk-r">
+                                ₹
+                                {FareDetails?.OnwardClientPrice
+                                }
+                              </span>
+                            </div>
+
+                            <hr className="my-2" />
+
+                            <div className="flex gap-2">
+                              <p className="font-semibold text-xs text-gray-800 mb-1 flex">
+                                Return Airlines:
+                              </p>
+
+                              <span className="chk-r">
+                                ₹
+                                {FareDetails?.ReturnClientPrice
+                                }
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="clear" />
+                      </div>
+
                     </div>
                     <div className="chk-total">
                       <div className="chk-total-l">Total Price</div>
                       <div className="chk-total-r" style={{ fontWeight: 700 }}>
                         {(() => {
                           const onwardTotal =
-                            Number(FlightDetails?.fareDetails?.total) || 0;
+                            Number(FlightDetails?.fareDetails?.total)  + (FareDetails?.OnwardMarkup) || 0;
                           const returnTotal =
-                            Number(FlightDetailsReturn?.fareDetails?.total) ||
+                            Number(FlightDetailsReturn?.fareDetails?.total) + (FareDetails?.ReturnMarkup) ||
                             0;
                           const grandTotal = onwardTotal + returnTotal;
-
+                          console.log(FlightDetails?.fareDetails?.total);
+                          console.log(FareDetails?.OnwardClientPrice)
+                          console.log(onwardTotal);
+                          console.log(returnTotal);
+                          console.log(grandTotal);
                           return `₹${grandTotal.toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,

@@ -32,7 +32,7 @@ const NewFormtaxivaxi = () => {
           );
         }
 
-        console.log("Fixed Passenger Array:", rawData.passengerDetailsArray);
+        // console.log("Fixed Passenger Array:", rawData.passengerDetailsArray);
 
         const empIdsArray = rawData.passengerDetailsArray || [];
 
@@ -52,7 +52,7 @@ const NewFormtaxivaxi = () => {
         );
 
         const empJson = await empResponse.json();
-        console.log("Employee API Response:", empJson);
+        // console.log("Employee API Response:", empJson);
         const employeeData = empJson.result || [];
 
         // const cleanedPassengers = employeeData.map((emp) => {
@@ -60,23 +60,23 @@ const NewFormtaxivaxi = () => {
         //     .trim()
         //     .split(" ");
         //   const lastName = rest.join(" ") || ""; // join remaining parts as lastName
-  const cleanedPassengers = employeeData.map((emp) => {
-    const nameParts = (emp.people_name || "")
-        .trim()
-        .split(" ")
-        .filter(n => n); // Remove extra spaces
+        const cleanedPassengers = employeeData.map((emp) => {
+          const nameParts = (emp.people_name || "")
+            .trim()
+            .split(" ")
+            .filter(n => n); // Remove extra spaces
 
-    let firstName = "";
-    let lastName = "";
+          let firstName = "";
+          let lastName = "";
 
-    if (nameParts.length === 1) {
-        firstName = nameParts[0];
-        lastName = "";
-    } 
-    else {
-        firstName = nameParts.slice(0, nameParts.length - 1).join(" ");
-        lastName = nameParts[nameParts.length - 1];
-    }
+          if (nameParts.length === 1) {
+            firstName = nameParts[0];
+            lastName = "";
+          }
+          else {
+            firstName = nameParts.slice(0, nameParts.length - 1).join(" ");
+            lastName = nameParts[nameParts.length - 1];
+          }
 
 
 
@@ -113,7 +113,7 @@ const NewFormtaxivaxi = () => {
             selectclass: rawData.seat_type,
             bookingtype: rawData.trip_type,
             requesttype: rawData.request_type,
-            spocemail: rawData.email,
+            spocemail: rawData.spoc_email,
             additionalemail: rawData.additional_emails,
             ccmail: rawData.cc_email,
             clientname: rawData.client_name,
@@ -128,9 +128,12 @@ const NewFormtaxivaxi = () => {
             flighttype: rawData.flight_type,
             accessToken: rawData.access_token,
             agent_id: rawData.agentId,
+            query_id:rawData.query_id,
+            flight_query_id : rawData.flight_query_id,
           };
 
           navigate("/SearchFlight", { state: { responseData } });
+            console.log("oneway Data:", responseData);
         } else if (TripType === "Round Trip") {
           responseData = {
             searchfromcity: rawData.from_city,
@@ -144,7 +147,7 @@ const NewFormtaxivaxi = () => {
             selectclass: rawData.seat_type,
             bookingtype: rawData.trip_type,
             requesttype: rawData.request_type,
-            spocemail: rawData.email,
+            spocemail: rawData.spoc_email,
             additionalemail: rawData.additional_emails,
             ccmail: rawData.cc_email,
             clientname: rawData.client_name,
@@ -159,9 +162,11 @@ const NewFormtaxivaxi = () => {
             flighttype: rawData.flight_type,
             accessToken: rawData.access_token,
             agent_id: rawData.agentId,
+              query_id: rawData.query_id,
+              flight_query_id : rawData.flight_query_id,
           };
           navigate("/SearchFlight", { state: { responseData } });
-          // console.log("Round Trip Data:", responseData);
+          console.log("Round Trip Data:", responseData);
         }
 
         setLoading(false);

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import CONFIG from "./config";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 const Newbookflow = () => {
   const searchParams = new URLSearchParams(window.location.search);
   const Data = searchParams.get("taxivaxidata");
@@ -81,8 +82,19 @@ const Newbookflow = () => {
 
     return `${year}-${month}-${day}`;
   }
-  const JourneyType = Taxivaxidata[0]?.is_return == 0 ? 1 : 2;
-  const fetchData = async (passengerDetails) => {
+const [JourneyType, setJourneyType] = useState(() => {
+  // Set initial value immediately based on data
+  if (Taxivaxidata[0]?.return_date !== "0000-00-00") {
+    return 2;
+  } else {
+    return 1;
+  }
+});
+
+// This will show the current value during render
+
+console.log("JourneyType in render:", JourneyType);  
+    const fetchData = async (passengerDetails) => {
     // //console.log("passengerDetails", passengerDetails)
     const url = `${CONFIG.BASE_URL}searchFlights_new`;
     const requestData = {
@@ -94,10 +106,10 @@ const Newbookflow = () => {
       infantCount: 0,
       cabinClass: Taxivaxidata[0]?.seat_type,
       JourneyType: JourneyType,
-      // flighttype: Taxivaxidata[0]?.flight_type,
-      flighttype: "domestic",
+      flighttype: Taxivaxidata[0]?.flight_type,
+      // flighttype: "domestic",
       returnDate:
-        Taxivaxidata[0]?.is_return == 1
+        Taxivaxidata[0]?.return_date !== "0000-00-00"
           ? extractDate(Taxivaxidata[0]?.return_date)
           : null,
       // JourneyType: inputValue.bookingType ? Number(inputValue.bookingType) : Number(journeytype),
@@ -132,9 +144,29 @@ const Newbookflow = () => {
           );
           return taxivaxiFlightNos.every((no) => optionFlightNos.includes(no));
         });
-        console.log("Fetched matchedFlight", matchedFlight);
-        setselectedflight(matchedFlight);
+        // console.log("Fetched matchedFlight", matchedFlight);
+        if(matchedFlight == null){
+              Swal.fire({
+            title: "Flight Not Available",
+            text: "The selected Flight is no longer available. Would you like to search again?",
+            icon: "warning",
+            // showCancelButton: true,
+            confirmButtonText: "Search Again",
+            // cancelButtonText: "Cancel",
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            allowOutsideClick: false,
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = "/";
+            }
+          });
+        }
+        else {
+      setselectedflight(matchedFlight);
 
+        }
+  
         await Getfares(matchedFlight, passengerDetails);
         if (JourneyType == 2) {
           const AvailableOptions_return = data.data.Return;
@@ -156,8 +188,29 @@ const Newbookflow = () => {
               );
             }
           );
-          console.log("fetched matchedFlight_return", matchedFlight_return);
-          setselectedflight_return(matchedFlight_return);
+            if(matchedFlight_return == null){
+              Swal.fire({
+            title: "Flight Not Available",
+            text: "The selected Flight is no longer available. Would you like to search again?",
+            icon: "warning",
+            // showCancelButton: true,
+            confirmButtonText: "Search Again",
+            // cancelButtonText: "Cancel",
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            allowOutsideClick: false,
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = "/";
+            }
+          });
+        }
+        else {
+      setselectedflight_return(matchedFlight_return);
+
+        }
+          // console.log("fetched matchedFlight_return", matchedFlight_return);
+          // setselectedflight_return(matchedFlight_return);
 
           await GetfaresReturn(matchedFlight_return, passengerDetails);
         }
@@ -184,7 +237,133 @@ const Newbookflow = () => {
 
   //Flight fares api
   //Onward
+  // const Getfares = async (Flightdata, passengerDetails) => {
+  //   const requestData = {
+  //     unique_id: Flightdata.unique_id,
+  //     trace_price: Flightdata.trace_price,
+  //     trace_search: Flightdata.trace_search,
+  //     trace_option: Flightdata.trace_option,
+  //     passengerDetails: passengerDetails,
+  //   };
+  //   try {
+  //     const response = await fetch(`${CONFIG.BASE_URL}searchPrices`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(requestData),
+  //     });
+
+  //     const Data = await response.json();
+  //     const data = Data.data;
+
+  //     const faresArray = Array.isArray(Taxivaxidata)
+  //       ? Taxivaxidata
+  //       : [Taxivaxidata];tbo_fares
+  //     if (JourneyType == 1) {
+  //       const matchedObjects = faresArray
+  //         .map(({ source, fare_type, price }) => {
+  //           let found = null;
+
+  //           const inputPrice = Number(price); // convert incoming price to number
+
+  //           if (source === "Uapi") {
+  //             found = data.uapi_fares.find(
+  //               (f) =>
+  //                 f.SupplierFareClass?.toLowerCase().trim() ===
+  //                   fare_type?.toLowerCase().trim() &&
+  //                 Number(f.TotalPrice) === inputPrice
+  //             );
+  //             return found
+  //               ? { ...found, from: "Uapi", price: found.TotalPrice }
+  //               : null;
+  //           }
+
+  //           if (source === "Tbo") {
+  //             found = data.tbo_fares.find(
+  //               (f) =>
+  //                 f.SupplierFareClass?.toLowerCase().trim() ===
+  //                   fare_type?.toLowerCase().trim() &&
+  //                 Number(f.TotalPrice) === inputPrice
+  //             );
+  //             return found
+  //               ? { ...found, from: "Tbo", price: found.TotalPrice }
+  //               : null;
+  //           }
+
+  //           return null;
+  //         })
+  //         .filter(Boolean);
+  //       // console.log("Matched Fare Objects:", matchedObjects);
+  //       setFlightFare(matchedObjects);
+  //       NavigatetoBookingflow(matchedObjects, Flightdata, passengerDetails);
+  //       setLoadingg(false);
+  //       return;
+  //     } else if (JourneyType == 2) {
+  //       const matchedObjects = faresArray
+  //         .map(({ source, fare_type, price }) => {
+  //           const inputPrice = Number(price);
+  //           let found = null;
+
+  //           if (source === "Uapi") {
+  //             found = data.uapi_fares.find(
+  //               (f) =>
+  //                 f.SupplierFareClass?.toLowerCase().trim() ===
+  //                   fare_type?.toLowerCase().trim() &&
+  //                 Number(f.TotalPrice) === inputPrice
+  //             );
+  //             return found
+  //               ? {
+  //                   flight: Flightdata.flight,
+  //                   fare: {
+  //                     type: found.SupplierFareClass,
+  //                     price: Number(found.TotalPrice),
+  //                     from: "Uapi",
+  //                     ResultIndex: found.ResultIndex,
+  //                     TraceId: found.trace_id,
+  //                     ProviderCode: found.ProviderCode,
+  //                     isLCC: found.isLCC,
+  //                   },
+  //                 }
+  //               : null;
+  //           }
+
+  //           if (source === "Tbo") {
+  //             found = data.tbo_fares.find(
+  //               (f) =>
+  //                 f.SupplierFareClass?.toLowerCase().trim() ===
+  //                   fare_type?.toLowerCase().trim() &&
+  //                 Number(f.TotalPrice) === inputPrice
+  //             );
+  //             return found
+  //               ? {
+  //                   flight: Flightdata.flight,
+  //                   fare: {
+  //                     type: found.SupplierFareClass,
+  //                     price: Number(found.TotalPrice),
+  //                     from: "Tbo",
+  //                     ResultIndex: found.ResultIndex,
+  //                     TraceId: found.trace_id,
+  //                   },
+  //                 }
+  //               : null;
+  //           }
+
+  //           return null;
+  //         })
+  //         .filter(Boolean);
+
+  //       // console.log("Matched Fare Objects for Journey Type 2:", matchedObjects);
+  //       setFlightFare(matchedObjects);
+  //       setOnwardFares(matchedObjects);
+  //     }
+  //   } catch {
+  //     setLoadingg(false);
+  //     //console.log('error')
+  //   }
+  // };
   const Getfares = async (Flightdata, passengerDetails) => {
+    console.log("Flightdata",Flightdata);
     const requestData = {
       unique_id: Flightdata.unique_id,
       trace_price: Flightdata.trace_price,
@@ -192,6 +371,7 @@ const Newbookflow = () => {
       trace_option: Flightdata.trace_option,
       passengerDetails: passengerDetails,
     };
+
     try {
       const response = await fetch(`${CONFIG.BASE_URL}searchPrices`, {
         method: "POST",
@@ -203,57 +383,119 @@ const Newbookflow = () => {
 
       const Data = await response.json();
       const data = Data.data;
-
       const faresArray = Array.isArray(Taxivaxidata)
         ? Taxivaxidata
         : [Taxivaxidata];
+
+      // Debug logs
+      console.log("API Response:", Data);
+      console.log("tbo_fares:", data.tbo_fares);
+      console.log("uapi_fares:", data.uapi_fares);
+      console.log("Fares Array:", faresArray);
+
       if (JourneyType == 1) {
         const matchedObjects = faresArray
-          .map(({ source, fare_type, price }) => {
+          .map(({ source, fare_type, price_without_markup }) => {
             let found = null;
-
-            const inputPrice = Number(price); // convert incoming price to number
+            const inputPrice = Number(price_without_markup);
 
             if (source === "Uapi") {
-              found = data.uapi_fares.find(
-                (f) =>
+              found = data.uapi_fares?.find((f) => {
+                const match =
                   f.SupplierFareClass?.toLowerCase().trim() ===
                     fare_type?.toLowerCase().trim() &&
-                  Number(f.TotalPrice) === inputPrice
-              );
+                  Number(f.TotalPrice) === inputPrice;
+                console.log("Uapi match check:", {
+                  sourceFareClass: f.SupplierFareClass,
+                  fare_type,
+                  sourcePrice: f.TotalPrice,
+                  inputPrice,
+                  match,
+                });
+                return match;
+              });
               return found
-                ? { ...found, from: "Uapi", price: found.TotalPrice }
+                ? {
+                    ...found,
+                    from: "Uapi",
+                    price: found.TotalPrice,
+                    ResultIndex: found.ResultIndex,
+                    trace_id: found.trace_id || found.TraceId,
+                    traceId: found.trace_id || found.TraceId, // Add both formats
+                    isLCC: found.isLCC || false,
+                    SupplierFareClass:
+                      found.SupplierFareClass || "Regular Fare",
+                  }
                 : null;
             }
 
             if (source === "Tbo") {
-              found = data.tbo_fares.find(
-                (f) =>
+              found = data.tbo_fares?.find((f) => {
+                const match =
                   f.SupplierFareClass?.toLowerCase().trim() ===
                     fare_type?.toLowerCase().trim() &&
-                  Number(f.TotalPrice) === inputPrice
-              );
+                  Number(f.TotalPrice) === inputPrice;
+                console.log("Tbo match check:", {
+                  sourceFareClass: f.SupplierFareClass,
+                  fare_type,
+                  sourcePrice: f.TotalPrice,
+                  inputPrice,
+                  match,
+                });
+                return match;
+              });
               return found
-                ? { ...found, from: "Tbo", price: found.TotalPrice }
+                ? {
+                    ...found,
+                    from: "Tbo",
+                    price: found.TotalPrice,
+                    ResultIndex: found.ResultIndex,
+                    trace_id: found.trace_id,
+                    traceId: found.trace_id, // Add both formats
+                    isLCC: found.isLCC || false,
+                    SupplierFareClass:
+                      found.SupplierFareClass || "Regular Fare",
+                  }
                 : null;
             }
-
             return null;
           })
           .filter(Boolean);
+
         console.log("Matched Fare Objects:", matchedObjects);
         setFlightFare(matchedObjects);
-        NavigatetoBookingflow(matchedObjects, Flightdata, passengerDetails);
-        setLoadingg(false);
-        return;
+
+        if (matchedObjects.length > 0) {
+          NavigatetoBookingflow(matchedObjects, Flightdata, passengerDetails);
+        } else if (matchedObjects.length === 0) {
+          setLoadingg(false);
+
+          Swal.fire({
+            title: "Fare Not Available",
+            text: "The selected fare is no longer available. Would you like to search again?",
+            icon: "warning",
+            // showCancelButton: true,
+            confirmButtonText: "Search Again",
+            // cancelButtonText: "Cancel",
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            allowOutsideClick: false,
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = "/";
+            }
+          });
+
+          return;
+        }
       } else if (JourneyType == 2) {
         const matchedObjects = faresArray
-          .map(({ source, fare_type, price }) => {
-            const inputPrice = Number(price);
+          .map(({ source, fare_type, price_without_markup }) => {
+            const inputPrice = Number(price_without_markup);
             let found = null;
 
             if (source === "Uapi") {
-              found = data.uapi_fares.find(
+              found = data.uapi_fares?.find(
                 (f) =>
                   f.SupplierFareClass?.toLowerCase().trim() ===
                     fare_type?.toLowerCase().trim() &&
@@ -267,16 +509,17 @@ const Newbookflow = () => {
                       price: Number(found.TotalPrice),
                       from: "Uapi",
                       ResultIndex: found.ResultIndex,
-                      TraceId: found.trace_id,
+                      TraceId: found.trace_id || found.TraceId,
+                      traceId: found.trace_id || found.TraceId,
                       ProviderCode: found.ProviderCode,
-                      isLCC: found.isLCC,
+                      isLCC: found.isLCC || false,
                     },
                   }
                 : null;
             }
 
             if (source === "Tbo") {
-              found = data.tbo_fares.find(
+              found = data.tbo_fares?.find(
                 (f) =>
                   f.SupplierFareClass?.toLowerCase().trim() ===
                     fare_type?.toLowerCase().trim() &&
@@ -291,11 +534,11 @@ const Newbookflow = () => {
                       from: "Tbo",
                       ResultIndex: found.ResultIndex,
                       TraceId: found.trace_id,
+                      traceId: found.trace_id,
                     },
                   }
                 : null;
             }
-
             return null;
           })
           .filter(Boolean);
@@ -303,13 +546,35 @@ const Newbookflow = () => {
         console.log("Matched Fare Objects for Journey Type 2:", matchedObjects);
         setFlightFare(matchedObjects);
         setOnwardFares(matchedObjects);
+        setLoadingg(false);
+        // Alternative using window.confirm
+        if (matchedObjects.length === 0) {
+          setLoadingg(false);
+
+          Swal.fire({
+            title: "Fare Not Available",
+            text: "The selected fare is no longer available. Would you like to search again?",
+            icon: "warning",
+            // showCancelButton: true,
+            confirmButtonText: "Search Again",
+            // cancelButtonText: "Cancel",
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            allowOutsideClick: false,
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = "/";
+            }
+          });
+
+          return;
+        }
       }
-    } catch {
+    } catch (error) {
+      console.error("Error in Getfares:", error);
       setLoadingg(false);
-      //console.log('error')
     }
   };
-
   const GetfaresReturn = async (FlightdataReturn, passengerDetails) => {
     const requestData = {
       unique_id: FlightdataReturn.unique_id,
@@ -335,9 +600,9 @@ const Newbookflow = () => {
         ? Taxivaxidata
         : [Taxivaxidata];
       const matchedObjectsReturn = faresArrayReturn
-        .map(({ source, fare_type, price }) => {
+        .map(({ source, fare_type, price_without_markup }) => {
           let found = null;
-          const inputPrice = Number(price);
+          const inputPrice = Number(price_without_markup);
 
           if (source === "Uapi") {
             found = data.uapi_fares.find(
@@ -393,6 +658,28 @@ const Newbookflow = () => {
       );
       setFlightFareReturn(matchedObjectsReturn);
       setReturnFares(matchedObjectsReturn);
+      // Alternative using window.confirm
+      if (matchedObjectsReturn.length === 0) {
+        setLoadingg(false);
+
+        Swal.fire({
+          title: "Fare Not Available",
+          text: "The selected fare is no longer available. Would you like to search again?",
+          icon: "warning",
+          // showCancelButton: true,
+          confirmButtonText: "Search Again",
+          // cancelButtonText: "Cancel",
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          allowOutsideClick: false,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = "/";
+          }
+        });
+
+        return;
+      }
 
       // Retrieve passengerDetails from sessionStorage or use the parameter
       const currentPassengerDetails =
@@ -408,7 +695,7 @@ const Newbookflow = () => {
       setLoadingg(false);
     } catch (error) {
       setLoadingg(false);
-      console.log("error in GetfaresReturn:", error);
+      // console.log("error in GetfaresReturn:", error);
     }
   };
   const FetchEmployee = async () => {
@@ -459,11 +746,11 @@ const Newbookflow = () => {
         };
       });
 
-      console.log("passengerdetails", cleanedPassengers);
+      // console.log("passengerdetails", cleanedPassengers);
       setPassengerInfo(cleanedPassengers);
       emptaxivaxi.push(...cleanedPassengers);
     } catch (error) {
-      console.error("Error fetching employee data:", error);
+      // console.error("Error fetching employee data:", error);
     }
   };
   //  console.log("passengerdetails from state", PassengerDetails)
@@ -499,16 +786,62 @@ const Newbookflow = () => {
   };
   // console.log("updated taxivaxi data", Updatedtaxivaxidata)
 
+  // const NavigatetoBookingflow = (fare, Flight, passengerDetails) => {
+  //   const adultCount = Taxivaxidata[0]?.passengerDetailsArray.length;
+  //   const childCount = 0;
+  //   const infantCount = 0;
+  //   const PriceResponse = {
+  //     key: fare?.[0]?.ResultIndex,
+  //     traceId: fare?.[0]?.trace_id,
+  //     source_type: fare?.[0]?.from,
+  //     IsLCC: fare?.[0]?.isLCC,
+  //     faretype: fare?.[0]?.SupplierFareClass || "Regular Fare",
+  //     segments: Flight?.flight?.segments,
+  //     CabinClass: Taxivaxidata[0]?.seat_type,
+  //     Passenger_info: {
+  //       Adult: adultCount,
+  //       Child: childCount,
+  //       Infant: infantCount,
+  //     },
+  //     passengerDetails: passengerDetails,
+  //     FlightType: Taxivaxidata[0]?.flight_type,
+  //     FlightDetails: Updatedtaxivaxidata || "",
+  //   };
+  //   console.log(PriceResponse);
+  //   sessionStorage.setItem("PriceResponse", JSON.stringify(PriceResponse));
+
+  //   // Open in new tab
+  //   const path =
+  //     fare?.[0]?.from === "Uapi" ? "/UapiBookingflow" : "/TboBookingflow";
+  //   // window.open(path,'_blank');
+  //   navigate(path);
+  // };
   const NavigatetoBookingflow = (fare, Flight, passengerDetails) => {
     const adultCount = Taxivaxidata[0]?.passengerDetailsArray.length;
     const childCount = 0;
     const infantCount = 0;
+
+    // Get the first fare object from the array
+    const fareObj = Array.isArray(fare) ? fare[0] : fare;
+
+  
+
+    // Check what properties are available
+    if (fareObj) {
+      console.log(
+        "ResultIndex exists?:",
+        "ResultIndex" in fareObj,
+        fareObj.ResultIndex
+      );
+  
+    }
+
     const PriceResponse = {
-      key: fare?.[0]?.ResultIndex,
-      traceId: fare?.[0]?.trace_id,
-      source_type: fare?.[0]?.from,
-      IsLCC: fare?.[0]?.isLCC,
-      faretype: fare?.[0]?.SupplierFareClass || "Regular Fare",
+      key: fareObj?.ResultIndex || fareObj?.resultIndex,
+      traceId: fareObj?.trace_id || fareObj?.traceId || fareObj?.TraceId,
+      source_type: fareObj?.from,
+      IsLCC: fareObj?.isLCC || false,
+      faretype: fareObj?.SupplierFareClass || fareObj?.type || "Regular Fare",
       segments: Flight?.flight?.segments,
       CabinClass: Taxivaxidata[0]?.seat_type,
       Passenger_info: {
@@ -519,14 +852,33 @@ const Newbookflow = () => {
       passengerDetails: passengerDetails,
       FlightType: Taxivaxidata[0]?.flight_type,
       FlightDetails: Updatedtaxivaxidata || "",
+      ClientPrice:Taxivaxidata[0]?.price,
+      
+      // Include the entire fare object for debugging
+      rawFare: fareObj,
     };
-    console.log(PriceResponse);
+
+    console.log("PriceResponse to be saved:", PriceResponse);
+
+    // Validate required fields
+    if (!PriceResponse.key || !PriceResponse.traceId) {
+      console.error("Missing required fields in PriceResponse!");
+      console.error("Missing key:", PriceResponse.key);
+      console.error("Missing traceId:", PriceResponse.traceId);
+      alert("Error: Could not retrieve fare details. Please try again.");
+      setLoadingg(false);
+      return;
+    }
+
     sessionStorage.setItem("PriceResponse", JSON.stringify(PriceResponse));
 
-    // Open in new tab
-    const path =
-      fare?.[0]?.from === "Uapi" ? "/UapiBookingflow" : "/TboBookingflow";
-    // window.open(path,'_blank');
+    // Determine which booking flow to use
+    let path = "/TboBookingflow"; // default
+    if (fareObj?.from === "Uapi") {
+      path = "/UapiBookingflow";
+    }
+
+    console.log("Navigating to:", path);
     navigate(path);
   };
 
@@ -562,11 +914,13 @@ const Newbookflow = () => {
       passengerDetails: PassengerDetails || [],
       FlightType: Taxivaxidata[0]?.flight_type,
       FlightDetails: Updatedtaxivaxidata || "",
+        ClientPriceOnward:Taxivaxidata[0]?.price,
+          ClientPriceReturn:Taxivaxidata[1]?.price,
       // Flightdata: Flightdata,
       // FlightdataReturn: FlightdataReturn
     };
 
-    console.log("Final PriceResponse:", PriceResponse);
+    // console.log("Final PriceResponse:", PriceResponse);
 
     sessionStorage.setItem(
       "returnPriceResponse",

@@ -32,9 +32,11 @@ const ReturnBookingFlow = () => {
   const hasFetchedRef = useRef(false);
   const OnwardFare = responseData?.onward?.fare;
   const ReturnFare = responseData?.return?.fare;
+  const ClientOnwardPrice = responseData?.ClientPriceOnward;
+  const ClientReturnPrice = responseData?.ClientPriceReturn;
   // console.log("return flight fare", ReturnFare);
   const OnwardSegments = responseData?.onward?.flight?.segments;
-  console.log("onward segments", OnwardSegments);
+  // console.log("onward segments", OnwardSegments);
   const ReturnSegments = responseData?.return?.flight?.segments;
   const OnwardFlight = responseData?.onward?.flight;
   const ReturnFlight = responseData?.return?.flight;
@@ -146,6 +148,16 @@ const ReturnBookingFlow = () => {
   const [IsTboReturnLCC, setIsTboReturnLCC] = useState("");
   const [PerPassOnwardTboFareData, setPerPassOnwardTboFareData] = useState([]);
   const [PerPassReturnTboFareData, setPerPassReturnTboFareData] = useState([]);
+  const [isPassengerSaved, setIsPassengerSaved] = useState(false);
+    const [OnwardGst_k3, setOnwardGst_k3] = useState("");
+        const [ReturnGst_k3, setReturnGst_k3] = useState("");
+            const [OnwardOther, setOnwardOther] = useState("");
+        const [ReturnOther, setReturnOther] = useState("");
+      const [OnwardTotal, setOnwardTotal] = useState("");
+        const [ReturnTotal, setReturnTotal] = useState("");
+      const [OnwardTax, setOnwardTax] = useState("");
+        const [ReturnTax, setReturnTax] = useState("");
+        const passenger = TaxivaxiPassengeDetails.length;
   const [errors, setErrors] = useState({
     gstin: "",
     company_name: "",
@@ -221,10 +233,29 @@ const ReturnBookingFlow = () => {
                 }
                 if (responseData?.AirPriceResult) {
                   const fare = responseData?.AirPriceResult;
-                  // //console.log(fare)
+                    const tax =Number(fare?.Taxes.replace("INR", "")) || 0
+                  
+                  // console.log(tax)
                   setFareData(fare);
+                    setOnwardTax(tax);
+                        const gstObj = fare.TaxInfo.find(
+                (t) => t.$?.CarrierDefinedCategory === "27GST"
+              );
+
+              const gst = gstObj
+                ? Number(gstObj.$.Amount.replace("INR", ""))
+                : 0;
+
+              // console.log(gst);
+              setOnwardGst_k3(gst);
+                  const total = Number(fare?.TotalPrice.replace("INR","")||0);
+                  // console.log(total);
+                  setOnwardTotal(total);
+
                 }
-              }
+              
+            
+           }
               if (Data.data.onward.source == "Tbo") {
                 const source_type = Data.data.onward.source;
                 setOnwardSourceType(source_type);
@@ -243,12 +274,37 @@ const ReturnBookingFlow = () => {
                   const flight = responseData.FareQuote_Response.FlightDetails;
                   setFlightData(flight);
                 }
-                if (responseData.FareQuote_Response?.Results.Fare) {
-                  const Fare = responseData.FareQuote_Response?.Results.Fare;
-                  // //console.log(Fare)
-                  setOnwaredTboFare(Fare);
-                  // (Fare);
-                }
+              if (responseData.FareQuote_Response?.Results.Fare) {
+  const fareData = responseData.FareQuote_Response.Results.Fare;
+  
+  // Check what properties exist
+  // console.log("Available properties:", Object.keys(fareData));
+  
+  // If PublishedFare exists (most common in TBO API)
+  if (fareData.PublishedFare) {
+    const total = Number(fareData.PublishedFare) * passenger;
+    const baseFare = Number(fareData.BaseFare || 0) * passenger;
+    const tax = Number(fareData.Tax || 0) * passenger;
+    const otherCharges = Number(fareData.OtherCharges || 0) * passenger;
+    
+    // console.log("Total:", total);
+    // console.log("Base Fare:", baseFare);
+    // console.log("Total Tax + Charges:", tax + otherCharges);
+  
+  setOnwardOther(otherCharges);  
+    setOnwardTotal(total);
+    setOnwaredTboFare(baseFare);
+    setOnwardTax(tax + otherCharges);
+    
+    // For K3
+    const taxBreakup = fareData.TaxBreakup || [];
+    const k3Tax = Number(taxBreakup.find(t => t.key === "K3")?.value || 0) * passenger;
+    setOnwardGst_k3(k3Tax);
+  }
+}
+                
+      
+                  
                 if (responseData.FareQuote_Response?.Results.FareBreakdown) {
                   const PerFare =
                     responseData.FareQuote_Response?.Results.FareBreakdown;
@@ -313,9 +369,27 @@ const ReturnBookingFlow = () => {
                 }
                 if (responseData?.AirPriceResult) {
                   const fare = responseData?.AirPriceResult;
-                  // //console.log(fare)
+                    const tax =Number(fare?.Taxes.replace("INR", "")) || 0
+                  
+                  // console.log(tax)
                   setReturnFareData(fare);
+                    setReturnTax(tax);
+                        const gstObj = fare.TaxInfo.find(
+                (t) => t.$?.CarrierDefinedCategory === "27GST" || "07GST"
+              );
+
+              const gst = gstObj
+                ? Number(gstObj.$.Amount.replace("INR", ""))
+                : 0;
+
+              // console.log(gst);
+              // console.log(tax);
+              setReturnGst_k3(gst);
+                  const total = Number(fare?.TotalPrice.replace("INR","")||0);
+                  // console.log(total);
+                  setReturnTotal(total);
                 }
+                
               }
               if (Data.data.return.source == "Tbo") {
                 const source_type = Data.data.return.source;
@@ -334,12 +408,49 @@ const ReturnBookingFlow = () => {
                   const flight = responseData.FareQuote_Response.FlightDetails;
                   setReturnFlightData(flight);
                 }
-                if (responseData.FareQuote_Response?.Results.Fare) {
-                  const Fare = responseData.FareQuote_Response?.Results.Fare;
-                  // //console.log(Fare)
-                  setReturnTboFare(Fare);
-                  // (Fare);
-                }
+    //             if (responseData.FareQuote_Response?.Results.Fare) {
+    //               const Fare = responseData.FareQuote_Response?.Results.Fare * passenger;
+    //               const tax = Fare.Tax + Fare.OtherCharges * passenger;
+    //               // //console.log(Fare)
+    //               setReturnTboFare(Fare);
+    //               // console.log(tax);
+    //               setReturnTax(tax);
+    //               // (Fare);
+    //                     const k3Tax =
+    // Number(Fare?.TaxBreakup?.find((t) => t.key === "K3")?.value)* passenger || 0;
+    // // console.log(k3Tax);
+    // setReturnGst_k3(k3Tax);
+    //     const total = Number(Fare?.PublishedFare * passenger);
+    //               // console.log(total);
+    //               setReturnTotal(total);
+    //             }
+        if (responseData.FareQuote_Response?.Results.Fare) {
+  const fareData = responseData.FareQuote_Response.Results.Fare;
+  
+  // Check what properties exist
+  // console.log("Available properties:", Object.keys(fareData));
+  
+  // If PublishedFare exists (most common in TBO API)
+  if (fareData.PublishedFare) {
+    const total = Number(fareData.PublishedFare) * passenger;
+    const baseFare = Number(fareData.BaseFare || 0) * passenger;
+    const tax = Number(fareData.Tax || 0) * passenger;
+    const otherCharges = Number(fareData.OtherCharges || 0) * passenger;
+    
+    // console.log("Total:", total);
+    // console.log("Base Fare:", baseFare);
+    // console.log("Total Tax + Charges:", tax + otherCharges);
+    setReturnOther(otherCharges);    
+    setReturnTotal(total);
+    setReturnTboFare(baseFare);
+    setReturnTax(tax + otherCharges);
+    
+    // For K3
+    const taxBreakup = fareData.TaxBreakup || [];
+    const k3Tax = Number(taxBreakup.find(t => t.key === "K3")?.value || 0) * passenger;
+    setReturnGst_k3(k3Tax);
+  }
+}
                 if (responseData.FareQuote_Response?.Results.FareBreakdown) {
                   const PerFare =
                     responseData.FareQuote_Response?.Results.FareBreakdown;
@@ -391,6 +502,7 @@ const ReturnBookingFlow = () => {
               text: Data.data.onward[0],
               iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
               confirmButtonText: "Try Again",
+              allowOutsideClick: false,
             }).then((result) => {
               if (result.isConfirmed) {
                 if (bookingid) {
@@ -410,6 +522,7 @@ const ReturnBookingFlow = () => {
               text: Data.message,
               iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
               confirmButtonText: "Try Again",
+              allowOutsideClick: false,
             }).then((result) => {
               if (result.isConfirmed) {
                 if (bookingid) {
@@ -433,6 +546,7 @@ const ReturnBookingFlow = () => {
             text: error.message,
             iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
             confirmButtonText: "Try Again",
+            allowOutsideClick: false,
           }).then((result) => {
             if (result.isConfirmed) {
               if (bookingid) {
@@ -871,7 +985,7 @@ const ReturnBookingFlow = () => {
       tboPassengerDetails.push(details);
     });
 
-    console.log("tbopassengers", tboPassengerDetails);
+    // console.log("tbopassengers", tboPassengerDetails);
 
     if (!isValid) {
       document
@@ -883,251 +997,11 @@ const ReturnBookingFlow = () => {
     setPassengerInfo(uapiPassengerInfo);
     setPassengerData(allPassengers);
     setTboPassengerDetails(tboPassengerDetails);
-
+    setIsPassengerSaved(true);
     setAccordion5Expanded(true);
     setAccordion1Expanded(false);
   };
-
-  //   const handleSavePassenger = () => {
-  //     const allPassengers = []; // Common Passenger raw data
-  //     const uapiPassengerInfo = []; // For UAPI
-  //     const tboPassengerDetails = []; // For TBO
-
-  //     const remainingPassengerDetails = [
-  //       ...(responseData?.passengerDetails || []),
-  //     ];
-  //     // console.log("remainingPassengerDetails", remainingPassengerDetails)
-  //     const keyIndexMap = { ADT: 0, CNN: 0, INF: 0 };
-  //     let isValid = true;
-
-  //     let leadEmail = "";
-  //     let leadContact = "";
-  //     let leadAddress1 = "";
-  //     let leadAddress2 = "";
-  //     let leadCity = "";
-
-  //     passengerList.forEach((passenger, index) => {
-  //       const form = formRefs.current[index];
-  //       attachLiveErrorHandlers(form);
-  //       if (!form) return;
-
-  //       // ---------- VALIDATION ----------
-  //       const firstNameInput = form.querySelector(
-  //         'input[name="adult_first_name[]"]'
-  //       );
-  //       const lastNameInput = form.querySelector(
-  //         'input[name="adult_last_name[]"]'
-  //       );
-  //       const emailInput = form.querySelector('input[name="email1"]');
-  //       const phoneInput =
-  //         phoneNumbers ||
-  //         `+91${TaxivaxiPassengeDetails?.[0]?.employee_contact}` ||
-  //         "";
-  //       const genderSelect = form.querySelector('select[name="adult_gender[]"]');
-  //       const dobInput = form.querySelector('input[name="adult_age[]"]');
-  //       const passportInput = form.querySelector(
-  //         'input[name="adult_passportNo[]"]'
-  //       );
-  //       const issuedCountryInput = form.querySelector(
-  //         'input[name="adult_issuedcountry[]"]'
-  //       );
-  //       const passportExpiryInput = form.querySelector(
-  //         'input[name="adult_passportexpiry[]"]'
-  //       );
-  //       const address1Input = form.querySelector(
-  //         'input[name="adult_address_line_1[]"]'
-  //       );
-  //       const address2Input = form.querySelector(
-  //         'input[name="adult_address_line_2[]"]'
-  //       );
-  //       const cityInput = form.querySelector('input[name="adult_city[]"]');
-
-  //       // Basic name/email/phone validations (reuse your existing ones)...
-  //       if (firstNameInput && !firstNameInput.value.trim()) {
-  //         form.querySelector(".adult_first_name-message").style.display = "block";
-  //         isValid = false;
-  //       }
-  //       if (lastNameInput && !lastNameInput.value.trim()) {
-  //         form.querySelector(".adult_last_name-message").style.display = "block";
-  //         isValid = false;
-  //       }
-  //       if (
-  //         passenger.type === "Adult" &&
-  //         emailInput &&
-  //         !emailInput.value.trim()
-  //       ) {
-  //         emailInput.nextElementSibling.style.display = "block";
-  //         isValid = false;
-  //       }
-  //       if (passenger.type === "Adult" && phoneInput) {
-  //         const phoneValue = phoneNumbers?.replace(/\D/g, "") || "";
-  //         // if (phoneValue.length !== 10) {
-  //         //     setPhoneError("Please enter a valid Mobile Number.");
-  //         //     isValid = false;
-  //         // } else {
-  //         //     setPhoneError(""); // clear error
-  //         // }
-  //       }
-  //       if (!dobInput?.value) {
-  //         form
-  //           .querySelector(".adult_age-message")
-  //           ?.style?.setProperty("display", "block");
-  //         isValid = false;
-  //       }
-
-  //       if (FlightType === "International") {
-  //         if (!passportInput?.value) isValid = false;
-  //         if (!issuedCountryInput?.value) isValid = false;
-  //         if (!passportExpiryInput?.value) isValid = false;
-  //       }
-
-  //       if (!isValid) return;
-
-  //       // ---------- Common Passenger Data ----------
-  //       const prefix =
-  //         form.querySelector('select[name="adult_prefix[]"]')?.value || "";
-  //       const firstName = firstNameInput?.value || "";
-  //       const lastName = lastNameInput?.value || "";
-  //       const dob = dobInput?.value || "";
-  //       const genderVal = genderSelect?.value || "";
-  //       const email = emailInput?.value || "";
-  //       const contact =
-  //         phoneNumbers ||
-  //         `+91${TaxivaxiPassengeDetails?.[0]?.employee_contact}` ||
-  //         "";
-  //       const address1 = address1Input?.value || "";
-  //       const address2 = address2Input?.value || "";
-  //       const city = cityInput?.value || "";
-  //       const flyerName =
-  //         form.querySelector('input[name="flyername"]')?.value || "";
-  //       const flyerNumber =
-  //         form.querySelector('input[name="flyernumber"]')?.value || "";
-
-  //       const isLeadPax = index === 0;
-  //       if (isLeadPax) {
-  //         leadEmail = email;
-  //         leadContact = contact;
-  //         leadAddress1 = address1;
-  //         leadAddress2 = address2;
-  //         leadCity = city;
-  //       }
-
-  //       const passengerData = {
-  //         type: passenger.type,
-  //         passengerIndex: index,
-  //         prefix,
-  //         firstName,
-  //         lastName,
-  //         dob,
-  //         email: ["Child", "Infant"].includes(passenger.type) ? leadEmail : email,
-  //         contact: ["Child", "Infant"].includes(passenger.type)
-  //           ? leadContact
-  //           : contact,
-  //         gender: genderVal,
-  //         Address1: ["Child", "Infant"].includes(passenger.type)
-  //           ? leadAddress1
-  //           : address1,
-  //         Address2: ["Child", "Infant"].includes(passenger.type)
-  //           ? leadAddress2
-  //           : address2,
-  //         city: ["Child", "Infant"].includes(passenger.type) ? leadCity : city,
-  //         flyerName,
-  //         flyerNumber,
-  //         passportno: passportInput?.value || "",
-  //         passportexpiry: passportExpiryInput?.value || "",
-  //         issuedcountry: issuedCountryInput?.value || "",
-  //       };
-
-  //       allPassengers.push(passengerData);
-
-  //       // ---------- UAPI Format ----------
-  //    const codeMapUapi = { Adult: "ADT", Child: "CNN", Infant: "INF" };
-  //     const matchCode = codeMapUapi[passenger.type];
-
-  //     const keysWithSameCode = remainingPassengerDetails.filter(
-  //       (d) => d.Code === matchCode
-  //     );
-
-  //     const passengerKey =
-  //       keysWithSameCode[keyIndexMap[matchCode]]?.Key || "";
-
-  //     // increment for next passenger of the same type
-  //     keyIndexMap[matchCode] += 1;
-
-  //     const Info = {
-  //       Code: matchCode,
-  //       Key: passengerKey,
-  //       Prefix: prefix,
-  //       First: firstName,
-  //       Last: lastName,
-  //       DateOfBirth: dob + "T00:00:00",
-  //       ContactNo: passengerData.contact,
-  //       Email: "flight@cotrav.co",
-  //       PassportExpiry: passengerData.passportexpiry,
-  //       PassportNo: passengerData.passportno,
-  //     };
-
-  //     uapiPassengerInfo.push(Info);
-  // // console.log("uapiPassengerInfo", uapiPassengerInfo)
-
-  //       // ---------- TBO Format ----------
-
-  //       const codeMapTbo = { Adult: 1, Child: 2, Infant: 3 };
-  //       const genderMap = { M: 1, F: 2 };
-  //       const dobs = dob; // e.g. "2003-06-18"
-  //       const birthDate = new Date(dobs);
-  //       const today = new Date();
-
-  //       let age = today.getFullYear() - birthDate.getFullYear();
-  //       const monthDiff = today.getMonth() - birthDate.getMonth();
-
-  //       if (
-  //         monthDiff < 0 ||
-  //         (monthDiff === 0 && today.getDate() < birthDate.getDate())
-  //       ) {
-  //         age--;
-  //       }
-
-  //       const details = {
-  //         passengerIndex: index,
-  //         Title: prefix,
-  //         FirstName: firstName,
-  //         LastName: lastName,
-  //         PaxType: codeMapTbo[passenger.type],
-  //         Gender: genderMap[genderVal],
-  //         DateOfBirth: dob + "T00:00:00",
-  //         // ContactNo: "+".concat(passengerData.contact),
-  //         ContactNo: passengerData.contact,
-  //         Age: age,
-
-  //         Email: "flight@cotrav.co", // Override if needed
-  //         AddressLine1: passengerData.Address1,
-  //         AddressLine2: passengerData.Address2,
-  //         IsLeadPax: isLeadPax,
-  //         City: passengerData.city,
-  //         PassportExpiry: passengerData.passportexpiry,
-  //         PassportNo: passengerData.passportno,
-  //       };
-
-  //       tboPassengerDetails.push(details);
-  //     });
-
-  //     console.log("tbopassengers", tboPassengerDetails);
-
-  //     if (!isValid) {
-  //       document
-  //         .querySelector('.error-message[style*="block"]')
-  //         ?.scrollIntoView({ behavior: "smooth", block: "center" });
-  //       return;
-  //     }
-  //     // //console.log(allPassengers);
-  //     setPassengerInfo(uapiPassengerInfo);
-  //     setPassengerData(allPassengers);
-  //     setTboPassengerDetails(tboPassengerDetails);
-
-  //     setAccordion5Expanded(true);
-  //     setAccordion1Expanded(false);
-  //   };
+  const nonInfantPassengers = PassengerData.filter((p) => p.type !== "Infant");
 
   useEffect(() => {
     if (PassengerData && PassengerData.length > 0) {
@@ -1145,8 +1019,21 @@ const ReturnBookingFlow = () => {
       setSelectedSegmentKey(firstKey);
     }
   }, [MealData]);
+  // move to the nest passenger
+  const getValidPassengers = () =>
+    PassengerData.filter((p) => p.type !== "Infant");
 
-  //Baggage
+  const moveToNextPassenger = () => {
+    const passengers = getValidPassengers();
+
+    if (selectedPassengerIndex < passengers.length - 1) {
+      const nextIndex = selectedPassengerIndex + 1;
+      setSelectedPassengerIndex(nextIndex);
+      setSelectedPassengerKey(passengers[nextIndex].Key);
+    }
+  };
+
+
   const handleAddBaggage = (
     Idx,
     Data,
@@ -1160,57 +1047,78 @@ const ReturnBookingFlow = () => {
       setSelectedBaggage((prev) => {
         const list = prev[segmentType] || [];
 
+        const existing = list.find(
+          (b) =>
+            b.passengerKey === passengerKey &&
+            b.segmentKey === selectedSegmentKey &&
+            b.baggageIndex === Idx
+        );
+
         const filtered = list.filter(
           (b) =>
             !(
               b.passengerKey === passengerKey &&
               b.segmentKey === selectedSegmentKey &&
-              b.segmentType === segmentType
+              b.baggageIndex === Idx
             )
         );
 
-        const newItem = {
-          passengerKey,
-          segmentKey: selectedSegmentKey,
-          segmentType,
-          baggageIndex: Idx,
-          baggage: Data,
-          quantity: 1,
-          source_type,
-        };
+        const newItem = existing
+          ? { ...existing, quantity: existing.quantity + 1 }
+          : {
+              passengerKey,
+              passengerIndex: selectedPassengerIndex,
+              segmentKey: selectedSegmentKey,
+              segmentType,
+              baggageIndex: Idx,
+              baggage: Data,
+              quantity: 1,
+              source_type,
+            };
 
         return { ...prev, [segmentType]: [...filtered, newItem] };
       });
+
+      moveToNextPassenger(); // ✅ AUTO SWITCH
     } else {
-      const baggageIndex = Idx;
-      const baggageItem = Data;
       setSelectedBaggage((prev) => {
         const list = prev[segmentType] || [];
 
+        const existing = list.find(
+          (b) =>
+            b.passengerIndex === selectedPassengerIndex &&
+            b.segmentKey === selectedSegmentKey &&
+            b.baggageIndex === Idx
+        );
+
         const filtered = list.filter(
-          (item) =>
+          (b) =>
             !(
-              item.passengerIndex === selectedPassengerIndex &&
-              item.segmentKey === selectedSegmentKey
+              b.passengerIndex === selectedPassengerIndex &&
+              b.segmentKey === selectedSegmentKey &&
+              b.baggageIndex === Idx
             )
         );
 
-        const newItem = {
-          passengerIndex: selectedPassengerIndex,
-          segmentKey: selectedSegmentKey,
-          segmentType,
-          baggageIndex,
-          baggage: baggageItem,
-          quantity: 1,
-          source_type,
-        };
+        const newItem = existing
+          ? { ...existing, quantity: existing.quantity + 1 }
+          : {
+              passengerIndex: selectedPassengerIndex, // ✅ ONLY THIS
+              segmentKey: selectedSegmentKey,
+              segmentType,
+              baggageIndex: Idx,
+              baggage: Data,
+              quantity: 1,
+              source_type,
+            };
 
         return { ...prev, [segmentType]: [...filtered, newItem] };
       });
+
+      moveToNextPassenger(); // ✅ AUTO SWITCH
     }
   };
 
-  //  Remove baggage
 
   const handleRemoveBaggage = (
     baggageIndex,
@@ -1218,44 +1126,29 @@ const ReturnBookingFlow = () => {
     passengerKey = selectedPassengerKey,
     source_type
   ) => {
-    if (source_type === "Uapi") {
-      if (!passengerKey) return;
+    setSelectedBaggage((prev) => {
+      const list = prev[segmentType] || [];
 
-      setSelectedBaggage((prev) => {
-        const list = prev[segmentType] || [];
+      const updated = list
+        .map((item) => {
+          const isSamePassenger =
+            source_type === "Uapi"
+              ? item.passengerKey === passengerKey
+              : item.passengerIndex === selectedPassengerIndex;
 
-        const filtered = list.filter(
-          (b) =>
-            !(
-              b.passengerKey === passengerKey &&
-              b.segmentKey === selectedSegmentKey &&
-              b.segmentType === segmentType &&
-              b.baggageIndex === baggageIndex
-            )
-        );
+          if (
+            isSamePassenger &&
+            item.segmentKey === selectedSegmentKey &&
+            item.baggageIndex === baggageIndex
+          ) {
+            return { ...item, quantity: item.quantity - 1 };
+          }
+          return item;
+        })
+        .filter((item) => item.quantity > 0);
 
-        return { ...prev, [segmentType]: filtered };
-      });
-    } else {
-      setSelectedBaggage((prev) => {
-        const list = prev[segmentType] || [];
-
-        const updated = list
-          .map((item) => {
-            if (
-              item.passengerIndex === selectedPassengerIndex &&
-              item.segmentKey === selectedSegmentKey &&
-              item.baggageIndex === baggageIndex
-            ) {
-              return { ...item, quantity: Math.max(item.quantity - 1, 0) };
-            }
-            return item;
-          })
-          .filter((item) => item.quantity > 0);
-
-        return { ...prev, [segmentType]: updated };
-      });
-    }
+      return { ...prev, [segmentType]: updated };
+    });
   };
 
   //Seat Api
@@ -1352,18 +1245,66 @@ const ReturnBookingFlow = () => {
     return Number(price) || 0;
   };
 
-  // const totalMealPrice = selectedMeals.reduce((total, item) => {
-  //     return total + parsePrice(item.meal.TotalPrice);
-  // }, 0);
-  const totalMealPrice = 0;
-  // const totalBaggagePrice = selectedBaggage.reduce((total, item) => {
-  //     return total + parsePrice(item.baggage.TotalPrice);
-  // }, 0);
-  const totalBaggagePrice = 0;
+  const totalMealPrice = [
+    ...selectedMeals.onward,
+    ...selectedMeals.return,
+  ].reduce((sum, meal) => {
+    if (meal.sourcetype === "Uapi") {
+      return sum + Number(meal.meal?.TotalPrice || 0);
+    }
+    return sum + Number(meal.meal?.Price || 0);
+  }, 0);
 
-  const totalSeatPrice = 0;
+  const totalBaggagePrice = [
+    ...selectedBaggage.onward,
+    ...selectedBaggage.return,
+  ].reduce((sum, b) => {
+    if (b.source_type === "Uapi") {
+      return sum + Number(b.baggage?.TotalPrice || 0);
+    }
+    return sum + Number(b.baggage?.Price || 0);
+  }, 0);
+
+  const totalSeatPrice = [
+    ...selectedSeats.onward,
+    ...selectedSeats.return,
+  ].reduce((sum, seat) => sum + Number(seat.seatPrice || 0), 0);
 
   const totalServicePrice = totalMealPrice + totalBaggagePrice + totalSeatPrice;
+  const totalServicePriceOnward =
+    // MEALS
+    selectedMeals.onward.reduce((sum, m) => {
+      if (m.sourcetype === "Uapi") {
+        return sum + Number(m.meal?.TotalPrice || 0);
+      }
+      return sum + Number(m.meal?.Price || 0);
+    }, 0) +
+    // BAGGAGE
+    selectedBaggage.onward.reduce((sum, b) => {
+      if (b.source_type === "Uapi") {
+        return sum + Number(b.baggage?.TotalPrice || 0);
+      }
+      return sum + Number(b.baggage?.Price || 0);
+    }, 0) +
+    // SEATS
+    selectedSeats.onward.reduce((sum, s) => sum + Number(s.seatPrice || 0), 0);
+  const totalServicePriceReturn =
+    // MEALS
+    selectedMeals.return.reduce((sum, m) => {
+      if (m.sourcetype === "Uapi") {
+        return sum + Number(m.meal?.TotalPrice || 0);
+      }
+      return sum + Number(m.meal?.Price || 0);
+    }, 0) +
+    // BAGGAGE
+    selectedBaggage.return.reduce((sum, b) => {
+      if (b.source_type === "Uapi") {
+        return sum + Number(b.baggage?.TotalPrice || 0);
+      }
+      return sum + Number(b.baggage?.Price || 0);
+    }, 0) +
+    // SEATS
+    selectedSeats.return.reduce((sum, s) => sum + Number(s.seatPrice || 0), 0);
 
   //Cilent Gst Data
   const fetchGstData = async () => {
@@ -1474,6 +1415,7 @@ const ReturnBookingFlow = () => {
       cancelButtonColor: "#d33",
       confirmButtonText: "Yes, Continue",
       cancelButtonText: "Cancel",
+      allowOutsideClick: false,
     });
 
     if (!result.isConfirmed) {
@@ -1689,10 +1631,10 @@ const ReturnBookingFlow = () => {
               ...(isInfant
                 ? {}
                 : {
-                  Baggage: baggageForPassenger.map((b) => b.baggage),
-                  SeatDynamic: SeatForPassenger.map((s) => s.seat),
-                  MealDynamic: MealsForPassenger.map((m) => m.meal),
-                }),
+                    Baggage: baggageForPassenger.map((b) => b.baggage),
+                    SeatDynamic: SeatForPassenger.map((s) => s.seat),
+                    MealDynamic: MealsForPassenger.map((m) => m.meal),
+                  }),
               Fare: {
                 BaseFare: Passengerfare[0]?.BaseFare || 0,
                 Tax: Passengerfare[0]?.Tax || 0,
@@ -1761,15 +1703,15 @@ const ReturnBookingFlow = () => {
               ...(isInfant
                 ? {}
                 : {
-                  SeatDynamic: SeatForPassenger.map((s) => ({
-                    Code: s.seat.Code,
-                    Description: s.seat.Description,
-                  })),
-                  MealDynamic: MealsForPassenger.map((m) => ({
-                    Code: m.meal.Code,
-                    Description: m.meal.AirlineDescription,
-                  })),
-                }),
+                    SeatDynamic: SeatForPassenger.map((s) => ({
+                      Code: s.seat.Code,
+                      Description: s.seat.Description,
+                    })),
+                    MealDynamic: MealsForPassenger.map((m) => ({
+                      Code: m.meal.Code,
+                      Description: m.meal.AirlineDescription,
+                    })),
+                  }),
               GSTCompanyAddress: GstEntries?.company_address,
               GSTCompanyContactNumber: GstEntries?.company_contact,
               GSTCompanyName: GstEntries?.company_name,
@@ -1898,10 +1840,10 @@ const ReturnBookingFlow = () => {
             ...(isInfant
               ? {}
               : {
-                Baggage: baggageForPassenger.map((b) => b.baggage),
-                SeatDynamic: SeatForPassenger.map((s) => s.seat),
-                MealDynamic: MealsForPassenger.map((m) => m.meal),
-              }),
+                  Baggage: baggageForPassenger.map((b) => b.baggage),
+                  SeatDynamic: SeatForPassenger.map((s) => s.seat),
+                  MealDynamic: MealsForPassenger.map((m) => m.meal),
+                }),
             Fare: {
               BaseFare: Passengerfare[0]?.BaseFare || 0,
               Tax: Passengerfare[0]?.Tax || 0,
@@ -1966,15 +1908,15 @@ const ReturnBookingFlow = () => {
             ...(isInfant
               ? {}
               : {
-                SeatDynamic: SeatForPassenger.map((s) => ({
-                  Code: s.seat.Code,
-                  Description: s.seat.Description,
-                })),
-                MealDynamic: MealsForPassenger.map((m) => ({
-                  Code: m.meal.Code,
-                  Description: m.meal.AirlineDescription,
-                })),
-              }),
+                  SeatDynamic: SeatForPassenger.map((s) => ({
+                    Code: s.seat.Code,
+                    Description: s.seat.Description,
+                  })),
+                  MealDynamic: MealsForPassenger.map((m) => ({
+                    Code: m.meal.Code,
+                    Description: m.meal.AirlineDescription,
+                  })),
+                }),
             GSTCompanyAddress: GstEntries?.company_address,
             GSTCompanyContactNumber: GstEntries?.company_contact,
             GSTCompanyName: GstEntries?.company_name,
@@ -2019,10 +1961,13 @@ const ReturnBookingFlow = () => {
           text: typeof onward === "string" ? onward : ret,
           iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
           confirmButtonText: "Try Again",
+          allowOutsideClick: false,
         }).then((result) => {
           if (result.isConfirmed) {
             if (bookingid) {
-              navigate("/SearchFlight", { state: { responseData: TaxivaxiFlightDetails } });
+              navigate("/SearchFlight", {
+                state: { responseData: TaxivaxiFlightDetails },
+              });
             } else {
               window.location.href = "/";
             }
@@ -2030,14 +1975,13 @@ const ReturnBookingFlow = () => {
         });
 
         return; // IMPORTANT
-      }
-
-      else if (Data.status == false || Data.status == "error") {
+      } else if (Data.status == false || Data.status == "error") {
         Swal.fire({
           title: "Error",
           text: Data.message,
           iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
           confirmButtonText: "Try Again",
+          allowOutsideClick: false,
         }).then((result) => {
           if (result.isConfirmed) {
             if (bookingid) {
@@ -2048,16 +1992,23 @@ const ReturnBookingFlow = () => {
             }
           }
         });
-      }
-      else if (Data.status == true) {
+      } else if (Data.status == true) {
         const LocatorCode = Data.data.LocatorCode;
 
         localStorage.setItem("Passengerdetails", JSON.stringify(PassengerInfo));
         setLocatorcode(LocatorCode);
+          const fares = {
+            OnwardMarkup : OnwardMarkup,
+            ReturnMarkup :ReturnMarkup,
+            OnwardClientPrice : ClientOnwardPrice,
+            ReturnClientPrice : ClientReturnPrice,
+            OnwardGst_k3: OnwardGst_k3,
+            ReturnGst_k3 : ReturnGst_k3,
+        };
         const responseData = TaxivaxiFlightDetails;
         const FlightBooking = Data.data;
         navigate("/ReturnbookingCompleted", {
-          state: { FlightBooking, responseData },
+          state: { FlightBooking, responseData , fares},
         });
       }
       setfinalloading(false);
@@ -2067,6 +2018,7 @@ const ReturnBookingFlow = () => {
         text: error.message,
         iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
         confirmButtonText: "OK",
+        allowOutsideClick: false,
       });
       setfinalloading(false);
     }
@@ -2098,8 +2050,10 @@ const ReturnBookingFlow = () => {
     setAccordion3Expanded(false);
   };
   const handlebaggagebuttonskip = () => {
+    setSelectedPassengerIndex(0);
     setAccordion4Expanded(false);
     setAccordion6Expanded(true);
+    setSelectedSegmentType("onward");
   };
   const handleMealbuttonskip = () => {
     setAccordion6Expanded(false);
@@ -2167,6 +2121,42 @@ const ReturnBookingFlow = () => {
       setPhoneError("Please enter a valid 10-digit Indian mobile number.");
     }
   };
+
+  //calulate the count of meals , baggaes and seat prices and length
+  const mealCount = selectedMeals.onward.length + selectedMeals.return.length;
+
+  const baggageCount =
+    selectedBaggage.onward.length + selectedBaggage.return.length;
+
+  const seatCount = selectedSeats.onward.length + selectedSeats.return.length;
+
+
+  //----------------------------------Fare Display--------------------------------------------//
+  
+  const OnwardClientPrice = (ClientOnwardPrice * passenger) + OnwardOther ;
+  const ReturnClientPrice = (ClientReturnPrice * passenger + ReturnOther);
+  const OnwardMarkup =  OnwardClientPrice - OnwardTotal;
+  const ReturnMarkup = ReturnClientPrice - ReturnTotal;
+    const OnwardFinalTotal = OnwardTotal + OnwardMarkup ;
+    const ReturnFinalTotal = ReturnTotal + ReturnMarkup;
+  const Total = OnwardFinalTotal + ReturnFinalTotal; 
+  const OnwardOthers = (OnwardTax - OnwardGst_k3) + OnwardMarkup;
+  // console.log(ClientReturnPrice);
+  // console.log(OnwardGst_k3);
+  const ReturnOthers = (ReturnTax - ReturnGst_k3) + ReturnMarkup;
+  console.log("onwardclientprice", OnwardClientPrice);
+  console.log("ReturnClientPrice",ReturnClientPrice);
+  console.log("onwardTotal", OnwardTotal);
+  console.log("ReturnTotal",ReturnTotal);
+  console.log("Total",Total);
+  console.log("onwardMarkup", OnwardMarkup);
+  console.log("ReturnMarkup",ReturnMarkup);
+  console.log("OnwardOthers",OnwardOthers);
+  console.log("ReturnOthers",ReturnOthers);
+
+
+  
+
   return (
     <div className="yield-content" style={{ background: "#e8e4ff" }}>
       {Seatloading && (
@@ -2509,8 +2499,8 @@ const ReturnBookingFlow = () => {
                                   return cancelItem ? (
                                     <tr>
                                       <td>
-                                        {cancelItem.fare_name}{" "}
-                                        ({cancelItem.airline_short_name})
+                                        {cancelItem.fare_name} (
+                                        {cancelItem.airline_short_name})
                                       </td>
                                       <td>
                                         {cancelItem.fee.replace(/INR/i, "₹")}
@@ -2537,9 +2527,8 @@ const ReturnBookingFlow = () => {
                                   return dateChangeItem ? (
                                     <tr>
                                       <td>
-                                          {dateChangeItem.fare_name}
-                                      
-                                        ({dateChangeItem.airline_short_name})
+                                        {dateChangeItem.fare_name}(
+                                        {dateChangeItem.airline_short_name})
                                       </td>
                                       <td>
                                         {dateChangeItem.fee.replace(
@@ -2582,11 +2571,7 @@ const ReturnBookingFlow = () => {
                                   };
                                   return cancelItem ? (
                                     <tr>
-                                      <td>
-                                      
-                                          {cancelItem.PenaltyApplies}
-                                    
-                                      </td>
+                                      <td>{cancelItem.PenaltyApplies}</td>
                                       <td>{formatValue(cancelItem)}</td>
                                     </tr>
                                   ) : (
@@ -2617,11 +2602,7 @@ const ReturnBookingFlow = () => {
                                   };
                                   return cancelItem ? (
                                     <tr>
-                                      <td>
-                                      
-                                          {cancelItem.PenaltyApplies}
-                                    
-                                      </td>
+                                      <td>{cancelItem.PenaltyApplies}</td>
                                       <td>{formatValue(cancelItem)}</td>
                                     </tr>
                                   ) : (
@@ -2763,15 +2744,15 @@ const ReturnBookingFlow = () => {
                                                   formIndex
                                                 ]?.firstName
                                                   ? TaxivaxiPassengeDetails[
-                                                    formIndex
-                                                  ].firstName
+                                                      formIndex
+                                                    ].firstName
                                                   : ""
                                               }
-                                            // defaultValue={
-                                            //     TaxivaxiPassengeDetails?.[formIndex]?.people_name
-                                            //         ? TaxivaxiPassengeDetails[formIndex].people_name.trim().split(' ').slice(0, -1).join(' ').trim()
-                                            //         : ''
-                                            // }
+                                              // defaultValue={
+                                              //     TaxivaxiPassengeDetails?.[formIndex]?.people_name
+                                              //         ? TaxivaxiPassengeDetails[formIndex].people_name.trim().split(' ').slice(0, -1).join(' ').trim()
+                                              //         : ''
+                                              // }
                                             />
                                             <span
                                               className="error-message adult_first_name-message"
@@ -2811,16 +2792,16 @@ const ReturnBookingFlow = () => {
                                                   formIndex
                                                 ]?.lastName
                                                   ? TaxivaxiPassengeDetails[
-                                                    formIndex
-                                                  ].lastName
+                                                      formIndex
+                                                    ].lastName
                                                   : ""
                                               }
 
-                                            // defaultValue={
-                                            //     TaxivaxiPassengeDetails?.[passengerindex]?.people_name
-                                            //         ? TaxivaxiPassengeDetails[passengerindex].people_name.trim().split(' ').pop()
-                                            //         : ''
-                                            // }
+                                              // defaultValue={
+                                              //     TaxivaxiPassengeDetails?.[passengerindex]?.people_name
+                                              //         ? TaxivaxiPassengeDetails[passengerindex].people_name.trim().split(' ').pop()
+                                              //         : ''
+                                              // }
                                             />
                                             <span
                                               className="error-message adult_last_name-message"
@@ -2835,50 +2816,50 @@ const ReturnBookingFlow = () => {
                                           </div>
                                           {(passenger.type == "Child" ||
                                             passenger.type == "Infant") && (
-                                              <div className="booking-field booking-gender">
-                                                <label>
-                                                  Gender
-                                                  <span className="mandatory-star">
-                                                    *
-                                                  </span>
-                                                </label>
-                                                <div className="form-calendar1">
-                                                  <select
-                                                    name="adult_gender[]"
-                                                    data-index={formIndex}
-                                                    disabled={bookingid}
-                                                    style={{
-                                                      pointerEvents: bookingid
-                                                        ? "none"
-                                                        : "auto",
-                                                      backgroundColor: bookingid
-                                                        ? "#f0f0f0"
-                                                        : "white",
-                                                    }}
-                                                    defaultValue={
-                                                      TaxivaxiPassengeDetails?.[
-                                                        formIndex
-                                                      ]?.gender === "Female"
-                                                        ? "F"
-                                                        : "M"
-                                                    }
-                                                  >
-                                                    <option value="">
-                                                      Select Gender
-                                                    </option>
-                                                    <option value="M">
-                                                      Male
-                                                    </option>
-                                                    <option value="F">
-                                                      Female
-                                                    </option>
-                                                  </select>
-                                                </div>
-                                                <span className="error-message">
-                                                  Please Select Gender
+                                            <div className="booking-field booking-gender">
+                                              <label>
+                                                Gender
+                                                <span className="mandatory-star">
+                                                  *
                                                 </span>
+                                              </label>
+                                              <div className="form-calendar1">
+                                                <select
+                                                  name="adult_gender[]"
+                                                  data-index={formIndex}
+                                                  disabled={bookingid}
+                                                  style={{
+                                                    pointerEvents: bookingid
+                                                      ? "none"
+                                                      : "auto",
+                                                    backgroundColor: bookingid
+                                                      ? "#f0f0f0"
+                                                      : "white",
+                                                  }}
+                                                  defaultValue={
+                                                    TaxivaxiPassengeDetails?.[
+                                                      formIndex
+                                                    ]?.gender === "Female"
+                                                      ? "F"
+                                                      : "M"
+                                                  }
+                                                >
+                                                  <option value="">
+                                                    Select Gender
+                                                  </option>
+                                                  <option value="M">
+                                                    Male
+                                                  </option>
+                                                  <option value="F">
+                                                    Female
+                                                  </option>
+                                                </select>
                                               </div>
-                                            )}
+                                              <span className="error-message">
+                                                Please Select Gender
+                                              </span>
+                                            </div>
+                                          )}
                                         </div>
 
                                         <div className="booking-row mb-0">
@@ -3056,23 +3037,23 @@ const ReturnBookingFlow = () => {
                                                 }}
                                                 defaultValue={
                                                   TaxivaxiPassengeDetails &&
-                                                    TaxivaxiPassengeDetails[
+                                                  TaxivaxiPassengeDetails[
                                                     formIndex
-                                                    ] &&
-                                                    TaxivaxiPassengeDetails[
+                                                  ] &&
+                                                  TaxivaxiPassengeDetails[
                                                     formIndex
-                                                    ]["date_of_birth"]
+                                                  ]["date_of_birth"]
                                                     ? TaxivaxiPassengeDetails[
-                                                    formIndex
-                                                    ]["date_of_birth"]
+                                                        formIndex
+                                                      ]["date_of_birth"]
                                                     : new Date(
-                                                      new Date().setFullYear(
-                                                        new Date().getFullYear() -
-                                                        99
+                                                        new Date().setFullYear(
+                                                          new Date().getFullYear() -
+                                                            99
+                                                        )
                                                       )
-                                                    )
-                                                      .toISOString()
-                                                      .split("T")[0] // Converts to YYYY-MM-DD format
+                                                        .toISOString()
+                                                        .split("T")[0] // Converts to YYYY-MM-DD format
                                                 }
                                               />
                                             </div>
@@ -3093,19 +3074,19 @@ const ReturnBookingFlow = () => {
                                                 type="text"
                                                 name="adult_address_line_1[]"
                                                 data-index={formIndex}
-                                              // readOnly={bookingid}
-                                              // defaultValue={
-                                              //     emptaxivaxi?.[passengerindex]?.people_name
-                                              //         ? (emptaxivaxi[passengerindex].people_name.trim().includes(' ')
-                                              //             ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
-                                              //             : emptaxivaxi[passengerindex].people_name.trim()) // If only one word, use the same for last name
-                                              //         : ''
-                                              // }
-                                              // defaultValue={
-                                              //     emptaxivaxi?.[passengerindex]?.people_name
-                                              //         ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
-                                              //         : ''
-                                              // }
+                                                // readOnly={bookingid}
+                                                // defaultValue={
+                                                //     emptaxivaxi?.[passengerindex]?.people_name
+                                                //         ? (emptaxivaxi[passengerindex].people_name.trim().includes(' ')
+                                                //             ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
+                                                //             : emptaxivaxi[passengerindex].people_name.trim()) // If only one word, use the same for last name
+                                                //         : ''
+                                                // }
+                                                // defaultValue={
+                                                //     emptaxivaxi?.[passengerindex]?.people_name
+                                                //         ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
+                                                //         : ''
+                                                // }
                                               />
                                               <span
                                                 className="error-message adult_address_line_1-message"
@@ -3130,19 +3111,19 @@ const ReturnBookingFlow = () => {
                                                 type="text"
                                                 name="adult_address_line_2[]"
                                                 data-index={formIndex}
-                                              // readOnly={bookingid}
-                                              // defaultValue={
-                                              //     emptaxivaxi?.[passengerindex]?.people_name
-                                              //         ? (emptaxivaxi[passengerindex].people_name.trim().includes(' ')
-                                              //             ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
-                                              //             : emptaxivaxi[passengerindex].people_name.trim()) // If only one word, use the same for last name
-                                              //         : ''
-                                              // }
-                                              // defaultValue={
-                                              //     emptaxivaxi?.[passengerindex]?.people_name
-                                              //         ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
-                                              //         : ''
-                                              // }
+                                                // readOnly={bookingid}
+                                                // defaultValue={
+                                                //     emptaxivaxi?.[passengerindex]?.people_name
+                                                //         ? (emptaxivaxi[passengerindex].people_name.trim().includes(' ')
+                                                //             ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
+                                                //             : emptaxivaxi[passengerindex].people_name.trim()) // If only one word, use the same for last name
+                                                //         : ''
+                                                // }
+                                                // defaultValue={
+                                                //     emptaxivaxi?.[passengerindex]?.people_name
+                                                //         ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
+                                                //         : ''
+                                                // }
                                               />
                                               <span
                                                 className="error-message adult_address_line_2-message"
@@ -3168,19 +3149,19 @@ const ReturnBookingFlow = () => {
                                                 name="adult_city[]"
                                                 data-index={formIndex}
                                                 onKeyPress={handleKeyPress}
-                                              // readOnly={bookingid}
-                                              // defaultValue={
-                                              //     emptaxivaxi?.[passengerindex]?.people_name
-                                              //         ? (emptaxivaxi[passengerindex].people_name.trim().includes(' ')
-                                              //             ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
-                                              //             : emptaxivaxi[passengerindex].people_name.trim()) // If only one word, use the same for last name
-                                              //         : ''
-                                              // }
-                                              // defaultValue={
-                                              //     emptaxivaxi?.[passengerindex]?.people_name
-                                              //         ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
-                                              //         : ''
-                                              // }
+                                                // readOnly={bookingid}
+                                                // defaultValue={
+                                                //     emptaxivaxi?.[passengerindex]?.people_name
+                                                //         ? (emptaxivaxi[passengerindex].people_name.trim().includes(' ')
+                                                //             ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
+                                                //             : emptaxivaxi[passengerindex].people_name.trim()) // If only one word, use the same for last name
+                                                //         : ''
+                                                // }
+                                                // defaultValue={
+                                                //     emptaxivaxi?.[passengerindex]?.people_name
+                                                //         ? emptaxivaxi[passengerindex].people_name.trim().split(' ').pop()
+                                                //         : ''
+                                                // }
                                               />
                                               <span
                                                 className="error-message adult_city-message"
@@ -3209,19 +3190,19 @@ const ReturnBookingFlow = () => {
                                                 name="adult_passportNo[]"
                                                 // onKeyPress={handleKeyPress}
                                                 data-index={formIndex}
-                                              // readOnly={bookingid}
-                                              // defaultValue={
-                                              //     TaxivaxiPassengeDetails?.[formIndex]?.people_name
-                                              //         ? (TaxivaxiPassengeDetails[formIndex].people_name.trim().includes(' ')
-                                              //             ? TaxivaxiPassengeDetails[formIndex].people_name.trim().split(' ').pop()
-                                              //             : TaxivaxiPassengeDetails[formIndex].people_name.trim()) // If only one word, use the same for last name
-                                              //         : ''
-                                              // }
-                                              // defaultValue={
-                                              //     TaxivaxiPassengeDetails?.[formIndex]?.people_name
-                                              //         ? TaxivaxiPassengeDetails[formIndex].people_name.trim().split(' ').pop()
-                                              //         : ''
-                                              // }
+                                                // readOnly={bookingid}
+                                                // defaultValue={
+                                                //     TaxivaxiPassengeDetails?.[formIndex]?.people_name
+                                                //         ? (TaxivaxiPassengeDetails[formIndex].people_name.trim().includes(' ')
+                                                //             ? TaxivaxiPassengeDetails[formIndex].people_name.trim().split(' ').pop()
+                                                //             : TaxivaxiPassengeDetails[formIndex].people_name.trim()) // If only one word, use the same for last name
+                                                //         : ''
+                                                // }
+                                                // defaultValue={
+                                                //     TaxivaxiPassengeDetails?.[formIndex]?.people_name
+                                                //         ? TaxivaxiPassengeDetails[formIndex].people_name.trim().split(' ').pop()
+                                                //         : ''
+                                                // }
                                               />
                                               <div
                                                 className="error-message adult_passportNo-message"
@@ -3326,16 +3307,16 @@ const ReturnBookingFlow = () => {
                                                   name="adult_passportexpiry[]"
                                                   min={maxDate}
                                                   data-index={formIndex}
-                                                // readOnly={bookingid}
-                                                // defaultValue={
-                                                //     TaxivaxiPassengeDetails &&
-                                                //         TaxivaxiPassengeDetails[formIndex] &&
-                                                //         TaxivaxiPassengeDetails[passengerindex]['date_of_birth']
-                                                //         ? TaxivaxiPassengeDetails[passengerindex]['date_of_birth']
-                                                //         : new Date(new Date().setFullYear(new Date().getFullYear() - 99))
-                                                //             .toISOString()
-                                                //             .split("T")[0] // Converts to YYYY-MM-DD format
-                                                // }
+                                                  // readOnly={bookingid}
+                                                  // defaultValue={
+                                                  //     TaxivaxiPassengeDetails &&
+                                                  //         TaxivaxiPassengeDetails[formIndex] &&
+                                                  //         TaxivaxiPassengeDetails[passengerindex]['date_of_birth']
+                                                  //         ? TaxivaxiPassengeDetails[passengerindex]['date_of_birth']
+                                                  //         : new Date(new Date().setFullYear(new Date().getFullYear() - 99))
+                                                  //             .toISOString()
+                                                  //             .split("T")[0] // Converts to YYYY-MM-DD format
+                                                  // }
                                                 />
                                                 <div
                                                   className="error-message adult_passportexpiry-message"
@@ -3427,10 +3408,14 @@ const ReturnBookingFlow = () => {
                             <div className="booking-devider" />
                             <Accordion
                               defaultExpanded
+                              disabled={!isPassengerSaved}
                               expanded={accordion5Expanded}
-                              onChange={(event, isExpanded) =>
-                                setAccordion5Expanded(isExpanded)
-                              }
+                              onChange={(event, isExpanded) => {
+                                if (isPassengerSaved) {
+                                  setAccordion5Expanded(isExpanded);
+                                }
+                                setAccordion5Expanded(isExpanded);
+                              }}
                             >
                               <AccordionSummary
                                 expandIcon={<ExpandMoreIcon />}
@@ -3598,9 +3583,12 @@ const ReturnBookingFlow = () => {
                             <div className="booking-devider" />
                             <Accordion
                               expanded={accordion2Expanded}
-                              onChange={(event, isExpanded) =>
-                                setAccordion2Expanded(isExpanded)
-                              }
+                              disabled={!isPassengerSaved}
+                              onChange={(event, isExpanded) => {
+                                if (isPassengerSaved) {
+                                  setAccordion2Expanded(isExpanded);
+                                }
+                              }}
                             >
                               <AccordionSummary
                                 expandIcon={<ExpandMoreIcon />}
@@ -3758,7 +3746,7 @@ const ReturnBookingFlow = () => {
                                                           {passenger.firstName}{" "}
                                                           {passenger.lastName}{" "}
                                                           {passenger.gender ===
-                                                            "F"
+                                                          "F"
                                                             ? "(Female)"
                                                             : "(Male)"}
                                                         </div>
@@ -3854,6 +3842,7 @@ const ReturnBookingFlow = () => {
                           </div>
                         </form>
                         <Accordion
+                          disabled={!isPassengerSaved}
                           expanded={accordion4Expanded}
                           onChange={(event, isExpanded) => {
                             const hasUapiOnwardMultiple =
@@ -3877,7 +3866,9 @@ const ReturnBookingFlow = () => {
                               hasUapiOnwardBaggage ||
                               hasTboOnwardBaggage ||
                               hasTboReturnBaggage;
-
+                            if (isPassengerSaved) {
+                              setAccordion4Expanded(isExpanded);
+                            }
                             if (hasAnyBaggage) {
                               setAccordion4Expanded(isExpanded);
                               if (isExpanded) {
@@ -3895,7 +3886,7 @@ const ReturnBookingFlow = () => {
                             <div className="flex items-center gap-2">
                               <span>extra baggage</span>
                               {selectedBaggage.onward.length > 0 ||
-                                selectedBaggage.return.length > 0 ? (
+                              selectedBaggage.return.length > 0 ? (
                                 <>
                                   <span className="text-sm text-gray-500">
                                     &nbsp; (
@@ -3922,15 +3913,16 @@ const ReturnBookingFlow = () => {
                                                   <div>
                                                     {b.source_type === "Uapi"
                                                       ? b.baggage.DisplayText
-                                                      : `Baggage, ${b.baggage.Weight ||
-                                                      b.baggage.Description
-                                                      } kg `}
+                                                      : `Baggage, ${
+                                                          b.baggage.Weight ||
+                                                          b.baggage.Description
+                                                        } kg `}
                                                   </div>
                                                   <div>
                                                     {b.source_type === "Uapi"
                                                       ? replaceINRWithSymbol(
-                                                        b.baggage.TotalPrice
-                                                      )
+                                                          b.baggage.TotalPrice
+                                                        )
                                                       : `₹${b.baggage.Price}`}
                                                   </div>
                                                 </div>
@@ -3954,15 +3946,16 @@ const ReturnBookingFlow = () => {
                                                   <div>
                                                     {b.source_type === "Uapi"
                                                       ? b.baggage.DisplayText
-                                                      : `Baggage,${b.baggage.Weight ||
-                                                      b.baggage.Description
-                                                      } kg`}
+                                                      : `Baggage,${
+                                                          b.baggage.Weight ||
+                                                          b.baggage.Description
+                                                        } kg`}
                                                   </div>
                                                   <div>
                                                     {b.source_type === "Uapi"
                                                       ? replaceINRWithSymbol(
-                                                        b.baggage.TotalPrice
-                                                      )
+                                                          b.baggage.TotalPrice
+                                                        )
                                                       : `₹${b.baggage.Price}`}
                                                   </div>
                                                 </div>
@@ -3991,10 +3984,11 @@ const ReturnBookingFlow = () => {
                                 <button
                                   key={index}
                                   type="button"
-                                  className={`p-3 rounded-lg border text-left ${index === selectedPassengerIndex
+                                  className={`p-3 rounded-lg border text-left ${
+                                    index === selectedPassengerIndex
                                       ? "border-violet-500 bg-violet-50"
                                       : "border-gray-300"
-                                    } text-gray-700`}
+                                  } text-gray-700`}
                                   onClick={() => {
                                     setSelectedPassengerIndex(index);
                                     setSelectedPassengerKey(passenger.Key);
@@ -4002,7 +3996,7 @@ const ReturnBookingFlow = () => {
                                 >
                                   {passenger.firstName} {passenger.lastName}
                                   <br />
-                                  <span className="text-xs text-gray-500">
+                                  {/* <span className="text-xs text-gray-500">
                                     {selectedBaggage[selectedSegmentType]
                                       ?.filter(
                                         (b) =>
@@ -4023,6 +4017,22 @@ const ReturnBookingFlow = () => {
                                         return "";
                                       })
                                       .join(", ") || "Not Selected"}
+                                  </span> */}
+                                  <span className="text-xs text-gray-500">
+                                    {selectedBaggage[selectedSegmentType]
+                                      ?.filter(
+                                        (b) =>
+                                          b.segmentKey === selectedSegmentKey &&
+                                          (b.source_type === "Uapi"
+                                            ? b.passengerKey === passenger.Key
+                                            : b.passengerIndex === index)
+                                      )
+                                      ?.map((b) =>
+                                        b.source_type === "Uapi"
+                                          ? `${b.baggage.DisplayText} x${b.quantity}`
+                                          : `Extra Baggage ${b.baggage.Weight}KG x${b.quantity}`
+                                      )
+                                      .join(", ") || "Not Selected"}
                                   </span>
                                 </button>
                               ))}
@@ -4032,10 +4042,11 @@ const ReturnBookingFlow = () => {
                               {/* --- Tabs --- */}
                               <div className="flex gap-1 mb-4 justify-center">
                                 <button
-                                  className={`px-4 py-2 border ${selectedSegmentType === "onward"
+                                  className={`px-4 py-2 border ${
+                                    selectedSegmentType === "onward"
                                       ? "border-violet-500 bg-violet-100 text-violet-600"
                                       : "border-gray-300"
-                                    }`}
+                                  }`}
                                   onClick={() => {
                                     setSelectedSegmentType("onward");
                                     setSelectedPassengerIndex(0);
@@ -4052,10 +4063,11 @@ const ReturnBookingFlow = () => {
                                   }
                                 </button>
                                 <button
-                                  className={`px-4 py-2 border ${selectedSegmentType === "return"
+                                  className={`px-4 py-2 border ${
+                                    selectedSegmentType === "return"
                                       ? "border-violet-500 bg-violet-100 text-violet-600"
                                       : "border-gray-300"
-                                    }`}
+                                  }`}
                                   onClick={() => {
                                     setSelectedSegmentType("return");
                                     setSelectedPassengerIndex(0);
@@ -4077,224 +4089,224 @@ const ReturnBookingFlow = () => {
                               <div className="flex flex-col h-[400px] overflow-y-auto">
                                 {(selectedSegmentType === "onward" &&
                                   OnwardSourceType === "Uapi") ||
-                                  (selectedSegmentType === "return" &&
-                                    ReturnSourceType === "Uapi")
+                                (selectedSegmentType === "return" &&
+                                  ReturnSourceType === "Uapi")
                                   ? // ---------- UAPI BAGGAGE ----------
-                                  (() => {
-                                    const serviceSource =
-                                      selectedSegmentType === "onward"
-                                        ? UapiOnwardOptionalservice?.find(
-                                          (service) =>
-                                            service.Key ===
-                                            selectedPassengerKey
-                                        )
-                                        : UapiReturnOptionalservice?.find(
-                                          (service) =>
-                                            service.Key ===
-                                            selectedPassengerKey
+                                    (() => {
+                                      const serviceSource =
+                                        selectedSegmentType === "onward"
+                                          ? UapiOnwardOptionalservice?.find(
+                                              (service) =>
+                                                service.Key ===
+                                                selectedPassengerKey
+                                            )
+                                          : UapiReturnOptionalservice?.find(
+                                              (service) =>
+                                                service.Key ===
+                                                selectedPassengerKey
+                                            );
+
+                                      const segmentData =
+                                        serviceSource?.["Segment"]?.[
+                                          selectedSegmentKey
+                                        ];
+                                      const baggage = [];
+
+                                      if (serviceSource?.Segment?.length > 1) {
+                                        baggage.push(serviceSource?.Baggage);
+                                      } else {
+                                        baggage.push(
+                                          segmentData?.OptionalServices?.Baggage
                                         );
+                                      }
 
-                                    const segmentData =
-                                      serviceSource?.["Segment"]?.[
-                                      selectedSegmentKey
-                                      ];
-                                    const baggage = [];
+                                      const modBag = baggage[0];
+                                      if (modBag != undefined) {
+                                        return modBag.map((Baggage, idx) => {
+                                          const currentSelected = (
+                                            selectedBaggage[
+                                              selectedSegmentType
+                                            ] || []
+                                          ).find(
+                                            (b) =>
+                                              b.passengerKey ===
+                                                selectedPassengerKey &&
+                                              b.segmentKey ===
+                                                selectedSegmentKey &&
+                                              b.segmentType ===
+                                                selectedSegmentType &&
+                                              b.baggageIndex === idx
+                                          );
+                                          const quantity =
+                                            currentSelected?.quantity ?? 0;
 
-                                    if (serviceSource?.Segment?.length > 1) {
-                                      baggage.push(serviceSource?.Baggage);
-                                    } else {
-                                      baggage.push(
-                                        segmentData?.OptionalServices?.Baggage
-                                      );
-                                    }
-
-                                    const modBag = baggage[0];
-                                    if (modBag != undefined) {
-                                      return modBag.map((Baggage, idx) => {
-                                        const currentSelected = (
-                                          selectedBaggage[
-                                          selectedSegmentType
-                                          ] || []
-                                        ).find(
-                                          (b) =>
-                                            b.passengerKey ===
-                                            selectedPassengerKey &&
-                                            b.segmentKey ===
-                                            selectedSegmentKey &&
-                                            b.segmentType ===
-                                            selectedSegmentType &&
-                                            b.baggageIndex === idx
-                                        );
-                                        const quantity =
-                                          currentSelected?.quantity ?? 0;
-
-                                        return (
-                                          <div
-                                            key={idx}
-                                            className="baggage-container flex items-center justify-between border rounded-xl p-4 my-2 shadow-sm"
-                                          >
-                                            <div className="flex items-center gap-4">
-                                              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
-                                                <img
-                                                  src="/img/checkin_bag.svg"
-                                                  alt="Baggage Icon"
-                                                  className="w-6 h-6"
-                                                />
-                                              </div>
-                                              <div>
-                                                <div className="font-semibold text-sm">
-                                                  {Baggage?.DisplayText}
+                                          return (
+                                            <div
+                                              key={idx}
+                                              className="baggage-container flex items-center justify-between border rounded-xl p-4 my-2 shadow-sm"
+                                            >
+                                              <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                                                  <img
+                                                    src="/img/checkin_bag.svg"
+                                                    alt="Baggage Icon"
+                                                    className="w-6 h-6"
+                                                  />
+                                                </div>
+                                                <div>
+                                                  <div className="font-semibold text-sm">
+                                                    {Baggage?.DisplayText}
+                                                  </div>
                                                 </div>
                                               </div>
-                                            </div>
 
-                                            <div className="flex items-center gap-4">
-                                              <div className="text-sm font-semibold text-black">
-                                                {replaceINRWithSymbol(
-                                                  Baggage?.TotalPrice
-                                                )}
-                                              </div>
-                                              <div className="flex items-center gap-2 baggageoptionbuttons">
-                                                {quantity === 0 ? (
-                                                  <button
-                                                    type="button"
-                                                    className="px-4 py-1 text-sm border rounded-full text-purple-600 border-purple-600"
-                                                    onClick={() =>
-                                                      handleAddBaggage(
-                                                        idx,
-                                                        Baggage,
-                                                        selectedSegmentType,
-                                                        selectedPassengerKey,
-                                                        "Uapi"
-                                                      )
-                                                    }
-                                                  >
-                                                    Add
-                                                  </button>
-                                                ) : (
-                                                  <>
+                                              <div className="flex items-center gap-4">
+                                                <div className="text-sm font-semibold text-black">
+                                                  {replaceINRWithSymbol(
+                                                    Baggage?.TotalPrice
+                                                  )}
+                                                </div>
+                                                <div className="flex items-center gap-2 baggageoptionbuttons">
+                                                  {quantity === 0 ? (
                                                     <button
                                                       type="button"
-                                                      className="px-2 py-1 text-sm border rounded-full text-purple-600 border-purple-600"
+                                                      className="px-4 py-1 text-sm border rounded-full text-purple-600 border-purple-600"
                                                       onClick={() =>
-                                                        handleRemoveBaggage(
+                                                        handleAddBaggage(
                                                           idx,
+                                                          Baggage,
                                                           selectedSegmentType,
                                                           selectedPassengerKey,
                                                           "Uapi"
                                                         )
                                                       }
                                                     >
-                                                      -
+                                                      Add
                                                     </button>
-                                                    <span className="w-5 text-center">
-                                                      {quantity}
-                                                    </span>
-                                                  </>
-                                                )}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        );
-                                      });
-                                    }
-                                  })()
-                                  : // ---------- TBO BAGGAGE ----------
-                                  (() => {
-                                    const baggageDataSource =
-                                      selectedSegmentType === "onward"
-                                        ? TboOnwardBaggageservice
-                                        : TboReturnBaggageservice;
-
-                                    return baggageDataSource?.map(
-                                      (data, baggageIndex) => {
-                                        const currentBaggage =
-                                          selectedBaggage[
-                                            selectedSegmentType
-                                          ].find(
-                                            (b) =>
-                                              b.passengerIndex ===
-                                              selectedPassengerIndex &&
-                                              b.segmentKey ===
-                                              selectedSegmentKey &&
-                                              b.baggageIndex === baggageIndex
-                                          );
-                                        const quantity =
-                                          currentBaggage?.quantity || 0;
-
-                                        return (
-                                          <div
-                                            key={baggageIndex}
-                                            className="baggage-container flex items-center justify-between border rounded-xl p-4 my-2 shadow-sm"
-                                          >
-                                            <div className="flex items-center gap-4">
-                                              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
-                                                <img
-                                                  src="/img/checkin_bag.svg"
-                                                  alt="Baggage Icon"
-                                                  className="w-6 h-6"
-                                                />
-                                              </div>
-                                              <div>
-                                                <div className="font-semibold text-sm">
-                                                  Extra Baggage {data.Weight}
-                                                  &nbsp;KG
+                                                  ) : (
+                                                    <>
+                                                      <button
+                                                        type="button"
+                                                        className="px-2 py-1 text-sm border rounded-full text-purple-600 border-purple-600"
+                                                        onClick={() =>
+                                                          handleRemoveBaggage(
+                                                            idx,
+                                                            selectedSegmentType,
+                                                            selectedPassengerKey,
+                                                            "Uapi"
+                                                          )
+                                                        }
+                                                      >
+                                                        -
+                                                      </button>
+                                                      <span className="w-5 text-center">
+                                                        {quantity}
+                                                      </span>
+                                                    </>
+                                                  )}
                                                 </div>
                                               </div>
                                             </div>
+                                          );
+                                        });
+                                      }
+                                    })()
+                                  : // ---------- TBO BAGGAGE ----------
+                                    (() => {
+                                      const baggageDataSource =
+                                        selectedSegmentType === "onward"
+                                          ? TboOnwardBaggageservice
+                                          : TboReturnBaggageservice;
 
-                                            <div className="flex items-center gap-4">
-                                              <div className="text-sm font-semibold text-black">
-                                                ₹{data.Price}
+                                      return baggageDataSource?.map(
+                                        (data, baggageIndex) => {
+                                          const currentBaggage =
+                                            selectedBaggage[
+                                              selectedSegmentType
+                                            ].find(
+                                              (b) =>
+                                                b.passengerIndex ===
+                                                  selectedPassengerIndex &&
+                                                b.segmentKey ===
+                                                  selectedSegmentKey &&
+                                                b.baggageIndex === baggageIndex
+                                            );
+                                          const quantity =
+                                            currentBaggage?.quantity || 0;
+
+                                          return (
+                                            <div
+                                              key={baggageIndex}
+                                              className="baggage-container flex items-center justify-between border rounded-xl p-4 my-2 shadow-sm"
+                                            >
+                                              <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+                                                  <img
+                                                    src="/img/checkin_bag.svg"
+                                                    alt="Baggage Icon"
+                                                    className="w-6 h-6"
+                                                  />
+                                                </div>
+                                                <div>
+                                                  <div className="font-semibold text-sm">
+                                                    Extra Baggage {data.Weight}
+                                                    &nbsp;KG
+                                                  </div>
+                                                </div>
                                               </div>
-                                              <div className="flex items-center gap-2 baggageoptionbuttons">
-                                                {quantity === 0 ? (
-                                                  <button
-                                                    type="button"
-                                                    className="px-4 py-1 text-sm border rounded-full text-purple-600 border-purple-600"
-                                                    onClick={() => {
-                                                      handleAddBaggage(
-                                                        baggageIndex,
-                                                        data,
-                                                        selectedSegmentType,
-                                                        selectedPassengerKey,
-                                                        "Tbo"
-                                                      );
-                                                      setSelectedPassengerIndex(
-                                                        0
-                                                      );
-                                                    }}
-                                                  >
-                                                    Add
-                                                  </button>
-                                                ) : (
-                                                  <>
+
+                                              <div className="flex items-center gap-4">
+                                                <div className="text-sm font-semibold text-black">
+                                                  ₹{data.Price}
+                                                </div>
+                                                <div className="flex items-center gap-2 baggageoptionbuttons">
+                                                  {quantity === 0 ? (
                                                     <button
                                                       type="button"
-                                                      className="px-2 py-1 text-sm border rounded-full text-purple-600 border-purple-600"
-                                                      onClick={() =>
-                                                        handleRemoveBaggage(
+                                                      className="px-4 py-1 text-sm border rounded-full text-purple-600 border-purple-600"
+                                                      onClick={() => {
+                                                        handleAddBaggage(
                                                           baggageIndex,
+                                                          data,
                                                           selectedSegmentType,
                                                           selectedPassengerKey,
                                                           "Tbo"
-                                                        )
-                                                      }
+                                                        );
+                                                        // setSelectedPassengerIndex(
+                                                        //   0
+                                                        // );
+                                                      }}
                                                     >
-                                                      -
+                                                      Add
                                                     </button>
-                                                    <span className="w-5 text-center">
-                                                      1
-                                                    </span>
-                                                  </>
-                                                )}
+                                                  ) : (
+                                                    <>
+                                                      <button
+                                                        type="button"
+                                                        className="px-2 py-1 text-sm border rounded-full text-purple-600 border-purple-600"
+                                                        onClick={() =>
+                                                          handleRemoveBaggage(
+                                                            baggageIndex,
+                                                            selectedSegmentType,
+                                                            selectedPassengerKey,
+                                                            "Tbo"
+                                                          )
+                                                        }
+                                                      >
+                                                        -
+                                                      </button>
+                                                      <span className="w-5 text-center">
+                                                        1
+                                                      </span>
+                                                    </>
+                                                  )}
+                                                </div>
                                               </div>
                                             </div>
-                                          </div>
-                                        );
-                                      }
-                                    );
-                                  })()}
+                                          );
+                                        }
+                                      );
+                                    })()}
                               </div>
                               <div className="baggagebutton">
                                 <button
@@ -4320,6 +4332,7 @@ const ReturnBookingFlow = () => {
                         </Accordion>
                         <div className="booking-devider" />
                         <Accordion
+                          disabled={!isPassengerSaved}
                           expanded={accordion6Expanded}
                           // onChange={(event, isExpanded) => {
                           //     if (UapiOnwardOptionalservice[0]?.Segment[0]?.OptionalServices?.MealOrBeverage) {
@@ -4352,7 +4365,9 @@ const ReturnBookingFlow = () => {
                               hasUapiOnwardMeal ||
                               hasTboOnwardMeal ||
                               hasTboReturnMeal;
-
+                            if (isPassengerSaved) {
+                              setAccordion6Expanded(isExpanded);
+                            }
                             if (hasAnyBaggage) {
                               setAccordion6Expanded(isExpanded);
                               if (isExpanded) {
@@ -4372,7 +4387,7 @@ const ReturnBookingFlow = () => {
 
                               {selectedMeals.onward.length +
                                 selectedMeals.return.length >
-                                0 ? (
+                              0 ? (
                                 <>
                                   <span className="text-sm text-gray-500">
                                     &nbsp; (
@@ -4399,13 +4414,13 @@ const ReturnBookingFlow = () => {
                                                     {meal.sourcetype === "Uapi"
                                                       ? meal.meal.DisplayText
                                                       : meal.meal
-                                                        .AirlineDescription}
+                                                          .AirlineDescription}
                                                   </div>
                                                   <div>
                                                     {meal.sourcetype === "Uapi"
                                                       ? replaceINRWithSymbol(
-                                                        meal.meal.TotalPrice
-                                                      )
+                                                          meal.meal.TotalPrice
+                                                        )
                                                       : `₹ ${meal.meal.Price}`}
                                                   </div>
                                                 </div>
@@ -4431,13 +4446,13 @@ const ReturnBookingFlow = () => {
                                                     {meal.sourcetype === "Uapi"
                                                       ? meal.meal.DisplayText
                                                       : meal.meal
-                                                        .AirlineDescription}
+                                                          .AirlineDescription}
                                                   </div>
                                                   <div>
                                                     {meal.sourcetype === "Uapi"
                                                       ? replaceINRWithSymbol(
-                                                        meal.meal.TotalPrice
-                                                      )
+                                                          meal.meal.TotalPrice
+                                                        )
                                                       : `₹ ${meal.meal.Price}`}
                                                   </div>
                                                 </div>
@@ -4462,112 +4477,117 @@ const ReturnBookingFlow = () => {
                             <div className="w-1/4 border-r pr-4 flex flex-col gap-3">
                               {(selectedSegmentType === "onward" &&
                                 OnwardSourceType === "Uapi") ||
-                                (selectedSegmentType === "return" &&
-                                  ReturnSourceType === "Uapi")
+                              (selectedSegmentType === "return" &&
+                                ReturnSourceType === "Uapi")
                                 ? PassengerData.filter(
-                                  (passenger) => passenger.type !== "Infant"
-                                ) // Adjust key if needed
-                                  .map((passenger, index) => {
-                                    const Optionalservice =
-                                      selectedSegmentType === "onward"
-                                        ? UapiOnwardOptionalservice
-                                        : UapiReturnOptionalservice;
-                                    const passengerService =
-                                      Optionalservice?.find(
-                                        (service) =>
-                                          service.Key === selectedPassengerKey
+                                    (passenger) => passenger.type !== "Infant"
+                                  ) // Adjust key if needed
+                                    .map((passenger, index) => {
+                                      const Optionalservice =
+                                        selectedSegmentType === "onward"
+                                          ? UapiOnwardOptionalservice
+                                          : UapiReturnOptionalservice;
+                                      const passengerService =
+                                        Optionalservice?.find(
+                                          (service) =>
+                                            service.Key === selectedPassengerKey
+                                        );
+                                      const segmentIndex = selectedSegmentKey;
+                                      const segmentData =
+                                        passengerService?.["Segment"]?.[
+                                          segmentIndex
+                                        ];
+                                      const segmentKey = segmentData?.Key;
+                                      const passengerMeal = selectedMeals[
+                                        selectedSegmentType
+                                      ].find(
+                                        (m) =>
+                                          m.passengerIndex === index &&
+                                          m.segmentKey === segmentKey
                                       );
-                                    const segmentIndex = selectedSegmentKey;
-                                    const segmentData =
-                                      passengerService?.["Segment"]?.[
-                                      segmentIndex
-                                      ];
-                                    const segmentKey = segmentData?.Key;
+                                      // //console.log(selectedMeals)
+                                      return (
+                                        <button
+                                          key={index}
+                                          type="button"
+                                          className={`p-3 rounded-lg border text-left ${
+                                            index === selectedPassengerIndex
+                                              ? "border-violet-500 bg-violet-50"
+                                              : "border-gray-300"
+                                          } text-gray-700`}
+                                          onClick={() => {
+                                            setSelectedPassengerIndex(index);
+                                            setSelectedPassengerKey(
+                                              passenger.Key
+                                            );
+                                          }}
+                                        >
+                                          {passenger.firstName}{" "}
+                                          {passenger.lastName}
+                                          <br />
+                                          <span className="text-xs text-gray-500">
+                                            {passengerMeal
+                                              ? `Selected: ${
+                                                  passengerMeal.meal
+                                                    .DisplayText || "No Meal"
+                                                }`
+                                              : "Meal: Not Selected"}
+                                          </span>
+                                        </button>
+                                      );
+                                    })
+                                : PassengerData.filter(
+                                    (passenger) => passenger.type !== "Infant"
+                                  ).map((passenger, index) => {
                                     const passengerMeal = selectedMeals[
                                       selectedSegmentType
                                     ].find(
                                       (m) =>
                                         m.passengerIndex === index &&
-                                        m.segmentKey === segmentKey
+                                        m.segmentKey === selectedSegmentKey
                                     );
-                                    // //console.log(selectedMeals)
+                                    // console.log(
+                                    //   "Seleected meals",
+                                    //   selectedMeals
+                                    // );
                                     return (
                                       <button
                                         key={index}
                                         type="button"
-                                        className={`p-3 rounded-lg border text-left ${index === selectedPassengerIndex
+                                        className={`p-3 rounded-lg border text-left ${
+                                          index === selectedPassengerIndex
                                             ? "border-violet-500 bg-violet-50"
                                             : "border-gray-300"
-                                          } text-gray-700`}
-                                        onClick={() => {
-                                          setSelectedPassengerIndex(index);
-                                          setSelectedPassengerKey(
-                                            passenger.Key
-                                          );
-                                        }}
+                                        } text-gray-700`}
+                                        onClick={() =>
+                                          setSelectedPassengerIndex(index)
+                                        }
                                       >
                                         {passenger.firstName}{" "}
                                         {passenger.lastName}
                                         <br />
                                         <span className="text-xs text-gray-500">
                                           {passengerMeal
-                                            ? `Selected: ${passengerMeal.meal
-                                              .DisplayText || "No Meal"
-                                            }`
+                                            ? `Selected: ${
+                                                passengerMeal.meal
+                                                  .AirlineDescription ||
+                                                "No Meal"
+                                              }`
                                             : "Meal: Not Selected"}
                                         </span>
                                       </button>
                                     );
-                                  })
-                                : PassengerData.filter(
-                                  (passenger) => passenger.type !== "Infant"
-                                ).map((passenger, index) => {
-                                  const passengerMeal = selectedMeals[
-                                    selectedSegmentType
-                                  ].find(
-                                    (m) =>
-                                      m.passengerIndex === index &&
-                                      m.segmentKey === selectedSegmentKey
-                                  );
-                                  // console.log(
-                                  //   "Seleected meals",
-                                  //   selectedMeals
-                                  // );
-                                  return (
-                                    <button
-                                      key={index}
-                                      type="button"
-                                      className={`p-3 rounded-lg border text-left ${index === selectedPassengerIndex
-                                          ? "border-violet-500 bg-violet-50"
-                                          : "border-gray-300"
-                                        } text-gray-700`}
-                                      onClick={() =>
-                                        setSelectedPassengerIndex(index)
-                                      }
-                                    >
-                                      {passenger.firstName}{" "}
-                                      {passenger.lastName}
-                                      <br />
-                                      <span className="text-xs text-gray-500">
-                                        {passengerMeal
-                                          ? `Selected: ${passengerMeal.meal
-                                            .AirlineDescription ||
-                                          "No Meal"
-                                          }`
-                                          : "Meal: Not Selected"}
-                                      </span>
-                                    </button>
-                                  );
-                                })}
+                                  })}
                             </div>
 
                             <div className="w-3/4">
                               <div className="flex gap-1 mb-4 justify-center">
                                 <button
-                                  className={`px-4 py-2 border ${selectedSegmentType === "onward"
+                                  className={`px-4 py-2 border ${
+                                    selectedSegmentType === "onward"
                                       ? "border-violet-500 bg-violet-100 text-violet-600"
                                       : "border-gray-300"
-                                    }`}
+                                  }`}
                                   onClick={() => {
                                     setSelectedSegmentType("onward");
                                     setSelectedPassengerIndex(0);
@@ -4596,10 +4616,11 @@ const ReturnBookingFlow = () => {
                                   }
                                 </button>
                                 <button
-                                  className={`px-4 py-2 border ${selectedSegmentType === "return"
+                                  className={`px-4 py-2 border ${
+                                    selectedSegmentType === "return"
                                       ? "border-violet-500 bg-violet-100 text-violet-600"
                                       : "border-gray-300"
-                                    }`}
+                                  }`}
                                   onClick={() => {
                                     setSelectedSegmentType("return");
                                     setSelectedPassengerIndex(0);
@@ -4630,11 +4651,11 @@ const ReturnBookingFlow = () => {
                               </div>
                               {(selectedSegmentType === "onward" &&
                                 OnwardSourceType === "Uapi") ||
-                                (selectedSegmentType === "return" &&
-                                  ReturnSourceType === "Uapi") ? (
+                              (selectedSegmentType === "return" &&
+                                ReturnSourceType === "Uapi") ? (
                                 UapiOnwardOptionalservice?.length > 0 &&
                                 UapiOnwardOptionalservice[0]?.Segment?.length >
-                                0 && (
+                                  0 && (
                                   <div className="mb-4">
                                     <Tabs
                                       value={selectedSegmentKey}
@@ -4643,9 +4664,9 @@ const ReturnBookingFlow = () => {
                                     >
                                       {(selectedSegmentType === "onward"
                                         ? UapiOnwardOptionalservice?.[0]
-                                          ?.Segment
+                                            ?.Segment
                                         : UapiReturnOptionalservice?.[0]
-                                          ?.Segment
+                                            ?.Segment
                                       )?.map((segment, index) => {
                                         const origin =
                                           segment?.Origin
@@ -4701,244 +4722,248 @@ const ReturnBookingFlow = () => {
                                 <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
                                   {(selectedSegmentType === "onward" &&
                                     OnwardSourceType === "Uapi") ||
-                                    (selectedSegmentType === "return" &&
-                                      ReturnSourceType === "Uapi")
+                                  (selectedSegmentType === "return" &&
+                                    ReturnSourceType === "Uapi")
                                     ? (() => {
-                                      const serviceSource =
-                                        selectedSegmentType === "onward"
-                                          ? UapiOnwardOptionalservice?.find(
-                                            (service) =>
-                                              service.Key ===
-                                              selectedPassengerKey
-                                          )
-                                          : UapiReturnOptionalservice?.find(
-                                            (service) =>
-                                              service.Key ===
-                                              selectedPassengerKey
+                                        const serviceSource =
+                                          selectedSegmentType === "onward"
+                                            ? UapiOnwardOptionalservice?.find(
+                                                (service) =>
+                                                  service.Key ===
+                                                  selectedPassengerKey
+                                              )
+                                            : UapiReturnOptionalservice?.find(
+                                                (service) =>
+                                                  service.Key ===
+                                                  selectedPassengerKey
+                                              );
+
+                                        const segmentData =
+                                          serviceSource?.["Segment"]?.[
+                                            selectedSegmentKey
+                                          ];
+                                        const segmentKey = segmentData?.Key;
+                                        const meals =
+                                          segmentData?.OptionalServices
+                                            ?.MealOrBeverage || [];
+
+                                        if (meals.length === 0) {
+                                          return (
+                                            <div className="flex items-center justify-between border rounded-2xl p-2 mb-3">
+                                              <div className="flex items-center gap-2">
+                                                Meals Not Available
+                                              </div>
+                                            </div>
+                                          );
+                                        }
+
+                                        return meals.map((meal, idx) => {
+                                          const isSelected = selectedMeals[
+                                            selectedSegmentType
+                                          ].some(
+                                            (m) =>
+                                              m.passengerIndex ===
+                                                selectedPassengerIndex &&
+                                              m.segmentKey === segmentKey &&
+                                              m.meal.DisplayText ===
+                                                meal.DisplayText
                                           );
 
-                                      const segmentData =
-                                        serviceSource?.["Segment"]?.[
-                                        selectedSegmentKey
-                                        ];
-                                      const segmentKey = segmentData?.Key;
-                                      const meals =
-                                        segmentData?.OptionalServices
-                                          ?.MealOrBeverage || [];
-
-                                      if (meals.length === 0) {
-                                        return (
-                                          <div className="flex items-center justify-between border rounded-2xl p-2 mb-3">
-                                            <div className="flex items-center gap-2">
-                                              Meals Not Available
-                                            </div>
-                                          </div>
-                                        );
-                                      }
-
-                                      return meals.map((meal, idx) => {
-                                        const isSelected = selectedMeals[
-                                          selectedSegmentType
-                                        ].some(
-                                          (m) =>
-                                            m.passengerIndex ===
-                                            selectedPassengerIndex &&
-                                            m.segmentKey === segmentKey &&
-                                            m.meal.DisplayText ===
-                                            meal.DisplayText
-                                        );
-
-                                        return (
-                                          <div
-                                            key={idx}
-                                            className="flex items-center justify-between border rounded-2xl p-2 mb-3"
-                                          >
-                                            <div className="flex items-center gap-2">
-                                              <div className="p-3 rounded-xl bg-violet-50">
-                                                <img
-                                                  src="/img/Meals-01.svg"
-                                                  alt="Meal"
-                                                  className="h-10 w-10"
-                                                />
-                                              </div>
-                                              <div>
-                                                <div className="text-sm font-medium">
-                                                  {meal?.DisplayText ||
-                                                    "Meal Option"}
+                                          return (
+                                            <div
+                                              key={idx}
+                                              className="flex items-center justify-between border rounded-2xl p-2 mb-3"
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                <div className="p-3 rounded-xl bg-violet-50">
+                                                  <img
+                                                    src="/img/Meals-01.svg"
+                                                    alt="Meal"
+                                                    className="h-10 w-10"
+                                                  />
+                                                </div>
+                                                <div>
+                                                  <div className="text-sm font-medium">
+                                                    {meal?.DisplayText ||
+                                                      "Meal Option"}
+                                                  </div>
                                                 </div>
                                               </div>
-                                            </div>
 
-                                            <div className="flex items-center gap-6">
-                                              <div className="font-semibold text-sm">
-                                                {replaceINRWithSymbol(
-                                                  meal?.TotalPrice
-                                                ) || "0.00"}
-                                              </div>
+                                              <div className="flex items-center gap-6">
+                                                <div className="font-semibold text-sm">
+                                                  {replaceINRWithSymbol(
+                                                    meal?.TotalPrice
+                                                  ) || "0.00"}
+                                                </div>
 
-                                              <button
-                                                type="button"
-                                                className={`px-4 py-1 border rounded-xl text-sm ${isSelected
-                                                    ? "text-white bg-violet-600 border-violet-600"
-                                                    : "text-violet-600 border-violet-300"
+                                                <button
+                                                  type="button"
+                                                  className={`px-4 py-1 border rounded-xl text-sm ${
+                                                    isSelected
+                                                      ? "text-white bg-violet-600 border-violet-600"
+                                                      : "text-violet-600 border-violet-300"
                                                   }`}
-                                                onClick={() => {
-                                                  setSelectedMeals((prev) => {
-                                                    const journeyType =
-                                                      selectedSegmentType;
-                                                    const filtered = prev[
-                                                      journeyType
-                                                    ].filter(
-                                                      (m) =>
-                                                        !(
-                                                          m.passengerIndex ===
-                                                          selectedPassengerIndex &&
-                                                          m.segmentKey ===
-                                                          segmentKey
-                                                        )
-                                                    );
-                                                    return {
-                                                      ...prev,
-                                                      [journeyType]: [
-                                                        ...filtered,
-                                                        {
-                                                          passengerIndex:
-                                                            selectedPassengerIndex,
-                                                          segmentKey:
-                                                            segmentKey,
-                                                          meal: meal,
-                                                          sourcetype:
-                                                            OnwardSourceType ||
-                                                            ReturnSourceType,
-                                                        },
-                                                      ],
-                                                    };
-                                                  });
-                                                }}
-                                              >
-                                                {isSelected ? "Added" : "Add"}
-                                              </button>
+                                                  onClick={() => {
+                                                    setSelectedMeals((prev) => {
+                                                      const journeyType =
+                                                        selectedSegmentType;
+                                                      const filtered = prev[
+                                                        journeyType
+                                                      ].filter(
+                                                        (m) =>
+                                                          !(
+                                                            m.passengerIndex ===
+                                                              selectedPassengerIndex &&
+                                                            m.segmentKey ===
+                                                              segmentKey
+                                                          )
+                                                      );
+                                                      return {
+                                                        ...prev,
+                                                        [journeyType]: [
+                                                          ...filtered,
+                                                          {
+                                                            passengerIndex:
+                                                              selectedPassengerIndex,
+                                                            segmentKey:
+                                                              segmentKey,
+                                                            meal: meal,
+                                                            sourcetype:
+                                                              OnwardSourceType ||
+                                                              ReturnSourceType,
+                                                          },
+                                                        ],
+                                                      };
+                                                    });
+                                                    moveToNextPassenger();
+                                                  }}
+                                                >
+                                                  {isSelected ? "Added" : "Add"}
+                                                </button>
+                                              </div>
                                             </div>
-                                          </div>
-                                        );
-                                      });
-                                    })()
+                                          );
+                                        });
+                                      })()
                                     : (() => {
-                                      const mealSource =
-                                        selectedSegmentType === "onward"
-                                          ? TboOnwardMealservice
-                                          : TboReturnMealservice;
-                                      const segmentMeals =
-                                        mealSource?.filter(
-                                          (meal) =>
-                                            `${meal.Meal.Origin}-${meal.Meal.Destination}` ===
-                                            selectedSegmentKey
-                                        ) || [];
-                                      if (segmentMeals.length === 0) {
-                                        return (
-                                          <div className="flex items-center justify-between border rounded-2xl p-2 mb-3">
-                                            <div className="flex items-center gap-2">
-                                              Meals Not Available
-                                            </div>
-                                          </div>
-                                        );
-                                      }
-
-                                      return segmentMeals.map((meal, idx) => {
-                                        const isSelected = selectedMeals[
-                                          selectedSegmentType
-                                        ].some(
-                                          (m) =>
-                                            m.passengerIndex ===
-                                            selectedPassengerIndex &&
-                                            m.segmentKey ===
-                                            selectedSegmentKey &&
-                                            m.meal.Code === meal.Meal.Code
-                                        );
-
-                                        return (
-                                          <div
-                                            key={idx}
-                                            className="flex  items-center justify-between border rounded-2xl p-2 mb-3"
-                                          >
-                                            {/* Meal Icon + Text */}
-                                            <div className="flex items-center gap-2">
-                                              <div className="p-3 rounded-xl bg-violet-50">
-                                                <img
-                                                  src="/img/Meals-01.svg"
-                                                  alt="Meal"
-                                                  className="h-10 w-10"
-                                                />
+                                        const mealSource =
+                                          selectedSegmentType === "onward"
+                                            ? TboOnwardMealservice
+                                            : TboReturnMealservice;
+                                        const segmentMeals =
+                                          mealSource?.filter(
+                                            (meal) =>
+                                              `${meal.Meal.Origin}-${meal.Meal.Destination}` ===
+                                              selectedSegmentKey
+                                          ) || [];
+                                        if (segmentMeals.length === 0) {
+                                          return (
+                                            <div className="flex items-center justify-between border rounded-2xl p-2 mb-3">
+                                              <div className="flex items-center gap-2">
+                                                Meals Not Available
                                               </div>
-                                              <div>
-                                                <div className="text-sm font-medium">
-                                                  {meal.Meal
-                                                    .AirlineDescription ||
-                                                    "No Meal"}
+                                            </div>
+                                          );
+                                        }
+
+                                        return segmentMeals.map((meal, idx) => {
+                                          const isSelected = selectedMeals[
+                                            selectedSegmentType
+                                          ].some(
+                                            (m) =>
+                                              m.passengerIndex ===
+                                                selectedPassengerIndex &&
+                                              m.segmentKey ===
+                                                selectedSegmentKey &&
+                                              m.meal.Code === meal.Meal.Code
+                                          );
+
+                                          return (
+                                            <div
+                                              key={idx}
+                                              className="flex  items-center justify-between border rounded-2xl p-2 mb-3"
+                                            >
+                                              {/* Meal Icon + Text */}
+                                              <div className="flex items-center gap-2">
+                                                <div className="p-3 rounded-xl bg-violet-50">
+                                                  <img
+                                                    src="/img/Meals-01.svg"
+                                                    alt="Meal"
+                                                    className="h-10 w-10"
+                                                  />
+                                                </div>
+                                                <div>
+                                                  <div className="text-sm font-medium">
+                                                    {meal.Meal
+                                                      .AirlineDescription ||
+                                                      "No Meal"}
+                                                  </div>
                                                 </div>
                                               </div>
-                                            </div>
 
-                                            {/* Price + Button */}
-                                            <div className="flex items-center gap-6">
-                                              <div className="font-semibold text-sm">
-                                                ₹
-                                                {meal.Meal.Price === "0"
-                                                  ? "0"
-                                                  : meal.Meal.Price}
-                                              </div>
+                                              {/* Price + Button */}
+                                              <div className="flex items-center gap-6">
+                                                <div className="font-semibold text-sm">
+                                                  ₹
+                                                  {meal.Meal.Price === "0"
+                                                    ? "0"
+                                                    : meal.Meal.Price}
+                                                </div>
 
-                                              <button
-                                                type="button"
-                                                className={`px-4 py-1 border rounded-xl text-sm ${isSelected
-                                                    ? "text-white bg-violet-600 border-violet-600"
-                                                    : "text-violet-600 border-violet-300"
+                                                <button
+                                                  type="button"
+                                                  className={`px-4 py-1 border rounded-xl text-sm ${
+                                                    isSelected
+                                                      ? "text-white bg-violet-600 border-violet-600"
+                                                      : "text-violet-600 border-violet-300"
                                                   }`}
-                                                onClick={() => {
-                                                  setSelectedMeals((prev) => {
-                                                    const journeyType =
-                                                      selectedSegmentType;
+                                                  onClick={() => {
+                                                    setSelectedMeals((prev) => {
+                                                      const journeyType =
+                                                        selectedSegmentType;
 
-                                                    // remove old selection for same passenger & segment
-                                                    const filtered = prev[
-                                                      journeyType
-                                                    ].filter(
-                                                      (m) =>
-                                                        !(
-                                                          m.passengerIndex ===
-                                                          selectedPassengerIndex &&
-                                                          m.segmentKey ===
-                                                          selectedSegmentKey
-                                                        )
-                                                    );
+                                                      // remove old selection for same passenger & segment
+                                                      const filtered = prev[
+                                                        journeyType
+                                                      ].filter(
+                                                        (m) =>
+                                                          !(
+                                                            m.passengerIndex ===
+                                                              selectedPassengerIndex &&
+                                                            m.segmentKey ===
+                                                              selectedSegmentKey
+                                                          )
+                                                      );
 
-                                                    // add new selection
-                                                    return {
-                                                      ...prev,
-                                                      [journeyType]: [
-                                                        ...filtered,
-                                                        {
-                                                          passengerIndex:
-                                                            selectedPassengerIndex,
-                                                          segmentKey:
-                                                            selectedSegmentKey,
-                                                          meal: meal.Meal,
-                                                          sourceType:
-                                                            ReturnSourceType ||
-                                                            OnwardSourceType,
-                                                        },
-                                                      ],
-                                                    };
-                                                  });
-                                                }}
-                                              >
-                                                {isSelected ? "Added" : "Add"}
-                                              </button>
+                                                      // add new selection
+                                                      return {
+                                                        ...prev,
+                                                        [journeyType]: [
+                                                          ...filtered,
+                                                          {
+                                                            passengerIndex:
+                                                              selectedPassengerIndex,
+                                                            segmentKey:
+                                                              selectedSegmentKey,
+                                                            meal: meal.Meal,
+                                                            sourceType:
+                                                              ReturnSourceType ||
+                                                              OnwardSourceType,
+                                                          },
+                                                        ],
+                                                      };
+                                                    });
+                                                    moveToNextPassenger();
+                                                  }}
+                                                >
+                                                  {isSelected ? "Added" : "Add"}
+                                                </button>
+                                              </div>
                                             </div>
-                                          </div>
-                                        );
-                                      });
-                                    })()}
+                                          );
+                                        });
+                                      })()}
                                 </div>
                               </div>
 
@@ -4951,13 +4976,15 @@ const ReturnBookingFlow = () => {
                                     const sourceType =
                                       (selectedSegmentType === "onward" &&
                                         OnwardSourceType === "Uapi") ||
-                                        (selectedSegmentType === "return" &&
-                                          ReturnSourceType === "Uapi")
+                                      (selectedSegmentType === "return" &&
+                                        ReturnSourceType === "Uapi")
                                         ? "Uapi"
                                         : "Tbo";
 
                                     setAccordion6Expanded(false);
                                     setAccordion3Expanded(true);
+                                    setSelectedPassengerIndex(0);
+                                    setSelectedSegmentType("onward");
                                   }}
                                 >
                                   Save Meal
@@ -4973,6 +5000,7 @@ const ReturnBookingFlow = () => {
                           <div className="booking-devider" />
 
                           <Accordion
+                            disabled={!isPassengerSaved}
                             expanded={accordion3Expanded}
                             onChange={(event, isExpanded) => {
                               const hasUapiReturnseat = ReturnSeatData > 0;
@@ -4991,7 +5019,9 @@ const ReturnBookingFlow = () => {
                                 hasUapiOnwardseat ||
                                 hasTboOnwardseat ||
                                 hasTboReturnseat;
-
+                              if (isPassengerSaved) {
+                                setAccordion3Expanded(isExpanded);
+                              }
                               if (hasAnyBaggage) {
                                 setAccordion3Expanded(isExpanded);
                                 if (isExpanded) {
@@ -5010,7 +5040,7 @@ const ReturnBookingFlow = () => {
                                 <span>Choose Seats</span>
                                 {selectedSeats.onward.length +
                                   selectedSeats.return.length >
-                                  0 ? (
+                                0 ? (
                                   <>
                                     <span className="text-sm text-gray-500 ">
                                       &nbsp; (
@@ -5088,55 +5118,111 @@ const ReturnBookingFlow = () => {
                                   <div className="seatleftul">
                                     {(selectedSegmentType === "onward" &&
                                       OnwardSourceType === "Uapi") ||
-                                      (selectedSegmentType === "return" &&
-                                        ReturnSourceType === "Uapi")
+                                    (selectedSegmentType === "return" &&
+                                      ReturnSourceType === "Uapi")
                                       ? PassengerData.filter(
-                                        (passenger) =>
-                                          passenger.type !== "Infant"
-                                      ) // Adjust key if needed
-                                        .map((passenger, index) => {
-                                          const SeatData =
-                                            selectedSegmentType == "onward"
-                                              ? OnwardSeatData
-                                              : ReturnSeatData;
-                                          const passengerService =
-                                            SeatData?.find(
-                                              (service) =>
-                                                service.TravellerKey ===
-                                                selectedPassengerKey
+                                          (passenger) =>
+                                            passenger.type !== "Infant"
+                                        ) // Adjust key if needed
+                                          .map((passenger, index) => {
+                                            const SeatData =
+                                              selectedSegmentType == "onward"
+                                                ? OnwardSeatData
+                                                : ReturnSeatData;
+                                            const passengerService =
+                                              SeatData?.find(
+                                                (service) =>
+                                                  service.TravellerKey ===
+                                                  selectedPassengerKey
+                                              );
+                                            const segmentIndex =
+                                              currentFlightIndex;
+                                            const segmentData =
+                                              passengerService?.Segments?.[
+                                                segmentIndex
+                                              ];
+                                            const segmentkey = segmentData?.Key;
+                                            const selectedSeat = selectedSeats[
+                                              selectedSegmentType
+                                            ].find(
+                                              (m) =>
+                                                m.passengerIndex === index &&
+                                                m.segmentKey === segmentkey
                                             );
-                                          const segmentIndex =
-                                            currentFlightIndex;
-                                          const segmentData =
-                                            passengerService?.Segments?.[
-                                            segmentIndex
-                                            ];
-                                          const segmentkey = segmentData?.Key;
+                                            // //console.log("Selcted setas", selectedSeats)
+                                            return (
+                                              <button
+                                                key={index}
+                                                type="button"
+                                                className={`seatleftli tablinkseat ${
+                                                  selectedPassengerIndex ===
+                                                  index
+                                                    ? "active"
+                                                    : ""
+                                                }`}
+                                                onClick={() => {
+                                                  setSelectedPassengerIndex(
+                                                    index
+                                                  );
+                                                  setSelectedPassengerKey(
+                                                    passenger.Key
+                                                  );
+                                                }}
+                                              >
+                                                {passenger.firstName}{" "}
+                                                {passenger.lastName}
+                                                <br />
+                                                <span>Seat No.</span>
+                                                <br />
+                                                <span>
+                                                  {selectedSeat?.seatCode ||
+                                                    "Not Selected"}
+                                                </span>
+                                                <br />
+                                                <span>Price </span>
+                                                <br />
+                                                <span>
+                                                  {selectedSeat?.seatPrice ||
+                                                    "NA"}
+                                                </span>
+                                              </button>
+                                            );
+                                          })
+                                      : PassengerData.filter(
+                                          (passenger) =>
+                                            passenger.type !== "Infant"
+                                        ).map((passenger, index) => {
+                                          const currentSegment =
+                                            selectedSegmentType === "onward"
+                                              ? TboOnwardSeatservice?.[
+                                                  currentFlightIndex
+                                                ]
+                                              : TboReturnSeatservice?.[
+                                                  currentFlightIndex
+                                                ];
+                                          const currentSegmentKey = `${currentSegment?.OriginAirport?.airport_municipality}-${currentSegment?.DestinationAirport?.airport_municipality}`;
+                                          const CurrentSegmentCode = `${currentSegment?.OriginAirport?.airport_iata_code}-${currentSegment?.DestinationAirport?.airport_iata_code}`;
                                           const selectedSeat = selectedSeats[
                                             selectedSegmentType
                                           ].find(
-                                            (m) =>
-                                              m.passengerIndex === index &&
-                                              m.segmentKey === segmentkey
+                                            (s) =>
+                                              s.passengerIndex === index &&
+                                              s.segmentKey ===
+                                                CurrentSegmentCode
                                           );
-                                          // //console.log("Selcted setas", selectedSeats)
+                                          // //console.log('Seleected seats', selectedSeats)
                                           return (
                                             <button
                                               key={index}
                                               type="button"
-                                              className={`seatleftli tablinkseat ${selectedPassengerIndex ===
-                                                  index
+                                              className={`seatleftli tablinkseat ${
+                                                selectedPassengerIndex === index
                                                   ? "active"
                                                   : ""
-                                                }`}
-                                              onClick={() => {
-                                                setSelectedPassengerIndex(
-                                                  index
-                                                );
-                                                setSelectedPassengerKey(
-                                                  passenger.Key
-                                                );
-                                              }}
+                                              }`}
+                                              onClick={() =>
+                                                setSelectedPassengerIndex(index)
+                                              }
                                             >
                                               {passenger.firstName}{" "}
                                               {passenger.lastName}
@@ -5148,79 +5234,26 @@ const ReturnBookingFlow = () => {
                                                   "Not Selected"}
                                               </span>
                                               <br />
-                                              <span>Price </span>
+                                              <span>Price</span>
                                               <br />
                                               <span>
+                                                ₹
                                                 {selectedSeat?.seatPrice ||
                                                   "NA"}
                                               </span>
                                             </button>
                                           );
-                                        })
-                                      : PassengerData.filter(
-                                        (passenger) =>
-                                          passenger.type !== "Infant"
-                                      ).map((passenger, index) => {
-                                        const currentSegment =
-                                          selectedSegmentType === "onward"
-                                            ? TboOnwardSeatservice?.[
-                                            currentFlightIndex
-                                            ]
-                                            : TboReturnSeatservice?.[
-                                            currentFlightIndex
-                                            ];
-                                        const currentSegmentKey = `${currentSegment?.OriginAirport?.airport_municipality}-${currentSegment?.DestinationAirport?.airport_municipality}`;
-                                        const CurrentSegmentCode = `${currentSegment?.OriginAirport?.airport_iata_code}-${currentSegment?.DestinationAirport?.airport_iata_code}`;
-                                        const selectedSeat = selectedSeats[
-                                          selectedSegmentType
-                                        ].find(
-                                          (s) =>
-                                            s.passengerIndex === index &&
-                                            s.segmentKey ===
-                                            CurrentSegmentCode
-                                        );
-                                        // //console.log('Seleected seats', selectedSeats)
-                                        return (
-                                          <button
-                                            key={index}
-                                            type="button"
-                                            className={`seatleftli tablinkseat ${selectedPassengerIndex === index
-                                                ? "active"
-                                                : ""
-                                              }`}
-                                            onClick={() =>
-                                              setSelectedPassengerIndex(index)
-                                            }
-                                          >
-                                            {passenger.firstName}{" "}
-                                            {passenger.lastName}
-                                            <br />
-                                            <span>Seat No.</span>
-                                            <br />
-                                            <span>
-                                              {selectedSeat?.seatCode ||
-                                                "Not Selected"}
-                                            </span>
-                                            <br />
-                                            <span>Price</span>
-                                            <br />
-                                            <span>
-                                              ₹
-                                              {selectedSeat?.seatPrice ||
-                                                "NA"}
-                                            </span>
-                                          </button>
-                                        );
-                                      })}
+                                        })}
                                   </div>
                                 </div>
                                 <div className="flex gap-1 mb-4 justify-center">
                                   <button
                                     type="button"
-                                    className={`px-4 py-2 border ${selectedSegmentType === "onward"
+                                    className={`px-4 py-2 border ${
+                                      selectedSegmentType === "onward"
                                         ? "border-violet-500 bg-violet-100 text-violet-600"
                                         : "border-gray-300"
-                                      }`}
+                                    }`}
                                     onClick={() => {
                                       setSelectedSegmentType("onward");
                                       setSelectedPassengerIndex(0);
@@ -5239,10 +5272,11 @@ const ReturnBookingFlow = () => {
                                   </button>
                                   <button
                                     type="button"
-                                    className={`px-4 py-2 border ${selectedSegmentType === "return"
+                                    className={`px-4 py-2 border ${
+                                      selectedSegmentType === "return"
                                         ? "border-violet-500 bg-violet-100 text-violet-600"
                                         : "border-gray-300"
-                                      }`}
+                                    }`}
                                     onClick={() => {
                                       setSelectedSegmentType("return");
                                       setSelectedPassengerIndex(0);
@@ -5262,8 +5296,8 @@ const ReturnBookingFlow = () => {
                                 </div>
                                 {(selectedSegmentType === "onward" &&
                                   OnwardSourceType === "Uapi") ||
-                                  (selectedSegmentType === "return" &&
-                                    ReturnSourceType === "Uapi") ? (
+                                (selectedSegmentType === "return" &&
+                                  ReturnSourceType === "Uapi") ? (
                                   (OnwardSeatData.length > 0 ||
                                     ReturnSeatData.length > 0) && (
                                     <div className="tabcontentseat">
@@ -5306,7 +5340,7 @@ const ReturnBookingFlow = () => {
                                               {(() => {
                                                 const SeatData =
                                                   selectedSegmentType ===
-                                                    "onward"
+                                                  "onward"
                                                     ? OnwardSeatData
                                                     : ReturnSeatData;
                                                 const passengerService =
@@ -5333,16 +5367,16 @@ const ReturnBookingFlow = () => {
                                                     )}
                                                     {currentFlightIndex <
                                                       totalFlights - 1 && (
-                                                        <button
-                                                          type="button"
-                                                          className="seatnextbutton"
-                                                          onClick={() =>
-                                                            handleNext("Uapi")
-                                                          }
-                                                        >
-                                                          {">>"}
-                                                        </button>
-                                                      )}
+                                                      <button
+                                                        type="button"
+                                                        className="seatnextbutton"
+                                                        onClick={() =>
+                                                          handleNext("Uapi")
+                                                        }
+                                                      >
+                                                        {">>"}
+                                                      </button>
+                                                    )}
                                                   </>
                                                 );
                                               })()}
@@ -5353,7 +5387,7 @@ const ReturnBookingFlow = () => {
                                                   {(() => {
                                                     const SeatData =
                                                       selectedSegmentType ===
-                                                        "onward"
+                                                      "onward"
                                                         ? OnwardSeatData
                                                         : ReturnSeatData;
                                                     const flight =
@@ -5362,7 +5396,7 @@ const ReturnBookingFlow = () => {
                                                           service.TravellerKey ===
                                                           selectedPassengerKey
                                                       )?.Segments?.[
-                                                      currentFlightIndex
+                                                        currentFlightIndex
                                                       ];
 
                                                     if (!flight) return null;
@@ -5417,7 +5451,7 @@ const ReturnBookingFlow = () => {
                                                     {(() => {
                                                       const SeatData =
                                                         selectedSegmentType ===
-                                                          "onward"
+                                                        "onward"
                                                           ? OnwardSeatData
                                                           : ReturnSeatData;
                                                       const passengerService =
@@ -5431,7 +5465,7 @@ const ReturnBookingFlow = () => {
                                                       const segmentData =
                                                         passengerService
                                                           ?.Segments?.[
-                                                        segmentIndex
+                                                          segmentIndex
                                                         ];
                                                       const segmentkey =
                                                         segmentData?.Key;
@@ -5490,7 +5524,7 @@ const ReturnBookingFlow = () => {
                                                                   seat.SeatCode,
                                                                 price:
                                                                   seat.Paid ===
-                                                                    "true"
+                                                                  "true"
                                                                     ? seat.TotalPrice
                                                                     : 0,
                                                                 isUnavailable:
@@ -5542,9 +5576,9 @@ const ReturnBookingFlow = () => {
                                                                     ) => {
                                                                       const seat =
                                                                         rowMap[
-                                                                        rowNo
+                                                                          rowNo
                                                                         ][
-                                                                        seatLetter
+                                                                          seatLetter
                                                                         ];
                                                                       if (
                                                                         !seat
@@ -5581,17 +5615,17 @@ const ReturnBookingFlow = () => {
                                                                         ((!IsOnwardLCC ||
                                                                           !IsReturnLCC) &&
                                                                           numericSeatPrice >
-                                                                          0) ||
+                                                                            0) ||
                                                                         selectedSeats[
                                                                           selectedSegmentType
                                                                         ].some(
                                                                           (s) =>
                                                                             s.seatCode ===
-                                                                            seatCode &&
+                                                                              seatCode &&
                                                                             s.segmentKey ===
-                                                                            segmentkey &&
+                                                                              segmentkey &&
                                                                             s.passengerIndex !==
-                                                                            selectedPassengerIndex
+                                                                              selectedPassengerIndex
                                                                         );
 
                                                                       return (
@@ -5609,7 +5643,7 @@ const ReturnBookingFlow = () => {
                                                                             }
                                                                             value={
                                                                               numericSeatPrice >
-                                                                                0
+                                                                              0
                                                                                 ? `${seatCode}_${seatPrice}`
                                                                                 : `free ${seatCode}`
                                                                             }
@@ -5623,11 +5657,11 @@ const ReturnBookingFlow = () => {
                                                                                 s
                                                                               ) =>
                                                                                 s.passengerIndex ===
-                                                                                selectedPassengerIndex &&
+                                                                                  selectedPassengerIndex &&
                                                                                 s.segmentKey ===
-                                                                                segmentkey &&
+                                                                                  segmentkey &&
                                                                                 s.seatCode ===
-                                                                                seatCode
+                                                                                  seatCode
                                                                             )}
                                                                             onChange={() => {
                                                                               setSelectedSeats(
@@ -5643,9 +5677,9 @@ const ReturnBookingFlow = () => {
                                                                                       ) =>
                                                                                         !(
                                                                                           s.passengerIndex ===
-                                                                                          selectedPassengerIndex &&
+                                                                                            selectedPassengerIndex &&
                                                                                           s.segmentKey ===
-                                                                                          segmentkey
+                                                                                            segmentkey
                                                                                         )
                                                                                     );
 
@@ -5669,39 +5703,43 @@ const ReturnBookingFlow = () => {
                                                                                   };
                                                                                 }
                                                                               );
+                                                                              moveToNextPassenger();
                                                                             }}
                                                                           />
                                                                           <label
                                                                             htmlFor={
                                                                               seatCode
                                                                             }
-                                                                            className={`${numericSeatPrice >
-                                                                                0
+                                                                            className={`${
+                                                                              numericSeatPrice >
+                                                                              0
                                                                                 ? "paid"
                                                                                 : "free"
-                                                                              } ${isUnavailable
+                                                                            } ${
+                                                                              isUnavailable
                                                                                 ? "unavailable"
                                                                                 : "available"
-                                                                              }`}
-                                                                            title={`[${seatCode}] ${(!IsOnwardLCC ||
+                                                                            }`}
+                                                                            title={`[${seatCode}] ${
+                                                                              (!IsOnwardLCC ||
                                                                                 !IsReturnLCC) &&
-                                                                                numericSeatPrice >
+                                                                              numericSeatPrice >
                                                                                 0
                                                                                 ? "After ticketing paid seats will be available"
                                                                                 : isUnavailable
-                                                                                  ? "Unavailable"
-                                                                                  : `${seatPrice} Available`
-                                                                              }`}
+                                                                                ? "Unavailable"
+                                                                                : `${seatPrice} Available`
+                                                                            }`}
                                                                           ></label>
                                                                           <span className="tooltip">
                                                                             {(!IsOnwardLCC ||
                                                                               !IsReturnLCC) &&
-                                                                              numericSeatPrice >
+                                                                            numericSeatPrice >
                                                                               0
                                                                               ? "After ticketing paid seats will be available"
                                                                               : isUnavailable
-                                                                                ? "Unavailable"
-                                                                                : `Available [${seatCode}] ₹${seatPrice}`}
+                                                                              ? "Unavailable"
+                                                                              : `Available [${seatCode}] ₹${seatPrice}`}
                                                                           </span>
                                                                         </li>
                                                                       );
@@ -5767,14 +5805,14 @@ const ReturnBookingFlow = () => {
                                               {(() => {
                                                 const SeatData =
                                                   selectedSegmentType ===
-                                                    "onward"
+                                                  "onward"
                                                     ? TboOnwardSeatservice
                                                     : TboReturnSeatservice;
                                                 return (
                                                   <>
                                                     {SeatData.length > 1 &&
                                                       currentFlightIndex >
-                                                      0 && (
+                                                        0 && (
                                                         <button
                                                           type="button"
                                                           className="seatprevbutton"
@@ -5787,7 +5825,7 @@ const ReturnBookingFlow = () => {
                                                       )}
                                                     {SeatData.length > 1 &&
                                                       currentFlightIndex <
-                                                      SeatData.length - 1 && (
+                                                        SeatData.length - 1 && (
                                                         <button
                                                           type="button"
                                                           className="seatnextbutton"
@@ -5807,13 +5845,13 @@ const ReturnBookingFlow = () => {
                                                 {(() => {
                                                   const currentSegment =
                                                     selectedSegmentType ===
-                                                      "onward"
+                                                    "onward"
                                                       ? TboOnwardSeatservice?.[
-                                                      currentFlightIndex
-                                                      ]
+                                                          currentFlightIndex
+                                                        ]
                                                       : TboReturnSeatservice?.[
-                                                      currentFlightIndex
-                                                      ];
+                                                          currentFlightIndex
+                                                        ];
 
                                                   if (
                                                     !currentSegment?.RowSeats
@@ -5950,9 +5988,9 @@ const ReturnBookingFlow = () => {
                                                                   ) => {
                                                                     const seat =
                                                                       rowMap[
-                                                                      rowNo
+                                                                        rowNo
                                                                       ][
-                                                                      seatLetter
+                                                                        seatLetter
                                                                       ];
                                                                     if (!seat)
                                                                       return (
@@ -5987,7 +6025,7 @@ const ReturnBookingFlow = () => {
                                                                           }
                                                                           value={
                                                                             seatPrice >
-                                                                              0
+                                                                            0
                                                                               ? `${seatCode}_${seatPrice}`
                                                                               : `free ${seatCode}`
                                                                           }
@@ -6000,11 +6038,11 @@ const ReturnBookingFlow = () => {
                                                                                 s
                                                                               ) =>
                                                                                 s.seatCode ===
-                                                                                seatCode &&
+                                                                                  seatCode &&
                                                                                 s.segmentKey ===
-                                                                                currentSegmentKey &&
+                                                                                  currentSegmentKey &&
                                                                                 s.passengerIndex !==
-                                                                                selectedPassengerIndex
+                                                                                  selectedPassengerIndex
                                                                             )
                                                                           }
                                                                           checked={selectedSeats[
@@ -6014,11 +6052,11 @@ const ReturnBookingFlow = () => {
                                                                               s
                                                                             ) =>
                                                                               s.passengerIndex ===
-                                                                              selectedPassengerIndex &&
+                                                                                selectedPassengerIndex &&
                                                                               s.segmentKey ===
-                                                                              currentSegmentKey &&
+                                                                                currentSegmentKey &&
                                                                               s.seatCode ===
-                                                                              seatCode
+                                                                                seatCode
                                                                           )}
                                                                           onChange={() => {
                                                                             setSelectedSeats(
@@ -6034,9 +6072,9 @@ const ReturnBookingFlow = () => {
                                                                                     ) =>
                                                                                       !(
                                                                                         s.passengerIndex ===
-                                                                                        selectedPassengerIndex &&
+                                                                                          selectedPassengerIndex &&
                                                                                         s.segmentKey ===
-                                                                                        currentSegmentKey
+                                                                                          currentSegmentKey
                                                                                       )
                                                                                   );
 
@@ -6060,6 +6098,7 @@ const ReturnBookingFlow = () => {
                                                                                 };
                                                                               }
                                                                             );
+                                                                            moveToNextPassenger();
                                                                           }}
                                                                         />
 
@@ -6067,14 +6106,16 @@ const ReturnBookingFlow = () => {
                                                                           htmlFor={
                                                                             seatCode
                                                                           }
-                                                                          className={`${seatPrice >
-                                                                              0
+                                                                          className={`${
+                                                                            seatPrice >
+                                                                            0
                                                                               ? "paid"
                                                                               : "free"
-                                                                            } ${isUnavailable
+                                                                          } ${
+                                                                            isUnavailable
                                                                               ? "unavailable"
                                                                               : "available"
-                                                                            }`}
+                                                                          }`}
                                                                           title={`[${seatCode}] ₹${seatPrice}`}
                                                                         ></label>
                                                                         <span className="tooltip">
@@ -6111,7 +6152,7 @@ const ReturnBookingFlow = () => {
                               </div>
                               <div className="seatbutton">
                                 {Array.isArray(selectedSeats) &&
-                                  selectedSeats.length > 0 ? (
+                                selectedSeats.length > 0 ? (
                                   <button
                                     type="button"
                                     className="seatbuttonskip disabledskip"
@@ -6296,14 +6337,18 @@ const ReturnBookingFlow = () => {
                         <b>
                           <div className="chk-lbl">
                             <div className="flex gap-3">
-
-                              {FlightData?.Origin?.OriginAirline?.OperatingCarrier ===
-                                FlightData?.Destination?.DestinationAirline?.OperatingCarrier ? (
+                              {FlightData?.Origin?.OriginAirline
+                                ?.OperatingCarrier ===
+                              FlightData?.Destination?.DestinationAirline
+                                ?.OperatingCarrier ? (
                                 <img
                                   className="airlineimg"
-                                  src={`https://devapi.taxivaxi.com/airline_logo_images/${FlightData?.Origin?.OriginAirline?.OperatingCarrier ||
-                                    FlightData?.Origin?.OriginAirline?.AirlineCode
-                                    }.png`}
+                                  src={`https://devapi.taxivaxi.com/airline_logo_images/${
+                                    FlightData?.Origin?.OriginAirline
+                                      ?.OperatingCarrier ||
+                                    FlightData?.Origin?.OriginAirline
+                                      ?.AirlineCode
+                                  }.png`}
                                   alt="Airline logo"
                                   width="40px"
                                 />
@@ -6311,18 +6356,25 @@ const ReturnBookingFlow = () => {
                                 <div className="flex inline-block">
                                   <img
                                     className="airlineimg"
-                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${FlightData?.Origin?.OriginAirline?.OperatingCarrier ||
-                                      FlightData?.Origin?.OriginAirline?.AirlineCode
-                                      }.png`}
+                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${
+                                      FlightData?.Origin?.OriginAirline
+                                        ?.OperatingCarrier ||
+                                      FlightData?.Origin?.OriginAirline
+                                        ?.AirlineCode
+                                    }.png`}
                                     alt="Airline logo"
                                     width="40px"
                                   />
 
                                   <img
                                     className="airlineimg"
-                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${FlightData?.Destination?.DestinationAirline?.OperatingCarrier ||
-                                      FlightData?.Destination?.DestinationAirline?.AirlineCode
-                                      }.png`}
+                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${
+                                      FlightData?.Destination
+                                        ?.DestinationAirline
+                                        ?.OperatingCarrier ||
+                                      FlightData?.Destination
+                                        ?.DestinationAirline?.AirlineCode
+                                    }.png`}
                                     alt="Airline logo"
                                     width="40px"
                                   />
@@ -6330,25 +6382,46 @@ const ReturnBookingFlow = () => {
                               )}
 
                               <span className="flightnumber">
-                                {FlightData?.Origin?.OriginAirline?.FlightNumber ===
-                                  FlightData?.Destination?.DestinationAirline?.FlightNumber &&
-                                  FlightData?.Origin?.OriginAirline?.AirlineCode ===
-                                  FlightData?.Destination?.DestinationAirline?.AirlineCode ? (
+                                {FlightData?.Origin?.OriginAirline
+                                  ?.FlightNumber ===
+                                  FlightData?.Destination?.DestinationAirline
+                                    ?.FlightNumber &&
+                                FlightData?.Origin?.OriginAirline
+                                  ?.AirlineCode ===
+                                  FlightData?.Destination?.DestinationAirline
+                                    ?.AirlineCode ? (
                                   <>
-                                    {FlightData?.Origin?.OriginAirline?.AirlineCode}{" "}
-                                    {FlightData?.Origin?.OriginAirline?.FlightNumber}
+                                    {
+                                      FlightData?.Origin?.OriginAirline
+                                        ?.AirlineCode
+                                    }{" "}
+                                    {
+                                      FlightData?.Origin?.OriginAirline
+                                        ?.FlightNumber
+                                    }
                                   </>
                                 ) : (
                                   <>
-                                    {FlightData?.Origin?.OriginAirline?.AirlineCode}{" "}
-                                    {FlightData?.Origin?.OriginAirline?.FlightNumber}
+                                    {
+                                      FlightData?.Origin?.OriginAirline
+                                        ?.AirlineCode
+                                    }{" "}
+                                    {
+                                      FlightData?.Origin?.OriginAirline
+                                        ?.FlightNumber
+                                    }
                                     <br />
-                                    {FlightData?.Destination?.DestinationAirline?.AirlineCode}{" "}
-                                    {FlightData?.Destination?.DestinationAirline?.FlightNumber}
+                                    {
+                                      FlightData?.Destination
+                                        ?.DestinationAirline?.AirlineCode
+                                    }{" "}
+                                    {
+                                      FlightData?.Destination
+                                        ?.DestinationAirline?.FlightNumber
+                                    }
                                   </>
                                 )}
                               </span>
-
                             </div>
 
                             <br />
@@ -6394,14 +6467,18 @@ const ReturnBookingFlow = () => {
                         <b>
                           <div className="chk-lbl">
                             <div className="flex gap-3">
-
-                              {ReturnFlightData?.Origin?.OriginAirline?.OperatingCarrier ===
-                                ReturnFlightData?.Destination?.DestinationAirline?.OperatingCarrier ? (
+                              {ReturnFlightData?.Origin?.OriginAirline
+                                ?.OperatingCarrier ===
+                              ReturnFlightData?.Destination?.DestinationAirline
+                                ?.OperatingCarrier ? (
                                 <img
                                   className="airlineimg"
-                                  src={`https://devapi.taxivaxi.com/airline_logo_images/${ReturnFlightData?.Origin?.OriginAirline?.OperatingCarrier ||
-                                    ReturnFlightData?.Origin?.OriginAirline?.AirlineCode
-                                    }.png`}
+                                  src={`https://devapi.taxivaxi.com/airline_logo_images/${
+                                    ReturnFlightData?.Origin?.OriginAirline
+                                      ?.OperatingCarrier ||
+                                    ReturnFlightData?.Origin?.OriginAirline
+                                      ?.AirlineCode
+                                  }.png`}
                                   alt="Airline logo"
                                   width="40px"
                                 />
@@ -6409,18 +6486,25 @@ const ReturnBookingFlow = () => {
                                 <div className="flex inline-block">
                                   <img
                                     className="airlineimg"
-                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${ReturnFlightData?.Origin?.OriginAirline?.OperatingCarrier ||
-                                      ReturnFlightData?.Origin?.OriginAirline?.AirlineCode
-                                      }.png`}
+                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${
+                                      ReturnFlightData?.Origin?.OriginAirline
+                                        ?.OperatingCarrier ||
+                                      ReturnFlightData?.Origin?.OriginAirline
+                                        ?.AirlineCode
+                                    }.png`}
                                     alt="Airline logo"
                                     width="40px"
                                   />
 
                                   <img
                                     className="airlineimg"
-                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${ReturnFlightData?.Destination?.DestinationAirline?.OperatingCarrier ||
-                                      ReturnFlightData?.Destination?.DestinationAirline?.AirlineCode
-                                      }.png`}
+                                    src={`https://devapi.taxivaxi.com/airline_logo_images/${
+                                      ReturnFlightData?.Destination
+                                        ?.DestinationAirline
+                                        ?.OperatingCarrier ||
+                                      ReturnFlightData?.Destination
+                                        ?.DestinationAirline?.AirlineCode
+                                    }.png`}
                                     alt="Airline logo"
                                     width="40px"
                                   />
@@ -6428,25 +6512,46 @@ const ReturnBookingFlow = () => {
                               )}
 
                               <span className="flightnumber">
-                                {ReturnFlightData?.Origin?.OriginAirline?.FlightNumber ===
-                                  ReturnFlightData?.Destination?.DestinationAirline?.FlightNumber &&
-                                  ReturnFlightData?.Origin?.OriginAirline?.AirlineCode ===
-                                  ReturnFlightData?.Destination?.DestinationAirline?.AirlineCode ? (
+                                {ReturnFlightData?.Origin?.OriginAirline
+                                  ?.FlightNumber ===
+                                  ReturnFlightData?.Destination
+                                    ?.DestinationAirline?.FlightNumber &&
+                                ReturnFlightData?.Origin?.OriginAirline
+                                  ?.AirlineCode ===
+                                  ReturnFlightData?.Destination
+                                    ?.DestinationAirline?.AirlineCode ? (
                                   <>
-                                    {ReturnFlightData?.Origin?.OriginAirline?.AirlineCode}{" "}
-                                    {ReturnFlightData?.Origin?.OriginAirline?.FlightNumber}
+                                    {
+                                      ReturnFlightData?.Origin?.OriginAirline
+                                        ?.AirlineCode
+                                    }{" "}
+                                    {
+                                      ReturnFlightData?.Origin?.OriginAirline
+                                        ?.FlightNumber
+                                    }
                                   </>
                                 ) : (
                                   <>
-                                    {ReturnFlightData?.Origin?.OriginAirline?.AirlineCode}{" "}
-                                    {ReturnFlightData?.Origin?.OriginAirline?.FlightNumber}
+                                    {
+                                      ReturnFlightData?.Origin?.OriginAirline
+                                        ?.AirlineCode
+                                    }{" "}
+                                    {
+                                      ReturnFlightData?.Origin?.OriginAirline
+                                        ?.FlightNumber
+                                    }
                                     <br />
-                                    {ReturnFlightData?.Destination?.DestinationAirline?.AirlineCode}{" "}
-                                    {ReturnFlightData?.Destination?.DestinationAirline?.FlightNumber}
+                                    {
+                                      ReturnFlightData?.Destination
+                                        ?.DestinationAirline?.AirlineCode
+                                    }{" "}
+                                    {
+                                      ReturnFlightData?.Destination
+                                        ?.DestinationAirline?.FlightNumber
+                                    }
                                   </>
                                 )}
                               </span>
-
                             </div>
 
                             <br />
@@ -6543,8 +6648,8 @@ const ReturnBookingFlow = () => {
                               </p>
                               {FlightData?.Origin?.OriginAirline
                                 ?.AirlineName ===
-                                FlightData?.Destination?.DestinationAirline
-                                  ?.AirlineName ? (
+                              FlightData?.Destination?.DestinationAirline
+                                ?.AirlineName ? (
                                 <p className="chk-r">
                                   {
                                     FlightData?.Origin?.OriginAirline
@@ -6577,8 +6682,8 @@ const ReturnBookingFlow = () => {
                               </p>
                               {ReturnFlightData?.Origin?.OriginAirline
                                 ?.AirlineName ===
-                                ReturnFlightData?.Destination?.DestinationAirline
-                                  ?.AirlineName ? (
+                              ReturnFlightData?.Destination?.DestinationAirline
+                                ?.AirlineName ? (
                                 <p className="chk-r">
                                   {
                                     ReturnFlightData?.Origin?.OriginAirline
@@ -6690,8 +6795,8 @@ const ReturnBookingFlow = () => {
                                         )
                                           ? FareData.AirPricingInfo
                                           : FareData?.AirPricingInfo
-                                            ? [FareData.AirPricingInfo]
-                                            : [];
+                                          ? [FareData.AirPricingInfo]
+                                          : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -6701,8 +6806,8 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                  ? [passengerTypes]
-                                                  : [];
+                                                ? [passengerTypes]
+                                                : [];
 
                                             return passengerTypeArray.some(
                                               (pt) => pt?.$?.Code === "ADT"
@@ -6754,8 +6859,8 @@ const ReturnBookingFlow = () => {
                                         )
                                           ? ReturnFareData.AirPricingInfo
                                           : ReturnFareData?.AirPricingInfo
-                                            ? [ReturnFareData.AirPricingInfo]
-                                            : [];
+                                          ? [ReturnFareData.AirPricingInfo]
+                                          : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -6765,8 +6870,8 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                  ? [passengerTypes]
-                                                  : [];
+                                                ? [passengerTypes]
+                                                : [];
 
                                             return passengerTypeArray.some(
                                               (pt) => pt?.$?.Code === "ADT"
@@ -6843,8 +6948,8 @@ const ReturnBookingFlow = () => {
                                         )
                                           ? FareData.AirPricingInfo
                                           : FareData?.AirPricingInfo
-                                            ? [FareData.AirPricingInfo]
-                                            : [];
+                                          ? [FareData.AirPricingInfo]
+                                          : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -6854,8 +6959,8 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                  ? [passengerTypes]
-                                                  : [];
+                                                ? [passengerTypes]
+                                                : [];
 
                                             return passengerTypeArray.some(
                                               (pt) => pt?.$?.Code === "CNN"
@@ -6907,8 +7012,8 @@ const ReturnBookingFlow = () => {
                                         )
                                           ? ReturnFareData.AirPricingInfo
                                           : ReturnFareData?.AirPricingInfo
-                                            ? [ReturnFareData.AirPricingInfo]
-                                            : [];
+                                          ? [ReturnFareData.AirPricingInfo]
+                                          : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -6918,8 +7023,8 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                  ? [passengerTypes]
-                                                  : [];
+                                                ? [passengerTypes]
+                                                : [];
 
                                             return passengerTypeArray.some(
                                               (pt) => pt?.$?.Code === "CNN"
@@ -6996,8 +7101,8 @@ const ReturnBookingFlow = () => {
                                         )
                                           ? FareData.AirPricingInfo
                                           : FareData?.AirPricingInfo
-                                            ? [FareData.AirPricingInfo]
-                                            : [];
+                                          ? [FareData.AirPricingInfo]
+                                          : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -7007,8 +7112,8 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                  ? [passengerTypes]
-                                                  : [];
+                                                ? [passengerTypes]
+                                                : [];
 
                                             return passengerTypeArray.some(
                                               (pt) => pt?.$?.Code === "INF"
@@ -7059,8 +7164,8 @@ const ReturnBookingFlow = () => {
                                         )
                                           ? ReturnFareData.AirPricingInfo
                                           : ReturnFareData?.AirPricingInfo
-                                            ? [ReturnFareData.AirPricingInfo]
-                                            : [];
+                                          ? [ReturnFareData.AirPricingInfo]
+                                          : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -7070,8 +7175,8 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                  ? [passengerTypes]
-                                                  : [];
+                                                ? [passengerTypes]
+                                                : [];
 
                                             return passengerTypeArray.some(
                                               (pt) => pt?.$?.Code === "INF"
@@ -7136,7 +7241,7 @@ const ReturnBookingFlow = () => {
                               <p className="font-semibold text-xs text-gray-800 mb-1">
                                 Onward Airlines:
                               </p>
-                              <span className="chk-r">
+                              {/* <span className="chk-r">
                                 {OnwardSourceType === "Uapi" && (
                                   <>{replaceINRWithSymbol(FareData?.Taxes)}</>
                                 )}
@@ -7145,6 +7250,10 @@ const ReturnBookingFlow = () => {
                                     ₹{replaceINRWithSymbol(OnwaredTboFare?.Tax)}
                                   </>
                                 )}
+                              </span> */}
+                              <span className="chk-r">
+                                {OnwardGst_k3}
+
                               </span>
                             </div>
 
@@ -7155,7 +7264,7 @@ const ReturnBookingFlow = () => {
                                 Return Airlines:
                               </p>
                               <span className="chk-r">
-                                {ReturnSourceType === "Uapi" && (
+                                {/* {ReturnSourceType === "Uapi" && (
                                   <>
                                     {replaceINRWithSymbol(
                                       ReturnFareData?.Taxes
@@ -7166,7 +7275,8 @@ const ReturnBookingFlow = () => {
                                   <>
                                     ₹{replaceINRWithSymbol(ReturnTboFare?.Tax)}
                                   </>
-                                )}
+                                )} */}
+                                {ReturnGst_k3}
                               </span>
                             </div>
                           </div>
@@ -7199,7 +7309,7 @@ const ReturnBookingFlow = () => {
                                 Onward Airlines:
                               </p>
                               <span className="chk-r">
-                                {OnwardSourceType === "Uapi" && (
+                                {/* {OnwardSourceType === "Uapi" && (
                                   <>
                                     {replaceINRWithSymbol(
                                       FareData?.OtherCharges?.toFixed(2) || 0.0
@@ -7213,7 +7323,8 @@ const ReturnBookingFlow = () => {
                                       OnwaredTboFare?.OtherCharges?.toFixed(2)
                                     )}
                                   </>
-                                )}
+                                )} */}
+                                {OnwardOthers.toFixed(2)}
                               </span>
                             </div>
 
@@ -7224,7 +7335,7 @@ const ReturnBookingFlow = () => {
                                 Return Airlines:
                               </p>
                               <span className="chk-r">
-                                {ReturnSourceType === "Uapi" && (
+                                {/* {ReturnSourceType === "Uapi" && (
                                   <>
                                     {replaceINRWithSymbol(
                                       ReturnFareData?.OtherCharges?.toFixed(
@@ -7240,7 +7351,8 @@ const ReturnBookingFlow = () => {
                                       ReturnTboFare?.OtherCharges?.toFixed(2)
                                     )}
                                   </>
-                                )}
+                                )} */}
+                                {ReturnOthers.toFixed(2)}
                               </span>
                             </div>
                           </div>
@@ -7248,71 +7360,82 @@ const ReturnBookingFlow = () => {
 
                         <div className="clear" />
                       </div>
-                      {/* <div className="chk-line relative items-start gap-2">
-                          <div className="chk-l">Fees</div>
-                           <span className="chk-r">
-                            <button
-                              className="cursor-pointer"
-                              onClick={() => setShowTooltip8((prev) => !prev)}
-                            >
-                              <img
-                                src="../img/i_icon.svg"
-                                alt="Info"
-                                className="w-4 h-4 cursor-pointer mt-1"
-                              />
-                            </button>
-                          </span>
-                              {showTooltip8 && (
-                            <div
-                              className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
-                              onMouseLeave={() => setShowTooltip8(false)}
-                            >
-                              <div className="flex gap-2">
-                                <p className="font-semibold text-xs text-gray-800 mb-1">
-                                  Onward Airlines:
-                                </p>
-                                <span className="chk-r">
-                                  {OnwardSourceType === "Uapi" && (
-                                    <>
-                                         {replaceINRWithSymbol(FareData?.Fees?.toFixed(2) || 0.0)}
-                                    </>
-                                  )}
-                                  {OnwardSourceType === "Tbo" && (
-                                    <>
-                                      
-                                    ₹{replaceINRWithSymbol(OnwaredTboFare?.OtherCharges?.toFixed(2))}
-                                    </>
-                                  )}
-                                </span>
-                              </div>
-
-                              <hr className="my-2" />
-
-                              <div className="flex gap-2">
-                                <p className="font-semibold text-xs text-gray-800 mb-1 flex">
-                                  Return Airlines:
-                                </p>
-                                <span className="chk-r">
-                                  {ReturnSourceType === "Uapi" && (
-                                    <>
-                                      {replaceINRWithSymbol(ReturnFareData?.Fees?.toFixed(2) || 0.0)}
-                                    </>
-                                  )}
-                                  {ReturnSourceType === "Tbo" && (
-                                    <>
-                                      ₹
-                                    {replaceINRWithSymbol(ReturnTboFare?.OtherCharges?.toFixed(2))}
-                                    </>
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                          )}
+                        <div className="chk-line relative items-start gap-2">
+                        <div className="chk-l">Client Price Per Pax</div>
                         <span className="chk-r">
-                          {replaceINRWithSymbol(FareData?.Fees) || 0.0}
+                          <button
+                            className="cursor-pointer"
+                            onClick={() => setShowTooltip9((prev) => !prev)}
+                          >
+                            <img
+                              src="../img/i_icon.svg"
+                              alt="Info"
+                              className="w-4 h-4 cursor-pointer mt-1"
+                            />
+                          </button>
                         </span>
+                        {showTooltip9 && (
+                          <div
+                            className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
+                            onMouseLeave={() => setShowTooltip9(false)}
+                          >
+                            <div className="flex gap-2">
+                              <p className="font-semibold text-xs text-gray-800 mb-1">
+                                Onward Airlines:
+                              </p>
+                              <span className="chk-r">
+                                {/* {OnwardSourceType === "Uapi" && (
+                                  <>
+                                    {replaceINRWithSymbol(
+                                      FareData?.OtherCharges?.toFixed(2) || 0.0
+                                    )}
+                                  </>
+                                )}
+                                {OnwardSourceType === "Tbo" && (
+                                  <>
+                                    ₹
+                                    {replaceINRWithSymbol(
+                                      OnwaredTboFare?.OtherCharges?.toFixed(2)
+                                    )}
+                                  </>
+                                )} */}
+                                {ClientOnwardPrice}
+                              </span>
+                            </div>
+
+                            <hr className="my-2" />
+
+                            <div className="flex gap-2">
+                              <p className="font-semibold text-xs text-gray-800 mb-1 flex">
+                                Return Airlines:
+                              </p>
+                              <span className="chk-r">
+                                {/* {ReturnSourceType === "Uapi" && (
+                                  <>
+                                    {replaceINRWithSymbol(
+                                      ReturnFareData?.OtherCharges?.toFixed(
+                                        2
+                                      ) || 0.0
+                                    )}
+                                  </>
+                                )}
+                                {ReturnSourceType === "Tbo" && (
+                                  <>
+                                    ₹
+                                    {replaceINRWithSymbol(
+                                      ReturnTboFare?.OtherCharges?.toFixed(2)
+                                    )}
+                                  </>
+                                )} */}
+                                {ClientReturnPrice}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="clear" />
-                      </div> */}
+                      </div>
+                    
 
                       <div className="chk-line relative items-start gap-2">
                         <div className="chk-l">Extra Services</div>
@@ -7339,10 +7462,10 @@ const ReturnBookingFlow = () => {
                               </p>
                               <span className="chk-r">
                                 {OnwardSourceType === "Uapi" && (
-                                  <>₹{totalServicePrice}</>
+                                  <>₹{totalServicePriceOnward}</>
                                 )}
                                 {OnwardSourceType === "Tbo" && (
-                                  <>₹{totalServicePrice}</>
+                                  <>₹{totalServicePriceOnward}</>
                                 )}
                               </span>
                             </div>
@@ -7355,10 +7478,10 @@ const ReturnBookingFlow = () => {
                               </p>
                               <span className="chk-r">
                                 {ReturnSourceType === "Uapi" && (
-                                  <>₹{totalServicePrice}</>
+                                  <>₹{totalServicePriceReturn}</>
                                 )}
                                 {ReturnSourceType === "Tbo" && (
-                                  <>₹{totalServicePrice}</>
+                                  <>₹{totalServicePriceReturn}</>
                                 )}
                               </span>
                             </div>
@@ -7368,67 +7491,16 @@ const ReturnBookingFlow = () => {
                         <div className="clear" />
                       </div>
                     </div>
-                    {/* <div className="chk-total">
-                      <div className="chk-total-l">Total Price</div>
-                      <div className="chk-total-r" style={{ fontWeight: 700 }}>
-                    
-                        {(() => {
-                          const basePrice =
-                            parseFloat(
-                              (FareData?.TotalPrice || "").replace(
-                                /[^\d.]/g,
-                                ""
-                              )
-                            ) || 0;
-                          const grandTotal = basePrice + totalServicePrice;
-                          return `₹${grandTotal.toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}`;
-                        })()}
-                      </div>
-                      <div className="clear" />
-                    </div> */}
+                
                     <div className="chk-total">
                       <div className="chk-total-l">Total Price</div>
                       <div className="chk-total-r" style={{ fontWeight: 700 }}>
                         {(() => {
-                          // Helper to safely extract numeric price
-                          const parsePrice = (value) =>
-                            parseFloat(
-                              (value || "").toString().replace(/[^\d.]/g, "")
-                            ) || 0;
-
-                          // ---- Onward fare ----
-                          let onwardFare = 0;
-                          if (OnwardSourceType === "Uapi") {
-                            onwardFare = parsePrice(
-                              FareData?.TotalPrice || FareData?.PublishedFare
-                            );
-                          } else if (OnwardSourceType === "Tbo") {
-                            onwardFare = parsePrice(
-                              OnwaredTboFare?.PublishedFare ||
-                              OnwaredTboFare?.TotalPrice
-                            );
-                          }
-
-                          // ---- Return fare ----
-                          let returnFare = 0;
-                          if (ReturnSourceType === "Uapi") {
-                            returnFare = parsePrice(
-                              ReturnFareData?.TotalPrice ||
-                              ReturnFareData?.PublishedFare
-                            );
-                          } else if (ReturnSourceType === "Tbo") {
-                            returnFare = parsePrice(
-                              ReturnTboFare?.PublishedFare ||
-                              ReturnTboFare?.TotalPrice
-                            );
-                          }
+                        
 
                           // ---- Grand total ----
                           const grandTotal =
-                            onwardFare + returnFare + totalServicePrice;
+                            Total + totalServicePrice;
 
                           return `₹${grandTotal.toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
@@ -7440,54 +7512,260 @@ const ReturnBookingFlow = () => {
                     </div>
                   </div>
                 </div>
-                {[
-                  selectedMeals.length > 0,
-                  selectedBaggage.length > 0,
-                  selectedSeats.length > 0,
-                ].filter(Boolean).length >= 1 && (
-                    <div className="checkout-coll">
-                      <div className="chk-details">
-                        <h2 className="mt-0">Breakdown Of Extra Services</h2>
-                        <div className="chk-detais-row">
-                          {selectedMeals.length > 0 && (
-                            <div className="chk-line">
-                              <span className="chk-l">
-                                Meal X {selectedMeals.length}
-                              </span>
-                              <span className="chk-r">
-                                <span className="chk-r">₹ {totalMealPrice}</span>
-                              </span>
-                              <div className="clear" />
-                            </div>
-                          )}
-                          {selectedBaggage.length > 0 && (
-                            <div className="chk-line">
-                              <span className="chk-l">
-                                Baggage X {selectedBaggage.length}
-                              </span>
-                              <span className="chk-r">
-                                <span className="chk-r">
-                                  ₹ {totalBaggagePrice}
-                                </span>
-                              </span>
-                              <div className="clear" />
-                            </div>
-                          )}
-                          {selectedSeats.length > 0 && (
-                            <div className="chk-line">
-                              <span className="chk-l">
-                                Seat X {selectedSeats.length}
-                              </span>
-                              <span className="chk-r">
-                                <span className="chk-r">₹ {totalSeatPrice}</span>
-                              </span>
-                              <div className="clear" />
-                            </div>
-                          )}
-                        </div>
+
+                {(mealCount > 0 || baggageCount > 0 || seatCount > 0) && (
+                  <div className="checkout-coll">
+                    <div className="chk-details">
+                      <h2 className="mt-0">Breakdown Of Extra Services</h2>
+
+                      <div className="chk-detais-row">
+                        {mealCount > 0 && (
+                          <div className="chk-line">
+                            <span className="chk-l">
+                              Meal X {mealCount}{" "}
+                              <Tooltip
+                                title={
+                                  <div className="text-sm p-2">
+                                    {/* Onward meals */}
+                                    {selectedMeals.onward.length > 0 && (
+                                      <div>
+                                        <div className="font-semibold mb-1">
+                                          Onward
+                                        </div>
+                                        {selectedMeals.onward.map(
+                                          (meal, index) => (
+                                            <div
+                                              key={`onward-${index}`}
+                                              className="flex justify-between items-center gap-4 text-sx"
+                                            >
+                                              <div>
+                                                {meal.sourcetype === "Uapi"
+                                                  ? meal.meal.DisplayText
+                                                  : meal.meal
+                                                      .AirlineDescription}
+                                              </div>
+                                              <div>
+                                                {meal.sourcetype === "Uapi"
+                                                  ? replaceINRWithSymbol(
+                                                      meal.meal.TotalPrice
+                                                    )
+                                                  : `₹ ${meal.meal.Price}`}
+                                              </div>
+                                            </div>
+                                          )
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {/* Return meals */}
+
+                                    {selectedMeals.return.length > 0 && (
+                                      <div>
+                                        <div className="font-semibold mt-2 mb-1">
+                                          Return
+                                        </div>
+                                        {selectedMeals.return.map(
+                                          (meal, index) => (
+                                            <div
+                                              key={`return-${index}`}
+                                              className="flex justify-between items-center gap-4 text-sx"
+                                            >
+                                              <div>
+                                                {meal.sourcetype === "Uapi"
+                                                  ? meal.meal.DisplayText
+                                                  : meal.meal
+                                                      .AirlineDescription}
+                                              </div>
+                                              <div>
+                                                {meal.sourcetype === "Uapi"
+                                                  ? replaceINRWithSymbol(
+                                                      meal.meal.TotalPrice
+                                                    )
+                                                  : `₹ ${meal.meal.Price}`}
+                                              </div>
+                                            </div>
+                                          )
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                }
+                                arrow
+                              >
+                                <IconButton
+                                  size="small"
+                                  sx={{ padding: "2px" }}
+                                >
+                                  <InfoOutlinedIcon sx={{ fontSize: "14px" }} />
+                                </IconButton>
+                              </Tooltip>
+                            </span>
+                            <span className="chk-r">₹ {totalMealPrice}</span>
+                            <div className="clear" />
+                          </div>
+                        )}
+
+                        {baggageCount > 0 && (
+                          <div className="chk-line">
+                            <span className="chk-l">
+                              Baggage X {baggageCount}{" "}
+                              <Tooltip
+                                title={
+                                  <div className="text-sm p-2 space-y-2">
+                                    {/* Onward baggage list */}
+                                    {selectedBaggage.onward.length > 0 && (
+                                      <div>
+                                        <div className="font-semibold mb-1">
+                                          Onward
+                                        </div>
+                                        {selectedBaggage.onward.map(
+                                          (b, index) => (
+                                            <div
+                                              key={`onward-${index}`}
+                                              className="flex justify-between items-center gap-4"
+                                            >
+                                              <div>
+                                                {b.source_type === "Uapi"
+                                                  ? b.baggage.DisplayText
+                                                  : `Baggage, ${
+                                                      b.baggage.Weight ||
+                                                      b.baggage.Description
+                                                    } kg `}
+                                              </div>
+                                              <div>
+                                                {b.source_type === "Uapi"
+                                                  ? replaceINRWithSymbol(
+                                                      b.baggage.TotalPrice
+                                                    )
+                                                  : `₹${b.baggage.Price}`}
+                                              </div>
+                                            </div>
+                                          )
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {/* Return baggage list */}
+                                    {selectedBaggage.return.length > 0 && (
+                                      <div>
+                                        <div className="font-semibold mb-1">
+                                          Return
+                                        </div>
+                                        {selectedBaggage.return.map(
+                                          (b, index) => (
+                                            <div
+                                              key={`return-${index}`}
+                                              className="flex justify-between items-center gap-4"
+                                            >
+                                              <div>
+                                                {b.source_type === "Uapi"
+                                                  ? b.baggage.DisplayText
+                                                  : `Baggage,${
+                                                      b.baggage.Weight ||
+                                                      b.baggage.Description
+                                                    } kg`}
+                                              </div>
+                                              <div>
+                                                {b.source_type === "Uapi"
+                                                  ? replaceINRWithSymbol(
+                                                      b.baggage.TotalPrice
+                                                    )
+                                                  : `₹${b.baggage.Price}`}
+                                              </div>
+                                            </div>
+                                          )
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                }
+                                arrow
+                              >
+                                <IconButton
+                                  size="small"
+                                  sx={{ padding: "2px" }}
+                                >
+                                  <InfoOutlinedIcon sx={{ fontSize: "14px" }} />
+                                </IconButton>
+                              </Tooltip>
+                            </span>
+                            <span className="chk-r">₹ {totalBaggagePrice}</span>
+                            <div className="clear" />
+                          </div>
+                        )}
+
+                        {seatCount > 0 && (
+                          <div className="chk-line">
+                            <span className="chk-l">
+                              Seat X {seatCount}{" "}
+                              <Tooltip
+                                title={
+                                  <div className="text-sm p-2">
+                                    {selectedSeats.onward.length > 0 && (
+                                      <div>
+                                        <div className="font-semibold mb-1">
+                                          Onward
+                                        </div>
+                                        {selectedSeats.onward.map(
+                                          (seat, index) => (
+                                            <div
+                                              key={`onward-${index}`}
+                                              className="flex justify-between items-center gap-4 text-sx"
+                                            >
+                                              <div>{seat.seatCode}</div>
+                                              <div>
+                                                {replaceINRWithSymbol(
+                                                  seat.seatPrice
+                                                )}
+                                              </div>
+                                            </div>
+                                          )
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {selectedSeats.return.length > 0 && (
+                                      <div>
+                                        <div className="font-semibold mt-2 mb-1">
+                                          Return
+                                        </div>
+                                        {selectedSeats.return.map(
+                                          (seat, index) => (
+                                            <div
+                                              key={`return-${index}`}
+                                              className="flex justify-between items-center gap-4 text-sx"
+                                            >
+                                              <div>{seat.seatCode}</div>
+                                              <div>
+                                                {replaceINRWithSymbol(
+                                                  seat.seatPrice
+                                                )}
+                                              </div>
+                                            </div>
+                                          )
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                }
+                                arrow
+                              >
+                                <IconButton
+                                  size="small"
+                                  sx={{ padding: "2px" }}
+                                >
+                                  <InfoOutlinedIcon sx={{ fontSize: "14px" }} />
+                                </IconButton>
+                              </Tooltip>
+                            </span>
+                            <span className="chk-r">₹ {totalSeatPrice}</span>
+                            <div className="clear" />
+                          </div>
+                        )}
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
               </div>
               <div className="clear" />
             </div>

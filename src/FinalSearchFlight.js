@@ -41,10 +41,12 @@ const FinalSearchFlight = () => {
   const navigate = useNavigate();
   const hasFetchedRef = useRef(false);
   const response = location.state.responseData;
-  console.log("response from taxivaxi", location.state.responseData);
+  // console.log("response from taxivaxi", location.state.responseData);
   const isOnline = useOnlineStatus();
-  const bookingid = location.state && location.state.responseData?.bookingid;
+  const bookingid = location.state && location.state.responseData?.bookingid  ;
+  const flight_query_id = location.state && location.state.responseData?.flight_query_id;
   const adult = location.state && location.state.responseData?.selectadult;
+  // console.log("adult count", adult);
   const child = location.state && location.state.responseData?.selectchild;
   const infant = location.state && location.state.responseData?.selectinfant;
   const cabinclass = location.state && location.state.responseData?.selectclass;
@@ -58,7 +60,7 @@ const FinalSearchFlight = () => {
   const triptype = location.state && location.state.responseData?.bookingtype;
   const request_type =
     location.state && location.state.responseData?.requesttype;
-  console.log(request_type);
+  // console.log(request_type);
   const client_name = location.state && location.state.responseData?.clientname;
   const spocname = location.state && location.state.responseData?.spocname;
   const spocemail = location.state && location.state.responseData?.spocemail;
@@ -67,6 +69,8 @@ const FinalSearchFlight = () => {
     location.state && location.state.responseData?.additionalemail;
   const no_of_seats =
     location.state && location.state.responseData?.no_of_seats;
+    const queryId = location.state && location.state.responseData?.query_id;
+    // console.log(queryId);
   const hasFetched = useRef(false);
   const contentRef = useRef(null);
   const [loadingg, setLoadingg] = useState(false);
@@ -82,6 +86,7 @@ const FinalSearchFlight = () => {
   const [showPrices, setShowPrices] = useState(null);
   const [showReturnPrices, setShowReturnPrices] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [showFlightDetails, setShowFlightDetails] = useState(null);
   const [showContent, setshowcontent] = useState("flight_details");
   const [minFare, setMinFare] = useState(0);
@@ -107,9 +112,10 @@ const FinalSearchFlight = () => {
   const [selectedFlightoption, setSelectedFlightoption] = React.useState([]);
   const [selectedReturnFlightoption, setSelectedReturnFlightoption] =
     React.useState([]);
-  const [selectedFlightIndex, setSelectedFlightIndex] = React.useState([]);
-  const [selectedReturnFlightIndex, setSelectedReturnFlightIndex] =
-    React.useState([]);
+  const [selectedFlightIds, setSelectedFlightIds] = React.useState([]);
+  const [selectedReturnFlightIds, setSelectedReturnFlightIds] = React.useState(
+    []
+  );
   const [selectedFares, setSelectedFares] = React.useState([]);
   const [selectedReturnFares, setSelectedReturnFares] = React.useState([]);
   const [selectedFareforbooking, setSelectedFareforbooking] = useState({
@@ -163,7 +169,7 @@ const FinalSearchFlight = () => {
             "https://selfbooking.taxivaxi.com/api/airports"
           );
           setAirportData(response.data);
-          console.log(response.data);
+          // console.log(response.data);
           localStorage.setItem(
             "apiairportsdata",
             JSON.stringify(response.data)
@@ -179,24 +185,57 @@ const FinalSearchFlight = () => {
   const normalizedAdditionalEmails = Array.isArray(additional_mails)
     ? additional_mails
     : [additional_mails];
+  //   const normalizedSpocEmails = React.useMemo(() => {
+  //   if (!spocemail) return [];
 
-  const normalizedCCEmailsRaw = Array.isArray(ccmail)
-    ? ccmail.flatMap((email) => email.split(",").map((e) => e.trim()))
-    : ccmail
-    ? ccmail.split(",").map((e) => e.trim())
-    : [];
-  const normalizedCCEmails = [...new Set(normalizedCCEmailsRaw)];
-  // console.log("Normalized CC Emails:", normalizedCCEmails);
+  //   const emails = Array.isArray(spocemail)
+  //     ? spocemail.flatMap(e => e.split(","))
+  //     : spocemail.split(",");
+
+  //   return [...new Set(
+  //     emails
+  //       .map(e => e.trim())
+  //       .filter(Boolean)
+  //   )];
+  // }, [ccmail]);
+  const normalizedSpocEmails = React.useMemo(() => {
+    if (!spocemail) return [];
+
+    const emails = Array.isArray(spocemail)
+      ? spocemail.flatMap((e) => e.split(","))
+      : spocemail.split(",");
+
+    return [...new Set(emails.map((e) => e.trim()).filter(Boolean))];
+  }, [spocemail]);
+
+  // const normalizedSpocEmails = Array.isArray(spocemail)
+  //   ? spocemail.flatMap((email) => email.split(",").map((e) => e.trim()))
+  //   : spocemail
+  //   ? spocemail.split(",").map((e) => e.trim())
+  //   : [];
+
+  const [spocEmails, setSpocEmails] = useState(normalizedSpocEmails);
+  const normalizedCCEmails = React.useMemo(() => {
+    if (!ccmail) return [];
+
+    const emails = Array.isArray(ccmail)
+      ? ccmail.flatMap((e) => e.split(","))
+      : ccmail.split(",");
+
+    return [
+      ...new Set(
+        emails
+          .map((e) => e.trim())
+          .filter(Boolean)
+          .filter((email) => !normalizedSpocEmails.includes(email)) // 🔥 SPOC has priority
+      ),
+    ];
+  }, [ccmail, normalizedSpocEmails]);
+
   const [ccEmails, setCCEmails] = useState(normalizedCCEmails);
 
   const [ccEmailInput, setCCEmailInput] = useState("");
-  const normalizedSpocEmails = Array.isArray(spocemail)
-    ? spocemail.flatMap((email) => email.split(",").map((e) => e.trim()))
-    : spocemail
-    ? spocemail.split(",").map((e) => e.trim())
-    : [];
 
-  const [spocEmails, setSpocEmails] = useState(normalizedSpocEmails);
   const [spocEmailInput, setSpocEmailInput] = useState("");
 
   const [additionalEmails, setAdditionalEmails] = useState(
@@ -263,7 +302,7 @@ const FinalSearchFlight = () => {
       const Data = await response.json();
       if (Data.status) {
         const responseData = Data.passengerDetails;
-        // console.log(responseData)
+        // // console.log(responseData)
         setPassengerDetails(responseData);
       }
     } catch (error) {
@@ -347,7 +386,7 @@ const FinalSearchFlight = () => {
   const handleBookingtype = (e) => {
     const value = e.target.value;
     setInputValue({ ...inputValue, bookingType: value });
-    console.log("booking type", value);
+    // console.log("booking type", value);
   };
 
   //Origin Airports
@@ -399,7 +438,7 @@ const FinalSearchFlight = () => {
   };
 
   const handledestinationSelect = (airport) => {
-    // console.log(airport)
+    // // console.log(airport)
     setInputDestination(`${airport.label} ${airport.airportName}`);
     setShowDestinationDropdown(false);
     setInputValue({ ...inputValue, destinationAriport: `${airport.value}` });
@@ -480,11 +519,11 @@ const FinalSearchFlight = () => {
 
   // Price Filter
   const getFareBounds = (options) => {
-    // console.log('Fares', options)
+    // // console.log('Fares', options)
     let baseFares = [];
 
     options.forEach((flight) => {
-      // console.log('each fare',flight)
+      // // console.log('each fare',flight)
       baseFares.push(Number(flight.prices.TotalPrice));
     });
     const min = Math.min(...baseFares);
@@ -497,7 +536,7 @@ const FinalSearchFlight = () => {
       "https://selfbooking.taxivaxi.com/api/airports"
     );
     const AirportData = response.data;
-    // console.log(AirportData)
+    // // console.log(AirportData)
     const origincode = inputValue.originAirport
       ? inputValue.originAirport
       : extractAirportCode(fromAirport);
@@ -553,12 +592,13 @@ const FinalSearchFlight = () => {
         : journeytype,
       flighttype: FLightType ? FLightType : FlightType,
     };
-    console.log(requestData);
+    // console.log(requestData);
     try {
       setLoadingg(true);
       const response = await fetch(url, {
         method: "POST",
         headers: {
+          // origin :"*",
           "Content-Type": "application/json",
         },
         body: JSON.stringify(requestData),
@@ -570,7 +610,7 @@ const FinalSearchFlight = () => {
         setjourneytype(journey);
         const AvailableOptions = data.data.Onward;
         setFlightOptions(AvailableOptions);
-        // console.log('Available flights', AvailableOptions)
+        // // console.log('Available flights', AvailableOptions)
         //Airline Options
         const airlineMap = new Map();
         AvailableOptions.forEach((item) => {
@@ -613,7 +653,7 @@ const FinalSearchFlight = () => {
               }
             });
           });
-          // console.log('return flight:', AvailableOptionsReturn.length);
+          // // console.log('return flight:', AvailableOptionsReturn.length);
           const result = Array.from(returnairlineMap.entries()).map(
             ([name, logo]) => ({
               name,
@@ -657,6 +697,9 @@ const FinalSearchFlight = () => {
       }
       return newSet;
     });
+    setSelectedFlightIds([]);
+    setSelectedFares([]);
+    setShowPrices(null);
   };
   // Airline Filter
   const toggleAirline = (airlineName) => {
@@ -670,6 +713,9 @@ const FinalSearchFlight = () => {
       // onChange(newSet); // Notify parent about change
       return newSet;
     });
+    setSelectedFlightIds([]);
+    setSelectedFares([]);
+    setShowPrices(null);
   };
 
   const toggleSelection = (slotKey, isDeparture) => {
@@ -680,6 +726,9 @@ const FinalSearchFlight = () => {
         ? current.filter((key) => key !== slotKey)
         : [...current, slotKey]
     );
+    setSelectedFlightIds([]);
+    setSelectedFares([]);
+    setShowPrices(null);
   };
 
   const getTimeSlot = (hour) => {
@@ -691,7 +740,7 @@ const FinalSearchFlight = () => {
 
   //Flitered data
   const filteredFlights = FlightOptions.filter((response) => {
-    // console.log("FlightOptions",FlightOptions)
+    // // console.log("FlightOptions",FlightOptions)
     const flight = response.flight;
     if (!flight) return false;
 
@@ -734,7 +783,7 @@ const FinalSearchFlight = () => {
 
   //data storing
   const sortedFlights = [...filteredFlights].sort((a, b) => {
-    // console.log("filteredFlights", filteredFlights)
+    // // console.log("filteredFlights", filteredFlights)
     const getTime = (timeStr) => new Date(timeStr).getTime();
 
     const flightA = a;
@@ -845,6 +894,9 @@ const FinalSearchFlight = () => {
       }
       return newSet;
     });
+    setSelectedReturnFlightIds([]);
+    setSelectedReturnFares([]);
+    setShowReturnPrices(null);
   };
   // Airline Filter
   const toggleReturnAirline = (airlineName) => {
@@ -858,6 +910,9 @@ const FinalSearchFlight = () => {
       // onChange(newSet); // Notify parent about change
       return newSet;
     });
+    setSelectedReturnFlightIds([]);
+    setSelectedReturnFares([]);
+    setShowReturnPrices(null);
   };
 
   const toggleReturnSelection = (slotKey, isDeparture) => {
@@ -872,6 +927,9 @@ const FinalSearchFlight = () => {
         ? current.filter((key) => key !== slotKey)
         : [...current, slotKey]
     );
+    setSelectedReturnFlightIds([]);
+    setSelectedReturnFares([]);
+    setShowReturnPrices(null);
   };
 
   const getReturnTimeSlot = (hour) => {
@@ -985,6 +1043,9 @@ const FinalSearchFlight = () => {
       setSortReturnField(field);
       setSortReturnOrder("asc");
     }
+    setSelectedReturnFlightIds([]);
+    setSelectedReturnFares([]);
+    setShowReturnPrices(null);
   };
 
   //Clear filter
@@ -994,6 +1055,9 @@ const FinalSearchFlight = () => {
     setSelectedReturnArrivals([]);
     setSelectedReturnAirlines(new Set());
     setPriceReturnRange([minFare, maxFare]); // or your initial default range
+    setShowReturnPrices(null);
+    setSelectedReturnFlightIds([]);
+    setSelectedReturnFares([]);
     setShowReturnPrices(null);
   };
   const handleScrollToTop = () => {
@@ -1017,7 +1081,7 @@ const FinalSearchFlight = () => {
   // ----------------------------------Flight fares api--------------------------------
   //Onward flights
   const Getfares = async (data) => {
-    // console.log(PassengeDetails)
+    // // console.log(PassengeDetails)
 
     const requestData = {
       unique_id: data.unique_id,
@@ -1039,43 +1103,47 @@ const FinalSearchFlight = () => {
       const Data = await response.json();
       const data = Data.data;
       setFlightFare(data);
-      // console.log(data)
+      // // console.log(data)
       setfareLoadingg(false);
     } catch {
       setfareLoadingg(false);
-      console.log("error");
+      // console.log("error");
     }
   };
   // Selected flight options
 
   const handleFareToggle = (segments, fare, index, basefare) => {
+    // Get the current flight from sortedFlights to create unique ID
+    const currentFlight = sortedFlights[index]?.flight;
+
+    // Create unique ID using flight properties
+    const flightId = `${currentFlight?.originAirport?.CityCode}-${currentFlight?.destinationAirport?.CityCode}-${currentFlight?.depTime}-${currentFlight?.arrTime}-${currentFlight?.segments?.[0]?.Airline?.FlightNumber}`;
+
     setSelectedFares((prevFares) => {
       const isAlreadySelected = prevFares.some(
-        (f) => f.index === index && f.fareType === fare.type
+        (f) => f.flightId === flightId && f.fareType === fare.type
       );
 
       let updatedFares;
       if (isAlreadySelected) {
         // Remove fare
         updatedFares = prevFares.filter(
-          (f) => !(f.index === index && f.fareType === fare.type)
+          (f) => !(f.flightId === flightId && f.fareType === fare.type)
         );
       } else {
         // Add fare
-        updatedFares = [...prevFares, { index, fareType: fare.type }];
+        updatedFares = [...prevFares, { flightId, fareType: fare.type }];
       }
 
-      // Update selectedFlightIndex based on whether any fares remain for this flight
-      setSelectedFlightIndex((prevIndexes) => {
-        const hasOtherFares = updatedFares.some((f) => f.index === index);
+      // Update selectedFlightIds
+      setSelectedFlightIds((prevIds) => {
+        const hasOtherFares = updatedFares.some((f) => f.flightId === flightId);
         if (!hasOtherFares) {
-          // Remove flight index if no fares remain
-          return prevIndexes.filter((i) => i !== index);
-        } else if (!prevIndexes.includes(index)) {
-          // Add flight index if not already present
-          return [...prevIndexes, index];
+          return prevIds.filter((id) => id !== flightId);
+        } else if (!prevIds.includes(flightId)) {
+          return [...prevIds, flightId];
         }
-        return prevIndexes;
+        return prevIds;
       });
 
       return updatedFares;
@@ -1083,63 +1151,73 @@ const FinalSearchFlight = () => {
 
     setSelectedFlightoption((prevOptions) => {
       const isAlreadySelected = prevOptions.some(
-        (item) => item.index === index && item.fare.type === fare.type
+        (item) => item.flightId === flightId && item.fare.type === fare.type
       );
 
       if (isAlreadySelected) {
         // Remove from booking options
         return prevOptions.filter(
-          (item) => !(item.index === index && item.fare.type === fare.type)
+          (item) =>
+            !(item.flightId === flightId && item.fare.type === fare.type)
         );
       } else {
         // Add to booking options
         return [
           ...prevOptions,
-          { index, flight: segments, fare, base_fare: basefare },
+          {
+            flightId, // Store flightId instead of index
+            originalIndex: index, // Keep original index for reference
+            flight: segments,
+            fare,
+            base_fare: basefare,
+            flightData: currentFlight, // Store flight data for display
+          },
         ];
       }
     });
   };
   const groupedFlights = selectedFlightoption.reduce((acc, curr) => {
-    // console.log(selectedFlightoption)
-    if (!acc[curr.index]) {
-      acc[curr.index] = {
+    // Use flightId instead of index
+    if (!acc[curr.flightId]) {
+      acc[curr.flightId] = {
         flight: curr.flight,
+        flightData: curr.flightData || curr.flight, // Use stored flight data
         fares: [],
         base_fare: curr.base_fare,
       };
     }
-    acc[curr.index].fares.push(curr.fare);
+    acc[curr.flightId].fares.push(curr.fare);
     return acc;
   }, {});
-
   // Remove selected Flight option
-  const handleRemoveFare = (flightIndex, fareType) => {
-    const updatedOptions = selectedFlightoption.filter(
-      (item) =>
-        !(item.index === parseInt(flightIndex) && item.fare.type === fareType)
-    );
-    setSelectedFlightoption(updatedOptions);
-
-    const updatedFares = selectedFares.filter(
-      (f) => !(f.index === parseInt(flightIndex) && f.fareType === fareType)
-    );
-    setSelectedFares(updatedFares);
-
-    const hasOtherFares = updatedOptions.some(
-      (item) => item.index === parseInt(flightIndex)
+  const handleRemoveFare = (flightId, fareType) => {
+    // Update selectedFlightoption
+    setSelectedFlightoption((prev) =>
+      prev.filter(
+        (item) => !(item.flightId === flightId && item.fare.type === fareType)
+      )
     );
 
-    if (!hasOtherFares) {
-      setSelectedFlightIndex((prev) =>
-        prev.filter((idx) => idx !== parseInt(flightIndex))
+    // Update selectedFares
+    setSelectedFares((prev) =>
+      prev.filter((f) => !(f.flightId === flightId && f.fareType === fareType))
+    );
+
+    // Update selectedFlightIds if no fares left
+    setSelectedFlightIds((prev) => {
+      const hasOtherFares = selectedFares.some(
+        (f) => f.flightId === flightId && f.fareType !== fareType
       );
-    }
+      if (!hasOtherFares) {
+        return prev.filter((id) => id !== flightId);
+      }
+      return prev;
+    });
   };
 
   //Return Flights
   const GetreturnFares = async (data) => {
-    // console.log(PassengeDetails)
+    // // console.log(PassengeDetails)
 
     const requestData = {
       unique_id: data.unique_id,
@@ -1161,44 +1239,44 @@ const FinalSearchFlight = () => {
       const Data = await response.json();
       const data = Data.data;
       setReturnFlightFare(data);
-      // console.log(data)
+      // // console.log(data)
       setReturnfareLoadingg(false);
     } catch {
       setReturnfareLoadingg(false);
-      console.log("error");
+      // console.log("error");
     }
   };
   // Selected flight options
 
   const handleReturnFareToggle = (segments, fare, index, basefare) => {
-    console.log("base fare", basefare);
+    // Get current flight from sortedReturnFlights
+    const currentFlight = sortedReturnFlights[index]?.flight;
+    // Create unique flight ID
+    const flightId = `${currentFlight?.originAirport?.CityCode}-${currentFlight?.destinationAirport?.CityCode}-${currentFlight?.depTime}-${currentFlight?.arrTime}-${currentFlight?.segments?.[0]?.Airline?.FlightNumber}`;
+
     setSelectedReturnFares((prevFares) => {
       const isAlreadySelected = prevFares.some(
-        (f) => f.index === index && f.fareType === fare.type
+        (f) => f.flightId === flightId && f.fareType === fare.type
       );
 
       let updatedFares;
       if (isAlreadySelected) {
-        // Remove fare
         updatedFares = prevFares.filter(
-          (f) => !(f.index === index && f.fareType === fare.type)
+          (f) => !(f.flightId === flightId && f.fareType === fare.type)
         );
       } else {
-        // Add fare
-        updatedFares = [...prevFares, { index, fareType: fare.type }];
+        updatedFares = [...prevFares, { flightId, fareType: fare.type }];
       }
 
-      // Update selectedFlightIndex based on whether any fares remain for this flight
-      setSelectedReturnFlightIndex((prevIndexes) => {
-        const hasOtherFares = updatedFares.some((f) => f.index === index);
+      // Update selectedReturnFlightIds
+      setSelectedReturnFlightIds((prevIds) => {
+        const hasOtherFares = updatedFares.some((f) => f.flightId === flightId);
         if (!hasOtherFares) {
-          // Remove flight index if no fares remain
-          return prevIndexes.filter((i) => i !== index);
-        } else if (!prevIndexes.includes(index)) {
-          // Add flight index if not already present
-          return [...prevIndexes, index];
+          return prevIds.filter((id) => id !== flightId);
+        } else if (!prevIds.includes(flightId)) {
+          return [...prevIds, flightId];
         }
-        return prevIndexes;
+        return prevIds;
       });
 
       return updatedFares;
@@ -1206,60 +1284,66 @@ const FinalSearchFlight = () => {
 
     setSelectedReturnFlightoption((prevOptions) => {
       const isAlreadySelected = prevOptions.some(
-        (item) => item.index === index && item.fare.type === fare.type
+        (item) => item.flightId === flightId && item.fare.type === fare.type
       );
 
       if (isAlreadySelected) {
-        // Remove from booking options
         return prevOptions.filter(
-          (item) => !(item.index === index && item.fare.type === fare.type)
+          (item) =>
+            !(item.flightId === flightId && item.fare.type === fare.type)
         );
       } else {
-        // Add to booking options
         return [
           ...prevOptions,
-          { index, flight: segments, fare, base_fare: basefare },
+          {
+            flightId,
+            originalIndex: index,
+            flight: segments,
+            fare,
+            base_fare: basefare,
+            flightData: currentFlight,
+          },
         ];
       }
     });
   };
   const groupedReturnFlights = selectedReturnFlightoption.reduce(
     (acc, curr) => {
-      // console.log(selectedFlightoption)
-      if (!acc[curr.index]) {
-        acc[curr.index] = {
+      // Use flightId instead of index
+      if (!acc[curr.flightId]) {
+        acc[curr.flightId] = {
           flight: curr.flight,
+          flightData: curr.flightData || curr.flight,
           fares: [],
           base_fare: curr.base_fare,
         };
       }
-      acc[curr.index].fares.push(curr.fare);
+      acc[curr.flightId].fares.push(curr.fare);
       return acc;
     },
     {}
   );
   // Remove selected Flight option
-  const handleRemoveReturnFare = (flightIndex, fareType) => {
-    const updatedOptions = selectedReturnFlightoption.filter(
-      (item) =>
-        !(item.index === parseInt(flightIndex) && item.fare.type === fareType)
-    );
-    setSelectedReturnFlightoption(updatedOptions);
-
-    const updatedFares = selectedReturnFares.filter(
-      (f) => !(f.index === parseInt(flightIndex) && f.fareType === fareType)
-    );
-    setSelectedReturnFares(updatedFares);
-
-    const hasOtherFares = updatedOptions.some(
-      (item) => item.index === parseInt(flightIndex)
+  const handleRemoveReturnFare = (flightId, fareType) => {
+    setSelectedReturnFlightoption((prev) =>
+      prev.filter(
+        (item) => !(item.flightId === flightId && item.fare.type === fareType)
+      )
     );
 
-    if (!hasOtherFares) {
-      setSelectedReturnFlightIndex((prev) =>
-        prev.filter((idx) => idx !== parseInt(flightIndex))
+    setSelectedReturnFares((prev) =>
+      prev.filter((f) => !(f.flightId === flightId && f.fareType === fareType))
+    );
+
+    setSelectedReturnFlightIds((prev) => {
+      const hasOtherFares = selectedReturnFares.some(
+        (f) => f.flightId === flightId && f.fareType !== fareType
       );
-    }
+      if (!hasOtherFares) {
+        return prev.filter((id) => id !== flightId);
+      }
+      return prev;
+    });
   };
 
   // -----------------------------------------------------Fare selection for booking---------------------------------------------------
@@ -1272,7 +1356,7 @@ const FinalSearchFlight = () => {
     setFlightBookingOpen(true);
   };
 
-  // console.log(selectedFareforbooking)
+  // // console.log(selectedFareforbooking)
 
   // -------------------------------------------------------------------------------------------------------------------------------------
   //Selected flight ui
@@ -1324,13 +1408,125 @@ const FinalSearchFlight = () => {
   };
 
   //Navigate to next page on click on price div
+  const [markup, setMarkup] = useState("");
+  const [ClientPrice, setClientPrice] = useState("");
+  const [priceError, setPriceError] = useState("");
+  // Add these state variables
+  const [ClientPriceOnward, setClientPriceOnward] = useState("");
+  const [ClientPriceReturn, setClientPriceReturn] = useState("");
+  const [priceErrorOnward, setPriceErrorOnward] = useState("");
+  const [priceErrorReturn, setPriceErrorReturn] = useState("");
 
+  // Update modal close function
+  const closeModal = () => {
+    setIsModalOpen2(false);
+    setClientPriceOnward("");
+    setClientPriceReturn("");
+    setPriceErrorOnward("");
+    setPriceErrorReturn("");
+  };
+  // console.log(ClientPrice);
+
+  const safeFormatTime = (dateValue) => {
+    if (!dateValue) return "--:--";
+
+    const date = new Date(dateValue);
+    return isValid(date) ? format(date, "HH:mm") : "--:--";
+  };
+
+  const [bookingPayload, setBookingPayload] = useState(null);
+  // const calculateDuration = (segments) => {
+  //   if (!segments || segments.length === 0) return "0H 0M";
+
+  //   // Calculate total duration from segments
+  //   let totalMinutes = 0;
+  //   segments.forEach(segment => {
+  //     if (segment.duration) {
+  //       // Assuming duration is in "PT2H10M" format or similar
+  //       const match = segment.duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  //       if (match) {
+  //         const hours = parseInt(match[1] || 0);
+  //         const minutes = parseInt(match[2] || 0);
+  //         totalMinutes += hours * 60 + minutes;
+  //       }
+  //     }
+  //   });
+
+  //   const hours = Math.floor(totalMinutes / 60);
+  //   const minutes = totalMinutes % 60;
+  //   return `${hours}H ${minutes}M`;
+  // };
+  // const AddClientPrice = (
+  //   fare,
+  //   segments,
+  //   Cabinclass,
+  //   inputValue,
+  //   FlightInfo,
+  //   isRoundTrip = false,
+  //   returnFlightData = null
+  // ) => {
+  //   setBookingPayload({
+  //     fare,
+  //     segments,
+  //     Cabinclass,
+  //     inputValue,
+  //     FlightInfo,
+  //     isRoundTrip,
+  //     returnFlightData,
+  //     totalPrice: isRoundTrip
+  //       ? (fare?.price || 0) + (returnFlightData?.fare?.price || 0)
+  //       : fare?.price || 0
+  //   });
+
+  //   setIsModalOpen2(true);
+  // };
+  const AddClientPrice = (
+    fare,
+    segments,
+    Cabinclass,
+    inputValue,
+    FlightInfo,
+    isRoundTrip = false,
+    returnData = null
+  ) => {
+    // For one-way flight or onward flight only
+    const bookingData = {
+      fare,
+      segments,
+      Cabinclass,
+      inputValue,
+      FlightInfo,
+      isRoundTrip,
+
+      // Always set onward data
+      onwardFare: fare,
+      onwardFlight: FlightInfo,
+      onwardSegments: segments,
+
+      // Only set return data if provided
+      returnFare: returnData?.fare || null,
+      returnFlight: returnData?.flight || null,
+      returnSegments: returnData?.flight?.segments || null,
+
+      // Calculate total price
+      totalPrice:
+        isRoundTrip && returnData?.fare
+          ? (fare?.price || 0) + (returnData.fare?.price || 0)
+          : fare?.price || 0,
+    };
+
+    console.log("Booking Data:", bookingData); // Debug log
+
+    setBookingPayload(bookingData);
+    setIsModalOpen2(true);
+  };
   const NavigatetoBookingflow = (
     fare,
     segments,
     Cabinclass,
     inputValue,
-    FlightInfo
+    FlightInfo,
+    ClientPrice
   ) => {
     const adultCount = inputValue.adult
       ? Number(inputValue.adult)
@@ -1341,7 +1537,7 @@ const FinalSearchFlight = () => {
     const infantCount = inputValue.infant
       ? Number(inputValue.infant)
       : Number(infant);
-    // console.log("Flight type", FLightType)
+    // // console.log("Flight type", FLightType)
     const PriceResponse = {
       key: fare.Resultindex,
       traceId: fare.TraceId,
@@ -1358,6 +1554,9 @@ const FinalSearchFlight = () => {
       passengerDetails: PassengerDetails,
       FlightType: FLightType,
       FlightDetails: location.state.responseData || "",
+      // ClientPrice: Number(ClientPrice) || 0,
+      ClientPrice: Number(ClientPriceOnward) || 0,
+      // ClientPriceOnward: Number(ClientPriceOnward) || 0,
     };
     sessionStorage.setItem("PriceResponse", JSON.stringify(PriceResponse));
 
@@ -1367,7 +1566,12 @@ const FinalSearchFlight = () => {
   };
 
   // Navigate to next page for return flight booking
-  const NavigateToReturnBookingPage = (FlightData, cabinClass, inputValue) => {
+  const NavigateToReturnBookingPage = (
+    FlightData,
+    cabinClass,
+    inputValue,
+    ClientPrice = null
+  ) => {
     const adultCount = inputValue.adult
       ? Number(inputValue.adult)
       : Number(adult);
@@ -1377,6 +1581,7 @@ const FinalSearchFlight = () => {
     const infantCount = inputValue.infant
       ? Number(inputValue.infant)
       : Number(infant);
+
     const PriceResponse = {
       onward: { ...FlightData.Onward },
       return: { ...FlightData.Return },
@@ -1389,14 +1594,16 @@ const FinalSearchFlight = () => {
       passengerDetails: PassengerDetails,
       FlightType: FLightType,
       FlightDetails: location.state.responseData || "",
+      ClientPriceOnward: FlightData.Onward.clientPrice || 0,
+      ClientPriceReturn: FlightData.Return?.clientPrice || 0,
+      // TotalClientPrice: totalClientPrice || 0,
     };
+
     sessionStorage.setItem(
       "returnPriceResponse",
       JSON.stringify(PriceResponse)
     );
 
-    // // Open in new tab
-    // const path = fare.from === 'Uapi' ? '/UapiBookingflow' : '/TboBookingflow';
     window.open("/ReturnBookingFlow", "_blank");
   };
 
@@ -1472,343 +1679,99 @@ const FinalSearchFlight = () => {
     const diffMs = arrDate - depDate;
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
+    console.log("time");
     return `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
       .padStart(2, "0")}:00`;
   }
-//   const Shareflight = async () => {
+  function calculateDurationFlight(segments = []) {
+    if (!segments.length) return "00h 00m";
 
-//     // Construct transformedFlights object
-//     let transformedFlights = {
-//       flights: {
-//         onward: {
-//           flight_options: [],
-//         },
-//       },
-//     };
-//     let is_return = 0; // default — assume no return flights
+    const depTime = segments[0]?.Origin?.DepTime;
+    const arrTime = segments[segments.length - 1]?.Destination?.ArrTime;
 
-//     // 🛫 Onward flights
-//     if (Object.keys(groupedFlights || {}).length > 0) {
-//       transformedFlights.flights.onward = { flight_options: [] };
-//     }
-// console.log("groupedReturnFlights",groupedReturnFlights);
-// console.log("groupedFlights",groupedFlights);
-//     // 🔁 Return flights
-//     if (Object.keys(groupedReturnFlights || {}).length > 0) {
-//       transformedFlights.flights.return = { flight_options: [] };
-//       is_return = 1; // set to 1 if return flight data exists
-//     } else {
-//       is_return = 0; // no return flight data
-//     }
-//     // 🛫 Onward flights
-//     Object.values(groupedFlights).forEach((item) => {
-//       const segments = item.flight.segments || [];
-//       const flightNos = segments
-//         .map((seg) => seg.Airline?.FlightNumber)
-//         .join(", ");
-//       const airlineNames = segments
-//         .map((seg) => seg.Airline?.AirlineName)
-//         .join(", ");
-//       const carriers = segments
-//         .map((seg) => seg.Airline?.AirlineCode)
-//         .join(", ");
-//       const flightdetails = item.flight;
+    if (!depTime || !arrTime) return "00h 00m";
 
-//       transformedFlights.flights.onward.flight_options.push({
-//         flight_no: flightNos,
-//         airline_name: airlineNames,
-//         from_city: flightdetails.originAirport?.AirportName,
-//         from_city_code: flightdetails.originAirport?.AirportCode,
-//         to_city: flightdetails.destinationAirport?.AirportName,
-//         to_city_code: flightdetails.destinationAirport?.AirportCode,
-//         departure_datetime: flightdetails?.depTime,
-//         arrival_datetime: flightdetails?.arrTime,
-//         price: item?.base_fare,
-//         is_return,
-//         no_of_stops: segments.length - 1,
-//         carrier: carriers,
-//         provider_code: item?.fares?.[0]?.ProviderCode || "",
-//         duration: calculateDuration(
-//           flightdetails?.depTime,
-//           flightdetails?.arrTime
-//         ),
-//         is_refundable: item.fares?.[0]?.is_refundable || 0,
-//         fare_details: (item?.fares || []).map((f) => ({
-//           fare_type: f.type || "Corporate Fare",
-//           price: f.price,
-//           markup: f.markup || 0,
-//           source: f.from,
-//         })),
-//         flight_details: segments.map((seg) => ({
-//           flight_no: seg.Airline?.FlightNumber,
-//           airline_name: seg.Airline?.AirlineName,
-//           from_city: seg.Origin?.Airport?.AirportName,
-//           from_city_code: seg.Origin?.Airport?.AirportCode,
-//           to_city: seg.Destination?.Airport?.AirportName,
-//           to_city_code: seg.Destination?.Airport?.AirportCode,
-//           departure_datetime: seg.Origin?.DepTime,
-//           arrival_datetime: seg.Destination?.ArrTime,
-//           origin_airline_city: seg.Origin?.Airport?.CityName,
-//           destination_airline_city: seg.Destination?.Airport?.CityName,
-//           provider_code: item?.fares?.[0]?.ProviderCode,
-//           OriginTerminal: seg.Origin?.Airport?.Terminal || "",
-//           DestinationTerminal: seg.Destination?.Airport?.Terminal || "",
-//         })),
-//         DestinationTerminal: item.destinationAirport?.Terminal || "",
-//         OriginTerminal: item.originAirport?.Terminal || "",
-//       });
-//     });
+    const start = new Date(depTime);
+    const end = new Date(arrTime);
 
-//     // 🔁 Return flights (only add if data exists)
-//     if (Object.keys(groupedReturnFlights || {}).length > 0) {
-//       transformedFlights.flights.return = { flight_options: [] };
+    const diffMs = end - start;
+    const totalMinutes = Math.floor(diffMs / (1000 * 60));
 
-//       Object.values(groupedReturnFlights).forEach((item) => {
-//         const segments = item.flight.segments || [];
-//         const flightNos = segments
-//           .map((seg) => seg.Airline?.FlightNumber)
-//           .join(", ");
-//         const airlineNames = segments
-//           .map((seg) => seg.Airline?.AirlineName)
-//           .join(", ");
-//         const carriers = segments
-//           .map((seg) => seg.Airline?.AirlineCode)
-//           .join(", ");
-//         const flightdetails = item.flight;
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
 
-//         transformedFlights.flights.return.flight_options.push({
-//           flight_no: flightNos,
-//           airline_name: airlineNames,
-//           from_city: flightdetails.originAirport?.AirportName,
-//           from_city_code: flightdetails.originAirport?.AirportCode,
-//           to_city: flightdetails.destinationAirport?.AirportName,
-//           to_city_code: flightdetails.destinationAirport?.AirportCode,
-//           departure_datetime: flightdetails?.depTime,
-//           arrival_datetime: flightdetails?.arrTime,
-//           price: item?.base_fare,
-//           is_return: 1,
-//           no_of_stops: segments.length - 1,
-//           carrier: carriers,
-//           provider_code: item?.fares?.[0]?.ProviderCode || "",
-//           duration: calculateDuration(
-//             flightdetails?.depTime,
-//             flightdetails?.arrTime
-//           ),
-//           is_refundable: item.fares?.[0]?.is_refundable || 0,
-//           fare_details: (item?.fares || []).map((f) => ({
-//             fare_type: f.type || "Corporate Fare",
-//             price: f.price,
-//             markup: f.markup || 0,
-//             source: f.from,
-//           })),
-//           flight_details: segments.map((seg) => ({
-//             flight_no: seg.Airline?.FlightNumber,
-//             airline_name: seg.Airline?.AirlineName,
-//             from_city: seg.Origin?.Airport?.AirportName,
-//             from_city_code: seg.Origin?.Airport?.AirportCode,
-//             to_city: seg.Destination?.Airport?.AirportName,
-//             to_city_code: seg.Destination?.Airport?.AirportCode,
-//             departure_datetime: seg.Origin?.DepTime,
-//             arrival_datetime: seg.Destination?.ArrTime,
-//             origin_airline_city: seg.Origin?.Airport?.CityName,
-//             destination_airline_city: seg.Destination?.Airport?.CityName,
-//             provider_code: item?.fares?.[0]?.ProviderCode,
-//             OriginTerminal: seg.Origin?.Airport?.Terminal || "",
-//             DestinationTerminal: seg.Destination?.Airport?.Terminal || "",
-//           })),
-//           DestinationTerminal: item.destinationAirport?.Terminal || "",
-//           OriginTerminal: item.originAirport?.Terminal || "",
-//         });
-//       });
-//     }
+    return `${hours}h ${minutes}m`;
+  }
 
-//     // ✈️ Final request data
-//     const requestData = {
-//       booking_id: bookingid,
-//       email: spocEmails,
-//       seat_type: cabinclass,
-//       // departure_date: "2025-09-29T00:00:00.000 05:30",
-//       departure_date: searchdeparturedate || null,
-//       return_date: searchreturndate || null,
-
-//       no_of_seats: no_of_seats,
-//       ...transformedFlights,
-//       additional_emails: additionalEmails,
-//       cc_email: ccEmails,
-//       remark: remark,
-//       client_name: client_name,
-//       spoc_name: spocname,
-//       htmlContent: "",
-//       flag: "",
-//     };
-
-//     setshareoptionsrequest(requestData);
-//     // console.log("share option flights", requestData);
-
-//     try {
-//       const response = await fetch(
-//         `${CONFIG.MAIN_API}/api/flights/addCotravFlightOptionBooking`,
-//         {
-//           method: "POST",
-//           headers: {
-//             Origin: "*",
-//             // "Content-Type": "application/x-www-form-urlencoded",
-//           },
-//           body: JSON.stringify(requestData),
-//         }
-//       );
-
-//       const responsedata = await response.json();
-//       if (responsedata.success === "1") {
-//         setHtmlContent(responsedata.data);
-//         setIsModalOpen(false);
-//         setShowModal(true);
-//         setIsMinimized(true);
-//       }
-//     } catch (error) {
-//       console.error("Error sharing flight options:", error);
-//     }
-//   };
-const Shareflight = async () => {
-  // Function to remove special characters and normalize text
   const cleanText = (text) => {
-    if (!text || typeof text !== 'string') return text;
-    
+    if (!text || typeof text !== "string") return text;
+
     // Remove special characters but keep spaces, letters, numbers, basic punctuation
     return text
-      .replace(/[^\w\s(),.-]/g, '') // Keep alphanumeric, spaces, and basic punctuation
-      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .replace(/[^\w\s(),.-]/g, "") // Keep alphanumeric, spaces, and basic punctuation
+      .replace(/\s+/g, " ") // Replace multiple spaces with single space
       .trim();
   };
 
-  // Convert layover difference into HH:MM:SS
-  const calculateLayover = (arrival, departure) => {
-    const arr = new Date(arrival);
-    const dep = new Date(departure);
-    const diffMs = dep - arr;
+  const Shareflight = async () => {
+    // Function to remove special characters and normalize text
 
-    if (diffMs < 0) return "00 Hrs : 00 mins";
+    // Convert layover difference into HH:MM:SS
+    const calculateLayover = (arrival, departure) => {
+      const arr = new Date(arrival);
+      const dep = new Date(departure);
+      const diffMs = dep - arr;
 
-    const diffH = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffM = Math.floor((diffMs / (1000 * 60)) % 60);
+      if (diffMs < 0) return "00 Hrs : 00 mins";
 
-    return `${String(diffH).padStart(2, "0")} Hrs : ${String(diffM).padStart(2, "0")} mins`;
-};
+      const diffH = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffM = Math.floor((diffMs / (1000 * 60)) % 60);
 
+      return `${String(diffH).padStart(2, "0")} Hrs : ${String(diffM).padStart(
+        2,
+        "0"
+      )} mins`;
+    };
 
-  // Build initial object
-  let transformedFlights = {
-    flights: {
-      onward: { flight_options: [] }
-    }
-  };
+    // Build initial object
+    let transformedFlights = {
+      flights: {
+        onward: { flight_options: [] },
+      },
+    };
 
-  let is_return = 0;
+    let is_return = 0;
 
-  // Check for onward flights
-  if (Object.keys(groupedFlights || {}).length > 0) {
-    transformedFlights.flights.onward = { flight_options: [] };
-  }
-
-  // Check for return flights
-  if (Object.keys(groupedReturnFlights || {}).length > 0) {
-    transformedFlights.flights.return = { flight_options: [] };
-    is_return = 1;
-  } else {
-    is_return = 0;
-  }
-
-  // ------------------------- ONWARD FLIGHTS ----------------------------
-  Object.values(groupedFlights).forEach((item) => {
-    const segments = item.flight.segments || [];
-
-    const flightNos = segments.map(seg => seg.Airline?.FlightNumber).join(", ");
-    const airlineNames = segments.map(seg => cleanText(seg.Airline?.AirlineName)).join(", ");
-    const carriers = segments.map(seg => cleanText(seg.Airline?.AirlineCode)).join(", ");
-    const flightdetails = item.flight;
-
-    // --------------------- LAYOVER CALCULATION ---------------------
-    const stops = [];
-    if (segments.length > 1) {
-      for (let i = 0; i < segments.length - 1; i++) {
-        const currentSeg = segments[i];
-        const nextSeg = segments[i + 1];
-
-        const stopAirport = currentSeg?.Destination?.Airport;
-
-        const layoverTime = calculateLayover(
-          currentSeg?.Destination?.ArrTime,
-          nextSeg?.Origin?.DepTime
-        );
-
-        stops.push({
-          stop_airport: cleanText(`${stopAirport?.AirportName} ${stopAirport?.CityName} (${stopAirport?.AirportCode})`),
-          duration: layoverTime
-        });
-      }
+    // Check for onward flights
+    if (Object.keys(groupedFlights || {}).length > 0) {
+      transformedFlights.flights.onward = { flight_options: [] };
     }
 
-    // ---------------------- ADD FLIGHT OPTION ----------------------
-    transformedFlights.flights.onward.flight_options.push({
-      flight_no: cleanText(flightNos),
-      airline_name: cleanText(airlineNames),
-      from_city: cleanText(flightdetails.originAirport?.AirportName),
-      from_city_code: cleanText(flightdetails.originAirport?.AirportCode),
-      to_city: cleanText(flightdetails.destinationAirport?.AirportName),
-      to_city_code: cleanText(flightdetails.destinationAirport?.AirportCode),
-      departure_datetime: flightdetails?.depTime,
-      arrival_datetime: flightdetails?.arrTime,
-      price: item?.base_fare,
-      is_return,
-      no_of_stops: segments.length - 1,
-      carrier: cleanText(carriers),
-      provider_code: cleanText(item?.fares?.[0]?.ProviderCode || ""),
-      duration: calculateDuration(flightdetails?.depTime, flightdetails?.arrTime),
-      is_refundable: item.fares?.[0]?.is_refundable || 0,
+    // Check for return flights
+    if (Object.keys(groupedReturnFlights || {}).length > 0) {
+      transformedFlights.flights.return = { flight_options: [] };
+      is_return = 1;
+    } else {
+      is_return = 0;
+    }
 
-      fare_details: (item?.fares || []).map(f => ({
-        fare_type: cleanText(f.type || "Corporate Fare"),
-        price: f.price,
-        markup: f.markup || 0,
-        source: cleanText(f.from),
-      })),
-
-      flight_details: segments.map(seg => ({
-        flight_no: cleanText(seg.Airline?.FlightNumber),
-        airline_name: cleanText(seg.Airline?.AirlineName),
-        from_city: cleanText(seg.Origin?.Airport?.AirportName),
-        from_city_code: cleanText(seg.Origin?.Airport?.AirportCode),
-        to_city: cleanText(seg.Destination?.Airport?.AirportName),
-        to_city_code: cleanText(seg.Destination?.Airport?.AirportCode),
-        departure_datetime: seg.Origin?.DepTime,
-        arrival_datetime: seg.Destination?.ArrTime,
-        origin_airline_city: cleanText(seg.Origin?.Airport?.CityName),
-        destination_airline_city: cleanText(seg.Destination?.Airport?.CityName),
-        provider_code: cleanText(item?.fares?.[0]?.ProviderCode),
-        OriginTerminal: cleanText(seg.Origin?.Airport?.Terminal || ""),
-        DestinationTerminal: cleanText(seg.Destination?.Airport?.Terminal || ""),
-      })),
-
-      DestinationTerminal: cleanText(flightdetails.destinationAirport?.Terminal || ""),
-      OriginTerminal: cleanText(flightdetails.originAirport?.Terminal || ""),
-
-      // ADD LAYOVER STOPS
-      stops
-    });
-  });
-
-  // ------------------------- RETURN FLIGHTS ----------------------------
-  if (Object.keys(groupedReturnFlights || {}).length > 0) {
-    Object.values(groupedReturnFlights).forEach((item) => {
+    // ------------------------- ONWARD FLIGHTS ----------------------------
+    Object.values(groupedFlights).forEach((item) => {
       const segments = item.flight.segments || [];
 
-      const flightNos = segments.map(seg => seg.Airline?.FlightNumber).join(", ");
-      const airlineNames = segments.map(seg => cleanText(seg.Airline?.AirlineName)).join(", ");
-      const carriers = segments.map(seg => cleanText(seg.Airline?.AirlineCode)).join(", ");
+      const flightNos = segments
+        .map((seg) => seg.Airline?.FlightNumber)
+        .join(", ");
+      const airlineNames = segments
+        .map((seg) => cleanText(seg.Airline?.AirlineName))
+        .join(", ");
+      const carriers = segments
+        .map((seg) => cleanText(seg.Airline?.AirlineCode))
+        .join(", ");
       const flightdetails = item.flight;
 
-      // ----------------- RETURN LAYOVER CALCULATION -----------------
+      // --------------------- LAYOVER CALCULATION ---------------------
       const stops = [];
       if (segments.length > 1) {
         for (let i = 0; i < segments.length - 1; i++) {
@@ -1823,14 +1786,16 @@ const Shareflight = async () => {
           );
 
           stops.push({
-            stop_airport: cleanText(`${stopAirport?.AirportName} ${stopAirport?.CityName} (${stopAirport?.AirportCode})`),
-            duration: layoverTime
+            stop_airport: cleanText(
+              `${stopAirport?.AirportName} ${stopAirport?.CityName} (${stopAirport?.AirportCode})`
+            ),
+            duration: layoverTime,
           });
         }
       }
 
       // ---------------------- ADD FLIGHT OPTION ----------------------
-      transformedFlights.flights.return.flight_options.push({
+      transformedFlights.flights.onward.flight_options.push({
         flight_no: cleanText(flightNos),
         airline_name: cleanText(airlineNames),
         from_city: cleanText(flightdetails.originAirport?.AirportName),
@@ -1839,22 +1804,30 @@ const Shareflight = async () => {
         to_city_code: cleanText(flightdetails.destinationAirport?.AirportCode),
         departure_datetime: flightdetails?.depTime,
         arrival_datetime: flightdetails?.arrTime,
-        price: item?.base_fare,
-        is_return: 1,
+        base_price: item?.base_fare,
+        price: item?.base_fare + Number(markup) || 0,
+        markup: Number(markup) || 0,
+        is_return,
         no_of_stops: segments.length - 1,
         carrier: cleanText(carriers),
         provider_code: cleanText(item?.fares?.[0]?.ProviderCode || ""),
-        duration: calculateDuration(flightdetails?.depTime, flightdetails?.arrTime),
+        duration: calculateDuration(
+          flightdetails?.depTime,
+          flightdetails?.arrTime
+        ),
         is_refundable: item.fares?.[0]?.is_refundable || 0,
 
-        fare_details: (item?.fares || []).map(f => ({
+        fare_details: (item?.fares || []).map((f) => ({
           fare_type: cleanText(f.type || "Corporate Fare"),
-          price: f.price,
-          markup: f.markup || 0,
+          base_price: f.price,
+          price: f.price + Number(markup) || 0,
+          // markup: f.markup || 0,
+          markup: Number(markup) || 0,
           source: cleanText(f.from),
+          updated_total_price: f.price + Number(markup) || 0, // Initialize with price
         })),
 
-        flight_details: segments.map(seg => ({
+        flight_details: segments.map((seg) => ({
           flight_no: cleanText(seg.Airline?.FlightNumber),
           airline_name: cleanText(seg.Airline?.AirlineName),
           from_city: cleanText(seg.Origin?.Airport?.AirportName),
@@ -1864,80 +1837,156 @@ const Shareflight = async () => {
           departure_datetime: seg.Origin?.DepTime,
           arrival_datetime: seg.Destination?.ArrTime,
           origin_airline_city: cleanText(seg.Origin?.Airport?.CityName),
-          destination_airline_city: cleanText(seg.Destination?.Airport?.CityName),
+          destination_airline_city: cleanText(
+            seg.Destination?.Airport?.CityName
+          ),
           provider_code: cleanText(item?.fares?.[0]?.ProviderCode),
           OriginTerminal: cleanText(seg.Origin?.Airport?.Terminal || ""),
-          DestinationTerminal: cleanText(seg.Destination?.Airport?.Terminal || ""),
+          DestinationTerminal: cleanText(
+            seg.Destination?.Airport?.Terminal || ""
+          ),
         })),
 
-        DestinationTerminal: cleanText(flightdetails.destinationAirport?.Terminal || ""),
+        DestinationTerminal: cleanText(
+          flightdetails.destinationAirport?.Terminal || ""
+        ),
         OriginTerminal: cleanText(flightdetails.originAirport?.Terminal || ""),
 
         // ADD LAYOVER STOPS
-        stops
+        stops,
       });
     });
-  }
 
-  // ---------------------- FINAL REQUEST BODY ----------------------
-  const requestData = {
-    booking_id: cleanText(bookingid),
-    email: cleanText(spocEmails),
-    seat_type: cleanText(cabinclass),
-    departure_date: searchdeparturedate || null,
-    return_date: searchreturndate || null,
-    no_of_seats: no_of_seats,
-    ...transformedFlights,
-    additional_emails: cleanText(additionalEmails),
-    cc_email: cleanText(ccEmails),
-    remark: cleanText(remark),
-    client_name: cleanText(client_name),
-    spoc_name: cleanText(spocname),
-    htmlContent: "",
-    flag: "",
-  };
-  
-  console.log("requestData", requestData);
-  setshareoptionsrequest(requestData);
+    // ------------------------- RETURN FLIGHTS ----------------------------
+    if (Object.keys(groupedReturnFlights || {}).length > 0) {
+      Object.values(groupedReturnFlights).forEach((item) => {
+        const segments = item.flight.segments || [];
 
-  try {
-    const response = await fetch(
-      `${CONFIG.MAIN_API}/api/flights/addCotravFlightOptionBooking`,
-      {
-        method: "POST",
-        headers: {
-          // "Content-Type": "application/json",
-          // "Accept": "application/json"
-          Origin: "*",
-        },
-        body: JSON.stringify(requestData),
-      }
-    );
+        const flightNos = segments
+          .map((seg) => seg.Airline?.FlightNumber)
+          .join(", ");
+        const airlineNames = segments
+          .map((seg) => cleanText(seg.Airline?.AirlineName))
+          .join(", ");
+        const carriers = segments
+          .map((seg) => cleanText(seg.Airline?.AirlineCode))
+          .join(", ");
+        const flightdetails = item.flight;
 
-    const responsedata = await response.json();
-    if (responsedata.success === "1") {
-      setHtmlContent(responsedata.data);
-      setIsModalOpen(false);
-      setShowModal(true);
-      setIsMinimized(true);
+        // ----------------- RETURN LAYOVER CALCULATION -----------------
+        const stops = [];
+        if (segments.length > 1) {
+          for (let i = 0; i < segments.length - 1; i++) {
+            const currentSeg = segments[i];
+            const nextSeg = segments[i + 1];
+
+            const stopAirport = currentSeg?.Destination?.Airport;
+
+            const layoverTime = calculateLayover(
+              currentSeg?.Destination?.ArrTime,
+              nextSeg?.Origin?.DepTime
+            );
+
+            stops.push({
+              stop_airport: cleanText(
+                `${stopAirport?.AirportName} ${stopAirport?.CityName} (${stopAirport?.AirportCode})`
+              ),
+              duration: layoverTime,
+            });
+          }
+        }
+
+        // ---------------------- ADD FLIGHT OPTION ----------------------
+        transformedFlights.flights.return.flight_options.push({
+          flight_no: cleanText(flightNos),
+          airline_name: cleanText(airlineNames),
+          from_city: cleanText(flightdetails.originAirport?.AirportName),
+          from_city_code: cleanText(flightdetails.originAirport?.AirportCode),
+          to_city: cleanText(flightdetails.destinationAirport?.AirportName),
+          to_city_code: cleanText(
+            flightdetails.destinationAirport?.AirportCode
+          ),
+          departure_datetime: flightdetails?.depTime,
+          arrival_datetime: flightdetails?.arrTime,
+          base_price: item?.base_fare,
+          price: item?.base_fare + Number(markup) || 0,
+          markup: Number(markup) || 0,
+          price: item?.base_fare,
+          is_return: 1,
+          no_of_stops: segments.length - 1,
+          carrier: cleanText(carriers),
+          provider_code: cleanText(item?.fares?.[0]?.ProviderCode || ""),
+          duration: calculateDuration(
+            flightdetails?.depTime,
+            flightdetails?.arrTime
+          ),
+          is_refundable: item.fares?.[0]?.is_refundable || 0,
+
+          fare_details: (item?.fares || []).map((f) => ({
+            fare_type: cleanText(f.type || "Corporate Fare"),
+            base_price: f.price,
+            price: f.price + Number(markup) || 0,
+            // markup: f.markup || 0,
+            markup: Number(markup) || 0,
+            source: cleanText(f.from),
+            updated_total_price: f.price + Number(markup) || 0, // Initialize with price
+          })),
+
+          flight_details: segments.map((seg) => ({
+            flight_no: cleanText(seg.Airline?.FlightNumber),
+            airline_name: cleanText(seg.Airline?.AirlineName),
+            from_city: cleanText(seg.Origin?.Airport?.AirportName),
+            from_city_code: cleanText(seg.Origin?.Airport?.AirportCode),
+            to_city: cleanText(seg.Destination?.Airport?.AirportName),
+            to_city_code: cleanText(seg.Destination?.Airport?.AirportCode),
+            departure_datetime: seg.Origin?.DepTime,
+            arrival_datetime: seg.Destination?.ArrTime,
+            origin_airline_city: cleanText(seg.Origin?.Airport?.CityName),
+            destination_airline_city: cleanText(
+              seg.Destination?.Airport?.CityName
+            ),
+            provider_code: cleanText(item?.fares?.[0]?.ProviderCode),
+            OriginTerminal: cleanText(seg.Origin?.Airport?.Terminal || ""),
+            DestinationTerminal: cleanText(
+              seg.Destination?.Airport?.Terminal || ""
+            ),
+          })),
+
+          DestinationTerminal: cleanText(
+            flightdetails.destinationAirport?.Terminal || ""
+          ),
+          OriginTerminal: cleanText(
+            flightdetails.originAirport?.Terminal || ""
+          ),
+
+          // ADD LAYOVER STOPS
+          stops,
+        });
+      });
     }
-    console.log("responsedata", responsedata.data);
-  } catch (error) {
-    console.error("Error sharing flight options:", error);
-  }
-};
 
-const confirmAndCloseModal = async () => {
-  if (contentRef.current) {
-    const updatedHtml = contentRef.current.innerHTML;
+    // ---------------------- FINAL REQUEST BODY ----------------------
 
     const requestData = {
-      ...shareoptionrequest,
-      htmlContent: updatedHtml,
-      flag: "send",
+      booking_id: cleanText(bookingid),
+      email: cleanText(spocEmails),
+      seat_type: cleanText(cabinclass),
+      departure_date: searchdeparturedate || null,
+      return_date: searchreturndate || null,
+      no_of_seats: no_of_seats,
+      ...transformedFlights,
+      additional_emails: cleanText(additionalEmails),
+      cc_email: cleanText(ccEmails),
+      remark: cleanText(remark),
+      client_name: cleanText(client_name),
+      spoc_name: cleanText(spocname),
+      htmlContent: "",
+      flag: "",
+      query_id:queryId,
     };
 
-    console.log("Request Data :", requestData);
+    // console.log("requestData", requestData);
+    setshareoptionsrequest(requestData);
 
     try {
       const response = await fetch(
@@ -1945,49 +1994,663 @@ const confirmAndCloseModal = async () => {
         {
           method: "POST",
           headers: {
+            // "Content-Type": "application/json",
+            // "Accept": "application/json"
             Origin: "*",
           },
-          body: JSON.stringify(requestData), // ✅ correctly stringified
+          body: JSON.stringify(requestData),
         }
       );
 
       const responsedata = await response.json();
-      console.log("Response :", responsedata);
-
       if (responsedata.success === "1") {
-        Swal.fire({
-          title: "Success!",
-          text: "Flight options have been sent successfully.",
-          imageUrl: "https://cdn-icons-png.flaticon.com/512/845/845646.png",
-          imageWidth: 75,
-          imageHeight: 75,
-          confirmButtonText: "OK",
-        });
-      } else {
-        Swal.fire({
-          title: "Error!",
-          text: responsedata.message || "Something went wrong.",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
+        setHtmlContent(responsedata.data);
+        setIsModalOpen(false);
+        setShowModal(true);
+        setIsMinimized(true);
       }
-
-      setShowModal(false);
-
+      console.log("responsedata", responsedata.data);
     } catch (error) {
-      console.error("Fetch error:", error);
-
-      Swal.fire({
-        title: "Error!",
-        text: "Network or server error. Please try again.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-
-      setShowModal(false);
+      console.error("Error sharing flight options:", error);
     }
-  }
+  };
+
+//Update transformHtmlForEditing function
+const transformHtmlForEditing = (htmlContent) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    
+    // Find all spans with data-index that already exist in the HTML
+    const priceSpans = doc.querySelectorAll('span[data-index]');
+    
+    priceSpans.forEach((span, index) => {
+        // Get the original text from the span
+        const originalText = span.textContent.trim();
+        
+        // Extract the number from "INR "5420 format
+        let numberMatch = originalText.match(/"INR "(\d+)/);
+        let priceNumber = '';
+        
+        if (numberMatch) {
+            priceNumber = numberMatch[1];
+        } else {
+            // Try other formats
+            const alternativeMatch = originalText.match(/INR\s+["']?(\d+)/);
+            if (alternativeMatch) {
+                priceNumber = alternativeMatch[1];
+            } else {
+                // Last resort - just get numbers
+                const numbersOnly = originalText.replace(/\D/g, '');
+                if (numbersOnly) {
+                    priceNumber = numbersOnly;
+                }
+            }
+        }
+        
+        if (priceNumber) {
+            // Store original value
+            span.setAttribute('data-original', priceNumber);
+            
+            // Make it editable
+            span.setAttribute('contenteditable', 'true');
+            
+            // Add styling
+            span.style.backgroundColor = '#fff8e1';
+            span.style.border = '1px solid #ff9800';
+            span.style.padding = '2px 4px';
+            span.style.borderRadius = '3px';
+            span.style.display = 'inline-block';
+            span.style.margin = '0 2px';
+            span.style.cursor = 'text';
+            span.style.fontWeight = 'bold';
+            span.style.minWidth = '50px';
+            
+            // Clean up the text - show just the number with formatting
+            const formattedNumber = parseInt(priceNumber).toLocaleString('en-IN');
+            span.textContent = formattedNumber;
+            
+            console.log(`Span ${index}: data-index="${span.getAttribute('data-index')}", original="${priceNumber}"`);
+        }
+    });
+    
+    // Also check for any other price spans without data-index
+    const allSpans = doc.querySelectorAll('span');
+    allSpans.forEach(span => {
+        if (!span.hasAttribute('data-index')) {
+            const text = span.textContent.trim();
+            // Look for price patterns
+            if (text.includes('INR') || /^\d+$/.test(text)) {
+                const priceMatch = text.match(/"INR "(\d+)/) || text.match(/INR\s+["']?(\d+)/);
+                if (priceMatch) {
+                    const priceNumber = priceMatch[1];
+                    // Add data-index and make editable
+                    span.setAttribute('data-index', `auto-${Date.now()}-${Math.random()}`);
+                    span.setAttribute('data-original', priceNumber);
+                    span.setAttribute('contenteditable', 'true');
+                    
+                    // Add styling
+                    span.style.backgroundColor = '#fff8e1';
+                    span.style.border = '1px solid #ff9800';
+                    span.style.padding = '2px 4px';
+                    span.style.borderRadius = '3px';
+                    span.style.display = 'inline-block';
+                    span.style.margin = '0 2px';
+                    span.style.cursor = 'text';
+                    span.style.fontWeight = 'bold';
+                    span.style.minWidth = '50px';
+                    
+                    // Update text
+                    span.textContent = parseInt(priceNumber).toLocaleString('en-IN');
+                }
+            }
+        }
+    });
+    
+    return doc.documentElement.outerHTML;
 };
+  // 2. SIMPLE EXTRACTION THAT WORKS
+const extractFareDetailsFromHtml = (container) => {
+    const updatedFares = [];
+    
+    // Find all editable spans with data-index
+    const spans = container.querySelectorAll('span[data-index]');
+    
+    spans.forEach(span => {
+        const dataIndex = span.getAttribute('data-index');
+        const originalValue = span.getAttribute('data-original');
+        const currentText = span.textContent.trim();
+        
+        // Extract numeric value from current text
+        const numberMatch = currentText.match(/[\d,]+/);
+        if (numberMatch) {
+            const currentValue = parseInt(numberMatch[0].replace(/,/g, ''), 10);
+            const originalValueNum = parseInt(originalValue, 10);
+            
+            updatedFares.push({
+                dataIndex: dataIndex,
+                originalValue: originalValueNum,
+                currentValue: currentValue,
+                isEdited: currentValue !== originalValueNum
+            });
+        }
+    });
+    
+    return updatedFares;
+};
+const setupPriceFormatting = (container) => {
+    if (!container) return;
+    
+    console.log('Setting up price formatting...');
+    
+    // Format on input
+    const handleInput = (e) => {
+        const target = e.target;
+        if (!target.hasAttribute('data-index')) return;
+        
+        console.log('Input event on span with data-index:', target.getAttribute('data-index'));
+        
+        // Get current text
+        let text = target.textContent.trim();
+        
+        // Remove all non-digits
+        const digits = text.replace(/\D/g, '');
+        
+        if (digits) {
+            const number = parseInt(digits, 10);
+            if (!isNaN(number)) {
+                target.textContent = number.toLocaleString('en-IN');
+            }
+        } else {
+            // Restore original if empty
+            const original = target.getAttribute('data-original');
+            if (original) {
+                const number = parseInt(original, 10);
+                target.textContent = number.toLocaleString('en-IN');
+            }
+        }
+        
+        // Move cursor to end
+        setTimeout(() => {
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.selectNodeContents(target);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }, 0);
+    };
+    
+    // Handle paste
+    const handlePaste = (e) => {
+        const target = e.target;
+        if (target.hasAttribute('data-index')) {
+            e.preventDefault();
+            const pastedText = e.clipboardData.getData('text/plain');
+            const numbersOnly = pastedText.replace(/\D/g, '');
+            
+            if (numbersOnly) {
+                const number = parseInt(numbersOnly, 10);
+                if (!isNaN(number)) {
+                    target.textContent = number.toLocaleString('en-IN');
+                }
+            }
+        }
+    };
+    
+    // Select all on click
+    const handleClick = (e) => {
+        const target = e.target;
+        if (target.hasAttribute('data-index') && target.isContentEditable) {
+            setTimeout(() => {
+                const range = document.createRange();
+                const selection = window.getSelection();
+                range.selectNodeContents(target);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }, 10);
+        }
+    };
+    
+    // Add event listeners
+    container.addEventListener('input', handleInput);
+    container.addEventListener('paste', handlePaste);
+    container.addEventListener('click', handleClick);
+    
+    // Cleanup function
+    return () => {
+        container.removeEventListener('input', handleInput);
+        container.removeEventListener('paste', handlePaste);
+        container.removeEventListener('click', handleClick);
+    };
+};
+//   // 3. SIMPLE BUILD FUNCTION
+//   const buildUpdatedFlights = (originalFlights, updatedFareDetails) => {
+//     // console.log("=== BUILDING UPDATED FLIGHTS ===");
+//     // console.log("Updated fare details:", updatedFareDetails);
+//     // console.log("Original flights structure:", originalFlights);
+
+//     const updatedFlights = JSON.parse(JSON.stringify(originalFlights)); // Deep clone
+
+//     // Update onward flights
+//     if (
+//       updatedFlights.flights.onward &&
+//       updatedFlights.flights.onward.flight_options
+//     ) {
+//       // console.log("Original onward flights:", updatedFlights.flights.onward.flight_options.length);
+
+//       updatedFlights.flights.onward.flight_options.forEach(
+//         (flight, flightIndex) => {
+//           const updatedFares = updatedFareDetails.onward[flightIndex] || [];
+
+//           flight.fare_details.forEach((fare, fareIndex) => {
+//             const updatedFare = updatedFares[fareIndex];
+
+//             if (
+//               updatedFare &&
+//               updatedFare.__edited === true &&
+//               typeof updatedFare.updated_total_price === "number"
+//             ) {
+//               // ✅ Edited fare
+//               fare.updated_total_price = updatedFare.updated_total_price;
+//             } else {
+//               // ✅ NOT edited → use original price
+//               fare.updated_total_price = fare.price;
+//             }
+//           });
+
+//           // ✅ Flight price = min updated_total_price
+//           const minPrice = Math.min(
+//             ...flight.fare_details.map((f) => f.updated_total_price)
+//           );
+
+//           flight.price = minPrice;
+//           flight.base_price = minPrice - flight.markup;
+//         }
+//       );
+//     }
+
+//     // Update return flights
+//     if (
+//       updatedFlights.flights.return &&
+//       updatedFlights.flights.return.flight_options
+//     ) {
+//       // console.log("Original return flights:", updatedFlights.flights.return.flight_options.length);
+
+//       updatedFlights.flights.return.flight_options.forEach(
+//         (flight, flightIndex) => {
+//           const updatedFares = updatedFareDetails.return[flightIndex] || [];
+
+//           flight.fare_details.forEach((fare, fareIndex) => {
+//             const updatedFare = updatedFares[fareIndex];
+
+//             if (
+//               updatedFare &&
+//               updatedFare.__edited === true &&
+//               typeof updatedFare.updated_total_price === "number"
+//             ) {
+//               fare.updated_total_price = updatedFare.updated_total_price;
+//             } else {
+//               fare.updated_total_price = fare.price;
+//             }
+//           });
+
+//           const minPrice = Math.min(
+//             ...flight.fare_details.map((f) => f.updated_total_price)
+//           );
+
+//           flight.price = minPrice;
+//           flight.base_price = minPrice - flight.markup;
+//         }
+//       );
+//     }
+
+//     // console.log("Final updated flights:", updatedFlights);
+//     return updatedFlights;
+//   };
+const updateRequestDataWithEditedPrices = (requestData, editedFares) => {
+    // Deep clone the request data
+    const updatedData = JSON.parse(JSON.stringify(requestData));
+    
+    // Group edited fares by flight type
+    const onwardFares = editedFares.filter(fare => !fare.dataIndex.startsWith('R-'));
+    const returnFares = editedFares.filter(fare => fare.dataIndex.startsWith('R-')).map(fare => ({
+        ...fare,
+        fareIndex: parseInt(fare.dataIndex.replace('R-', ''))
+    }));
+    
+    // Update onward flight fares
+    if (updatedData.flights?.onward?.flight_options?.length > 0) {
+        const onwardFlight = updatedData.flights.onward.flight_options[0];
+        
+        onwardFares.forEach((fare, index) => {
+            if (onwardFlight.fare_details && onwardFlight.fare_details.length > index) {
+                // Update updated_total_price
+                onwardFlight.fare_details[index].updated_total_price = fare.currentValue;
+                
+                // Also update price field if this is the base fare
+                if (index === 0) {
+                    onwardFlight.price = fare.currentValue;
+                }
+            }
+        });
+    }
+    
+    // Update return flight fares
+    if (updatedData.flights?.return?.flight_options?.length > 0) {
+        const returnFlight = updatedData.flights.return.flight_options[0];
+        
+        returnFares.forEach(fare => {
+            if (returnFlight.fare_details && returnFlight.fare_details.length > fare.fareIndex) {
+                // Update updated_total_price
+                returnFlight.fare_details[fare.fareIndex].updated_total_price = fare.currentValue;
+                
+                // Also update price field if this is the base fare
+                if (fare.fareIndex === 0) {
+                    returnFlight.price = fare.currentValue;
+                }
+            }
+        });
+    }
+    
+    return updatedData;
+};
+
+  // 4. DEBUGGING CONFIRM FUNCTION
+// const confirmAndCloseModal = async () => {
+//     if (!contentRef.current) return;
+    
+//     try {
+//         // 1. Extract edited fares from HTML
+//         const editedFares = extractFareDetailsFromHtml(contentRef.current);
+//         console.log('Edited fares:', editedFares);
+        
+//         // 2. Update the request data with edited prices
+//         const updatedRequestData = updateRequestDataWithEditedPrices(shareoptionrequest, editedFares);
+        
+//         // 3. Prepare the final request
+//         const finalRequest = {
+//             ...updatedRequestData,
+//             htmlContent: contentRef.current.innerHTML,
+//             flag: "send"
+//         };
+        
+//         console.log('Final request data:', finalRequest);
+        
+//         // 4. Send to server
+//         const response = await fetch(
+//             `${CONFIG.MAIN_API}/api/flights/addCotravFlightOptionBooking`,
+//             {
+//                 method: "POST",
+//                 headers: {
+//                     "Content-Type": "application/json",
+//                     Origin: "*"
+//                 },
+//                 body: JSON.stringify(finalRequest)
+//             }
+//         );
+        
+//         const responseData = await response.json();
+        
+//         if (responseData.success === "1") {
+//             Swal.fire({
+//                 title: "Success!",
+//                 text: "Updated prices have been sent successfully.",
+//                 icon: "success",
+//                 confirmButtonText: "OK"
+//             });
+//             setShowModal(false);
+//         } else {
+//             Swal.fire({
+//                 title: "Error!",
+//                 text: responseData.message || "Failed to update prices.",
+//                 icon: "error",
+//                 confirmButtonText: "OK"
+//             });
+//         }
+        
+//     } catch (error) {
+//         console.error('Error:', error);
+//         Swal.fire({
+//             title: "Error!",
+//             text: "An error occurred while updating prices.",
+//             icon: "error",
+//             confirmButtonText: "OK"
+//         });
+//     }
+// };
+const confirmAndCloseModal = async () => {
+    if (!contentRef.current) return;
+    
+    try {
+        // 1. Extract edited fares from HTML
+        const editedFares = extractFareDetailsFromHtml(contentRef.current);
+        console.log('Edited fares:', editedFares);
+        
+        // 2. Update the request data with edited prices
+        const updatedRequestData = updateRequestDataWithEditedPrices(shareoptionrequest, editedFares);
+        
+        // 3. Check if any edited price is lower than base_price
+        let hasPriceLowerThanBase = false;
+        let warningMessage = '';
+        const lowerPriceDetails = [];
+        
+        // Check onward flights
+        if (updatedRequestData.flights?.onward?.flight_options?.length > 0) {
+            const onwardFlight = updatedRequestData.flights.onward.flight_options[0];
+            
+            if (onwardFlight.fare_details && onwardFlight.fare_details.length > 0) {
+                onwardFlight.fare_details.forEach((fare, index) => {
+                    const basePrice = fare.base_price || 0;
+                    const updatedPrice = fare.updated_total_price || fare.price || 0;
+                    
+                    if (updatedPrice < basePrice || updatedPrice === basePrice) {
+                        hasPriceLowerThanBase = true;
+                        lowerPriceDetails.push({
+                            flightType: 'Onward',
+                            fareType: fare.fare_type || `Fare ${index + 1}`,
+                            basePrice: basePrice,
+                            updatedPrice: updatedPrice,
+                            difference: basePrice - updatedPrice
+                        });
+                    }
+                });
+            }
+        }
+        
+        // Check return flights
+        if (updatedRequestData.flights?.return?.flight_options?.length > 0) {
+            const returnFlight = updatedRequestData.flights.return.flight_options[0];
+            
+            if (returnFlight.fare_details && returnFlight.fare_details.length > 0) {
+                returnFlight.fare_details.forEach((fare, index) => {
+                    const basePrice = fare.base_price || 0;
+                    const updatedPrice = fare.updated_total_price || fare.price || 0;
+                    
+                    if (updatedPrice < basePrice || updatedPrice === basePrice) {
+                        hasPriceLowerThanBase = true;
+                        lowerPriceDetails.push({
+                            flightType: 'Return',
+                            fareType: fare.fare_type || `Fare ${index + 1}`,
+                            basePrice: basePrice,
+                            updatedPrice: updatedPrice,
+                            difference: basePrice - updatedPrice
+                        });
+                    }
+                });
+            }
+        }
+        
+        // 4. If price is lower than base, show confirmation alert
+        if (hasPriceLowerThanBase) {
+            // Build warning message
+            warningMessage = `<div style="text-align: left;">
+                <h4 style="color: #d32f2f; margin-bottom: 15px;">⚠️ Price Warning</h4>
+                <p>The following prices are <strong>lower than their base price</strong>:</p>
+                <ul style="margin: 10px 0 20px 20px;">`;
+            
+            lowerPriceDetails.forEach(detail => {
+                warningMessage += `
+                    <li>
+                        <strong>${detail.flightType} - ${detail.fareType}:</strong><br>
+                        Base Price: ₹${detail.basePrice.toLocaleString('en-IN')}<br>
+                        Updated Price: ₹${detail.updatedPrice.toLocaleString('en-IN')}<br>
+                        <span style="color: #d32f2f; font-weight: bold;">
+                            Difference: -₹${detail.difference.toLocaleString('en-IN')}
+                        </span>
+                    </li><br>`;
+            });
+            
+            warningMessage += `</ul>
+                <p style="color: #666; font-size: 14px;">
+                    <i class="fas fa-exclamation-triangle" style="color: #ff9800;"></i>
+                    Are you sure you want to proceed with these lower prices?
+                </p>
+            </div>`;
+            
+            // Show confirmation alert
+            const result = await Swal.fire({
+                title: 'Confirm Price Changes',
+                html: warningMessage,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d32f2f',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, Proceed',
+                cancelButtonText: 'Cancel',
+                width: 600,
+                customClass: {
+                    popup: 'custom-swal-popup'
+                }
+            });
+            
+            // If user cancels, stop the process
+            if (!result.isConfirmed) {
+                console.log('User cancelled the operation');
+                return;
+            }
+        }
+        
+        // 5. Prepare the final request
+        const finalRequest = {
+            ...updatedRequestData,
+            htmlContent: contentRef.current.innerHTML,
+            flag: "send"
+        };
+        
+        // console.log('Final request data:', finalRequest);
+        
+        // 6. Send to server
+        const response = await fetch(
+            `${CONFIG.MAIN_API}/api/flights/addCotravFlightOptionBooking`,
+            {
+                method: "POST",
+                headers: {
+                    // "Content-Type": "application/json",
+                    Origin: "*"
+                },
+                body: JSON.stringify(finalRequest)
+            }
+        );
+        
+        const responseData = await response.json();
+        
+        if (responseData.success === "1") {
+            Swal.fire({
+                title: "Success!",
+                text: "Mail have been sent successfully.",
+                // icon: "success",
+                confirmButtonText: "OK"
+            });
+            setShowModal(false);
+        } else {
+            Swal.fire({
+                title: "Error!",
+                text: responseData.message || "Failed to update prices.",
+                // icon: "error",
+                confirmButtonText: "OK"
+            });
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            title: "Error!",
+            text: "An error occurred while updating prices.",
+            // icon: "error",
+            confirmButtonText: "OK"
+        });
+    }
+};
+// Add a debug function to see what's in the HTML
+const debugHtmlContent = (htmlContent) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    
+    console.log('=== DEBUGGING HTML ===');
+    
+    // Find all price cells
+    const priceCells = doc.querySelectorAll('table:has(th[bgcolor="#785eff"]) td:last-child');
+    console.log(`Found ${priceCells.length} price cells`);
+    
+    priceCells.forEach((cell, index) => {
+        console.log(`\nPrice Cell ${index}:`);
+        console.log('HTML:', cell.innerHTML);
+        console.log('Text:', cell.textContent);
+        
+        // Find spans
+        const spans = cell.querySelectorAll('span');
+        console.log(`Found ${spans.length} spans in this cell:`);
+        
+        spans.forEach((span, spanIndex) => {
+            console.log(`  Span ${spanIndex}:`, {
+                text: span.textContent,
+                'data-index': span.getAttribute('data-index'),
+                outerHTML: span.outerHTML
+            });
+        });
+    });
+    
+    // Return original HTML if you want to see it
+    return htmlContent;
+};
+
+useEffect(() => {
+    if (showModal && htmlContent) {
+        // First debug the original HTML
+        console.log('=== ORIGINAL HTML ===');
+        const debugged = debugHtmlContent(htmlContent);
+        
+        // Then transform it
+        const transformed = transformHtmlForEditing(htmlContent);
+        
+        // Debug the transformed HTML
+        console.log('=== TRANSFORMED HTML ===');
+        debugHtmlContent(transformed);
+        
+        // Update state with transformed HTML
+        setHtmlContent(transformed);
+        
+        // Setup formatting after DOM is updated
+        setTimeout(() => {
+            if (contentRef.current) {
+                setupPriceFormatting(contentRef.current);
+                
+                // Debug what we have in the DOM
+                const editableSpans = contentRef.current.querySelectorAll('span[data-index]');
+                console.log(`Found ${editableSpans.length} editable price spans in DOM`);
+                
+                editableSpans.forEach((span, index) => {
+                    console.log(`DOM Span ${index}:`, {
+                        text: span.textContent,
+                        'data-index': span.getAttribute('data-index'),
+                        'data-original': span.getAttribute('data-original'),
+                        editable: span.contentEditable
+                    });
+                });
+            }
+        }, 50);
+    }
+}, [showModal, htmlContent]);
 
   return (
     <div
@@ -2638,7 +3301,6 @@ const confirmAndCloseModal = async () => {
           </div>
         </div>
       )}
-
       {journeytype == "1" ? (
         <div className="main-cont" id="main_cont">
           <div className="body-wrapper ">
@@ -3000,7 +3662,7 @@ const confirmAndCloseModal = async () => {
                               const FlightInfo = response?.flight;
                               const depTime = FlightInfo?.depTime || "";
                               const arrTime = FlightInfo?.arrTime || "";
-                              // console.log("Arrival Time", arrTime)
+                              // // console.log("Arrival Time", arrTime)
                               const formattedDepTime = FlightInfo?.depTime
                                 ? format(new Date(depTime), "HH:mm")
                                 : "N/A";
@@ -3195,7 +3857,7 @@ const confirmAndCloseModal = async () => {
                                 <div
                                   key={index}
                                   className={`flight-item fly-in ${
-                                    selectedFlightIndex.includes(index)
+                                    selectedFlightIds.includes(index)
                                       ? "selected-flight"
                                       : ""
                                   }`}
@@ -3406,9 +4068,18 @@ const confirmAndCloseModal = async () => {
                                           </div>
                                         )}
                                         {uniqueFares.map((fare, idx) => {
+                                          // const isSelected = selectedFares.some(
+                                          //   (f) =>
+                                          //     f.index === index &&
+                                          //     f.fareType === fare.type
+                                          const currentFlight =
+                                            sortedFlights[index]?.flight;
+
+                                          const flightId = `${currentFlight?.originAirport?.CityCode}-${currentFlight?.destinationAirport?.CityCode}-${currentFlight?.depTime}-${currentFlight?.arrTime}-${currentFlight?.segments?.[0]?.Airline?.FlightNumber}`;
+
                                           const isSelected = selectedFares.some(
                                             (f) =>
-                                              f.index === index &&
+                                              f.flightId === flightId &&
                                               f.fareType === fare.type
                                           );
 
@@ -3445,7 +4116,7 @@ const confirmAndCloseModal = async () => {
                                                     marginRight: "3px",
                                                   }}
                                                   onClick={() =>
-                                                    NavigatetoBookingflow(
+                                                    AddClientPrice(
                                                       fare,
                                                       FlightInfo?.segments,
                                                       cabinClass,
@@ -3457,8 +4128,8 @@ const confirmAndCloseModal = async () => {
                                                   Book Now
                                                 </button>
                                               </div>
-                                              {/* )}
-                                              {request_type === "search" && ( */}
+                                              {/* )} */}
+                                              {/* {request_type === "search" && (  */}
                                               <button
                                                 className="add-btn"
                                                 type="button"
@@ -3478,7 +4149,7 @@ const confirmAndCloseModal = async () => {
                                               >
                                                 {isSelected ? "-" : "+"}
                                               </button>
-                                              {/* )} */}
+                                              {/* )}  */}
                                             </div>
                                           );
                                         })}
@@ -4581,7 +5252,7 @@ const confirmAndCloseModal = async () => {
                                   <div
                                     key={index}
                                     className={`flight-item fly-in ${
-                                      selectedFlightIndex.includes(index)
+                                      selectedFlightIds.includes(index)
                                         ? "selected-flight"
                                         : ""
                                     }`}
@@ -4826,11 +5497,27 @@ const confirmAndCloseModal = async () => {
                                                 </div>
                                               </div>
                                             )}
-                                            {uniqueFares.map((fare, idx) => {
+                                            {/* {uniqueFares.map((fare, idx) => {
                                               const isSelected =
                                                 selectedFares.some(
                                                   (f) =>
                                                     f.index === index &&
+                                                    f.fareType === fare.type
+                                                ); */}
+                                            {uniqueFares.map((fare, idx) => {
+                                              // const isSelected = selectedFares.some(
+                                              //   (f) =>
+                                              //     f.index === index &&
+                                              //     f.fareType === fare.type
+                                              const currentFlight =
+                                                sortedFlights[index]?.flight;
+
+                                              const flightId = `${currentFlight?.originAirport?.CityCode}-${currentFlight?.destinationAirport?.CityCode}-${currentFlight?.depTime}-${currentFlight?.arrTime}-${currentFlight?.segments?.[0]?.Airline?.FlightNumber}`;
+
+                                              const isSelected =
+                                                selectedFares.some(
+                                                  (f) =>
+                                                    f.flightId === flightId &&
                                                     f.fareType === fare.type
                                                 );
 
@@ -5617,9 +6304,7 @@ const confirmAndCloseModal = async () => {
                                     <div
                                       key={index}
                                       className={`flight-item fly-in ${
-                                        selectedReturnFlightIndex.includes(
-                                          index
-                                        )
+                                        selectedReturnFlightIds.includes(index)
                                           ? "selected-flight"
                                           : ""
                                       }`}
@@ -5874,11 +6559,22 @@ const confirmAndCloseModal = async () => {
                                                   </div>
                                                 </div>
                                               )}
+
                                               {uniqueFares.map((fare, idx) => {
+                                                // const isSelected = selectedFares.some(
+                                                //   (f) =>
+                                                //     f.index === index &&
+                                                //     f.fareType === fare.type
+                                                const currentFlight =
+                                                  sortedReturnFlights[index]
+                                                    ?.flight;
+
+                                                const flightId = `${currentFlight?.originAirport?.CityCode}-${currentFlight?.destinationAirport?.CityCode}-${currentFlight?.depTime}-${currentFlight?.arrTime}-${currentFlight?.segments?.[0]?.Airline?.FlightNumber}`;
+
                                                 const isSelected =
                                                   selectedReturnFares.some(
                                                     (f) =>
-                                                      f.index === index &&
+                                                      f.flightId === flightId &&
                                                       f.fareType === fare.type
                                                   );
 
@@ -6356,7 +7052,7 @@ const confirmAndCloseModal = async () => {
                     <h4 className="font-semibold text-[13px] mb-2">
                       Onward Flights
                     </h4>
-                    {Object.entries(groupedFlights).map(
+                    {/* {Object.entries(groupedFlights).map(
                       ([flightIndex, data]) => {
                         const Airline = data.flight?.segments[0]?.Airline;
                         const Origin = data.flight?.segments[0]?.Origin;
@@ -6399,7 +7095,7 @@ const confirmAndCloseModal = async () => {
                                 </div>
                               </div>
 
-                              {/* 💰 Fares */}
+                              
                               <div className="flight-price">
                                 {data.fares.map((fare, idx) => (
                                   <div
@@ -6429,7 +7125,82 @@ const confirmAndCloseModal = async () => {
                           </div>
                         );
                       }
-                    )}
+                    )} */}
+                    {Object.entries(groupedFlights).map(([flightId, data]) => {
+                      // Get flight info from stored flightData
+                      const flightInfo = data.flightData;
+                      const Airline = flightInfo?.segments?.[0]?.Airline;
+                      const Origin = flightInfo?.segments?.[0]?.Origin;
+                      const Destination =
+                        flightInfo?.segments?.[0]?.Destination;
+
+                      return (
+                        <div
+                          key={flightId} // Use flightId as key
+                          className="selected-flight-list"
+                        >
+                          <div className="flight-item p-1 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={Airline?.AirlineLogo}
+                                className="flight-logo w-8 h-8"
+                              />
+                              <div className="flight-detailss flex flex-col">
+                                <span className="flight-airline text-[12px] font-medium">
+                                  {Airline?.AirlineName} {Airline?.FlightNumber}
+                                </span>
+                                <span className="flight-time text-[11px] text-gray-600">
+                                  {new Date(Origin?.DepTime).toLocaleTimeString(
+                                    "en-US",
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: true,
+                                    }
+                                  )}{" "}
+                                  -{" "}
+                                  {new Date(
+                                    Destination?.ArrTime
+                                  ).toLocaleTimeString("en-US", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* 💰 Fares */}
+                            <div className="flight-price">
+                              {data.fares.map((fare, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex justify-between items-center mb-1 mt-1"
+                                >
+                                  <div className="flex flex-col">
+                                    <span className="text-[12px] font-bold">
+                                      ₹ {fare?.price}
+                                    </span>
+                                    <span className="text-[10px] text-gray-500">
+                                      {fare?.type}
+                                    </span>
+                                  </div>
+                                  <button
+                                    className="remove-btn text-red-500 text-lg ml-2"
+                                    onClick={
+                                      () =>
+                                        handleRemoveFare(flightId, fare.type) // Pass flightId instead of index
+                                    }
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -6440,15 +7211,17 @@ const confirmAndCloseModal = async () => {
                       Return Flights
                     </h4>
                     {Object.entries(groupedReturnFlights).map(
-                      ([flightIndex, data]) => {
-                        const Airline = data.flight?.segments[0]?.Airline;
-                        const Origin = data.flight?.segments[0]?.Origin;
+                      ([flightId, data]) => {
+                        // Use flightId here
+                        const flightInfo = data.flightData;
+                        const Airline = flightInfo?.segments?.[0]?.Airline;
+                        const Origin = flightInfo?.segments?.[0]?.Origin;
                         const Destination =
-                          data.flight?.segments[0]?.Destination;
+                          flightInfo?.segments?.[0]?.Destination;
 
                         return (
                           <div
-                            key={flightIndex}
+                            key={flightId} // Use flightId as key
                             className="selected-flight-list"
                           >
                             <div className="flight-item p-1 flex items-center justify-between">
@@ -6499,11 +7272,12 @@ const confirmAndCloseModal = async () => {
                                     </div>
                                     <button
                                       className="remove-btn text-red-500 text-lg ml-2"
-                                      onClick={() =>
-                                        handleRemoveReturnFare(
-                                          flightIndex,
-                                          fare.type
-                                        )
+                                      onClick={
+                                        () =>
+                                          handleRemoveReturnFare(
+                                            flightId,
+                                            fare.type
+                                          ) // Pass flightId
                                       }
                                     >
                                       ×
@@ -6530,7 +7304,6 @@ const confirmAndCloseModal = async () => {
           )}
         </div>
       )}
-
       {flightbookingopen && journeytype == "2" && (
         <div className="selected-flight-book-container">
           <div className="max-h-22 overflow-y-auto">
@@ -6742,7 +7515,7 @@ const confirmAndCloseModal = async () => {
                     )}
                 </div>
                 <div className="share-button-container Flight-Booking">
-                  <button
+                  {/* <button
                     type="button"
                     className="share-btn"
                     onClick={() =>
@@ -6754,6 +7527,33 @@ const confirmAndCloseModal = async () => {
                     }
                   >
                     Book
+                  </button> */}
+                  <button
+                    type="button"
+                    className="share-btn"
+                    onClick={() => {
+                      // Create booking payload with the correct structure
+                      setBookingPayload({
+                        isRoundTrip: true,
+                        onwardFare: selectedFareforbooking.Onward.fare,
+                        onwardFlight: selectedFareforbooking.Onward.flight,
+                        onwardSegments:
+                          selectedFareforbooking.Onward.flight.segments,
+                        returnFare: selectedFareforbooking.Return?.fare,
+                        returnFlight: selectedFareforbooking.Return?.flight,
+                        returnSegments:
+                          selectedFareforbooking.Return?.flight?.segments,
+                        cabinClass: cabinClass,
+                        inputValue: inputValue,
+                        totalPrice:
+                          (selectedFareforbooking.Onward.fare.price || 0) +
+                          (selectedFareforbooking.Return?.fare?.price || 0),
+                      });
+
+                      setIsModalOpen2(true);
+                    }}
+                  >
+                    Book
                   </button>
                 </div>
               </div>
@@ -6761,7 +7561,523 @@ const confirmAndCloseModal = async () => {
           </div>
         </div>
       )}
+    <Modal 
+  show={isModalOpen2} 
+  onHide={() => { 
+    setIsModalOpen2(false); 
+    setClientPriceOnward(""); 
+    setClientPriceReturn("");
+    setPriceErrorOnward("");
+    setPriceErrorReturn("");
+  }} 
+  aria-labelledby="modal-title" 
+  size="lg" 
+  centered 
+>
+  <Modal.Header className="custom-modal-header">
+    <Modal.Title id="modal-title" className="text-lg font-bold text-gray-800">
+      Client Final Price
+      {bookingPayload?.isRoundTrip && bookingPayload?.returnFlight 
+        ? " - Round Trip" 
+        : bookingPayload?.isRoundTrip 
+          ? " - Departure" 
+          : ""}
+    </Modal.Title>
+    <button
+      className="text-gray-400 hover:text-gray-600 text-xl"
+      onClick={() => {
+        setIsModalOpen2(false);
+        setClientPriceOnward("");
+        setClientPriceReturn("");
+        setPriceErrorOnward("");
+        setPriceErrorReturn("");
+      }}
+    >
+      ×
+    </button>
+  </Modal.Header>
 
+  <Modal.Body className="py-4">
+    {/* Selected Flight Information */}
+    <div className="mb-6">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">
+        {bookingPayload?.isRoundTrip && bookingPayload?.returnFlight 
+          ? "Selected Flights" 
+          : "Selected Flight"}
+      </h3>
+
+      {/* Onward/Departure Flight - ALWAYS SHOW */}
+      {bookingPayload?.onwardFlight && (
+        <div className="mb-4">
+          {bookingPayload?.isRoundTrip && (
+            <div className="text-xs font-semibold text-gray-600 mb-2">
+              {bookingPayload?.returnFlight ? "Departure Flight" : "Selected Flight"}
+            </div>
+          )}
+          <div className="border rounded-lg p-4 bg-white mb-3">
+            <div className="flex items-center justify-between mb-3">
+              {/* Airline */}
+              <div className="flex items-center gap-3 w-[20%]">
+                {bookingPayload.onwardFlight.segments?.[0]?.Airline?.AirlineLogo && (
+                  <img
+                    src={bookingPayload.onwardFlight.segments[0].Airline.AirlineLogo}
+                    alt="Airline"
+                    className="w-8 h-8 object-contain"
+                  />
+                )}
+                <div>
+                  <div className="text-sm font-semibold text-gray-800">
+                    {bookingPayload.onwardFlight.segments?.[0]?.Airline?.AirlineName || "Flight"}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {bookingPayload.onwardFlight.segments?.map(
+                      (segment) => 
+                        `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`
+                    ).join(" , ")}
+                  </div>
+                </div>
+              </div>
+
+              {/* Departure */}
+              <div className="text-center w-[15%]">
+                <div className="text-sm font-bold">
+                  {bookingPayload.onwardFlight.depTime 
+                    ? format(new Date(bookingPayload.onwardFlight.depTime), "HH:mm")
+                    : "--:--"}
+                </div>
+                <div className="text-md text-gray-700">
+                  {bookingPayload.onwardFlight.originAirport?.CityName || "Origin"}
+                </div>
+                <div className="text-xs text-gray-400">
+                  {bookingPayload.onwardFlight.originAirport?.AirportName || ""}
+                  {bookingPayload.onwardFlight.originAirport?.Terminal && 
+                    ` (T${bookingPayload.onwardFlight.originAirport.Terminal})`}
+                </div>
+              </div>
+
+              {/* Duration + line */}
+              <div className="flex flex-col items-center w-[30%]">
+                <div className="text-sm font-medium text-gray-700 mb-1">
+                  {calculateDurationFlight(bookingPayload.onwardSegments)}
+                </div>
+                <div className="flex items-center w-full flight-line-d2 mt-0 mr-0 ">
+                
+                </div>
+                <div className="text-xs text-[#785ef7] mt-1">
+                  {bookingPayload.onwardSegments?.length === 1 ? (
+                    <p className="cursor-pointer leading-tight">Non-stop</p>
+                  ) : (
+                    <p className="cursor-pointer leading-tight">
+                      {bookingPayload.onwardSegments?.length - 1 || 0} stop
+                      {bookingPayload.onwardSegments?.length - 1 > 1 ? "s" : ""} via{" "}
+                      {bookingPayload.onwardSegments?.[0]?.Destination?.Airport?.CityName || "City"}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Arrival */}
+              <div className="text-center w-[15%]">
+                <div className="text-sm font-bold">
+                  {bookingPayload.onwardFlight.arrTime 
+                    ? format(new Date(bookingPayload.onwardFlight.arrTime), "HH:mm")
+                    : "--:--"}
+                </div>
+                <div className="text-md text-gray-700">
+                  {bookingPayload.onwardFlight.destinationAirport?.CityName || "Destination"}
+                </div>
+                <div className="text-xs text-gray-400">
+                  {bookingPayload.onwardFlight.destinationAirport?.AirportName || ""}
+                  {bookingPayload.onwardFlight.destinationAirport?.Terminal && 
+                    ` (T${bookingPayload.onwardFlight.destinationAirport.Terminal})`}
+                </div>
+              </div>
+              
+              {/* Price */}
+              <div className="text-right w-[20%]">
+                <div className="text-sm font-bold text-[#785ef7]">
+                  ₹{bookingPayload.onwardFare?.price || 0}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {bookingPayload.onwardFare?.from || "Supplier"}
+                </div>
+              </div>
+            </div>
+
+            {/* Client Price Input for Onward Flight - INSIDE THE BOX */}
+        
+<div className="border-t pt-4 mt-4">
+  <div className="flex items-center justify-between">
+    <div className="w-2/3">
+      <div className="flex items-center mb-3">
+        <div className="text-sm font-semibold text-gray-700 mr-3">
+          Client Price (Per Passenger)
+        </div>
+        <div className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+          Min: ₹{bookingPayload.onwardFare?.price || 0}
+        </div>
+      </div>
+      
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none">
+          <span className="text-gray-700 font-bold"></span>
+        </div>
+        <input
+          type="number"
+          value={ClientPriceOnward}
+          onChange={(e) => {
+            const value = e.target.value;
+            setClientPriceOnward(value);
+            const minPrice = bookingPayload.onwardFare?.price || 0;
+            if (value && Number(value) < minPrice) {
+              setPriceErrorOnward(`Must be at least ₹${minPrice}`);
+            } else {
+              setPriceErrorOnward("");
+            }
+          }}
+          placeholder="Enter price..."
+          className={`pl-4 w-full p-2 border-2 rounded-lg text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#785ef7] focus:border-[#785ef7] transition-all duration-200 ${
+            priceErrorOnward 
+              ? "border-red-500 bg-red-50 text-red-700" 
+              : ClientPriceOnward && !priceErrorOnward && Number(ClientPriceOnward) >= (bookingPayload.onwardFare?.price || 0)
+              ? "border-green-500 bg-green-50 text-green-700"
+              : "border-gray-300 bg-white text-gray-800 hover:border-gray-400"
+          }`}
+          min={bookingPayload.onwardFare?.price || 0}
+        />
+        
+        {ClientPriceOnward && !priceErrorOnward && 
+         Number(ClientPriceOnward) >= (bookingPayload.onwardFare?.price || 0) && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <div className="flex items-center text-green-600 text-sm">
+              <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+              </svg>
+              <span className="font-medium">Valid</span>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {priceErrorOnward && (
+        <div className="mt-2 flex items-center text-red-600 text-sm font-medium">
+          <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+          </svg>
+          {priceErrorOnward}
+        </div>
+      )}
+    </div>
+    
+    <div className="w-1/3 pl-4 text-right">
+      <div className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-2">
+        Fare Details
+      </div>
+      <div className="text-sm font-bold text-[#785ef7] mb-1">
+        {bookingPayload.onwardFare?.type || "Standard"} Fare
+      </div>
+      <div className="text-md font-bold text-gray-800">
+        ₹{bookingPayload.onwardFare?.price || 0}
+      </div>
+      <div className="text-xs text-gray-500 mt-1">
+        Supplier: {bookingPayload.onwardFare?.from || "N/A"}
+      </div>
+    </div>
+  </div>
+</div>
+          </div>
+        </div>
+      )}
+
+      {/* Return Flight - Only show if exists */}
+      {bookingPayload?.isRoundTrip && bookingPayload?.returnFlight && (
+        <div className="mb-4">
+          <div className="text-xs font-semibold text-gray-600 mb-2">
+            Return Flight
+          </div>
+          <div className="border rounded-lg p-4 bg-white">
+            <div className="flex items-center justify-between mb-3">
+              {/* Airline */}
+              <div className="flex items-center gap-3 w-[20%]">
+                {bookingPayload.returnFlight.segments?.[0]?.Airline?.AirlineLogo && (
+                  <img
+                    src={bookingPayload.returnFlight.segments[0].Airline.AirlineLogo}
+                    alt="Airline"
+                    className="w-8 h-8 object-contain"
+                  />
+                )}
+                <div>
+                  <div className="text-sm font-semibold text-gray-800">
+                    {bookingPayload.returnFlight.segments?.[0]?.Airline?.AirlineName || "Flight"}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {bookingPayload.returnFlight.segments?.map(
+                      (segment) => 
+                        `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`
+                    ).join(" , ")}
+                  </div>
+                </div>
+              </div>
+
+              {/* Departure */}
+              <div className="text-center w-[15%]">
+                <div className="text-sm font-bold">
+                  {bookingPayload.returnFlight.depTime 
+                    ? format(new Date(bookingPayload.returnFlight.depTime), "HH:mm")
+                    : "--:--"}
+                </div>
+                <div className="text-md text-gray-700">
+                  {bookingPayload.returnFlight.originAirport?.CityName || "Origin"}
+                </div>
+                <div className="text-xs text-gray-400">
+                  {bookingPayload.returnFlight.originAirport?.AirportName || ""}
+                  {bookingPayload.returnFlight.originAirport?.Terminal && 
+                    ` (T${bookingPayload.returnFlight.originAirport.Terminal})`}
+                </div>
+              </div>
+
+              {/* Duration + line */}
+              <div className="flex flex-col items-center w-[30%]">
+                <div className="text-sm font-medium text-gray-700 mb-1">
+                  {calculateDurationFlight(bookingPayload.returnSegments)}
+                </div>
+                <div className="flex items-center w-full flight-line-d2 mt-0 mr-0 ">
+              
+                </div>
+                <div className="text-xs text-[#785ef7] mt-1">
+                  {bookingPayload.returnSegments?.length === 1 ? "Non-stop" : 
+                   bookingPayload.returnSegments?.length > 1 ? "Connecting" : "Direct"}
+                </div>
+              </div>
+
+              {/* Arrival */}
+              <div className="text-center w-[15%]">
+                <div className="text-sm font-bold">
+                  {bookingPayload.returnFlight.arrTime 
+                    ? format(new Date(bookingPayload.returnFlight.arrTime), "HH:mm")
+                    : "--:--"}
+                </div>
+                <div className="text-md text-gray-700">
+                  {bookingPayload.returnFlight.destinationAirport?.CityName || "Destination"}
+                </div>
+                <div className="text-xs text-gray-400">
+                  {bookingPayload.returnFlight.destinationAirport?.AirportName || ""}
+                  {bookingPayload.returnFlight.destinationAirport?.Terminal && 
+                    ` (T${bookingPayload.returnFlight.destinationAirport.Terminal})`}
+                </div>
+              </div>
+
+              {/* Price */}
+              <div className="text-right w-[20%]">
+                <div className="text-sm font-bold text-[#785ef7]">
+                  ₹{bookingPayload.returnFare?.price || 0}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {bookingPayload.returnFare?.from || "Supplier"}
+                </div>
+              </div>
+            </div>
+
+          {/* Client Price Input for Return Flight - SIMPLIFIED */}
+<div className="border-t pt-4 mt-4">
+  <div className="flex items-center justify-between">
+    <div className="w-2/3">
+      <div className="flex items-center mb-3">
+        <div className="text-sm font-semibold text-gray-700 mr-3">
+          Client Price (Per Passenger)
+        </div>
+        <div className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+          Min: ₹{bookingPayload.returnFare?.price || 0}
+        </div>
+      </div>
+      
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+          <span className="text-gray-700 font-bold"></span>
+        </div>
+        <input
+          type="number"
+          value={ClientPriceReturn}
+          onChange={(e) => {
+            const value = e.target.value;
+            setClientPriceReturn(value);
+            const minPrice = bookingPayload.returnFare?.price || 0;
+            if (value && Number(value) < minPrice) {
+              setPriceErrorReturn(`Must be at least ₹${minPrice}`);
+            } else {
+              setPriceErrorReturn("");
+            }
+          }}
+          placeholder="Enter price..."
+          className={`pl-3 w-full p-2 border-2 rounded-lg text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#785ef7] focus:border-[#785ef7] transition-all duration-200 ${
+            priceErrorReturn 
+              ? "border-red-500 bg-red-50 text-red-700" 
+              : ClientPriceReturn && !priceErrorReturn && Number(ClientPriceReturn) >= (bookingPayload.returnFare?.price || 0)
+              ? "border-green-500 bg-green-50 text-green-700"
+              : "border-gray-300 bg-white text-gray-800 hover:border-gray-400"
+          }`}
+          min={bookingPayload.returnFare?.price || 0}
+        />
+        
+        {ClientPriceReturn && !priceErrorReturn && 
+         Number(ClientPriceReturn) >= (bookingPayload.returnFare?.price || 0) && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <div className="flex items-center text-green-600 text-sm">
+              <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+              </svg>
+              <span className="font-medium">Valid</span>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {priceErrorReturn && (
+        <div className="mt-2 flex items-center text-red-600 text-sm font-medium">
+          <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+          </svg>
+          {priceErrorReturn}
+        </div>
+      )}
+    </div>
+    
+    <div className="w-1/3 pl-4 text-right">
+      <div className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-2">
+        Fare Details
+      </div>
+      <div className="text-sm font-bold text-[#785ef7] mb-1">
+        {bookingPayload.returnFare?.type || "Standard"} Fare
+      </div>
+      <div className="text-md font-bold text-gray-800">
+        ₹{bookingPayload.returnFare?.price || 0}
+      </div>
+      <div className="text-xs text-gray-500 mt-1">
+        Supplier: {bookingPayload.returnFare?.from || "N/A"}
+      </div>
+    </div>
+  </div>
+</div>
+          </div>
+        </div>
+      )}
+
+      {/* Show message if round trip but no return flight selected */}
+      {bookingPayload?.isRoundTrip && !bookingPayload?.returnFlight && (
+        <div className="mb-4">
+          <div className="border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+            <div className="text-center text-gray-500 text-sm">
+              Return flight not selected yet. You can add it later.
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Total Summary */}
+    {/* {(ClientPriceOnward || ClientPriceReturn) && (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <div className="text-sm font-semibold text-blue-700">
+            Total Client Price
+          </div>
+          <div className="font-bold text-blue-800 text-lg">
+            ₹{(Number(ClientPriceOnward || 0) + Number(ClientPriceReturn || 0)) || 0}
+          </div>
+        </div>
+        <div className="text-xs text-blue-600">
+          {bookingPayload?.inputValue?.adult || 1} Adult × 
+          (₹{Number(ClientPriceOnward || 0)} + ₹{Number(ClientPriceReturn || 0)}) = 
+          ₹{(Number(ClientPriceOnward || 0) + Number(ClientPriceReturn || 0)) * (bookingPayload?.inputValue?.adult || 1)}
+        </div>
+      </div>
+    )} */}
+  </Modal.Body>
+
+  <Modal.Footer className="border-t pt-4">
+    <div className="flex justify-end space-x-3">
+      <button
+        className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+        onClick={() => {
+          setIsModalOpen2(false);
+          setClientPriceOnward("");
+          setClientPriceReturn("");
+          setPriceErrorOnward("");
+          setPriceErrorReturn("");
+        }}
+      >
+        Cancel
+      </button>
+      <button
+        className="px-5 py-2.5 text-sm font-medium text-white bg-[#785ef7] rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+        onClick={() => {
+          // Check if onward price is valid
+          const onwardValid = ClientPriceOnward && 
+                             !priceErrorOnward && 
+                             Number(ClientPriceOnward) >= (bookingPayload.onwardFare?.price || 0);
+          
+          // Check if return price is valid (only if return flight exists)
+          const returnValid = !bookingPayload.returnFlight || 
+                             (ClientPriceReturn && 
+                              !priceErrorReturn && 
+                              Number(ClientPriceReturn) >= (bookingPayload.returnFare?.price || 0));
+          
+          if (onwardValid && returnValid) {
+            if (bookingPayload?.isRoundTrip) {
+              // Handle round trip booking
+              NavigateToReturnBookingPage(
+                {
+                  Onward: {
+                    fare: bookingPayload.onwardFare,
+                    flight: bookingPayload.onwardFlight,
+                    clientPrice: Number(ClientPriceOnward)
+                  },
+                  Return: bookingPayload.returnFlight
+                    ? {
+                        fare: bookingPayload.returnFare,
+                        flight: bookingPayload.returnFlight,
+                        clientPrice: Number(ClientPriceReturn)
+                      }
+                    : null,
+                },
+                bookingPayload.Cabinclass,
+                bookingPayload.inputValue,
+                Number(ClientPriceOnward) + Number(ClientPriceReturn || 0)
+              );
+            } else {
+              // Handle one-way booking
+              NavigatetoBookingflow(
+                bookingPayload.fare,
+                bookingPayload.segments,
+                bookingPayload.Cabinclass,
+                bookingPayload.inputValue,
+                bookingPayload.FlightInfo,
+                Number(ClientPriceOnward)
+              );
+            }
+            setIsModalOpen2(false);
+            setClientPriceOnward("");
+            setClientPriceReturn("");
+            setPriceErrorOnward("");
+            setPriceErrorReturn("");
+          }
+        }}
+        disabled={
+          !ClientPriceOnward ||
+          priceErrorOnward ||
+          Number(ClientPriceOnward) < (bookingPayload.onwardFare?.price || 0) ||
+          (bookingPayload.returnFlight && (
+            !ClientPriceReturn ||
+            priceErrorReturn ||
+            Number(ClientPriceReturn) < (bookingPayload.returnFare?.price || 0)
+          ))
+        }
+      >
+        Continue to Booking
+      </button>
+    </div>
+  </Modal.Footer>
+</Modal>
       <Modal
         show={isModalOpen}
         onHide={() => setIsModalOpen(false)}
@@ -6785,11 +8101,21 @@ const confirmAndCloseModal = async () => {
                 <input type="text" value={spocname} disabled />
               </div>
             </div>
-            <div className="form-group">
-              <label>Reference Number</label>
-              <input type="text" value={bookingid} disabled />
-            </div>
+            {queryId == null ? (
+  <div className="form-group">
+    <label>Reference Number</label>
+    <input type="text" value={bookingid} disabled />
+  </div>
+) : (
+  <div className="form-group">
+    <label>Flight Query Id</label>
+    <input type="text" value={flight_query_id} disabled />
+  </div>
+)}
 
+          
+
+          
             <div className="form-group">
               <label>Email To</label>
               <div className="chips-input-container">
@@ -6876,7 +8202,15 @@ const confirmAndCloseModal = async () => {
                 />
               </div>
             </div>
-
+            <div className="form-group">
+              <label>Enter Markup For Per Person</label>
+              <input
+                type="number"
+                value={markup}
+                onChange={(e) => setMarkup(e.target.value)}
+                placeholder="Enter markup"
+              />
+            </div>
             <div className="form-group">
               <label>Remark</label>
               <textarea
@@ -6892,40 +8226,76 @@ const confirmAndCloseModal = async () => {
           </button>
         </Modal.Footer>
       </Modal>
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>HTML Preview (Editable)</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div
+      
+    <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+    <Modal.Header closeButton>
+        <Modal.Title>Edit Flight Prices</Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+        <div className="alert alert-warning" style={{ marginBottom: "15px" }}>
+            <i className="fas fa-edit mr-2"></i>
+            <strong>Editing Instructions:</strong> Click on the yellow-highlighted prices to edit them.
+            <div style={{ marginTop: "5px", fontSize: "12px" }}>
+                <strong>Note:</strong> Prices will auto-format with commas. Edit values and click outside to save.
+            </div>
+        </div>
+
+        <div
             ref={contentRef}
-            contentEditable="true" // The main container remains editable
             dangerouslySetInnerHTML={{ __html: htmlContent }}
             style={{
-              minHeight: "200px",
-              border: "1px solid #ddd",
-              padding: "10px",
+                minHeight: "400px",
+                maxHeight: "500px",
+                border: "1px solid #ddd",
+                padding: "15px",
+                overflow: "auto",
+                backgroundColor: "#f9f9f9",
             }}
-            onInput={(e) => {
-              // Prevent editing if the user tries to modify a non-editable div
-              const selection = window.getSelection();
-              if (
-                selection.anchorNode?.parentElement?.closest(
-                  '[contenteditable="false"]'
-                )
-              ) {
-                e.preventDefault();
-                document.execCommand("undo"); // Undo the last attempted edit
-              }
+        />
+    </Modal.Body>
+    <Modal.Footer>
+        <button
+            className="btn btn-secondary"
+            onClick={() => setShowModal(false)}
+        >
+            Cancel
+        </button>
+
+        {/* <button
+            className="btn btn-warning"
+            onClick={() => {
+                if (contentRef.current) {
+                    const updatedFares = extractFareDetailsFromHtml(contentRef.current);
+                    console.log('Current extracted fares:', updatedFares);
+                    
+                    // Show which prices are editable
+                    const editableSpans = contentRef.current.querySelectorAll('span[data-index]');
+                    Swal.fire({
+                        title: 'Debug Info',
+                        html: `
+                            <div style="text-align: left;">
+                                <p>Editable spans found: ${editableSpans.length}</p>
+                                <p>Extracted fares: ${updatedFares.length}</p>
+                                <pre>${JSON.stringify(updatedFares, null, 2)}</pre>
+                            </div>
+                        `,
+                        width: 800,
+                    });
+                }
             }}
-          />
-        </Modal.Body>
-        <Modal.Footer>
-          <button className="send-button" onClick={confirmAndCloseModal}>
-            Confirm & Proceed
-          </button>
-        </Modal.Footer>
-      </Modal>
+        >
+            Debug Extraction
+        </button> */}
+
+        <button
+            className="px-5 py-2.5 text-sm font-medium text-white bg-[#785ef7] rounded-lg"
+            onClick={confirmAndCloseModal}
+        >
+            Confirm & Send Updates
+        </button>
+    </Modal.Footer>
+</Modal>
+      ; ;
     </div>
   );
 };

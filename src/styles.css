@@ -20046,3 +20046,28 @@ ol[class^="seatsolrow"] {
 .react-select_control--menu-is-open{
   font-size: 11px !important;
 }
+/* Add to your CSS file */
+.custom-swal-popup {
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.custom-swal-popup .swal2-title {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+.custom-swal-popup .swal2-content {
+    font-size: 16px;
+}
+
+.custom-swal-popup .swal2-confirm {
+    background-color: #d32f2f !important;
+    border: none;
+    font-weight: bold;
+}
+
+.custom-swal-popup .swal2-cancel {
+    background-color: #6c757d !important;
+    border: none;
+}
