@@ -2355,72 +2355,11 @@ const updateRequestDataWithEditedPrices = (requestData, editedFares) => {
     return updatedData;
 };
 
-  // 4. DEBUGGING CONFIRM FUNCTION
-// const confirmAndCloseModal = async () => {
-//     if (!contentRef.current) return;
-    
-//     try {
-//         // 1. Extract edited fares from HTML
-//         const editedFares = extractFareDetailsFromHtml(contentRef.current);
-//         console.log('Edited fares:', editedFares);
-        
-//         // 2. Update the request data with edited prices
-//         const updatedRequestData = updateRequestDataWithEditedPrices(shareoptionrequest, editedFares);
-        
-//         // 3. Prepare the final request
-//         const finalRequest = {
-//             ...updatedRequestData,
-//             htmlContent: contentRef.current.innerHTML,
-//             flag: "send"
-//         };
-        
-//         console.log('Final request data:', finalRequest);
-        
-//         // 4. Send to server
-//         const response = await fetch(
-//             `${CONFIG.MAIN_API}/api/flights/addCotravFlightOptionBooking`,
-//             {
-//                 method: "POST",
-//                 headers: {
-//                     "Content-Type": "application/json",
-//                     Origin: "*"
-//                 },
-//                 body: JSON.stringify(finalRequest)
-//             }
-//         );
-        
-//         const responseData = await response.json();
-        
-//         if (responseData.success === "1") {
-//             Swal.fire({
-//                 title: "Success!",
-//                 text: "Updated prices have been sent successfully.",
-//                 icon: "success",
-//                 confirmButtonText: "OK"
-//             });
-//             setShowModal(false);
-//         } else {
-//             Swal.fire({
-//                 title: "Error!",
-//                 text: responseData.message || "Failed to update prices.",
-//                 icon: "error",
-//                 confirmButtonText: "OK"
-//             });
-//         }
-        
-//     } catch (error) {
-//         console.error('Error:', error);
-//         Swal.fire({
-//             title: "Error!",
-//             text: "An error occurred while updating prices.",
-//             icon: "error",
-//             confirmButtonText: "OK"
-//         });
-//     }
-// };
+const [isSubmitting, setIsSubmitting] = useState(false);
+
 const confirmAndCloseModal = async () => {
     if (!contentRef.current) return;
-    
+        setIsSubmitting(true);   // 🔥 START loader
     try {
         // 1. Extract edited fares from HTML
         const editedFares = extractFareDetailsFromHtml(contentRef.current);
@@ -2480,56 +2419,130 @@ const confirmAndCloseModal = async () => {
             }
         }
         
-        // 4. If price is lower than base, show confirmation alert
-        if (hasPriceLowerThanBase) {
-            // Build warning message
-            warningMessage = `<div style="text-align: left;">
-                <h4 style="color: #d32f2f; margin-bottom: 15px;">⚠️ Price Warning</h4>
-                <p>The following prices are <strong>lower than their base price</strong>:</p>
-                <ul style="margin: 10px 0 20px 20px;">`;
-            
-            lowerPriceDetails.forEach(detail => {
-                warningMessage += `
-                    <li>
-                        <strong>${detail.flightType} - ${detail.fareType}:</strong><br>
-                        Base Price: ₹${detail.basePrice.toLocaleString('en-IN')}<br>
-                        Updated Price: ₹${detail.updatedPrice.toLocaleString('en-IN')}<br>
-                        <span style="color: #d32f2f; font-weight: bold;">
-                            Difference: -₹${detail.difference.toLocaleString('en-IN')}
-                        </span>
-                    </li><br>`;
-            });
-            
-            warningMessage += `</ul>
-                <p style="color: #666; font-size: 14px;">
-                    <i class="fas fa-exclamation-triangle" style="color: #ff9800;"></i>
-                    Are you sure you want to proceed with these lower prices?
-                </p>
-            </div>`;
-            
-            // Show confirmation alert
-            const result = await Swal.fire({
-                title: 'Confirm Price Changes',
-                html: warningMessage,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d32f2f',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, Proceed',
-                cancelButtonText: 'Cancel',
-                width: 600,
-                customClass: {
-                    popup: 'custom-swal-popup'
-                }
-            });
-            
-            // If user cancels, stop the process
-            if (!result.isConfirmed) {
-                console.log('User cancelled the operation');
-                return;
-            }
+    // 4. If price is lower than base, show confirmation alert
+if (hasPriceLowerThanBase) {
+
+    let warningMessage = `
+    <div style="font-family: 'Segoe UI', sans-serif; text-align: left;">
+
+        <!-- Header -->
+        <div style="
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        ">
+            <div style="
+                width: 40px;
+                height: 40px;
+                background: #fdecea;
+                color: #d32f2f;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+            ">⚠️</div>
+
+            <div>
+                <h3 style="margin: 0; color: #d32f2f;">Price Alert</h3>
+                <small style="color: #777;">
+                    Prices lower than base fare detected
+                </small>
+            </div>
+        </div>
+
+        <!-- Price List -->
+        <div style="max-height: 260px; overflow-y: auto; padding-right: 5px;">
+    `;
+
+    lowerPriceDetails.forEach(detail => {
+        warningMessage += `
+            <div style="
+                border: 1px solid #eee;
+                border-radius: 12px;
+                padding: 14px;
+                margin-bottom: 12px;
+                background: #fafafa;
+            ">
+                <div style="
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 8px;
+                ">
+                    <strong>${detail.flightType}</strong>
+
+                    <span style="
+                        background: #e3f2fd;
+                        color: #1976d2;
+                        padding: 3px 12px;
+                        border-radius: 14px;
+                        font-size: 12px;
+                    ">
+                        ${detail.fareType}
+                    </span>
+                </div>
+
+                <div style="font-size: 14px; color: #555;">
+                    <div>Base Price:
+                        <strong>₹${detail.basePrice.toLocaleString('en-IN')}</strong>
+                    </div>
+                    <div>Updated Price:
+                        <strong>₹${detail.updatedPrice.toLocaleString('en-IN')}</strong>
+                    </div>
+                    <div style="
+                        margin-top: 6px;
+                        color: #d32f2f;
+                        font-weight: 600;
+                    ">
+                        ↓ Difference: ₹${detail.difference.toLocaleString('en-IN')}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    warningMessage += `
+        </div>
+
+        <!-- Footer Note -->
+        <div style="
+            margin-top: 14px;
+            padding: 12px;
+            background: #fff3e0;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #e65100;
+        ">
+            ⚠️ Are you sure you want to proceed with these prices?
+        </div>
+
+    </div>
+    `;
+
+    // Show confirmation alert
+    const result = await Swal.fire({
+        title: 'Confirm Price Changes',
+        html: warningMessage,
+        showCancelButton: true,
+        confirmButtonText: 'Proceed Anyway',
+        cancelButtonText: 'Review Again',
+        confirmButtonColor: '#d32f2f',
+        cancelButtonColor: '#9e9e9e',
+        width: 650,
+        backdrop: 'rgba(0,0,0,0.6)',
+        customClass: {
+            popup: 'custom-swal-popup'
         }
-        
+    });
+
+    // If user cancels, stop the process
+    if (!result.isConfirmed) {
+        console.log('User cancelled the operation');
+        return;
+    }
+}
+
         // 5. Prepare the final request
         const finalRequest = {
             ...updatedRequestData,
@@ -2559,6 +2572,9 @@ const confirmAndCloseModal = async () => {
                 title: "Success!",
                 text: "Mail have been sent successfully.",
                 // icon: "success",
+                  imageUrl: "https://cdn-icons-png.flaticon.com/512/845/845646.png", // Example right tick image
+          imageWidth: 75,
+          imageHeight: 75,
                 confirmButtonText: "OK"
             });
             setShowModal(false);
@@ -2579,6 +2595,9 @@ const confirmAndCloseModal = async () => {
             // icon: "error",
             confirmButtonText: "OK"
         });
+    }
+    finally {
+        setIsSubmitting(false);  // 🔥 STOP loader
     }
 };
 // Add a debug function to see what's in the HTML
@@ -4102,7 +4121,7 @@ useEffect(() => {
                                                   </div>
                                                 </div>
                                               </div>
-                                              {/* {request_type === "book" && ( */}
+                                              {request_type === "book" && (
                                               <div className="buttonbook">
                                                 <button
                                                   type="button"
@@ -4128,8 +4147,8 @@ useEffect(() => {
                                                   Book Now
                                                 </button>
                                               </div>
-                                              {/* )} */}
-                                              {/* {request_type === "search" && (  */}
+                                              )}
+                                              {request_type === "search" && ( 
                                               <button
                                                 className="add-btn"
                                                 type="button"
@@ -4149,7 +4168,7 @@ useEffect(() => {
                                               >
                                                 {isSelected ? "-" : "+"}
                                               </button>
-                                              {/* )}  */}
+                                               )} 
                                             </div>
                                           );
                                         })}
@@ -5539,7 +5558,7 @@ useEffect(() => {
                                                       </div>
                                                     </div>
                                                   </div>
-                                                  {/* {request_type === "book" && ( */}
+                                                  {request_type === "book" && (
                                                   <div className="buttonbook">
                                                     <button
                                                       type="button"
@@ -5566,8 +5585,8 @@ useEffect(() => {
                                                       Book Now
                                                     </button>
                                                   </div>
-                                                  {/* )} */}
-                                                  {/* {request_type == "search" && ( */}
+                                                  )}
+                                                  {request_type == "search" && (
                                                   <button
                                                     className="Pricebutton-add"
                                                     type="button"
@@ -5587,7 +5606,7 @@ useEffect(() => {
                                                   >
                                                     {isSelected ? "-" : "+"}
                                                   </button>
-                                                  {/* )} */}
+                                                  )}
                                                 </div>
                                               );
                                             })}
@@ -6597,8 +6616,8 @@ useEffect(() => {
                                                         </div>
                                                       </div>
                                                     </div>
-                                                    {/* {request_type ===
-                                                      "book" && ( */}
+                                                   {request_type ===
+                                                      "book" && ( 
                                                     <div className="buttonbook">
                                                       <button
                                                         type="button"
@@ -6625,7 +6644,7 @@ useEffect(() => {
                                                         Book Now
                                                       </button>
                                                     </div>
-                                                    {/* )} */}
+                                                     )} 
                                                     {/* {request_type === "book" && (
                                                     <div className='buttonselect'>
                                                       <button type='button' className="SelectPrice"  >
@@ -6633,8 +6652,8 @@ useEffect(() => {
                                                       </button>
                                                     </div>
                                                     )} */}
-                                                    {/* {request_type ==
-                                                      "search" && ( */}
+                                                   {request_type ==
+                                                      "search" && ( 
                                                     <button
                                                       className="Pricebutton-add"
                                                       type="button"
@@ -6654,7 +6673,7 @@ useEffect(() => {
                                                     >
                                                       {isSelected ? "-" : "+"}
                                                     </button>
-                                                    {/* )} */}
+                                                     )} 
                                                   </div>
                                                 );
                                               })}
@@ -8261,38 +8280,36 @@ useEffect(() => {
             Cancel
         </button>
 
-        {/* <button
-            className="btn btn-warning"
-            onClick={() => {
-                if (contentRef.current) {
-                    const updatedFares = extractFareDetailsFromHtml(contentRef.current);
-                    console.log('Current extracted fares:', updatedFares);
-                    
-                    // Show which prices are editable
-                    const editableSpans = contentRef.current.querySelectorAll('span[data-index]');
-                    Swal.fire({
-                        title: 'Debug Info',
-                        html: `
-                            <div style="text-align: left;">
-                                <p>Editable spans found: ${editableSpans.length}</p>
-                                <p>Extracted fares: ${updatedFares.length}</p>
-                                <pre>${JSON.stringify(updatedFares, null, 2)}</pre>
-                            </div>
-                        `,
-                        width: 800,
-                    });
-                }
-            }}
-        >
-            Debug Extraction
-        </button> */}
+    
 
-        <button
-            className="px-5 py-2.5 text-sm font-medium text-white bg-[#785ef7] rounded-lg"
-            onClick={confirmAndCloseModal}
-        >
-            Confirm & Send Updates
-        </button>
+      <button
+    className="px-5 py-2.5 text-sm font-medium text-white bg-[#785ef7] rounded-lg flex items-center justify-center gap-2"
+    onClick={confirmAndCloseModal}
+    disabled={isSubmitting}
+    style={{
+        opacity: isSubmitting ? 0.7 : 1,
+        cursor: isSubmitting ? "not-allowed" : "pointer"
+    }}
+>
+    {isSubmitting ? (
+        <>
+            <span
+                style={{
+                    width: "16px",
+                    height: "16px",
+                    border: "2px solid #fff",
+                    borderTop: "2px solid transparent",
+                    borderRadius: "50%",
+                    animation: "spin 0.8s linear infinite"
+                }}
+            />
+            Sending...
+        </>
+    ) : (
+        "Confirm & Send Updates"
+    )}
+</button>
+
     </Modal.Footer>
 </Modal>
       ; ;

@@ -270,6 +270,10 @@
   font-weight: bold;
   transition: all 0.3s ease-in-out; */
 }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 .rating-color:hover {
   background-color: #5a3ec8;

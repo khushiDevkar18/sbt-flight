@@ -32,7 +32,7 @@ const FlightTbobookingflow = () => {
   const stored = sessionStorage.getItem("PriceResponse");
   const responseData = JSON.parse(stored);
   const TaxivaxiFlightDetails = responseData?.FlightDetails;
-  const TaxivaxiPassengeDetails = responseData?.FlightDetails?.Passengerdetails;
+  const TaxivaxiPassengeDetails = responseData?.FlightDetails?.Passengerdetails || responseData?.passengerDetails;
   const bookingid = responseData?.FlightDetails?.bookingid;
   const is_gst_benefit = responseData?.FlightDetails?.is_gst_benefit;
   // console.log(responseData);
@@ -1190,25 +1190,25 @@ const FlightTbobookingflow = () => {
   //   return null;
   // }
   // ─── Fare Details ──────────────────────────────────────────────
-  const passengerCount = TaxivaxiPassengeDetails?.length || 0;
-  const totalTax = Number(FareData?.Tax) * passengerCount || 0;
+
+  const totalTax = Number(FareData?.Tax) || 0;
 
   const k3Tax =
-    Number(FareData?.TaxBreakup?.find((t) => t.key === "K3")?.value) * passengerCount || 0;
+    Number(FareData?.TaxBreakup?.find((t) => t.key === "K3")?.value) || 0;
 
   // Base + services (NUMBER)
   const GetTotalPrice =
-    Number(FareData?.PublishedFare * passengerCount|| 0) + Number(totalServicePrice || 0);
+    Number(FareData?.PublishedFare || 0) + Number(totalServicePrice || 0);
   console.log(FareData?.OtherCharges);
-  console.log(FareData?.PublishedFare  * passengerCount);
+  console.log(FareData?.PublishedFare);
   // Client markup
-
+  const passengerCount = TaxivaxiPassengeDetails?.length || 0;
   const pricePerPax = Number(ClientPriceValue) || 0;
 
   const clientPrice =
     pricePerPax * passengerCount +
     Number(totalServicePrice || 0) +
-    Number(FareData?.OtherCharges  * passengerCount);
+    Number(FareData?.OtherCharges);
   console.log(clientPrice);
   const Markup = Number(clientPrice || 0) - GetTotalPrice;
   console.log("ClientPriceValue", clientPrice);
@@ -2337,10 +2337,14 @@ const FlightTbobookingflow = () => {
                                               defaultValue={
                                                 TaxivaxiPassengeDetails?.[
                                                   formIndex
-                                                ]?.lastName
+                                                ]?.lastName || TaxivaxiPassengeDetails?.[
+                                                  formIndex
+                                                ]?.firstName
                                                   ? TaxivaxiPassengeDetails[
                                                       formIndex
-                                                    ].lastName
+                                                    ].lastName || TaxivaxiPassengeDetails?.[
+                                                  formIndex
+                                                ]?.firstName
                                                   : ""
                                               }
                                               // defaultValue={

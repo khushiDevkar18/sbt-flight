@@ -101,7 +101,9 @@ console.log("JourneyType in render:", JourneyType);
       origin: extractAirportCode(Taxivaxidata[0]?.from_city),
       destination: extractAirportCode(Taxivaxidata[0]?.to_city),
       departureDate: extractDate(Taxivaxidata[0]?.departure_time),
-      adultCount: 1,
+  adultCount: parseInt(Taxivaxidata[0]?.no_of_seats, 10)
+,
+
       childCount: 0,
       infantCount: 0,
       cabinClass: Taxivaxidata[0]?.seat_type,

@@ -150,6 +150,7 @@ useEffect(() => {
     }
   };
 
+    console.log("flight details",  FlightDetails?.fareDetails?.fareType[0])
 
   const UapiAssignbooking = async (FlightDetails, FlightDetailsReturn) => {
     // setLoadingg(false)
@@ -181,7 +182,7 @@ useEffect(() => {
           const matchingEmployee = taxivaxipassenger.find(
             (emp) =>
               emp.firstName?.toLowerCase() === p.First?.toLowerCase() &&
-              emp.lastName?.toLowerCase() === p.Last?.toLowerCase() &&
+              // emp.lastName?.toLowerCase() === p.Last?.toLowerCase() &&
               emp.user_type === p.TravelerType
           );
           return {
@@ -217,7 +218,7 @@ useEffect(() => {
           const matchingEmployee = taxivaxipassenger.find(
             (emp) =>
               emp.firstName?.toLowerCase() === p.First?.toLowerCase() &&
-              emp.lastName?.toLowerCase() === p.Last?.toLowerCase() &&
+              // emp.lastName?.toLowerCase() === p.Last?.toLowerCase() &&
               emp.user_type === p.TravelerType
           );
           return {
@@ -228,14 +229,15 @@ useEffect(() => {
           };
         }),
       })
-    );
-    // console.log("flight details", flight_details)
+    )
+
+
     const requestData = {
       access_token: responseData?.accessToken,
       booking_id: responseData?.bookingid,
       flight_type: responseData?.flighttype,
       trip_type: responseData?.bookingtype,
-      fare_type: FlightDetails?.fareType[0],
+      fare_type: FlightDetails?.fareDetails?.fareType[0],
       is_extra_baggage_included: FlightDetails?.is_extra_baggage_included,
       extra_baggage: FlightDetails?.baggage_count,
       no_of_stops: FlightDetails?.no_of_stops,
@@ -258,7 +260,7 @@ useEffect(() => {
 
       portal_used: FlightDetails?.portal_used,
       portal_used_return: FlightDetailsReturn?.portal_used,
-      fare_type_return: FlightDetailsReturn?.fareType[0],
+      fare_type_return: FlightDetailsReturn?.fareDetails?.fareType[0],
       is_extra_baggage_included_return:
       FlightDetailsReturn?.is_extra_baggage_included,
       no_of_stops_return: FlightDetailsReturn?.no_of_stops,
@@ -271,7 +273,7 @@ useEffect(() => {
       // returns: '',
       // reservationStatus: bookingStatus,
     };
-console.log("Request Data for Assign Booking", requestData);
+// console.log("Request Data for Assign Booking", requestData);
     try {
       // const response = await fetch(finalresponse?.productionMode == 'live' ? CONFIG.LIVE_ASSIGN : CONFIG.DEMO_ASSIGN, {
       const response = await fetch(`${CONFIG.ASSIGN_API}`, {

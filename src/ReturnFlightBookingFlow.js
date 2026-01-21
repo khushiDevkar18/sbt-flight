@@ -151,13 +151,12 @@ const ReturnBookingFlow = () => {
   const [isPassengerSaved, setIsPassengerSaved] = useState(false);
     const [OnwardGst_k3, setOnwardGst_k3] = useState("");
         const [ReturnGst_k3, setReturnGst_k3] = useState("");
-            const [OnwardOther, setOnwardOther] = useState("");
-        const [ReturnOther, setReturnOther] = useState("");
+            const [OnwardAdult, setOnwardAdult] = useState("");
+        const [ReturnAdult, setReturnAdult] = useState("");
       const [OnwardTotal, setOnwardTotal] = useState("");
         const [ReturnTotal, setReturnTotal] = useState("");
       const [OnwardTax, setOnwardTax] = useState("");
         const [ReturnTax, setReturnTax] = useState("");
-        const passenger = TaxivaxiPassengeDetails.length;
   const [errors, setErrors] = useState({
     gstin: "",
     company_name: "",
@@ -249,7 +248,7 @@ const ReturnBookingFlow = () => {
               // console.log(gst);
               setOnwardGst_k3(gst);
                   const total = Number(fare?.TotalPrice.replace("INR","")||0);
-                  // console.log(total);
+                  console.log(total);
                   setOnwardTotal(total);
 
                 }
@@ -274,34 +273,22 @@ const ReturnBookingFlow = () => {
                   const flight = responseData.FareQuote_Response.FlightDetails;
                   setFlightData(flight);
                 }
-              if (responseData.FareQuote_Response?.Results.Fare) {
-  const fareData = responseData.FareQuote_Response.Results.Fare;
-  
-  // Check what properties exist
-  // console.log("Available properties:", Object.keys(fareData));
-  
-  // If PublishedFare exists (most common in TBO API)
-  if (fareData.PublishedFare) {
-    const total = Number(fareData.PublishedFare) * passenger;
-    const baseFare = Number(fareData.BaseFare || 0) * passenger;
-    const tax = Number(fareData.Tax || 0) * passenger;
-    const otherCharges = Number(fareData.OtherCharges || 0) * passenger;
-    
-    // console.log("Total:", total);
-    // console.log("Base Fare:", baseFare);
-    // console.log("Total Tax + Charges:", tax + otherCharges);
-  
-  setOnwardOther(otherCharges);  
-    setOnwardTotal(total);
-    setOnwaredTboFare(baseFare);
-    setOnwardTax(tax + otherCharges);
-    
-    // For K3
-    const taxBreakup = fareData.TaxBreakup || [];
-    const k3Tax = Number(taxBreakup.find(t => t.key === "K3")?.value || 0) * passenger;
+                if (responseData.FareQuote_Response?.Results.Fare) {
+                  const Fare = responseData.FareQuote_Response?.Results.Fare;
+                  const tax = Fare.Tax + Fare.OtherCharges;
+                  // //console.log(Fare)
+                  setOnwaredTboFare(Fare);
+                  // console.log(tax);
+                  setOnwardTax(tax);
+                  // (Fare);
+                        const k3Tax =
+    Number(Fare?.TaxBreakup?.find((t) => t.key === "K3")?.value) || 0;
+    // console.log(k3Tax);
     setOnwardGst_k3(k3Tax);
-  }
-}
+        const total = Number(Fare?.PublishedFare);
+                  // console.log(total);
+                  setOnwardTotal(total);
+                }
                 
       
                   
@@ -408,49 +395,22 @@ const ReturnBookingFlow = () => {
                   const flight = responseData.FareQuote_Response.FlightDetails;
                   setReturnFlightData(flight);
                 }
-    //             if (responseData.FareQuote_Response?.Results.Fare) {
-    //               const Fare = responseData.FareQuote_Response?.Results.Fare * passenger;
-    //               const tax = Fare.Tax + Fare.OtherCharges * passenger;
-    //               // //console.log(Fare)
-    //               setReturnTboFare(Fare);
-    //               // console.log(tax);
-    //               setReturnTax(tax);
-    //               // (Fare);
-    //                     const k3Tax =
-    // Number(Fare?.TaxBreakup?.find((t) => t.key === "K3")?.value)* passenger || 0;
-    // // console.log(k3Tax);
-    // setReturnGst_k3(k3Tax);
-    //     const total = Number(Fare?.PublishedFare * passenger);
-    //               // console.log(total);
-    //               setReturnTotal(total);
-    //             }
-        if (responseData.FareQuote_Response?.Results.Fare) {
-  const fareData = responseData.FareQuote_Response.Results.Fare;
-  
-  // Check what properties exist
-  // console.log("Available properties:", Object.keys(fareData));
-  
-  // If PublishedFare exists (most common in TBO API)
-  if (fareData.PublishedFare) {
-    const total = Number(fareData.PublishedFare) * passenger;
-    const baseFare = Number(fareData.BaseFare || 0) * passenger;
-    const tax = Number(fareData.Tax || 0) * passenger;
-    const otherCharges = Number(fareData.OtherCharges || 0) * passenger;
-    
-    // console.log("Total:", total);
-    // console.log("Base Fare:", baseFare);
-    // console.log("Total Tax + Charges:", tax + otherCharges);
-    setReturnOther(otherCharges);    
-    setReturnTotal(total);
-    setReturnTboFare(baseFare);
-    setReturnTax(tax + otherCharges);
-    
-    // For K3
-    const taxBreakup = fareData.TaxBreakup || [];
-    const k3Tax = Number(taxBreakup.find(t => t.key === "K3")?.value || 0) * passenger;
+                if (responseData.FareQuote_Response?.Results.Fare) {
+                  const Fare = responseData.FareQuote_Response?.Results.Fare;
+                  const tax = Fare.Tax + Fare.OtherCharges;
+                  // //console.log(Fare)
+                  setReturnTboFare(Fare);
+                  // console.log(tax);
+                  setReturnTax(tax);
+                  // (Fare);
+                        const k3Tax =
+    Number(Fare?.TaxBreakup?.find((t) => t.key === "K3")?.value) || 0;
+    // console.log(k3Tax);
     setReturnGst_k3(k3Tax);
-  }
-}
+        const total = Number(Fare?.PublishedFare);
+                  // console.log(total);
+                  setReturnTotal(total);
+                }
                 if (responseData.FareQuote_Response?.Results.FareBreakdown) {
                   const PerFare =
                     responseData.FareQuote_Response?.Results.FareBreakdown;
@@ -2132,16 +2092,16 @@ const ReturnBookingFlow = () => {
 
 
   //----------------------------------Fare Display--------------------------------------------//
-  
-  const OnwardClientPrice = (ClientOnwardPrice * passenger) + OnwardOther ;
-  const ReturnClientPrice = (ClientReturnPrice * passenger + ReturnOther);
+  const passenger = TaxivaxiPassengeDetails.length;
+  const OnwardClientPrice = ClientOnwardPrice * passenger;
+  const ReturnClientPrice = ClientReturnPrice * passenger;
   const OnwardMarkup =  OnwardClientPrice - OnwardTotal;
   const ReturnMarkup = ReturnClientPrice - ReturnTotal;
     const OnwardFinalTotal = OnwardTotal + OnwardMarkup ;
     const ReturnFinalTotal = ReturnTotal + ReturnMarkup;
   const Total = OnwardFinalTotal + ReturnFinalTotal; 
   const OnwardOthers = (OnwardTax - OnwardGst_k3) + OnwardMarkup;
-  // console.log(ClientReturnPrice);
+  console.log(ClientReturnPrice);
   // console.log(OnwardGst_k3);
   const ReturnOthers = (ReturnTax - ReturnGst_k3) + ReturnMarkup;
   console.log("onwardclientprice", OnwardClientPrice);
@@ -2790,13 +2750,16 @@ const ReturnBookingFlow = () => {
                                               defaultValue={
                                                 TaxivaxiPassengeDetails?.[
                                                   formIndex
-                                                ]?.lastName
+                                                ]?.lastName || TaxivaxiPassengeDetails?.[
+                                                  formIndex
+                                                ]?.firstName
                                                   ? TaxivaxiPassengeDetails[
                                                       formIndex
-                                                    ].lastName
+                                                    ].lastName || TaxivaxiPassengeDetails?.[
+                                                  formIndex
+                                                ]?.firstName
                                                   : ""
                                               }
-
                                               // defaultValue={
                                               //     TaxivaxiPassengeDetails?.[passengerindex]?.people_name
                                               //         ? TaxivaxiPassengeDetails[passengerindex].people_name.trim().split(' ').pop()
@@ -7435,7 +7398,71 @@ const ReturnBookingFlow = () => {
 
                         <div className="clear" />
                       </div>
-                    
+                      {/* <div className="chk-line relative items-start gap-2">
+                          <div className="chk-l">Fees</div>
+                           <span className="chk-r">
+                            <button
+                              className="cursor-pointer"
+                              onClick={() => setShowTooltip8((prev) => !prev)}
+                            >
+                              <img
+                                src="../img/i_icon.svg"
+                                alt="Info"
+                                className="w-4 h-4 cursor-pointer mt-1"
+                              />
+                            </button>
+                          </span>
+                              {showTooltip8 && (
+                            <div
+                              className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
+                              onMouseLeave={() => setShowTooltip8(false)}
+                            >
+                              <div className="flex gap-2">
+                                <p className="font-semibold text-xs text-gray-800 mb-1">
+                                  Onward Airlines:
+                                </p>
+                                <span className="chk-r">
+                                  {OnwardSourceType === "Uapi" && (
+                                    <>
+                                         {replaceINRWithSymbol(FareData?.Fees?.toFixed(2) || 0.0)}
+                                    </>
+                                  )}
+                                  {OnwardSourceType === "Tbo" && (
+                                    <>
+                                      
+                                    ₹{replaceINRWithSymbol(OnwaredTboFare?.OtherCharges?.toFixed(2))}
+                                    </>
+                                  )}
+                                </span>
+                              </div>
+
+                              <hr className="my-2" />
+
+                              <div className="flex gap-2">
+                                <p className="font-semibold text-xs text-gray-800 mb-1 flex">
+                                  Return Airlines:
+                                </p>
+                                <span className="chk-r">
+                                  {ReturnSourceType === "Uapi" && (
+                                    <>
+                                      {replaceINRWithSymbol(ReturnFareData?.Fees?.toFixed(2) || 0.0)}
+                                    </>
+                                  )}
+                                  {ReturnSourceType === "Tbo" && (
+                                    <>
+                                      ₹
+                                    {replaceINRWithSymbol(ReturnTboFare?.OtherCharges?.toFixed(2))}
+                                    </>
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        <span className="chk-r">
+                          {replaceINRWithSymbol(FareData?.Fees) || 0.0}
+                        </span>
+                        <div className="clear" />
+                      </div> */}
 
                       <div className="chk-line relative items-start gap-2">
                         <div className="chk-l">Extra Services</div>
@@ -7491,7 +7518,27 @@ const ReturnBookingFlow = () => {
                         <div className="clear" />
                       </div>
                     </div>
-                
+                    {/* <div className="chk-total">
+                      <div className="chk-total-l">Total Price</div>
+                      <div className="chk-total-r" style={{ fontWeight: 700 }}>
+                    
+                        {(() => {
+                          const basePrice =
+                            parseFloat(
+                              (FareData?.TotalPrice || "").replace(
+                                /[^\d.]/g,
+                                ""
+                              )
+                            ) || 0;
+                          const grandTotal = basePrice + totalServicePrice;
+                          return `₹${grandTotal.toLocaleString("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}`;
+                        })()}
+                      </div>
+                      <div className="clear" />
+                    </div> */}
                     <div className="chk-total">
                       <div className="chk-total-l">Total Price</div>
                       <div className="chk-total-r" style={{ fontWeight: 700 }}>

@@ -1835,10 +1835,14 @@ console.log("price",pricePerPax);
                                               defaultValue={
                                                 TaxivaxiPassengeDetails?.[
                                                   formIndex
-                                                ]?.lastName
+                                                ]?.lastName || TaxivaxiPassengeDetails?.[
+                                                  formIndex
+                                                ]?.firstName
                                                   ? TaxivaxiPassengeDetails[
                                                       formIndex
-                                                    ].lastName
+                                                    ].lastName || TaxivaxiPassengeDetails?.[
+                                                  formIndex
+                                                ]?.firstName
                                                   : ""
                                               }
 
@@ -4534,13 +4538,13 @@ console.log("price",pricePerPax);
                         </span>
                         <div className="clear" />
                       </div>
-                      <div className="chk-line">
+                      {/* <div className="chk-line">
                         <span className="chk-l">Fees</span>
                         <span className="chk-r">
                           ₹ {replaceINRWithSymbol(FareData?.Fees) || 0.0}
                         </span>
                         <div className="clear" />
-                      </div>
+                      </div> */}
 
                       <div className="chk-line">
                         <span className="chk-l">Extra Services </span>

@@ -88,7 +88,7 @@ const CompleteFlightbookinguapi = () => {
     // console.log("live or demo",finalresponse?.productionMode)
     // console.log("URL", finalresponse?.productionMode == 'live' ? CONFIG.LIVE_ASSIGN : CONFIG.DEMO_ASSIGN)
     const taxivaxipassenger = responseData?.Passengerdetails;
-    // console.log(taxivaxipassenger)
+    console.log(taxivaxipassenger)
     const flight_details = finalresponse?.flight_details?.map((flight) => ({
       from_city: flight?.from_city,
       to_city: flight?.to_city,
@@ -111,9 +111,10 @@ const CompleteFlightbookinguapi = () => {
         const matchingEmployee = taxivaxipassenger.find(
           (emp) =>
             emp.firstName?.toLowerCase() === p.First?.toLowerCase() &&
-            emp.lastName?.toLowerCase() === p.Last?.toLowerCase() &&
+            // emp.lastName?.toLowerCase() === p.Last?.toLowerCase() &&
             emp.user_type === p.TravelerType
         );
+          // console.log("flight details", matchingEmployee?.id)
         return {
           people_id: matchingEmployee?.id,
           seat_no: seatService?.ServiceData?.Data || "NA",
@@ -122,7 +123,7 @@ const CompleteFlightbookinguapi = () => {
         };
       }),
     }));
-    // console.log("flight details", flight_details)
+  
     const requestData = {
       access_token: responseData?.accessToken,
       booking_id: responseData?.bookingid,
