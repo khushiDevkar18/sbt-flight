@@ -32,10 +32,12 @@ const FlightTbobookingflow = () => {
   const stored = sessionStorage.getItem("PriceResponse");
   const responseData = JSON.parse(stored);
   const TaxivaxiFlightDetails = responseData?.FlightDetails;
-  const TaxivaxiPassengeDetails = responseData?.FlightDetails?.Passengerdetails || responseData?.passengerDetails;
+  const TaxivaxiPassengeDetails =
+    responseData?.FlightDetails?.Passengerdetails ||
+    responseData?.passengerDetails;
   const bookingid = responseData?.FlightDetails?.bookingid;
   const is_gst_benefit = responseData?.FlightDetails?.is_gst_benefit;
-  // console.log(responseData);
+  console.log(responseData);
   const clientid = responseData?.FlightDetails?.clientid;
   // console.log(responseData)
   const ClientPriceValue = responseData?.ClientPrice || 0;
@@ -1018,7 +1020,7 @@ const FlightTbobookingflow = () => {
       ];
     });
 
-    // ✅ AUTO MOVE TO NEXT PASSENGER
+    //  AUTO MOVE TO NEXT PASSENGER
     if (selectedPassengerIndex < nonInfantPassengers.length - 1) {
       setSelectedPassengerIndex((prev) => prev + 1);
     }
@@ -1112,7 +1114,7 @@ const FlightTbobookingflow = () => {
       ];
     });
 
-    // ✅ AUTO MOVE TO NEXT PASSENGER
+    //  AUTO MOVE TO NEXT PASSENGER
     if (selectedPassengerIndex < nonInfantPassengers.length - 1) {
       const nextIndex = selectedPassengerIndex + 1;
       setSelectedPassengerIndex(nextIndex);
@@ -1779,11 +1781,20 @@ const FlightTbobookingflow = () => {
                                         </div>
                                       </div>
                                     </div>
-                                    <div className="flight-details-container">
+                                    {/* <div className="flight-details-container">
                                       <div className="row accordionfarename apiairportname">
+                                        <span className="CityName">
+                                          {new Date(
+                                            data?.Origin?.DepTime
+                                          ).toLocaleTimeString("en-GB", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })}
+                                        </span>
                                         <span className="apicircle">◯</span>
-                                        <span className="airportname text-black">
+                                        <span className="CityName">
                                           {data?.Origin?.Airport?.CityName}
+                                        
                                         </span>
                                         <span className="airport">
                                           {data?.Origin?.Airport?.AirportName}{" "}
@@ -1791,14 +1802,25 @@ const FlightTbobookingflow = () => {
                                         </span>
                                       </div>
                                       <div className="row accordionfarename apiairportname">
+                                        <span>
+
+                                        </span>
                                         <span className="vertical_line"></span>
                                         {handleweekdatemonthyear(
                                           data?.Origin?.DepTime
                                         )}
                                       </div>
                                       <div className="row accordionfarename apiairportname">
+                                        <span className="CityName">
+                                          {new Date(
+                                            data?.Destination?.ArrTime
+                                          ).toLocaleTimeString("en-GB", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })}
+                                        </span>
                                         <span className="apicircle">◯</span>
-                                        <span className="airportname text-black">
+                                        <span className="CityName">
                                           {data?.Destination?.Airport?.CityName}
                                         </span>
                                         <span className="airport">
@@ -1831,7 +1853,71 @@ const FlightTbobookingflow = () => {
                                             "15KG"}
                                         </span>
                                       </div>
-                                    </div>
+                                    </div> */}
+                                      <div className="flight-details-container">
+  {/* Departure Row - Time, City, Airport on same line */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
+    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
+      {new Date(
+                                              data?.Origin?.DepTime,
+                                            ).toLocaleTimeString("en-GB", {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+    </span>
+    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
+      {data?.Origin?.Airport?.CityName}
+    </span>
+    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
+      {data?.Origin?.Airport?.AirportName} {data?.Origin?.Airport?.Terminal}
+    </span>
+  </div>
+  
+  {/* Date Row - On the same line as time (aligned under time) */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+    <span style={{ minWidth: '60px', fontSize: '12px', color: '#777', marginLeft:'8px' }}>
+      {handleweekdatemonthyear(data?.Origin?.DepTime)}
+    </span>
+  </div>
+  
+  {/* Arrival Row - Time, City, Airport on same line */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
+    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
+      {new Date(data?.Destination?.ArrTime).toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}
+    </span>
+    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
+      {data?.Destination?.Airport?.CityName}
+    </span>
+    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
+      {data?.Destination?.Airport?.AirportName} {data?.Destination?.Airport?.Terminal}
+    </span>
+  </div>
+  
+  {/* Baggage Info */}
+  <div className="baggage-info" style={{ display: 'flex', gap: '24px', marginTop: '7px', borderTop: '1px dashed #e0e0e0' }}>
+    <span className="cabin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+      <img
+        src="/img/cabin_bag.svg"
+        alt="Cabin Baggage"
+        className="baggage-icon"
+        style={{ width: '18px', height: '18px', opacity: 0.7 }}
+      />
+      <strong style={{ fontWeight: '600' }}>Cabin Baggage:</strong> {formatWeight(data?.CabinBaggage) || "NA"}
+    </span>
+    <span className="checkin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+      <img
+        src="/img/checkin_bag.svg"
+        alt="Check-in Baggage"
+        className="baggage-icon"
+        style={{ width: '18px', height: '18px', opacity: 0.7 }}
+      />
+      <strong style={{ fontWeight: '600' }}>Check-In Baggage:</strong> {formatWeight(data?.Baggage) || "NA"}
+    </span>
+  </div>
+</div>
                                   </div>
                                 </div>
                               </div>
@@ -2337,14 +2423,16 @@ const FlightTbobookingflow = () => {
                                               defaultValue={
                                                 TaxivaxiPassengeDetails?.[
                                                   formIndex
-                                                ]?.lastName || TaxivaxiPassengeDetails?.[
+                                                ]?.lastName ||
+                                                TaxivaxiPassengeDetails?.[
                                                   formIndex
                                                 ]?.firstName
                                                   ? TaxivaxiPassengeDetails[
                                                       formIndex
-                                                    ].lastName || TaxivaxiPassengeDetails?.[
-                                                  formIndex
-                                                ]?.firstName
+                                                    ].lastName ||
+                                                    TaxivaxiPassengeDetails?.[
+                                                      formIndex
+                                                    ]?.firstName
                                                   : ""
                                               }
                                               // defaultValue={
@@ -3218,7 +3306,7 @@ const FlightTbobookingflow = () => {
                                               </div>
                                             </div>
                                             <div className="flex justify-center gap-4 mt-1 pb-2">
-                                              <button
+                                              {/* <button
                                                 type="button"
                                                 onClick={() =>
                                                   setShowModal(false)
@@ -3226,7 +3314,7 @@ const FlightTbobookingflow = () => {
                                                 className="bg-black text-white px-3 py-2 rounded font-semibold"
                                               >
                                                 Edit
-                                              </button>
+                                              </button> */}
                                               <button
                                                 type="button"
                                                 onClick={() => {
@@ -4320,7 +4408,7 @@ const FlightTbobookingflow = () => {
                                                                               }
                                                                             );
 
-                                                                            // ✅ AUTO MOVE TO NEXT PASSENGER
+                                                                            //  AUTO MOVE TO NEXT PASSENGER
                                                                             if (
                                                                               selectedPassengerIndex <
                                                                               nonInfantPassengers.length -
@@ -4337,7 +4425,7 @@ const FlightTbobookingflow = () => {
                                                                           }}
                                                                         />
 
-                                                                        <label
+                                                                        {/* <label
                                                                           htmlFor={
                                                                             seatCode
                                                                           }
@@ -4352,7 +4440,14 @@ const FlightTbobookingflow = () => {
                                                                               : "available"
                                                                           }`}
                                                                           title={`[${seatCode}] ₹${seatPrice}`}
-                                                                        ></label>
+                                                                        ></label> */}
+                                                                        <label
+  htmlFor={seatCode}
+  className={`${seatPrice > 0 ? "paid" : "free"} ${
+    isUnavailable ? "unavailable-seat" : "available"
+  }`}
+  title={`[${seatCode}] ₹${seatPrice}`}
+></label>
                                                                         <span className="tooltip">
                                                                           {isUnavailable
                                                                             ? "Unavailable"
@@ -4437,7 +4532,7 @@ const FlightTbobookingflow = () => {
                               <a href="#">Fare Rules</a> , the{" "}
                               <a href="#">Privacy Policy</a> , the{" "}
                               <a href="#">User Agreement</a> and{" "}
-                              <a href="#">Terms of Service</a> of Taxivaxi
+                              <a href="#">Terms of Service</a> of Cotrav
                             </label>
                             {showError && (
                               <div

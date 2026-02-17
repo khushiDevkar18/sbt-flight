@@ -716,3 +716,9 @@ html[dir=ltr] .appendRight5 {
   overflow-y: auto;
 }
 
+/* Remove or comment out the highlight styles after sending */
+.no-highlight {
+  background-color: transparent !important;
+  cursor: default !important;
+}
+

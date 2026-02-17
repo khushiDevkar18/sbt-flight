@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import PhoneInput from "react-phone-input-2";
 import { data } from "autoprefixer";
+import { Modal } from "react-bootstrap";
 
 const FlightUapibookingflow = () => {
   const location = useLocation();
@@ -26,7 +27,7 @@ const FlightUapibookingflow = () => {
   const formRefs = useRef([]);
   const stored = sessionStorage.getItem("PriceResponse");
   const responseData = JSON.parse(stored);
-  console.log("responseData", responseData);
+  // console.log("responseData", responseData);
   const timeoutRef = useRef(null);
   const hasFetchedRef = useRef(false);
   const ClientPriceValue = responseData?.ClientPrice || 0;
@@ -53,11 +54,14 @@ const FlightUapibookingflow = () => {
   const [MealData, setMealData] = useState([]);
   const [FareData, setFareData] = useState([]);
   const [FlightData, setFlightData] = useState([]);
+  const [Airline, setAirline] = useState();
   const [BaggageData, setBaggageData] = useState([]);
   const [CancellationData, setcancellationData] = useState([]);
   const [Policy, setpolicy] = useState([]);
   const [Locatorcode, setLocatorcode] = useState("");
   const [PassengerData, setPassengerData] = useState([]);
+  const [selectedPayment, setSelectedPayment] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [gstForm, setGstForm] = useState({
     gstin: "",
     company_name: "",
@@ -148,6 +152,10 @@ const FlightUapibookingflow = () => {
             if (responseData?.FlightDetails) {
               const flightdetails = responseData?.FlightDetails;
               setFlightData(flightdetails);
+              // console.log("flightdetails",flightdetails)
+              const Airline =
+                responseData?.FlightDetails.Origin.OriginAirline.AirlineName;
+              setAirline(Airline);
             }
             if (responseData?.AirPriceResult?.OptionalServices) {
               const Optionalservice =
@@ -160,15 +168,14 @@ const FlightUapibookingflow = () => {
               setFareData(fare);
             }
             if (responseData?.AirPriceResult?.TaxInfo) {
-              const gstObj = responseData.AirPriceResult.TaxInfo.find(
-                (t) => t.$?.CarrierDefinedCategory === "27GST"
+              const gstObj = responseData.AirPriceResult.TaxInfo.find((t) =>
+                t.$?.CarrierDefinedCategory?.endsWith("GST"),
               );
 
               const gst = gstObj
                 ? Number(gstObj.$.Amount.replace("INR", ""))
                 : 0;
 
-              // console.log(tax);
               setGst_k3(gst);
             }
 
@@ -271,7 +278,7 @@ const FlightUapibookingflow = () => {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-        }
+        },
       );
       const Data = await response.json();
       // console.log(Data)
@@ -301,7 +308,7 @@ const FlightUapibookingflow = () => {
     const fetchCountryData = async () => {
       try {
         const response = await fetch(
-          "https://corporate.taxivaxi.com/api/getAllCountries"
+          "https://corporate.taxivaxi.com/api/getAllCountries",
         );
         const result = await response.json();
 
@@ -346,7 +353,7 @@ const FlightUapibookingflow = () => {
 
     // First Name
     const firstNameInput = form.querySelector(
-      'input[name="adult_first_name[]"]'
+      'input[name="adult_first_name[]"]',
     );
     const firstNameError = form.querySelector(".adult_first_name-message");
     firstNameInput?.addEventListener("input", () => {
@@ -380,7 +387,7 @@ const FlightUapibookingflow = () => {
     // Gender
 
     const genderSelects = form.querySelectorAll(
-      'select[name="adult_gender[]"]'
+      'select[name="adult_gender[]"]',
     );
     genderSelects.forEach((select) => {
       const wrapper = select.closest(".booking-gender"); // go up to the container
@@ -400,7 +407,7 @@ const FlightUapibookingflow = () => {
     });
     // Passport No
     const passportInput = form.querySelector(
-      'input[name="adult_passportNo[]"]'
+      'input[name="adult_passportNo[]"]',
     );
     const passportError = form.querySelector(".adult_passportNo-message");
     passportInput?.addEventListener("input", () => {
@@ -409,10 +416,10 @@ const FlightUapibookingflow = () => {
 
     // Issued Country (React Select input)
     const issuedCountryInput = form.querySelector(
-      'input[name="adult_issuedcountry[]"]'
+      'input[name="adult_issuedcountry[]"]',
     );
     const issuedCountryError = form.querySelector(
-      ".adult_issuedcountry-message"
+      ".adult_issuedcountry-message",
     );
     issuedCountryInput?.addEventListener("input", () => {
       if (issuedCountryInput.value.trim())
@@ -421,10 +428,10 @@ const FlightUapibookingflow = () => {
 
     // Passport Expiry Date
     const passportExpiryInput = form.querySelector(
-      'input[name="adult_passportexpiry[]"]'
+      'input[name="adult_passportexpiry[]"]',
     );
     const passportExpiryError = form.querySelector(
-      ".adult_passportexpiry-message"
+      ".adult_passportexpiry-message",
     );
     passportExpiryInput?.addEventListener("input", () => {
       if (passportExpiryInput.value.trim())
@@ -463,7 +470,7 @@ const FlightUapibookingflow = () => {
       // // ---------- Validation ----------
       // First Name
       const firstNameInput = form.querySelector(
-        'input[name="adult_first_name[]"]'
+        'input[name="adult_first_name[]"]',
       );
       const firstNameError = form.querySelector(".adult_first_name-message");
       if (firstNameInput && !firstNameInput.value.trim()) {
@@ -475,7 +482,7 @@ const FlightUapibookingflow = () => {
 
       // Last Name
       const lastNameInput = form.querySelector(
-        'input[name="adult_last_name[]"]'
+        'input[name="adult_last_name[]"]',
       );
       const lastNameError = form.querySelector(".adult_last_name-message");
       if (lastNameInput && !lastNameInput.value.trim()) {
@@ -545,7 +552,7 @@ const FlightUapibookingflow = () => {
       if (FlightType === "International") {
         // Passport No
         const passportInput = form.querySelector(
-          'input[name="adult_passportNo[]"]'
+          'input[name="adult_passportNo[]"]',
         );
         const passportError = form.querySelector(".adult_passportNo-message");
         if (!passportInput || !passportInput.value.trim()) {
@@ -558,10 +565,10 @@ const FlightUapibookingflow = () => {
 
         // Issued Country (React Select)
         const issuedCountryInput = form.querySelector(
-          'input[name="adult_issuedcountry[]"]'
+          'input[name="adult_issuedcountry[]"]',
         );
         const issuedCountryError = form.querySelector(
-          ".adult_issuedcountry-message"
+          ".adult_issuedcountry-message",
         );
         if (!issuedCountryInput || !issuedCountryInput.value.trim()) {
           issuedCountryError.textContent = "Please select Issued Country.";
@@ -573,10 +580,10 @@ const FlightUapibookingflow = () => {
 
         // Passport Expiry
         const passportExpiryInput = form.querySelector(
-          'input[name="adult_passportexpiry[]"]'
+          'input[name="adult_passportexpiry[]"]',
         );
         const passportExpiryError = form.querySelector(
-          ".adult_passportexpiry-message"
+          ".adult_passportexpiry-message",
         );
 
         if (!passportExpiryInput || !passportExpiryInput.value.trim()) {
@@ -627,7 +634,7 @@ const FlightUapibookingflow = () => {
       };
 
       const matchIndex = remainingPassengerDetails.findIndex(
-        (detail) => detail.Code === matchCode
+        (detail) => detail.Code === matchCode,
       );
 
       if (matchIndex !== -1) {
@@ -669,7 +676,7 @@ const FlightUapibookingflow = () => {
 
     if (!isValid) {
       const firstError = document.querySelector(
-        '.error-message[style*="block"]'
+        '.error-message[style*="block"]',
       );
       if (firstError) {
         firstError.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -707,7 +714,7 @@ const FlightUapibookingflow = () => {
       m.segmentKey ===
         Optionalservice?.find((s) => s.Key === selectedPassengerKey)?.Segment?.[
           selectedSegmentKey
-        ]?.Key
+        ]?.Key,
   );
   console.log(currentPassengerMeals);
   // useEffect(() => {
@@ -734,7 +741,7 @@ const FlightUapibookingflow = () => {
 
     const formattedData = PassengerData.map((passenger, index) => {
       const passengerMeals = selectedMeals.filter(
-        (m) => m.passengerIndex === index
+        (m) => m.passengerIndex === index,
       );
 
       return {
@@ -808,7 +815,7 @@ const FlightUapibookingflow = () => {
           !(
             item.passengerIndex === selectedPassengerIndex &&
             item.segmentKey === selectedSegmentKey
-          )
+          ),
       );
 
       return [
@@ -824,7 +831,7 @@ const FlightUapibookingflow = () => {
       ];
     });
 
-    // ✅ MOVE TO NEXT PASSENGER
+    //  MOVE TO NEXT PASSENGER
     const nonInfants = PassengerData.filter((p) => p.type !== "Infant");
 
     if (selectedPassengerIndex < nonInfants.length - 1) {
@@ -853,7 +860,7 @@ const FlightUapibookingflow = () => {
           }
           return item;
         })
-        .filter((item) => item.quantity > 0)
+        .filter((item) => item.quantity > 0),
     );
   };
 
@@ -890,13 +897,13 @@ const FlightUapibookingflow = () => {
 
   const handlePrev = () => {
     setCurrentFlightIndex((prev) =>
-      prev > 0 ? prev - 1 : SeatData[0]?.Segments.length - 1
+      prev > 0 ? prev - 1 : SeatData[0]?.Segments.length - 1,
     );
   };
 
   const handleNext = () => {
     setCurrentFlightIndex((prev) =>
-      prev < SeatData[0]?.Segments.length - 1 ? prev + 1 : 0
+      prev < SeatData[0]?.Segments.length - 1 ? prev + 1 : 0,
     );
   };
   const parsePrice = (price) => {
@@ -934,11 +941,12 @@ const FlightUapibookingflow = () => {
 
   // ================= CLIENT PRICE =================
   const passengerCount = TaxivaxiPassengeDetails?.length || 0;
-  console.log("passengerCount",passengerCount);
+  console.log("passengerCount", passengerCount);
   const pricePerPax = Number(ClientPriceValue) || 0;
-console.log("price",pricePerPax);
+  console.log("price", pricePerPax);
   const clientPrice = pricePerPax * passengerCount;
-  console.log("clientPrice",clientPrice);
+  console.log("clientPrice", clientPrice);
+
   // ================= CALCULATIONS =================
   const Markup = clientPrice - totalPrice2;
 
@@ -950,11 +958,6 @@ console.log("price",pricePerPax);
 
   // ================= DISPLAY (ONLY HERE) =================
   console.log("Markup:", Markup.toFixed(2));
-  // console.log("TotalPrice:", TotalPrice.toFixed(2));
-  // console.log(
-  //   "Other Charges with Markup:",
-  //   otherchargeswithmarkup.toFixed(2)
-  // );
 
   //Cilent Gst Data
   const fetchGstData = async () => {
@@ -971,7 +974,7 @@ console.log("price",pricePerPax);
               "Content-Type": "application/x-www-form-urlencoded",
             },
             body: formData.toString(),
-          }
+          },
         );
 
         if (!response.ok) {
@@ -1077,30 +1080,155 @@ console.log("price",pricePerPax);
       cancelButtonText: "Cancel",
       allowOutsideClick: false,
     });
-
+    if (result.isConfirmed) {
+      if (responseData.FlightDetails.requesttype == "book") {
+        setIsModalOpen(true);
+      } else {
+        makeFinalPriceRequest();
+      }
+    }
     if (!result.isConfirmed) {
       return; // Stop the booking if user cancels
     }
 
-    const passInfo = PassengerData.map((da) => {
-      return {
-        Key: da?.Key,
-        Code: da?.code,
-        Number: da?.contact,
-        EmailID: da?.email,
-        First: da?.firstName,
-        Gender: da?.gender,
-        Last: da?.lastName,
-        Prefix: da?.prefix,
-        Age: da?.age,
-        Dob: da?.dob,
-        PassportExpiry: da.passportexpiry,
-        PassportNo: da.passportno,
-      };
-    });
-    const SeatInfo = selectedSeats.map((da) => {
-      return da.seat;
-    });
+    // const passInfo = PassengerData.map((da) => {
+    //   return {
+    //     Key: da?.Key,
+    //     Code: da?.code,
+    //     Number: da?.contact,
+    //     EmailID: da?.email,
+    //     First: da?.firstName,
+    //     Gender: da?.gender,
+    //     Last: da?.lastName,
+    //     Prefix: da?.prefix,
+    //     Age: da?.age,
+    //     Dob: da?.dob,
+    //     PassportExpiry: da.passportexpiry,
+    //     PassportNo: da.passportno,
+    //   };
+    // });
+    // const SeatInfo = selectedSeats.map((da) => {
+    //   return da.seat;
+    // });
+    // const requestData = {
+    //   onwardKeys: {
+    //     source_type: responseData.source_type,
+    //     traceId: TraceId,
+    //     key: Pricekey || "",
+    //     isLCC: IsLCC,
+    //     Optional_services: ServiceInfo,
+    //     Seats_services: SeatInfo,
+    //   },
+    //   passengerDetails: passInfo,
+    // };
+    // // try {
+    // //   setfinalloading(true);
+    // //   const response = await fetch(`${base_url}makeFinalPriceRequest`, {
+    // //     method: "POST",
+    // //     headers: {
+    // //       "Content-Type": "application/json",
+    // //     },
+    // //     body: JSON.stringify(requestData),
+    // //   });
+
+    // //   const Data = await response.json();
+    // //   setfinalloading(false);
+    // //   const onward = Data?.data?.onward;
+    // //   // const ret = Data?.data?.returns;
+
+    // //   // CASE: API sent error (string instead of object)
+    // //   if (typeof onward === "string") {
+    // //     Swal.fire({
+    // //       title: "Error",
+    // //       text:
+    // //         typeof onward === "string"
+    // //           ? onward
+    // //           : "An unexpected error occurred during booking.",
+    // //       iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
+    // //       confirmButtonText: "Try Again",
+    // //       allowOutsideClick: false,
+    // //     }).then((result) => {
+    // //       if (result.isConfirmed) {
+    // //         if (bookingid) {
+    // //           navigate("/SearchFlight", {
+    // //             state: { responseData: TaxivaxiFlightDetails },
+    // //           });
+    // //         } else {
+    // //           window.location.href = "/";
+    // //         }
+    // //       }
+    // //     });
+
+    // //     return; // IMPORTANT
+    // //   }
+    // //   if (Data.status == true) {
+    // //     const LocatorCode = Data.data.LocatorCode;
+    // //     // console.log('passenger', PassengerInfo)
+    // //     localStorage.setItem("Passengerdetails", JSON.stringify(PassengerInfo));
+    // //     setLocatorcode(LocatorCode);
+    // //     const fares = {
+    // //       markupValue: Markup,
+    // //       ClientPriceValue: ClientPriceValue,
+    // //       total_ex_tax_fees: basePrice,
+    // //       tax_and_fees: OtherCharges,
+    // //       gst_k3: gst_k3,
+    // //     };
+    // //     const responseData = TaxivaxiFlightDetails;
+    // //     const FlightBooking = Data.data;
+    // //     navigate("/UapibookingCompleted", {
+    // //       state: { FlightBooking, responseData, fares },
+    // //     });
+    // //   }
+
+    // //   if (Data.status == false || Data.status == "error") {
+    // //     Swal.fire({
+    // //       title: "Error",
+    // //       text: Data.message,
+    // //       iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
+    // //       confirmButtonText: "Try Again",
+    // //       allowOutsideClick: false,
+    // //     }).then((result) => {
+    // //       if (result.isConfirmed) {
+    // //         if (bookingid) {
+    // //           const responseData = TaxivaxiFlightDetails;
+    // //           navigate("/SearchFlight", { state: { responseData } });
+    // //         } else {
+    // //           // Otherwise, go to home page
+    // //           window.location.href = "/";
+    // //         }
+    // //       }
+    // //     });
+    // //   }
+    // //   setfinalloading(false);
+    // // } catch (error) {
+    // //   Swal.fire({
+    // //     title: "Error",
+    // //     text: error.message,
+    // //     iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
+    // //     confirmButtonText: "OK",
+    // //     allowOutsideClick: false,
+    // //   });
+    // //   setfinalloading(false);
+    // // }
+  };
+  const makeFinalPriceRequest = async () => {
+    const passInfo = PassengerData.map((da) => ({
+      Key: da?.Key,
+      Code: da?.code,
+      Number: da?.contact,
+      EmailID: da?.email,
+      First: da?.firstName,
+      Gender: da?.gender,
+      Last: da?.lastName,
+      Prefix: da?.prefix,
+      Age: da?.age,
+      Dob: da?.dob,
+      PassportExpiry: da.passportexpiry,
+      PassportNo: da.passportno,
+    }));
+
+    const SeatInfo = selectedSeats.map((da) => da.seat);
+
     const requestData = {
       onwardKeys: {
         source_type: responseData.source_type,
@@ -1109,16 +1237,17 @@ console.log("price",pricePerPax);
         isLCC: IsLCC,
         Optional_services: ServiceInfo,
         Seats_services: SeatInfo,
+        paymentMethod: selectedPayment, //  send selected payment
       },
       passengerDetails: passInfo,
     };
+
     try {
       setfinalloading(true);
+
       const response = await fetch(`${base_url}makeFinalPriceRequest`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
       });
 
@@ -1191,15 +1320,15 @@ console.log("price",pricePerPax);
         });
       }
       setfinalloading(false);
+
+      // 👉 keep your existing success / error logic here
     } catch (error) {
+      setfinalloading(false);
       Swal.fire({
         title: "Error",
         text: error.message,
-        iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
-        confirmButtonText: "OK",
-        allowOutsideClick: false,
+        icon: "error",
       });
-      setfinalloading(false);
     }
   };
 
@@ -1234,11 +1363,11 @@ console.log("price",pricePerPax);
   // };
   const handleseatbuttonskip = () => {
     setAccordion3Expanded(false);
-    // ✅ FORCE first passenger ACTIVE
+    //  FORCE first passenger ACTIVE
     setSelectedPassengerIndex(0);
 
     const firstNonInfantPassenger = PassengerData.find(
-      (p) => p.type !== "Infant"
+      (p) => p.type !== "Infant",
     );
 
     if (firstNonInfantPassenger) {
@@ -1248,11 +1377,11 @@ console.log("price",pricePerPax);
   const handlebaggagebuttonskip = () => {
     setAccordion4Expanded(false);
     setAccordion6Expanded(true);
-    // ✅ FORCE first passenger ACTIVE
+    //  FORCE first passenger ACTIVE
     setSelectedPassengerIndex(0);
 
     const firstNonInfantPassenger = PassengerData.find(
-      (p) => p.type !== "Infant"
+      (p) => p.type !== "Infant",
     );
 
     if (firstNonInfantPassenger) {
@@ -1335,7 +1464,7 @@ console.log("price",pricePerPax);
               alt="Loader"
             />
             <p className="text-center ml-4 text-gray-600 text-lg">
-              Retrieving seat details. Please wait a moment.
+              Retrieving details. Please wait a moment.
             </p>
           </div>
         </div>
@@ -1368,6 +1497,82 @@ console.log("price",pricePerPax);
           </div>
         </div>
       )}
+      <Modal
+        show={isModalOpen}
+        onHide={() => setIsModalOpen(false)}
+        aria-labelledby="modal-title"
+      >
+        <Modal.Header className="custom-modal-header">
+          <Modal.Title id="modal-title">Select payment Method</Modal.Title>
+          <button className="close-btn" onClick={() => setIsModalOpen(false)}>
+            ×
+          </button>
+        </Modal.Header>
+        <Modal.Body className="py-4">
+          {(() => {
+            if (Airline === "Indigo") {
+              return (
+                <>
+                  {["Indigo Wallet", "IATA EasyPay", "IATA BG"].map(
+                    (method) => (
+                      <div key={method} className="mb-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value={method}
+                            checked={selectedPayment === method}
+                            onChange={(e) => setSelectedPayment(e.target.value)}
+                          />
+                          <span>{method}</span>
+                        </label>
+                      </div>
+                    ),
+                  )}
+                </>
+              );
+            }
+
+            //  If NOT Indigo + UAPI
+            if (Airline !== "Indigo") {
+              return (
+                <>
+                  {["IATA EasyPay", "IATA BG"].map((method) => (
+                    <div key={method} className="mb-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value={method}
+                          checked={selectedPayment === method}
+                          onChange={(e) => setSelectedPayment(e.target.value)}
+                        />
+                        <span>{method}</span>
+                      </label>
+                    </div>
+                  ))}
+                </>
+              );
+            }
+          })()}
+        </Modal.Body>
+        <Modal.Footer className="custom-modal-footer">
+          <button
+            className="px-5 py-2.5 text-sm font-medium text-white bg-[#785eff] rounded-lg"
+            onClick={() => {
+              if (!selectedPayment) {
+                Swal.fire("Please select a payment method");
+                return;
+              }
+              setIsModalOpen(false);
+              makeFinalPriceRequest(); // your API call
+            }}
+          >
+            Continue
+          </button>
+        </Modal.Footer>
+      </Modal>
+
       <div className="main-cont" id="main_cont">
         <div className="body-wrapper">
           <div className="wrapper-padding">
@@ -1432,7 +1637,7 @@ console.log("price",pricePerPax);
                                         </div>
                                       </div>
                                     </div>
-                                    <div className="flight-details-container">
+                                    {/* <div className="flight-details-container">
                                       <div className="row accordionfarename apiairportname">
                                         <span className="apicircle">◯</span>
                                         <span className="airportname text-black font-bold">
@@ -1484,7 +1689,141 @@ console.log("price",pricePerPax);
                                             "15KG"}
                                         </span>
                                       </div>
-                                    </div>
+                                    </div> */}
+                                    {/* <div className="flight-details-container">
+                                      <div className="row accordionfarename apiairportname">
+                                        <span className="CityName">
+                                          {new Date(
+                                            data?.Origin?.DepTime,
+                                          ).toLocaleTimeString("en-GB", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })}
+                                        </span>
+                                        <span className="apicircle">◯</span>
+                                        <span className="CityName">
+                                          {data?.Origin?.Airport?.CityName}
+                                        </span>
+                                        <span className="airport">
+                                          {data?.Origin?.Airport?.AirportName}{" "}
+                                          {data?.Origin?.Airport?.Terminal}
+                                        </span>
+                                      </div>
+                                      <div className="row accordionfarename apiairportname">
+                                        <span></span>
+                                        <span className="vertical_line"></span>
+                                        {handleweekdatemonthyear(
+                                          data?.Origin?.DepTime,
+                                        )}
+                                      </div>
+                                      <div className="row accordionfarename apiairportname">
+                                        <span className="CityName">
+                                          {new Date(
+                                            data?.Destination?.ArrTime,
+                                          ).toLocaleTimeString("en-GB", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })}
+                                        </span>
+                                        <span className="apicircle">◯</span>
+                                        <span className="CityName">
+                                          {data?.Destination?.Airport?.CityName}
+                                        </span>
+                                        <span className="airport">
+                                          {
+                                            data?.Destination?.Airport
+                                              ?.AirportName
+                                          }{" "}
+                                          {data?.Destination?.Airport?.Terminal}
+                                        </span>
+                                      </div>
+                                      <div className="baggage-info">
+                                        <span className="cabin-baggage">
+                                          <img
+                                            src="/img/cabin_bag.svg"
+                                            alt="Cabin Baggage"
+                                            className="baggage-icon"
+                                          />
+                                          <strong>Cabin Baggage:</strong>{" "}
+                                          {formatWeight(data?.CabinBaggage) ||
+                                            "7KG"}
+                                        </span>
+                                        <span className="checkin-baggage">
+                                          <img
+                                            src="/img/checkin_bag.svg"
+                                            alt="Cabin Baggage"
+                                            className="baggage-icon"
+                                          />
+                                          <strong>Check-In Baggage:</strong>{" "}
+                                          {formatWeight(data?.Baggage) ||
+                                            "15KG"}
+                                        </span>
+                                      </div>
+                                    </div> */}
+                                      <div className="flight-details-container">
+  {/* Departure Row - Time, City, Airport on same line */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
+    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
+      {new Date(
+                                              data?.Origin?.DepTime,
+                                            ).toLocaleTimeString("en-GB", {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+    </span>
+    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
+      {data?.Origin?.Airport?.CityName}
+    </span>
+    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
+      {data?.Origin?.Airport?.AirportName} {data?.Origin?.Airport?.Terminal}
+    </span>
+  </div>
+  
+  {/* Date Row - On the same line as time (aligned under time) */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+    <span style={{ minWidth: '60px', fontSize: '12px', color: '#777', marginLeft:'8px' }}>
+      {handleweekdatemonthyear(data?.Origin?.DepTime)}
+    </span>
+  </div>
+  
+  {/* Arrival Row - Time, City, Airport on same line */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
+    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
+      {new Date(data?.Destination?.ArrTime).toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}
+    </span>
+    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
+      {data?.Destination?.Airport?.CityName}
+    </span>
+    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
+      {data?.Destination?.Airport?.AirportName} {data?.Destination?.Airport?.Terminal}
+    </span>
+  </div>
+  
+  {/* Baggage Info */}
+  <div className="baggage-info" style={{ display: 'flex', gap: '24px', marginTop: '7px', borderTop: '1px dashed #e0e0e0' }}>
+    <span className="cabin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+      <img
+        src="/img/cabin_bag.svg"
+        alt="Cabin Baggage"
+        className="baggage-icon"
+        style={{ width: '18px', height: '18px', opacity: 0.7 }}
+      />
+      <strong style={{ fontWeight: '600' }}>Cabin Baggage:</strong> {formatWeight(data?.CabinBaggage) || "NA"}
+    </span>
+    <span className="checkin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+      <img
+        src="/img/checkin_bag.svg"
+        alt="Check-in Baggage"
+        className="baggage-icon"
+        style={{ width: '18px', height: '18px', opacity: 0.7 }}
+      />
+      <strong style={{ fontWeight: '600' }}>Check-In Baggage:</strong> {formatWeight(data?.Baggage) ||"NA"}
+    </span>
+  </div>
+</div>
                                   </div>
                                 </div>
                               </div>
@@ -1527,7 +1866,7 @@ console.log("price",pricePerPax);
                           )}
 
                           {Segments?.some(
-                            (seg) => seg.Airline?.AirlineCode === "6E"
+                            (seg) => seg.Airline?.AirlineCode === "6E",
                           ) ? (
                             <table className="styled-table">
                               <thead>
@@ -1539,7 +1878,7 @@ console.log("price",pricePerPax);
                                 {(() => {
                                   const cancelItem =
                                     CancellationData?.Cancellation?.find(
-                                      (item) => item.fare_name === fare_type
+                                      (item) => item.fare_name === fare_type,
                                     );
                                   return cancelItem ? (
                                     <tr>
@@ -1567,7 +1906,7 @@ console.log("price",pricePerPax);
                                 {(() => {
                                   const dateChangeItem =
                                     CancellationData?.Date_Change?.find(
-                                      (item) => item.fare_name === fare_type
+                                      (item) => item.fare_name === fare_type,
                                     );
                                   return dateChangeItem ? (
                                     <tr>
@@ -1578,7 +1917,7 @@ console.log("price",pricePerPax);
                                       <td>
                                         {dateChangeItem.fee.replace(
                                           /INR/i,
-                                          "₹"
+                                          "₹",
                                         )}
                                       </td>
                                     </tr>
@@ -1835,14 +2174,16 @@ console.log("price",pricePerPax);
                                               defaultValue={
                                                 TaxivaxiPassengeDetails?.[
                                                   formIndex
-                                                ]?.lastName || TaxivaxiPassengeDetails?.[
+                                                ]?.lastName ||
+                                                TaxivaxiPassengeDetails?.[
                                                   formIndex
                                                 ]?.firstName
                                                   ? TaxivaxiPassengeDetails[
                                                       formIndex
-                                                    ].lastName || TaxivaxiPassengeDetails?.[
-                                                  formIndex
-                                                ]?.firstName
+                                                    ].lastName ||
+                                                    TaxivaxiPassengeDetails?.[
+                                                      formIndex
+                                                    ]?.firstName
                                                   : ""
                                               }
 
@@ -2099,8 +2440,8 @@ console.log("price",pricePerPax);
                                                     : new Date(
                                                         new Date().setFullYear(
                                                           new Date().getFullYear() -
-                                                            99
-                                                        )
+                                                            99,
+                                                        ),
                                                       )
                                                         .toISOString()
                                                         .split("T")[0] // Converts to YYYY-MM-DD format
@@ -2165,7 +2506,7 @@ console.log("price",pricePerPax);
                                                   // Update state...
                                                   const error =
                                                     document.querySelector(
-                                                      ".adult_issuedcountry-message"
+                                                      ".adult_issuedcountry-message",
                                                     );
                                                   if (selectedOption)
                                                     error.style.display =
@@ -2179,7 +2520,7 @@ console.log("price",pricePerPax);
                                                     fontSize: "13px",
                                                   }),
                                                   valueContainer: (
-                                                    provided
+                                                    provided,
                                                   ) => ({
                                                     ...provided,
                                                     height: "36px",
@@ -2200,7 +2541,7 @@ console.log("price",pricePerPax);
                                                   }),
                                                   option: (
                                                     provided,
-                                                    state
+                                                    state,
                                                   ) => ({
                                                     ...provided,
                                                     fontSize: "13px",
@@ -2730,12 +3071,12 @@ console.log("price",pricePerPax);
                                                         </div>
                                                       </div>
                                                     </div>
-                                                  )
+                                                  ),
                                                 )}
                                               </div>
                                             </div>
                                             <div className="flex justify-center gap-4 mt-1 pb-2">
-                                              <button
+                                              {/* <button
                                                 type="button"
                                                 onClick={() =>
                                                   setShowModal(false)
@@ -2743,7 +3084,7 @@ console.log("price",pricePerPax);
                                                 className="bg-black text-white px-3 py-2 rounded font-semibold"
                                               >
                                                 Edit
-                                              </button>
+                                              </button> */}
                                               <button
                                                 type="button"
                                                 onClick={SeatFetch}
@@ -2848,7 +3189,7 @@ console.log("price",pricePerPax);
                                               <div>{b.baggage.DisplayText}</div>
                                               <div>
                                                 {replaceINRWithSymbol(
-                                                  b.baggage.TotalPrice
+                                                  b.baggage.TotalPrice,
                                                 )}
                                               </div>
                                             </div>
@@ -2869,10 +3210,10 @@ console.log("price",pricePerPax);
                           <AccordionDetails className="flex gap-6  ">
                             <div className="w-1/4 border-r pr-4 flex flex-col gap-3 ">
                               {PassengerData.filter(
-                                (passenger) => passenger.type !== "Infant"
+                                (passenger) => passenger.type !== "Infant",
                               ).map((passenger, index) => {
                                 const passengerBaggage = selectedBaggage.find(
-                                  (m) => m.passengerIndex === index
+                                  (m) => m.passengerIndex === index,
                                 );
                                 // console.log(selectedBaggage)
                                 return (
@@ -2904,11 +3245,11 @@ console.log("price",pricePerPax);
                                             (b) =>
                                               b.passengerIndex === index &&
                                               b.segmentKey ===
-                                                selectedSegmentKey
+                                                selectedSegmentKey,
                                           )
                                           .map(
                                             (b) =>
-                                              `${b.baggage.DisplayText} x${b.quantity}`
+                                              `${b.baggage.DisplayText} x${b.quantity}`,
                                           )
                                           .join(", ") || "Not Selected"
                                       }
@@ -2923,7 +3264,7 @@ console.log("price",pricePerPax);
                                   const passengerService =
                                     Optionalservice?.find(
                                       (service) =>
-                                        service.Key === selectedPassengerKey
+                                        service.Key === selectedPassengerKey,
                                     );
 
                                   const segmentIndex = selectedSegmentKey;
@@ -2936,7 +3277,7 @@ console.log("price",pricePerPax);
                                     baggage.push(passengerService?.Baggage);
                                   } else {
                                     baggage.push(
-                                      segmentData?.OptionalServices?.Baggage
+                                      segmentData?.OptionalServices?.Baggage,
                                     );
                                   }
                                   const modBag = baggage[0];
@@ -2955,7 +3296,7 @@ console.log("price",pricePerPax);
                                               selectedPassengerIndex &&
                                             b.segmentKey ===
                                               selectedSegmentKey &&
-                                            b.baggageIndex === idx
+                                            b.baggageIndex === idx,
                                         );
 
                                       const quantity =
@@ -3023,7 +3364,7 @@ console.log("price",pricePerPax);
                                           <div className="flex items-center gap-4">
                                             <div className="text-sm font-semibold text-black">
                                               {replaceINRWithSymbol(
-                                                Baggage?.TotalPrice
+                                                Baggage?.TotalPrice,
                                               )}
                                             </div>
                                             <div className="flex items-center gap-2 baggageoptionbuttons">
@@ -3034,7 +3375,7 @@ console.log("price",pricePerPax);
                                                   onClick={() =>
                                                     handleAddBaggage(
                                                       Baggage,
-                                                      idx
+                                                      idx,
                                                     )
                                                   } // pass index
                                                 >
@@ -3138,11 +3479,11 @@ console.log("price",pricePerPax);
                                               </div>
                                               <div>
                                                 {replaceINRWithSymbol(
-                                                  meals.meal.TotalPrice
+                                                  meals.meal.TotalPrice,
                                                 )}
                                               </div>
                                             </div>
-                                          )
+                                          ),
                                         )}
                                       </div>
                                     }
@@ -3160,13 +3501,13 @@ console.log("price",pricePerPax);
                           <AccordionDetails className="flex gap-6">
                             <div className="w-1/4 border-r pr-4 flex flex-col gap-3">
                               {PassengerData.filter(
-                                (passenger) => passenger.type !== "Infant"
+                                (passenger) => passenger.type !== "Infant",
                               ) // Adjust key if needed
                                 .map((passenger, index) => {
                                   const passengerService =
                                     Optionalservice?.find(
                                       (service) =>
-                                        service.Key === selectedPassengerKey
+                                        service.Key === selectedPassengerKey,
                                     );
                                   const segmentIndex = selectedSegmentKey;
                                   const segmentData =
@@ -3177,7 +3518,7 @@ console.log("price",pricePerPax);
                                   const passengerMeal = selectedMeals.find(
                                     (m) =>
                                       m.passengerIndex === index &&
-                                      m.segmentKey === segmentKey
+                                      m.segmentKey === segmentKey,
                                   );
                                   // console.log(selectedMeals)
                                   return (
@@ -3239,7 +3580,7 @@ console.log("price",pricePerPax);
                                               value={index}
                                             />
                                           );
-                                        }
+                                        },
                                       )}
                                     </Tabs>
                                   </div>
@@ -3250,7 +3591,7 @@ console.log("price",pricePerPax);
                                     const passengerService =
                                       Optionalservice?.find(
                                         (service) =>
-                                          service.Key === selectedPassengerKey
+                                          service.Key === selectedPassengerKey,
                                       );
                                     const segmentIndex = selectedSegmentKey;
                                     const segmentData =
@@ -3293,7 +3634,7 @@ console.log("price",pricePerPax);
                                             <div className="flex items-center gap-6">
                                               <div className="font-semibold text-sm">
                                                 {replaceINRWithSymbol(
-                                                  meal?.TotalPrice
+                                                  meal?.TotalPrice,
                                                 ) || "0.00"}
                                               </div>
 
@@ -3306,7 +3647,7 @@ console.log("price",pricePerPax);
                                                         selectedPassengerIndex &&
                                                       m.segmentKey ===
                                                         segmentKey &&
-                                                      m.meal === meal
+                                                      m.meal === meal,
                                                   )
                                                     ? "text-white bg-violet-600 border-violet-600"
                                                     : "text-violet-600 border-violet-300"
@@ -3357,7 +3698,7 @@ console.log("price",pricePerPax);
                                                           selectedPassengerIndex &&
                                                         m.segmentKey ===
                                                           segmentKey &&
-                                                        m.mealIndex === idx
+                                                        m.mealIndex === idx,
                                                     );
 
                                                     // REMOVE
@@ -3370,7 +3711,7 @@ console.log("price",pricePerPax);
                                                             m.segmentKey ===
                                                               segmentKey &&
                                                             m.mealIndex === idx
-                                                          )
+                                                          ),
                                                       );
                                                     }
 
@@ -3387,10 +3728,11 @@ console.log("price",pricePerPax);
                                                     ];
                                                   });
 
-                                                  // ✅ AUTO MOVE TO NEXT PASSENGER (SAFE)
+                                                  //  AUTO MOVE TO NEXT PASSENGER (SAFE)
                                                   const nonInfantPassengers =
                                                     PassengerData.filter(
-                                                      (p) => p.type !== "Infant"
+                                                      (p) =>
+                                                        p.type !== "Infant",
                                                     );
 
                                                   if (
@@ -3408,10 +3750,10 @@ console.log("price",pricePerPax);
 
                                                     setTimeout(() => {
                                                       setSelectedPassengerIndex(
-                                                        nextIndex
+                                                        nextIndex,
                                                       );
                                                       setSelectedPassengerKey(
-                                                        nextPassenger.Key
+                                                        nextPassenger.Key,
                                                       );
                                                     }, 150);
                                                   }
@@ -3423,7 +3765,7 @@ console.log("price",pricePerPax);
                                                       selectedPassengerIndex &&
                                                     m.segmentKey ===
                                                       segmentKey &&
-                                                    m.meal === meal
+                                                    m.meal === meal,
                                                 )
                                                   ? "Added"
                                                   : "Add"}
@@ -3445,17 +3787,17 @@ console.log("price",pricePerPax);
                                     handleSaveMeal();
                                     setAccordion6Expanded(false);
                                     setAccordion3Expanded(true);
-                                    // ✅ FORCE first passenger ACTIVE
+                                    //  FORCE first passenger ACTIVE
                                     setSelectedPassengerIndex(0);
 
                                     const firstNonInfantPassenger =
                                       PassengerData.find(
-                                        (p) => p.type !== "Infant"
+                                        (p) => p.type !== "Infant",
                                       );
 
                                     if (firstNonInfantPassenger) {
                                       setSelectedPassengerKey(
-                                        firstNonInfantPassenger.Key
+                                        firstNonInfantPassenger.Key,
                                       );
                                     }
 
@@ -3522,7 +3864,7 @@ console.log("price",pricePerPax);
                                                 <div>{seat.seatCode}</div>
                                                 <div>
                                                   {replaceINRWithSymbol(
-                                                    seat.seatPrice
+                                                    seat.seatPrice,
                                                   )}
                                                 </div>
                                               </div>
@@ -3549,13 +3891,14 @@ console.log("price",pricePerPax);
                                 <div className="seatleft">
                                   <div className="seatleftul">
                                     {PassengerData.filter(
-                                      (passenger) => passenger.type !== "Infant"
+                                      (passenger) =>
+                                        passenger.type !== "Infant",
                                     ) // Adjust key if needed
                                       .map((passenger, index) => {
                                         const passengerService = SeatData?.find(
                                           (service) =>
                                             service.TravellerKey ===
-                                            selectedPassengerKey
+                                            selectedPassengerKey,
                                         );
                                         const segmentIndex = currentFlightIndex;
                                         const segmentData =
@@ -3566,7 +3909,7 @@ console.log("price",pricePerPax);
                                         const selectedSeat = selectedSeats.find(
                                           (m) =>
                                             m.passengerIndex === index &&
-                                            m.segmentKey === segmentkey
+                                            m.segmentKey === segmentkey,
                                         );
                                         // console.log(selectedSeats)
                                         return (
@@ -3581,7 +3924,7 @@ console.log("price",pricePerPax);
                                             onClick={() => {
                                               setSelectedPassengerIndex(index);
                                               setSelectedPassengerKey(
-                                                passenger.Key
+                                                passenger.Key,
                                               );
                                             }}
                                           >
@@ -3646,7 +3989,7 @@ console.log("price",pricePerPax);
                                                 SeatData?.find(
                                                   (service) =>
                                                     service.TravellerKey ===
-                                                    selectedPassengerKey
+                                                    selectedPassengerKey,
                                                 );
                                               const totalFlights =
                                                 passengerService?.Segments
@@ -3682,7 +4025,7 @@ console.log("price",pricePerPax);
                                                   const flight = SeatData?.find(
                                                     (service) =>
                                                       service.TravellerKey ===
-                                                      selectedPassengerKey
+                                                      selectedPassengerKey,
                                                   )?.Segments?.[
                                                     currentFlightIndex
                                                   ];
@@ -3739,7 +4082,7 @@ console.log("price",pricePerPax);
                                                       SeatData?.find(
                                                         (service) =>
                                                           service.TravellerKey ===
-                                                          selectedPassengerKey
+                                                          selectedPassengerKey,
                                                       );
                                                     const segmentIndex =
                                                       currentFlightIndex;
@@ -3754,7 +4097,7 @@ console.log("price",pricePerPax);
                                                     if (
                                                       !segmentData ||
                                                       !Array.isArray(
-                                                        segmentData.Rows
+                                                        segmentData.Rows,
                                                       ) ||
                                                       segmentData.Rows
                                                         .length === 0
@@ -3778,7 +4121,7 @@ console.log("price",pricePerPax);
                                                         const validSeats =
                                                           row.Seats?.filter(
                                                             (seat) =>
-                                                              seat?.SeatCode
+                                                              seat?.SeatCode,
                                                           );
 
                                                         if (
@@ -3793,7 +4136,7 @@ console.log("price",pricePerPax);
                                                           (seat) => {
                                                             const seatLetter =
                                                               seat.SeatCode.split(
-                                                                "-"
+                                                                "-",
                                                               )[1]; // A, B, etc.
                                                             rowMap[rowNo][
                                                               seatLetter
@@ -3814,20 +4157,20 @@ console.log("price",pricePerPax);
                                                             };
 
                                                             seatLettersSet.add(
-                                                              seatLetter
+                                                              seatLetter,
                                                             );
-                                                          }
+                                                          },
                                                         );
-                                                      }
+                                                      },
                                                     );
 
                                                     const sortedRowNos =
                                                       Object.keys(rowMap).sort(
-                                                        (a, b) => +a - +b
+                                                        (a, b) => +a - +b,
                                                       );
                                                     const sortedSeatLetters =
                                                       Array.from(
-                                                        seatLettersSet
+                                                        seatLettersSet,
                                                       ).sort();
 
                                                     return (
@@ -3848,7 +4191,7 @@ console.log("price",pricePerPax);
                                                                 {sortedSeatLetters.map(
                                                                   (
                                                                     seatLetter,
-                                                                    seatIndex
+                                                                    seatIndex,
                                                                   ) => {
                                                                     const seat =
                                                                       rowMap[
@@ -3871,7 +4214,7 @@ console.log("price",pricePerPax);
                                                                       seat.seatCode;
                                                                     const seatPrice =
                                                                       replaceINRWithSymbol(
-                                                                        seat.price
+                                                                        seat.price,
                                                                       );
                                                                     const isUnavailable =
                                                                       seat.isUnavailable;
@@ -3879,8 +4222,8 @@ console.log("price",pricePerPax);
                                                                       parseFloat(
                                                                         seatPrice.replace(
                                                                           /[^\d.]/g,
-                                                                          ""
-                                                                        )
+                                                                          "",
+                                                                        ),
                                                                       );
 
                                                                     // ⛔ Skip paid seats if isLCC is false
@@ -3896,7 +4239,7 @@ console.log("price",pricePerPax);
                                                                           s.segmentKey ===
                                                                             segmentkey &&
                                                                           s.passengerIndex !==
-                                                                            selectedPassengerIndex
+                                                                            selectedPassengerIndex,
                                                                       );
 
                                                                     return (
@@ -3923,14 +4266,14 @@ console.log("price",pricePerPax);
                                                                           }
                                                                           checked={selectedSeats.some(
                                                                             (
-                                                                              s
+                                                                              s,
                                                                             ) =>
                                                                               s.passengerIndex ===
                                                                                 selectedPassengerIndex &&
                                                                               s.segmentKey ===
                                                                                 segmentkey &&
                                                                               s.seatCode ===
-                                                                                seatCode
+                                                                                seatCode,
                                                                           )}
                                                                           // onChange={() => {
                                                                           //   setSelectedSeats(
@@ -3968,19 +4311,19 @@ console.log("price",pricePerPax);
                                                                             // 1️⃣ Save seat
                                                                             setSelectedSeats(
                                                                               (
-                                                                                prev
+                                                                                prev,
                                                                               ) => {
                                                                                 const filtered =
                                                                                   prev.filter(
                                                                                     (
-                                                                                      s
+                                                                                      s,
                                                                                     ) =>
                                                                                       !(
                                                                                         s.passengerIndex ===
                                                                                           selectedPassengerIndex &&
                                                                                         s.segmentKey ===
                                                                                           segmentkey
-                                                                                      )
+                                                                                      ),
                                                                                   );
                                                                                 return [
                                                                                   ...filtered,
@@ -3994,17 +4337,17 @@ console.log("price",pricePerPax);
                                                                                     seat,
                                                                                   },
                                                                                 ];
-                                                                              }
+                                                                              },
                                                                             );
 
                                                                             // 2️⃣ AUTO MOVE TO NEXT PASSENGER (ONLY HERE)
                                                                             const nonInfantPassengers =
                                                                               PassengerData.filter(
                                                                                 (
-                                                                                  p
+                                                                                  p,
                                                                                 ) =>
                                                                                   p.type !==
-                                                                                  "Infant"
+                                                                                  "Infant",
                                                                               );
 
                                                                             const nextIndex =
@@ -4018,21 +4361,21 @@ console.log("price",pricePerPax);
                                                                               setTimeout(
                                                                                 () => {
                                                                                   setSelectedPassengerIndex(
-                                                                                    nextIndex
+                                                                                    nextIndex,
                                                                                   );
                                                                                   setSelectedPassengerKey(
                                                                                     nonInfantPassengers[
                                                                                       nextIndex
                                                                                     ]
-                                                                                      .Key
+                                                                                      .Key,
                                                                                   );
                                                                                 },
-                                                                                150
+                                                                                150,
                                                                               );
                                                                             }
                                                                           }}
                                                                         />
-                                                                        <label
+                                                                        {/* <label
                                                                           htmlFor={
                                                                             seatCode
                                                                           }
@@ -4055,6 +4398,22 @@ console.log("price",pricePerPax);
                                                                               ? "Unavailable"
                                                                               : `${seatPrice} Available`
                                                                           }`}
+                                                                        ></label> */}
+                                                                        <label
+                                                                          htmlFor={
+                                                                            seatCode
+                                                                          }
+                                                                          className={`${
+                                                                            seatPrice >
+                                                                            0
+                                                                              ? "paid"
+                                                                              : "free"
+                                                                          } ${
+                                                                            isUnavailable
+                                                                              ? "unavailable-seat"
+                                                                              : "available"
+                                                                          }`}
+                                                                          title={`[${seatCode}] ₹${seatPrice}`}
                                                                         ></label>
                                                                         <span className="tooltip">
                                                                           {/* {isUnavailable ? 'Unavailable' : 'Available'} [{seatCode}] ₹{seatPrice} */}
@@ -4063,16 +4422,16 @@ console.log("price",pricePerPax);
                                                                             0
                                                                             ? "After ticketing paid seats will be available"
                                                                             : isUnavailable
-                                                                            ? "Unavailable"
-                                                                            : `Available [${seatCode}] ₹${seatPrice}`}
+                                                                              ? "Unavailable"
+                                                                              : `Available [${seatCode}] ₹${seatPrice}`}
                                                                         </span>
                                                                       </li>
                                                                     );
-                                                                  }
+                                                                  },
                                                                 )}
                                                               </ol>
                                                             </li>
-                                                          )
+                                                          ),
                                                         )}
                                                       </>
                                                     );
@@ -4133,7 +4492,7 @@ console.log("price",pricePerPax);
                               <a href="#">Fare Rules</a> , the{" "}
                               <a href="#">Privacy Policy</a> , the{" "}
                               <a href="#">User Agreement</a> and{" "}
-                              <a href="#">Terms of Service</a> of Taxivaxi
+                              <a href="#">Terms of Service</a> of Cotrav
                             </label>
                             {showError && (
                               <div
@@ -4304,7 +4663,7 @@ console.log("price",pricePerPax);
                         <span />
                         <b>
                           {handleweekdatemonthyear(
-                            FlightData?.Origin?.OriginAirport?.DepTime
+                            FlightData?.Origin?.OriginAirport?.DepTime,
                           )}
                         </b>
                       </div>
@@ -4313,7 +4672,8 @@ console.log("price",pricePerPax);
                         <span />
                         <b>
                           {handleweekdatemonthyear(
-                            FlightData?.Destination?.DestinationAirport?.ArrTime
+                            FlightData?.Destination?.DestinationAirport
+                              ?.ArrTime,
                           )}
                         </b>
                       </div>
@@ -4362,29 +4722,29 @@ console.log("price",pricePerPax);
                             <span className="chk-r">
                               {(() => {
                                 const airPricingInfos = Array.isArray(
-                                  FareData?.AirPricingInfo
+                                  FareData?.AirPricingInfo,
                                 )
                                   ? FareData.AirPricingInfo
                                   : FareData?.AirPricingInfo
-                                  ? [FareData.AirPricingInfo]
-                                  : [];
+                                    ? [FareData.AirPricingInfo]
+                                    : [];
 
                                 const adultPricing = airPricingInfos.find(
                                   (info) => {
                                     const passengerTypes =
                                       info?.["air:PassengerType"];
                                     const passengerTypeArray = Array.isArray(
-                                      passengerTypes
+                                      passengerTypes,
                                     )
                                       ? passengerTypes
                                       : passengerTypes
-                                      ? [passengerTypes]
-                                      : [];
+                                        ? [passengerTypes]
+                                        : [];
 
                                     return passengerTypeArray.some(
-                                      (pt) => pt?.$?.Code === "ADT"
+                                      (pt) => pt?.$?.Code === "ADT",
                                     );
-                                  }
+                                  },
                                 );
 
                                 const basePriceStr =
@@ -4393,7 +4753,7 @@ console.log("price",pricePerPax);
                                   parseFloat(
                                     basePriceStr
                                       .replace("INR", "")
-                                      .replace(",", "")
+                                      .replace(",", ""),
                                   ) || 0;
                                 const adultCount =
                                   Number(responseData?.Passenger_info?.Adult) ||
@@ -4416,29 +4776,29 @@ console.log("price",pricePerPax);
                             <span className="chk-r">
                               {(() => {
                                 const airPricingInfos = Array.isArray(
-                                  FareData?.AirPricingInfo
+                                  FareData?.AirPricingInfo,
                                 )
                                   ? FareData.AirPricingInfo
                                   : FareData?.AirPricingInfo
-                                  ? [FareData.AirPricingInfo]
-                                  : [];
+                                    ? [FareData.AirPricingInfo]
+                                    : [];
 
                                 const adultPricing = airPricingInfos.find(
                                   (info) => {
                                     const passengerTypes =
                                       info?.["air:PassengerType"];
                                     const passengerTypeArray = Array.isArray(
-                                      passengerTypes
+                                      passengerTypes,
                                     )
                                       ? passengerTypes
                                       : passengerTypes
-                                      ? [passengerTypes]
-                                      : [];
+                                        ? [passengerTypes]
+                                        : [];
 
                                     return passengerTypeArray.some(
-                                      (pt) => pt?.$?.Code === "CNN"
+                                      (pt) => pt?.$?.Code === "CNN",
                                     );
-                                  }
+                                  },
                                 );
 
                                 const basePriceStr =
@@ -4447,7 +4807,7 @@ console.log("price",pricePerPax);
                                   parseFloat(
                                     basePriceStr
                                       .replace("INR", "")
-                                      .replace(",", "")
+                                      .replace(",", ""),
                                   ) || 0;
                                 const childCount =
                                   Number(responseData?.Passenger_info?.Child) ||
@@ -4472,29 +4832,29 @@ console.log("price",pricePerPax);
                               {/* ₹ {PerPassFareData.find(item => item.PassengerType === 3)?.BaseFare?.toFixed(2) || '0.00'} */}
                               {(() => {
                                 const airPricingInfos = Array.isArray(
-                                  FareData?.AirPricingInfo
+                                  FareData?.AirPricingInfo,
                                 )
                                   ? FareData.AirPricingInfo
                                   : FareData?.AirPricingInfo
-                                  ? [FareData.AirPricingInfo]
-                                  : [];
+                                    ? [FareData.AirPricingInfo]
+                                    : [];
 
                                 const adultPricing = airPricingInfos.find(
                                   (info) => {
                                     const passengerTypes =
                                       info?.["air:PassengerType"];
                                     const passengerTypeArray = Array.isArray(
-                                      passengerTypes
+                                      passengerTypes,
                                     )
                                       ? passengerTypes
                                       : passengerTypes
-                                      ? [passengerTypes]
-                                      : [];
+                                        ? [passengerTypes]
+                                        : [];
 
                                     return passengerTypeArray.some(
-                                      (pt) => pt?.$?.Code === "INF"
+                                      (pt) => pt?.$?.Code === "INF",
                                     );
-                                  }
+                                  },
                                 );
 
                                 const basePriceStr =
@@ -4503,11 +4863,11 @@ console.log("price",pricePerPax);
                                   parseFloat(
                                     basePriceStr
                                       .replace("INR", "")
-                                      .replace(",", "")
+                                      .replace(",", ""),
                                   ) || 0;
                                 const infantCount =
                                   Number(
-                                    responseData?.Passenger_info?.Infant
+                                    responseData?.Passenger_info?.Infant,
                                   ) || 0;
                                 const total = basePrice * infantCount;
 
@@ -4521,7 +4881,7 @@ console.log("price",pricePerPax);
 
                       <div className="chk-line">
                         <div className="chk-line-item">
-                          <span className="chk-l">27GST</span>
+                          <span className="chk-l">GST</span>
                           <span className="chk-r">
                             {/* {replaceINRWithSymbol(FareData?.Taxes)} */}₹{" "}
                             {gst_k3}
@@ -4606,11 +4966,11 @@ console.log("price",pricePerPax);
                                           <div>{meals.meal.DisplayText}</div>
                                           <div>
                                             {replaceINRWithSymbol(
-                                              meals.meal.TotalPrice
+                                              meals.meal.TotalPrice,
                                             )}
                                           </div>
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 }
@@ -4646,7 +5006,7 @@ console.log("price",pricePerPax);
                                           <div>{b.baggage.DisplayText}</div>
                                           <div>
                                             {replaceINRWithSymbol(
-                                              b.baggage.TotalPrice
+                                              b.baggage.TotalPrice,
                                             )}
                                           </div>
                                         </div>
@@ -4688,7 +5048,7 @@ console.log("price",pricePerPax);
                                           <div>{seat.seatCode}</div>
                                           <div>
                                             {replaceINRWithSymbol(
-                                              seat.seatPrice
+                                              seat.seatPrice,
                                             )}
                                           </div>
                                         </div>

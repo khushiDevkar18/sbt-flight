@@ -149,7 +149,7 @@ body {
 
 body,
 td {
-  font: 14px Arial, sans-serif;
+  font: 12px Arial, sans-serif;
   color: #000;
 }
 
@@ -7608,7 +7608,7 @@ preferences-list-alt li {
 
 .card-body .seat_selection {
   border: 2px solid #785eff;
-  height: 450px;
+  height: 386px;
   overflow-y: auto;
 }
 
@@ -13423,8 +13423,11 @@ html {
 .plane .cabin .row .seats .seat input[type=radio]:disabled {
   +label {
 
-    background: #d8d8d8;
-    text-indent: -9999px;
+    background-color: #d8d8d8 !important;
+  background: #d8d8d8 !important;
+  color: #d8d8d8 !important;
+  border-color: #d8d8d8 !important;
+  text-indent: -9999px;
 
   }
 
@@ -13434,6 +13437,7 @@ html {
     border: none;
   }
 }
+
 
 .plane .cabin .row .Business .Business_class input[type=checkbox]:disabled,
 .plane .cabin .row .Business .Business_class input[type=radio]:disabled {
@@ -13827,7 +13831,20 @@ html {
     transform: scale3d(1, 1, 1);
   }
 }
+/* Add this to your CSS */
+.plane .cabin .row .seats .seat .unavailable-seat {
+  background-color: #d8d8d8 !important;
+  background: #d8d8d8 !important;
+  color: #d8d8d8 !important;
+  border-color: #d8d8d8 !important;
+  cursor: not-allowed !important;
+}
 
+.plane .cabin .row .seats .seat .unavailable-seat:before {
+  background: #d8d8d8 !important;
+  background-color: #d8d8d8 !important;
+  border-color: #d8d8d8 !important;
+}
 @keyframes rubberBand {
   0% {
     -webkit-transform: scale3d(1, 1, 1);
@@ -18498,9 +18515,9 @@ body::-webkit-scrollbar-thumb:hover {
   margin: 1%;
 }
 .accordionfarename .vertical_line{
-  border-left: 1px dashed #a0a0a0;
+  border-left: 3px dashed #a0a0a0;
     height: 25px;
-    margin-left: 2.2%;
+    margin-left: 12.2%;
     width: 3%;
 }
 .airportcabin{
@@ -19700,7 +19717,7 @@ button#search-button:hover {
 .accordionfarename .vertical_line{
   border-left: 2px dashed #a0a0a0;
     height: 22px;
-    margin-left: 2.8%;
+    margin-left: 12.8%;
     width: 4.6%;
 }
 .baggage-info {

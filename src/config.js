@@ -6,7 +6,8 @@ const CONFIG = {
   //Demo Apis
     MAIN_API: "https://demo.taxivaxi.com", //MAIN_API demo
   BASE_URL : "https://www.nirixak.com/testuapi/api/flights/", //test
-  // BASE_URL:"https://92tvxz7r-3000.inc1.devtunnels.ms/api/flights/", //local
+  
+//   BASE_URL:"https://f8l4sd56-3000.inc1.devtunnels.ms/api/", //local
   ASSIGN_API:"https://demo.taxivaxi.com/api/flights/assignSbtCotravFlightBookingNew", //demo
 
   //Live Apis

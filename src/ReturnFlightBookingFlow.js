@@ -18,6 +18,7 @@ import {
 import PhoneInput from "react-phone-input-2";
 import { data } from "autoprefixer";
 import { ArrowForwardSharp } from "@mui/icons-material";
+import { Modal } from "react-bootstrap";
 
 const ReturnBookingFlow = () => {
   const location = useLocation();
@@ -31,7 +32,8 @@ const ReturnBookingFlow = () => {
   const timeoutRef = useRef(null);
   const hasFetchedRef = useRef(false);
   const OnwardFare = responseData?.onward?.fare;
-  const ReturnFare = responseData?.return?.fare;
+  const ReturnFare = responseData?.return?.fare || responseData?.return?.Fare;
+  console.log(ReturnFare);
   const ClientOnwardPrice = responseData?.ClientPriceOnward;
   const ClientReturnPrice = responseData?.ClientPriceReturn;
   // console.log("return flight fare", ReturnFare);
@@ -112,10 +114,10 @@ const ReturnBookingFlow = () => {
   const [Countrydata, setCountrydata] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [UapiOnwardOptionalservice, setUapiOnwardOptionalservice] = useState(
-    []
+    [],
   );
   const [UapiReturnOptionalservice, setUapiReturnOptionalservice] = useState(
-    []
+    [],
   );
   const [TboOnwardBaggageservice, setTboOnwardBaggageservice] = useState([]);
   const [TboReturnBaggageservice, setTboReturnBaggageservice] = useState([]);
@@ -149,14 +151,14 @@ const ReturnBookingFlow = () => {
   const [PerPassOnwardTboFareData, setPerPassOnwardTboFareData] = useState([]);
   const [PerPassReturnTboFareData, setPerPassReturnTboFareData] = useState([]);
   const [isPassengerSaved, setIsPassengerSaved] = useState(false);
-    const [OnwardGst_k3, setOnwardGst_k3] = useState("");
-        const [ReturnGst_k3, setReturnGst_k3] = useState("");
-            const [OnwardAdult, setOnwardAdult] = useState("");
-        const [ReturnAdult, setReturnAdult] = useState("");
-      const [OnwardTotal, setOnwardTotal] = useState("");
-        const [ReturnTotal, setReturnTotal] = useState("");
-      const [OnwardTax, setOnwardTax] = useState("");
-        const [ReturnTax, setReturnTax] = useState("");
+  const [OnwardGst_k3, setOnwardGst_k3] = useState("");
+  const [ReturnGst_k3, setReturnGst_k3] = useState("");
+  const [OnwardAdult, setOnwardAdult] = useState("");
+  const [ReturnAdult, setReturnAdult] = useState("");
+  const [OnwardTotal, setOnwardTotal] = useState("");
+  const [ReturnTotal, setReturnTotal] = useState("");
+  const [OnwardTax, setOnwardTax] = useState("");
+  const [ReturnTax, setReturnTax] = useState("");
   const [errors, setErrors] = useState({
     gstin: "",
     company_name: "",
@@ -232,29 +234,28 @@ const ReturnBookingFlow = () => {
                 }
                 if (responseData?.AirPriceResult) {
                   const fare = responseData?.AirPriceResult;
-                    const tax =Number(fare?.Taxes.replace("INR", "")) || 0
-                  
+                  const tax = Number(fare?.Taxes.replace("INR", "")) || 0;
+
                   // console.log(tax)
                   setFareData(fare);
-                    setOnwardTax(tax);
-                        const gstObj = fare.TaxInfo.find(
-                (t) => t.$?.CarrierDefinedCategory === "27GST"
-              );
+                  setOnwardTax(tax);
+                  const gstObj = fare.TaxInfo.find((t) =>
+                    t.$?.CarrierDefinedCategory?.endsWith("GST"),
+                  );
 
-              const gst = gstObj
-                ? Number(gstObj.$.Amount.replace("INR", ""))
-                : 0;
+                  const gst = gstObj
+                    ? Number(gstObj.$.Amount.replace("INR", ""))
+                    : 0;
 
-              // console.log(gst);
-              setOnwardGst_k3(gst);
-                  const total = Number(fare?.TotalPrice.replace("INR","")||0);
+                  // console.log(gst);
+                  setOnwardGst_k3(gst);
+                  const total = Number(
+                    fare?.TotalPrice.replace("INR", "") || 0,
+                  );
                   console.log(total);
                   setOnwardTotal(total);
-
                 }
-              
-            
-           }
+              }
               if (Data.data.onward.source == "Tbo") {
                 const source_type = Data.data.onward.source;
                 setOnwardSourceType(source_type);
@@ -281,17 +282,17 @@ const ReturnBookingFlow = () => {
                   // console.log(tax);
                   setOnwardTax(tax);
                   // (Fare);
-                        const k3Tax =
-    Number(Fare?.TaxBreakup?.find((t) => t.key === "K3")?.value) || 0;
-    // console.log(k3Tax);
-    setOnwardGst_k3(k3Tax);
-        const total = Number(Fare?.PublishedFare);
+                  const k3Tax =
+                    Number(
+                      Fare?.TaxBreakup?.find((t) => t.key === "K3")?.value,
+                    ) || 0;
+                  // console.log(k3Tax);
+                  setOnwardGst_k3(k3Tax);
+                  const total = Number(Fare?.PublishedFare);
                   // console.log(total);
                   setOnwardTotal(total);
                 }
-                
-      
-                  
+
                 if (responseData.FareQuote_Response?.Results.FareBreakdown) {
                   const PerFare =
                     responseData.FareQuote_Response?.Results.FareBreakdown;
@@ -356,27 +357,27 @@ const ReturnBookingFlow = () => {
                 }
                 if (responseData?.AirPriceResult) {
                   const fare = responseData?.AirPriceResult;
-                    const tax =Number(fare?.Taxes.replace("INR", "")) || 0
-                  
+                  const tax = Number(fare?.Taxes.replace("INR", "")) || 0;
+
                   // console.log(tax)
                   setReturnFareData(fare);
-                    setReturnTax(tax);
-                        const gstObj = fare.TaxInfo.find(
-                (t) => t.$?.CarrierDefinedCategory === "27GST" || "07GST"
-              );
+                  setReturnTax(tax);
 
-              const gst = gstObj
-                ? Number(gstObj.$.Amount.replace("INR", ""))
-                : 0;
+                  const gstObj = fare.TaxInfo.find((t) =>
+                    t.$?.CarrierDefinedCategory?.endsWith("GST"),
+                  );
 
-              // console.log(gst);
-              // console.log(tax);
-              setReturnGst_k3(gst);
-                  const total = Number(fare?.TotalPrice.replace("INR","")||0);
+                  const gst = gstObj
+                    ? Number(gstObj.$.Amount.replace("INR", ""))
+                    : 0;
+
+                  setReturnGst_k3(gst);
+                  const total = Number(
+                    fare?.TotalPrice.replace("INR", "") || 0,
+                  );
                   // console.log(total);
                   setReturnTotal(total);
                 }
-                
               }
               if (Data.data.return.source == "Tbo") {
                 const source_type = Data.data.return.source;
@@ -403,11 +404,13 @@ const ReturnBookingFlow = () => {
                   // console.log(tax);
                   setReturnTax(tax);
                   // (Fare);
-                        const k3Tax =
-    Number(Fare?.TaxBreakup?.find((t) => t.key === "K3")?.value) || 0;
-    // console.log(k3Tax);
-    setReturnGst_k3(k3Tax);
-        const total = Number(Fare?.PublishedFare);
+                  const k3Tax =
+                    Number(
+                      Fare?.TaxBreakup?.find((t) => t.key === "K3")?.value,
+                    ) || 0;
+                  // console.log(k3Tax);
+                  setReturnGst_k3(k3Tax);
+                  const total = Number(Fare?.PublishedFare);
                   // console.log(total);
                   setReturnTotal(total);
                 }
@@ -544,7 +547,7 @@ const ReturnBookingFlow = () => {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-        }
+        },
       );
       const Data = await response.json();
       // //console.log(Data)
@@ -574,7 +577,7 @@ const ReturnBookingFlow = () => {
     const fetchCountryData = async () => {
       try {
         const response = await fetch(
-          "https://corporate.taxivaxi.com/api/getAllCountries"
+          "https://corporate.taxivaxi.com/api/getAllCountries",
         );
         const result = await response.json();
 
@@ -619,7 +622,7 @@ const ReturnBookingFlow = () => {
 
     // First Name
     const firstNameInput = form.querySelector(
-      'input[name="adult_first_name[]"]'
+      'input[name="adult_first_name[]"]',
     );
     const firstNameError = form.querySelector(".adult_first_name-message");
     firstNameInput?.addEventListener("input", () => {
@@ -653,7 +656,7 @@ const ReturnBookingFlow = () => {
     // Gender
 
     const genderSelects = form.querySelectorAll(
-      'select[name="adult_gender[]"]'
+      'select[name="adult_gender[]"]',
     );
     genderSelects.forEach((select) => {
       const wrapper = select.closest(".booking-gender"); // go up to the container
@@ -673,7 +676,7 @@ const ReturnBookingFlow = () => {
     });
     // Passport No
     const passportInput = form.querySelector(
-      'input[name="adult_passportNo[]"]'
+      'input[name="adult_passportNo[]"]',
     );
     const passportError = form.querySelector(".adult_passportNo-message");
     passportInput?.addEventListener("input", () => {
@@ -682,10 +685,10 @@ const ReturnBookingFlow = () => {
 
     // Issued Country (React Select input)
     const issuedCountryInput = form.querySelector(
-      'input[name="adult_issuedcountry[]"]'
+      'input[name="adult_issuedcountry[]"]',
     );
     const issuedCountryError = form.querySelector(
-      ".adult_issuedcountry-message"
+      ".adult_issuedcountry-message",
     );
     issuedCountryInput?.addEventListener("input", () => {
       if (issuedCountryInput.value.trim())
@@ -694,10 +697,10 @@ const ReturnBookingFlow = () => {
 
     // Passport Expiry Date
     const passportExpiryInput = form.querySelector(
-      'input[name="adult_passportexpiry[]"]'
+      'input[name="adult_passportexpiry[]"]',
     );
     const passportExpiryError = form.querySelector(
-      ".adult_passportexpiry-message"
+      ".adult_passportexpiry-message",
     );
     passportExpiryInput?.addEventListener("input", () => {
       if (passportExpiryInput.value.trim())
@@ -735,10 +738,10 @@ const ReturnBookingFlow = () => {
 
       // ---------- GET FORM FIELDS ----------
       const firstNameInput = form.querySelector(
-        'input[name="adult_first_name[]"]'
+        'input[name="adult_first_name[]"]',
       );
       const lastNameInput = form.querySelector(
-        'input[name="adult_last_name[]"]'
+        'input[name="adult_last_name[]"]',
       );
       const emailInput = form.querySelector('input[name="email1"]');
       const phoneInput =
@@ -748,19 +751,19 @@ const ReturnBookingFlow = () => {
       const genderSelect = form.querySelector('select[name="adult_gender[]"]');
       const dobInput = form.querySelector('input[name="adult_age[]"]');
       const passportInput = form.querySelector(
-        'input[name="adult_passportNo[]"]'
+        'input[name="adult_passportNo[]"]',
       );
       const issuedCountryInput = form.querySelector(
-        'input[name="adult_issuedcountry[]"]'
+        'input[name="adult_issuedcountry[]"]',
       );
       const passportExpiryInput = form.querySelector(
-        'input[name="adult_passportexpiry[]"]'
+        'input[name="adult_passportexpiry[]"]',
       );
       const address1Input = form.querySelector(
-        'input[name="adult_address_line_1[]"]'
+        'input[name="adult_address_line_1[]"]',
       );
       const address2Input = form.querySelector(
-        'input[name="adult_address_line_2[]"]'
+        'input[name="adult_address_line_2[]"]',
       );
       const cityInput = form.querySelector('input[name="adult_city[]"]');
 
@@ -885,7 +888,7 @@ const ReturnBookingFlow = () => {
       const matchCode = codeMapUapi[passenger.type];
 
       const keysWithSameCode = remainingPassengerDetails.filter(
-        (d) => d.Code === matchCode
+        (d) => d.Code === matchCode,
       );
 
       const passengerKey = keysWithSameCode[keyIndexMap[matchCode]]?.Key || "";
@@ -993,13 +996,12 @@ const ReturnBookingFlow = () => {
     }
   };
 
-
   const handleAddBaggage = (
     Idx,
     Data,
     segmentType,
     passengerKey = selectedPassengerKey,
-    source_type
+    source_type,
   ) => {
     if (source_type === "Uapi") {
       if (!passengerKey) return;
@@ -1011,7 +1013,7 @@ const ReturnBookingFlow = () => {
           (b) =>
             b.passengerKey === passengerKey &&
             b.segmentKey === selectedSegmentKey &&
-            b.baggageIndex === Idx
+            b.baggageIndex === Idx,
         );
 
         const filtered = list.filter(
@@ -1020,7 +1022,7 @@ const ReturnBookingFlow = () => {
               b.passengerKey === passengerKey &&
               b.segmentKey === selectedSegmentKey &&
               b.baggageIndex === Idx
-            )
+            ),
         );
 
         const newItem = existing
@@ -1039,7 +1041,7 @@ const ReturnBookingFlow = () => {
         return { ...prev, [segmentType]: [...filtered, newItem] };
       });
 
-      moveToNextPassenger(); // ✅ AUTO SWITCH
+      moveToNextPassenger(); //  AUTO SWITCH
     } else {
       setSelectedBaggage((prev) => {
         const list = prev[segmentType] || [];
@@ -1048,7 +1050,7 @@ const ReturnBookingFlow = () => {
           (b) =>
             b.passengerIndex === selectedPassengerIndex &&
             b.segmentKey === selectedSegmentKey &&
-            b.baggageIndex === Idx
+            b.baggageIndex === Idx,
         );
 
         const filtered = list.filter(
@@ -1057,13 +1059,13 @@ const ReturnBookingFlow = () => {
               b.passengerIndex === selectedPassengerIndex &&
               b.segmentKey === selectedSegmentKey &&
               b.baggageIndex === Idx
-            )
+            ),
         );
 
         const newItem = existing
           ? { ...existing, quantity: existing.quantity + 1 }
           : {
-              passengerIndex: selectedPassengerIndex, // ✅ ONLY THIS
+              passengerIndex: selectedPassengerIndex, //  ONLY THIS
               segmentKey: selectedSegmentKey,
               segmentType,
               baggageIndex: Idx,
@@ -1075,16 +1077,15 @@ const ReturnBookingFlow = () => {
         return { ...prev, [segmentType]: [...filtered, newItem] };
       });
 
-      moveToNextPassenger(); // ✅ AUTO SWITCH
+      moveToNextPassenger(); //  AUTO SWITCH
     }
   };
-
 
   const handleRemoveBaggage = (
     baggageIndex,
     segmentType,
     passengerKey = selectedPassengerKey,
-    source_type
+    source_type,
   ) => {
     setSelectedBaggage((prev) => {
       const list = prev[segmentType] || [];
@@ -1281,7 +1282,7 @@ const ReturnBookingFlow = () => {
               "Content-Type": "application/x-www-form-urlencoded",
             },
             body: formData.toString(),
-          }
+          },
         );
 
         if (!response.ok) {
@@ -1360,6 +1361,22 @@ const ReturnBookingFlow = () => {
     }
   };
   // Booking process
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [selectedPayment, setSelectedPayment] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const onwardIsUapi = OnwardFare?.from === "Uapi";
+  const returnIsUapi = ReturnFare?.from === "Uapi";
+
+  const onwardIsTbo = OnwardFare?.from === "Tbo";
+  const returnIsTbo = ReturnFare?.from === "Tbo";
+
+  // Adjust these fields based on your actual data
+  const onwardIsIndigo =
+    FlightData?.Origin?.OriginAirline?.AirlineName === "Indigo";
+
+  const returnIsIndigo =
+    ReturnFareData?.Origin?.OriginAirline?.AirlineName === "Indigo";
 
   const ContinueBooking = async () => {
     if (!isChecked) {
@@ -1381,6 +1398,34 @@ const ReturnBookingFlow = () => {
     if (!result.isConfirmed) {
       return;
     }
+    if (!result.isConfirmed) return;
+
+    if (!result.isConfirmed) return;
+
+    //  Check if any leg is UAPI
+    const hasAnyUapi = onwardIsUapi || returnIsUapi;
+
+    //  Check if any UAPI leg is Indigo
+    const hasUapiIndigo =
+      (onwardIsUapi && onwardIsIndigo) || (returnIsUapi && returnIsIndigo);
+
+    if (hasAnyUapi) {
+      if (hasUapiIndigo) {
+        setPaymentMethods(["Indigo Wallet", "IATA EasyPay", "IATA BG"]);
+      } else {
+        setPaymentMethods(["IATA EasyPay", "IATA BG"]);
+      }
+
+      setSelectedPayment("");
+      setIsModalOpen(true); //  show modal
+      return; //  wait for user to select payment
+    }
+
+    //  If no UAPI at all (both TBO) → direct API call
+    await callMakeFinalPriceApi();
+    return;
+  };
+  const callMakeFinalPriceApi = async () => {
     // uapi optional service request
     const UapiBaggageInfo = {
       onward: selectedBaggage.onward
@@ -1411,10 +1456,10 @@ const ReturnBookingFlow = () => {
         })),
     };
     const UpiOnwardServiceInfo = UapiBaggageInfo?.onward.concat(
-      UapiMealInfo?.onward
+      UapiMealInfo?.onward,
     );
     const UpiReturnServiceInfo = UapiBaggageInfo?.return.concat(
-      UapiMealInfo?.return
+      UapiMealInfo?.return,
     );
     const onwardSeatInfo = selectedSeats["onward"].map((da) => {
       return da.seat;
@@ -1563,20 +1608,20 @@ const ReturnBookingFlow = () => {
             const baggageForPassenger = selectedBaggage["onward"].filter(
               (b) =>
                 b.passengerIndex === passenger.passengerIndex &&
-                b.sourcetype === "Tbo"
+                b.sourcetype === "Tbo",
             );
             const MealsForPassenger = selectedMeals["onward"].filter(
               (m) =>
                 m.passengerIndex === passenger.passengerIndex &&
-                m.sourcetype === "Tbo"
+                m.sourcetype === "Tbo",
             );
             const SeatForPassenger = selectedSeats["onward"].filter(
               (s) =>
                 s.passengerIndex === passenger.passengerIndex &&
-                s.sourcetype === "Tbo"
+                s.sourcetype === "Tbo",
             );
             const Passengerfare = PerPassOnwardTboFareData.filter(
-              (b) => b.PassengerType === passenger.PaxType
+              (b) => b.PassengerType === passenger.PaxType,
             );
 
             return {
@@ -1610,7 +1655,7 @@ const ReturnBookingFlow = () => {
               GSTNumber: GstEntries?.gstin,
               GSTCompanyEmail: GstEntries?.company_email,
             };
-          }
+          },
         );
       } else {
         // Non-TBO or normal case
@@ -1620,20 +1665,20 @@ const ReturnBookingFlow = () => {
             const baggageForPassenger = selectedBaggage["onward"].filter(
               (b) =>
                 b.passengerIndex === passenger.passengerIndex &&
-                b.sourcetype === "Tbo"
+                b.sourcetype === "Tbo",
             );
             const MealsForPassenger = selectedMeals["onward"].filter(
               (m) =>
                 m.passengerIndex === passenger.passengerIndex &&
-                m.sourcetype === "Tbo"
+                m.sourcetype === "Tbo",
             );
             const SeatForPassenger = selectedSeats["onward"].filter(
               (s) =>
                 s.passengerIndex === passenger.passengerIndex &&
-                s.sourcetype === "Tbo"
+                s.sourcetype === "Tbo",
             );
             const Passengerfare = PerPassOnwardTboFareData.filter(
-              (b) => b.PassengerType === passenger.PaxType
+              (b) => b.PassengerType === passenger.PaxType,
             );
 
             return {
@@ -1678,7 +1723,7 @@ const ReturnBookingFlow = () => {
               GSTNumber: GstEntries?.gstin,
               GSTCompanyEmail: GstEntries?.company_email,
             };
-          }
+          },
         );
       }
 
@@ -1774,20 +1819,20 @@ const ReturnBookingFlow = () => {
           const baggageForPassenger = selectedBaggage["return"].filter(
             (b) =>
               b.passengerIndex === passenger.passengerIndex &&
-              b.source_type === "Tbo"
+              b.source_type === "Tbo",
           );
           const MealsForPassenger = selectedMeals["return"].filter(
             (b) =>
               b.passengerIndex === passenger.passengerIndex &&
-              b.source_type === "Tbo"
+              b.source_type === "Tbo",
           );
           const SeatForPassenger = selectedSeats["return"].filter(
             (b) =>
               b.passengerIndex === passenger.passengerIndex &&
-              b.source_type === "Tbo"
+              b.source_type === "Tbo",
           );
           const Passengerfare = PerPassReturnTboFareData.filter(
-            (b) => b.PassengerType === passenger.PaxType
+            (b) => b.PassengerType === passenger.PaxType,
           );
 
           return {
@@ -1826,20 +1871,20 @@ const ReturnBookingFlow = () => {
           const baggageForPassenger = selectedBaggage["return"].filter(
             (b) =>
               b.passengerIndex === passenger.passengerIndex &&
-              b.source_type === "Tbo"
+              b.source_type === "Tbo",
           );
           const MealsForPassenger = selectedMeals["return"].filter(
             (b) =>
               b.passengerIndex === passenger.passengerIndex &&
-              b.source_type === "Tbo"
+              b.source_type === "Tbo",
           );
           const SeatForPassenger = selectedSeats["return"].filter(
             (b) =>
               b.passengerIndex === passenger.passengerIndex &&
-              b.source_type === "Tbo"
+              b.source_type === "Tbo",
           );
           const Passengerfare = PerPassReturnTboFareData.filter(
-            (b) => b.PassengerType === passenger.PaxType
+            (b) => b.PassengerType === passenger.PaxType,
           );
 
           return {
@@ -1957,18 +2002,18 @@ const ReturnBookingFlow = () => {
 
         localStorage.setItem("Passengerdetails", JSON.stringify(PassengerInfo));
         setLocatorcode(LocatorCode);
-          const fares = {
-            OnwardMarkup : OnwardMarkup,
-            ReturnMarkup :ReturnMarkup,
-            OnwardClientPrice : ClientOnwardPrice,
-            ReturnClientPrice : ClientReturnPrice,
-            OnwardGst_k3: OnwardGst_k3,
-            ReturnGst_k3 : ReturnGst_k3,
+        const fares = {
+          OnwardMarkup: OnwardMarkup,
+          ReturnMarkup: ReturnMarkup,
+          OnwardClientPrice: ClientOnwardPrice,
+          ReturnClientPrice: ClientReturnPrice,
+          OnwardGst_k3: OnwardGst_k3,
+          ReturnGst_k3: ReturnGst_k3,
         };
         const responseData = TaxivaxiFlightDetails;
         const FlightBooking = Data.data;
         navigate("/ReturnbookingCompleted", {
-          state: { FlightBooking, responseData , fares},
+          state: { FlightBooking, responseData, fares },
         });
       }
       setfinalloading(false);
@@ -1983,7 +2028,6 @@ const ReturnBookingFlow = () => {
       setfinalloading(false);
     }
   };
-
   const isAlphabetic = (event) => {
     var charCode = event.charCode;
     return (
@@ -2090,32 +2134,28 @@ const ReturnBookingFlow = () => {
 
   const seatCount = selectedSeats.onward.length + selectedSeats.return.length;
 
-
   //----------------------------------Fare Display--------------------------------------------//
   const passenger = TaxivaxiPassengeDetails.length;
   const OnwardClientPrice = ClientOnwardPrice * passenger;
   const ReturnClientPrice = ClientReturnPrice * passenger;
-  const OnwardMarkup =  OnwardClientPrice - OnwardTotal;
+  const OnwardMarkup = OnwardClientPrice - OnwardTotal;
   const ReturnMarkup = ReturnClientPrice - ReturnTotal;
-    const OnwardFinalTotal = OnwardTotal + OnwardMarkup ;
-    const ReturnFinalTotal = ReturnTotal + ReturnMarkup;
-  const Total = OnwardFinalTotal + ReturnFinalTotal; 
-  const OnwardOthers = (OnwardTax - OnwardGst_k3) + OnwardMarkup;
+  const OnwardFinalTotal = OnwardTotal + OnwardMarkup;
+  const ReturnFinalTotal = ReturnTotal + ReturnMarkup;
+  const Total = OnwardFinalTotal + ReturnFinalTotal;
+  const OnwardOthers = OnwardTax - OnwardGst_k3 + OnwardMarkup;
   console.log(ClientReturnPrice);
   // console.log(OnwardGst_k3);
-  const ReturnOthers = (ReturnTax - ReturnGst_k3) + ReturnMarkup;
+  const ReturnOthers = ReturnTax - ReturnGst_k3 + ReturnMarkup;
   console.log("onwardclientprice", OnwardClientPrice);
-  console.log("ReturnClientPrice",ReturnClientPrice);
+  console.log("ReturnClientPrice", ReturnClientPrice);
   console.log("onwardTotal", OnwardTotal);
-  console.log("ReturnTotal",ReturnTotal);
-  console.log("Total",Total);
+  console.log("ReturnTotal", ReturnTotal);
+  console.log("Total", Total);
   console.log("onwardMarkup", OnwardMarkup);
-  console.log("ReturnMarkup",ReturnMarkup);
-  console.log("OnwardOthers",OnwardOthers);
-  console.log("ReturnOthers",ReturnOthers);
-
-
-  
+  console.log("ReturnMarkup", ReturnMarkup);
+  console.log("OnwardOthers", OnwardOthers);
+  console.log("ReturnOthers", ReturnOthers);
 
   return (
     <div className="yield-content" style={{ background: "#e8e4ff" }}>
@@ -2161,6 +2201,83 @@ const ReturnBookingFlow = () => {
           </div>
         </div>
       )}
+      <Modal
+        show={isModalOpen}
+        onHide={() => setIsModalOpen(false)}
+        aria-labelledby="modal-title"
+      >
+        <Modal.Header className="custom-modal-header">
+          <Modal.Title id="modal-title">Select payment Method</Modal.Title>
+          <button className="close-btn" onClick={() => setIsModalOpen(false)}>
+            ×
+          </button>
+        </Modal.Header>
+        <div className="mb-4">
+          <div className="mb-3 text-sm text-gray-700">
+            Select the payment method for{" "}
+            {onwardIsUapi && returnIsUapi
+              ? "both onward and return flights"
+              : onwardIsUapi
+                ? "the onward flight"
+                : "the return flight"}
+            .
+          </div>
+
+          {/* <h5 className="font-semibold mb-3">Select Payment Method</h5> */}
+
+          {paymentMethods.map((method) => (
+            <label
+              key={method}
+              className="flex items-center gap-2 mb-2 cursor-pointer"
+            >
+              <input
+                type="radio"
+                name="paymentMethod"
+                value={method}
+                checked={selectedPayment === method}
+                onChange={() => setSelectedPayment(method)}
+              />
+              <span>{method}</span>
+            </label>
+          ))}
+
+          {paymentMethods.length === 0 && (
+            <p className="text-sm text-gray-500">
+              No payment methods available
+            </p>
+          )}
+        </div>
+
+        <Modal.Footer className="border-t pt-4">
+          <div className="flex justify-end space-x-3">
+            <button
+              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+              onClick={() => setIsModalOpen(false)}
+            >
+              Cancel
+            </button>
+
+            <button
+              className="px-5 py-2.5 text-sm font-medium text-white bg-[#785eff] rounded-lg disabled:opacity-50"
+              disabled={!selectedPayment}
+              onClick={async () => {
+                if (!selectedPayment) {
+                  Swal.fire("Please select a payment method");
+                  return;
+                }
+
+                setIsModalOpen(false);
+
+                // 🔥 Now call your real API
+                await callMakeFinalPriceApi();
+              }}
+            >
+              Continue
+            </button>
+          </div>
+        </Modal.Footer>
+      </Modal>
+
       <div className="main-cont" id="main_cont">
         <div className="body-wrapper">
           <div className="wrapper-padding">
@@ -2193,7 +2310,7 @@ const ReturnBookingFlow = () => {
                                 <ArrowForwardSharp style={{ width: "70%" }} />{" "}
                                 {OnwardFlight?.destinationAirport?.CityName}
                               </span>
-                              {OnwardSegments.map((data, index) => (
+                              {OnwardSegments?.map((data, index) => (
                                 <div
                                   key={index}
                                   className="row"
@@ -2231,7 +2348,7 @@ const ReturnBookingFlow = () => {
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="flight-details-container">
+                                      {/* <div className="flight-details-container">
                                         <div className="row accordionfarename apiairportname">
                                           <span className="apicircle">◯</span>
                                           <span className="CityName">
@@ -2289,7 +2406,69 @@ const ReturnBookingFlow = () => {
                                               "15KG"}
                                           </span>
                                         </div>
-                                      </div>
+                                      </div> */}
+                                  <div className="flight-details-container">
+  {/* Departure Row - Time, City, Airport on same line */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
+    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
+      {new Date(data?.Origin?.DepTime).toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}
+    </span>
+    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
+      {data?.Origin?.Airport?.CityName}
+    </span>
+    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
+      {data?.Origin?.Airport?.AirportName} {data?.Origin?.Airport?.Terminal}
+    </span>
+  </div>
+  
+  {/* Date Row - On the same line as time (aligned under time) */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+    <span style={{ minWidth: '60px', fontSize: '12px', color: '#777', marginLeft:'8px' }}>
+      {handleweekdatemonthyear(data?.Origin?.DepTime)}
+    </span>
+  </div>
+  
+  {/* Arrival Row - Time, City, Airport on same line */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
+    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
+      {new Date(data?.Destination?.ArrTime).toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}
+    </span>
+    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
+      {data?.Destination?.Airport?.CityName}
+    </span>
+    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
+      {data?.Destination?.Airport?.AirportName} {data?.Destination?.Airport?.Terminal}
+    </span>
+  </div>
+  
+  {/* Baggage Info */}
+  <div className="baggage-info" style={{ display: 'flex', gap: '24px', marginTop: '7px', borderTop: '1px dashed #e0e0e0' }}>
+    <span className="cabin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+      <img
+        src="/img/cabin_bag.svg"
+        alt="Cabin Baggage"
+        className="baggage-icon"
+        style={{ width: '18px', height: '18px', opacity: 0.7 }}
+      />
+      <strong style={{ fontWeight: '600' }}>Cabin Baggage:</strong> {formatWeight(data?.CabinBaggage) || "NA"}
+    </span>
+    <span className="checkin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+      <img
+        src="/img/checkin_bag.svg"
+        alt="Check-in Baggage"
+        className="baggage-icon"
+        style={{ width: '18px', height: '18px', opacity: 0.7 }}
+      />
+      <strong style={{ fontWeight: '600' }}>Check-In Baggage:</strong> {formatWeight(data?.Baggage) || "NA"}
+    </span>
+  </div>
+</div>
                                     </div>
                                   </div>
                                 </div>
@@ -2340,7 +2519,7 @@ const ReturnBookingFlow = () => {
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="flight-details-container">
+                                      {/* <div className="flight-details-container">
                                         <div className="row accordionfarename apiairportname">
                                           <span className="apicircle">◯</span>
                                           <span className="CityName">
@@ -2398,7 +2577,145 @@ const ReturnBookingFlow = () => {
                                               "15KG"}
                                           </span>
                                         </div>
-                                      </div>
+                                      </div> */}
+                                      {/* <div className="flight-details-container">
+                                        <div className="row accordionfarename apiairportname">
+                                          <span className="CityName">
+                                            {new Date(
+                                              data?.Origin?.DepTime,
+                                            ).toLocaleTimeString("en-GB", {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+                                          </span>
+                                          
+                                          <span className="CityName">
+                                            {data?.Origin?.Airport?.CityName}
+                                          </span>
+                                          <span className="airport">
+                                            {data?.Origin?.Airport?.AirportName}{" "}
+                                            {data?.Origin?.Airport?.Terminal}
+                                          </span>
+                                        </div>
+                                        <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+    <span style={{ minWidth: '60px', fontSize: '12px', color: '#777', marginLeft:'8px' }}>
+      {handleweekdatemonthyear(data?.Origin?.DepTime)}
+    </span>
+  </div>
+                                        <div className="row accordionfarename apiairportname">
+                                          <span className="CityName">
+                                            {new Date(
+                                              data?.Destination?.ArrTime,
+                                            ).toLocaleTimeString("en-GB", {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+                                          </span>
+                                        
+                                          <span className="CityName">
+                                            {
+                                              data?.Destination?.Airport
+                                                ?.CityName
+                                            }
+                                          </span>
+                                          <span className="airport">
+                                            {
+                                              data?.Destination?.Airport
+                                                ?.AirportName
+                                            }{" "}
+                                            {
+                                              data?.Destination?.Airport
+                                                ?.Terminal
+                                            }
+                                          </span>
+                                        </div>
+                                        <div className="baggage-info">
+                                          <span className="cabin-baggage">
+                                            <img
+                                              src="/img/cabin_bag.svg"
+                                              alt="Cabin Baggage"
+                                              className="baggage-icon"
+                                            />
+                                            <strong>Cabin Baggage:</strong>{" "}
+                                            {formatWeight(data?.CabinBaggage) ||
+                                              "7KG"}
+                                          </span>
+                                          <span className="checkin-baggage">
+                                            <img
+                                              src="/img/checkin_bag.svg"
+                                              alt="Cabin Baggage"
+                                              className="baggage-icon"
+                                            />
+                                            <strong>Check-In Baggage:</strong>{" "}
+                                            {formatWeight(data?.Baggage) ||
+                                              "15KG"}
+                                          </span>
+                                        </div>
+                                      </div> */}
+                                            <div className="flight-details-container">
+  {/* Departure Row - Time, City, Airport on same line */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
+    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
+      {new Date(
+                                              data?.Origin?.DepTime,
+                                            ).toLocaleTimeString("en-GB", {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+    </span>
+    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
+      {data?.Origin?.Airport?.CityName}
+    </span>
+    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
+      {data?.Origin?.Airport?.AirportName} {data?.Origin?.Airport?.Terminal}
+    </span>
+  </div>
+  
+  {/* Date Row - On the same line as time (aligned under time) */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+    <span style={{ minWidth: '60px', fontSize: '12px', color: '#777', marginLeft:'8px' }}>
+      {handleweekdatemonthyear(data?.Origin?.DepTime)}
+    </span>
+  </div>
+  
+  {/* Arrival Row - Time, City, Airport on same line */}
+  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
+    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
+      {new Date(data?.Destination?.ArrTime).toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}
+    </span>
+    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
+      {data?.Destination?.Airport?.CityName}
+    </span>
+    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
+      {data?.Destination?.Airport?.AirportName} {data?.Destination?.Airport?.Terminal}
+    </span>
+  </div>
+  
+  {/* Baggage Info */}
+  <div className="baggage-info" style={{ display: 'flex', gap: '24px', marginTop: '7px', borderTop: '1px dashed #e0e0e0' }}>
+    <span className="cabin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+      <img
+        src="/img/cabin_bag.svg"
+        alt="Cabin Baggage"
+        className="baggage-icon"
+        style={{ width: '18px', height: '18px', opacity: 0.7 }}
+      />
+      <strong style={{ fontWeight: '600' }}>Cabin Baggage:</strong> {formatWeight(data?.CabinBaggage) || "NA"}
+    </span>
+    <span className="checkin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+      <img
+        src="/img/checkin_bag.svg"
+        alt="Check-in Baggage"
+        className="baggage-icon"
+        style={{ width: '18px', height: '18px', opacity: 0.7 }}
+      />
+      <strong style={{ fontWeight: '600' }}>Check-In Baggage:</strong> {formatWeight(data?.Baggage) || "NA"}
+    </span>
+  </div>
+</div>
                                     </div>
                                   </div>
                                 </div>
@@ -2442,7 +2759,7 @@ const ReturnBookingFlow = () => {
                           )}
 
                           {Segments?.some(
-                            (seg) => seg.Airline?.AirlineCode === "6E"
+                            (seg) => seg.Airline?.AirlineCode === "6E",
                           ) ? (
                             <table className="styled-table">
                               <thead>
@@ -2454,7 +2771,7 @@ const ReturnBookingFlow = () => {
                                 {(() => {
                                   const cancelItem =
                                     CancellationData?.Cancellation?.find(
-                                      (item) => item.fare_name === fare_type
+                                      (item) => item.fare_name === fare_type,
                                     );
                                   return cancelItem ? (
                                     <tr>
@@ -2482,7 +2799,7 @@ const ReturnBookingFlow = () => {
                                 {(() => {
                                   const dateChangeItem =
                                     CancellationData?.Date_Change?.find(
-                                      (item) => item.fare_name === fare_type
+                                      (item) => item.fare_name === fare_type,
                                     );
                                   return dateChangeItem ? (
                                     <tr>
@@ -2493,7 +2810,7 @@ const ReturnBookingFlow = () => {
                                       <td>
                                         {dateChangeItem.fee.replace(
                                           /INR/i,
-                                          "₹"
+                                          "₹",
                                         )}
                                       </td>
                                     </tr>
@@ -2750,14 +3067,16 @@ const ReturnBookingFlow = () => {
                                               defaultValue={
                                                 TaxivaxiPassengeDetails?.[
                                                   formIndex
-                                                ]?.lastName || TaxivaxiPassengeDetails?.[
+                                                ]?.lastName ||
+                                                TaxivaxiPassengeDetails?.[
                                                   formIndex
                                                 ]?.firstName
                                                   ? TaxivaxiPassengeDetails[
                                                       formIndex
-                                                    ].lastName || TaxivaxiPassengeDetails?.[
-                                                  formIndex
-                                                ]?.firstName
+                                                    ].lastName ||
+                                                    TaxivaxiPassengeDetails?.[
+                                                      formIndex
+                                                    ]?.firstName
                                                   : ""
                                               }
                                               // defaultValue={
@@ -3012,8 +3331,8 @@ const ReturnBookingFlow = () => {
                                                     : new Date(
                                                         new Date().setFullYear(
                                                           new Date().getFullYear() -
-                                                            99
-                                                        )
+                                                            99,
+                                                        ),
                                                       )
                                                         .toISOString()
                                                         .split("T")[0] // Converts to YYYY-MM-DD format
@@ -3194,7 +3513,7 @@ const ReturnBookingFlow = () => {
                                                   // Update state...
                                                   const error =
                                                     document.querySelector(
-                                                      ".adult_issuedcountry-message"
+                                                      ".adult_issuedcountry-message",
                                                     );
                                                   if (selectedOption)
                                                     error.style.display =
@@ -3208,7 +3527,7 @@ const ReturnBookingFlow = () => {
                                                     fontSize: "13px",
                                                   }),
                                                   valueContainer: (
-                                                    provided
+                                                    provided,
                                                   ) => ({
                                                     ...provided,
                                                     height: "36px",
@@ -3229,7 +3548,7 @@ const ReturnBookingFlow = () => {
                                                   }),
                                                   option: (
                                                     provided,
-                                                    state
+                                                    state,
                                                   ) => ({
                                                     ...provided,
                                                     fontSize: "13px",
@@ -3759,12 +4078,12 @@ const ReturnBookingFlow = () => {
                                                         </div>
                                                       </div>
                                                     </div>
-                                                  )
+                                                  ),
                                                 )}
                                               </div>
                                             </div>
                                             <div className="flex justify-center gap-4 mt-1 pb-2">
-                                              <button
+                                              {/* <button
                                                 type="button"
                                                 onClick={() =>
                                                   setShowModal(false)
@@ -3772,7 +4091,7 @@ const ReturnBookingFlow = () => {
                                                 className="bg-black text-white px-3 py-2 rounded font-semibold"
                                               >
                                                 Edit
-                                              </button>
+                                              </button> */}
                                               <button
                                                 type="button"
                                                 onClick={SeatFetch}
@@ -3884,12 +4203,12 @@ const ReturnBookingFlow = () => {
                                                   <div>
                                                     {b.source_type === "Uapi"
                                                       ? replaceINRWithSymbol(
-                                                          b.baggage.TotalPrice
+                                                          b.baggage.TotalPrice,
                                                         )
                                                       : `₹${b.baggage.Price}`}
                                                   </div>
                                                 </div>
-                                              )
+                                              ),
                                             )}
                                           </div>
                                         )}
@@ -3917,12 +4236,12 @@ const ReturnBookingFlow = () => {
                                                   <div>
                                                     {b.source_type === "Uapi"
                                                       ? replaceINRWithSymbol(
-                                                          b.baggage.TotalPrice
+                                                          b.baggage.TotalPrice,
                                                         )
                                                       : `₹${b.baggage.Price}`}
                                                   </div>
                                                 </div>
-                                              )
+                                              ),
                                             )}
                                           </div>
                                         )}
@@ -3942,7 +4261,7 @@ const ReturnBookingFlow = () => {
                             {/* LEFT SIDE PASSENGER LIST */}
                             <div className="w-1/4 border-r pr-4 flex flex-col gap-3">
                               {PassengerData.filter(
-                                (passenger) => passenger.type !== "Infant"
+                                (passenger) => passenger.type !== "Infant",
                               ).map((passenger, index) => (
                                 <button
                                   key={index}
@@ -3988,12 +4307,12 @@ const ReturnBookingFlow = () => {
                                           b.segmentKey === selectedSegmentKey &&
                                           (b.source_type === "Uapi"
                                             ? b.passengerKey === passenger.Key
-                                            : b.passengerIndex === index)
+                                            : b.passengerIndex === index),
                                       )
                                       ?.map((b) =>
                                         b.source_type === "Uapi"
                                           ? `${b.baggage.DisplayText} x${b.quantity}`
-                                          : `Extra Baggage ${b.baggage.Weight}KG x${b.quantity}`
+                                          : `Extra Baggage ${b.baggage.Weight}KG x${b.quantity}`,
                                       )
                                       .join(", ") || "Not Selected"}
                                   </span>
@@ -4061,12 +4380,12 @@ const ReturnBookingFlow = () => {
                                           ? UapiOnwardOptionalservice?.find(
                                               (service) =>
                                                 service.Key ===
-                                                selectedPassengerKey
+                                                selectedPassengerKey,
                                             )
                                           : UapiReturnOptionalservice?.find(
                                               (service) =>
                                                 service.Key ===
-                                                selectedPassengerKey
+                                                selectedPassengerKey,
                                             );
 
                                       const segmentData =
@@ -4079,7 +4398,8 @@ const ReturnBookingFlow = () => {
                                         baggage.push(serviceSource?.Baggage);
                                       } else {
                                         baggage.push(
-                                          segmentData?.OptionalServices?.Baggage
+                                          segmentData?.OptionalServices
+                                            ?.Baggage,
                                         );
                                       }
 
@@ -4098,7 +4418,7 @@ const ReturnBookingFlow = () => {
                                                 selectedSegmentKey &&
                                               b.segmentType ===
                                                 selectedSegmentType &&
-                                              b.baggageIndex === idx
+                                              b.baggageIndex === idx,
                                           );
                                           const quantity =
                                             currentSelected?.quantity ?? 0;
@@ -4126,7 +4446,7 @@ const ReturnBookingFlow = () => {
                                               <div className="flex items-center gap-4">
                                                 <div className="text-sm font-semibold text-black">
                                                   {replaceINRWithSymbol(
-                                                    Baggage?.TotalPrice
+                                                    Baggage?.TotalPrice,
                                                   )}
                                                 </div>
                                                 <div className="flex items-center gap-2 baggageoptionbuttons">
@@ -4140,7 +4460,7 @@ const ReturnBookingFlow = () => {
                                                           Baggage,
                                                           selectedSegmentType,
                                                           selectedPassengerKey,
-                                                          "Uapi"
+                                                          "Uapi",
                                                         )
                                                       }
                                                     >
@@ -4156,7 +4476,7 @@ const ReturnBookingFlow = () => {
                                                             idx,
                                                             selectedSegmentType,
                                                             selectedPassengerKey,
-                                                            "Uapi"
+                                                            "Uapi",
                                                           )
                                                         }
                                                       >
@@ -4192,7 +4512,7 @@ const ReturnBookingFlow = () => {
                                                   selectedPassengerIndex &&
                                                 b.segmentKey ===
                                                   selectedSegmentKey &&
-                                                b.baggageIndex === baggageIndex
+                                                b.baggageIndex === baggageIndex,
                                             );
                                           const quantity =
                                             currentBaggage?.quantity || 0;
@@ -4233,7 +4553,7 @@ const ReturnBookingFlow = () => {
                                                           data,
                                                           selectedSegmentType,
                                                           selectedPassengerKey,
-                                                          "Tbo"
+                                                          "Tbo",
                                                         );
                                                         // setSelectedPassengerIndex(
                                                         //   0
@@ -4252,7 +4572,7 @@ const ReturnBookingFlow = () => {
                                                             baggageIndex,
                                                             selectedSegmentType,
                                                             selectedPassengerKey,
-                                                            "Tbo"
+                                                            "Tbo",
                                                           )
                                                         }
                                                       >
@@ -4267,7 +4587,7 @@ const ReturnBookingFlow = () => {
                                               </div>
                                             </div>
                                           );
-                                        }
+                                        },
                                       );
                                     })()}
                               </div>
@@ -4382,12 +4702,12 @@ const ReturnBookingFlow = () => {
                                                   <div>
                                                     {meal.sourcetype === "Uapi"
                                                       ? replaceINRWithSymbol(
-                                                          meal.meal.TotalPrice
+                                                          meal.meal.TotalPrice,
                                                         )
                                                       : `₹ ${meal.meal.Price}`}
                                                   </div>
                                                 </div>
-                                              )
+                                              ),
                                             )}
                                           </div>
                                         )}
@@ -4414,12 +4734,12 @@ const ReturnBookingFlow = () => {
                                                   <div>
                                                     {meal.sourcetype === "Uapi"
                                                       ? replaceINRWithSymbol(
-                                                          meal.meal.TotalPrice
+                                                          meal.meal.TotalPrice,
                                                         )
                                                       : `₹ ${meal.meal.Price}`}
                                                   </div>
                                                 </div>
-                                              )
+                                              ),
                                             )}
                                           </div>
                                         )}
@@ -4443,7 +4763,7 @@ const ReturnBookingFlow = () => {
                               (selectedSegmentType === "return" &&
                                 ReturnSourceType === "Uapi")
                                 ? PassengerData.filter(
-                                    (passenger) => passenger.type !== "Infant"
+                                    (passenger) => passenger.type !== "Infant",
                                   ) // Adjust key if needed
                                     .map((passenger, index) => {
                                       const Optionalservice =
@@ -4453,7 +4773,8 @@ const ReturnBookingFlow = () => {
                                       const passengerService =
                                         Optionalservice?.find(
                                           (service) =>
-                                            service.Key === selectedPassengerKey
+                                            service.Key ===
+                                            selectedPassengerKey,
                                         );
                                       const segmentIndex = selectedSegmentKey;
                                       const segmentData =
@@ -4466,7 +4787,7 @@ const ReturnBookingFlow = () => {
                                       ].find(
                                         (m) =>
                                           m.passengerIndex === index &&
-                                          m.segmentKey === segmentKey
+                                          m.segmentKey === segmentKey,
                                       );
                                       // //console.log(selectedMeals)
                                       return (
@@ -4481,7 +4802,7 @@ const ReturnBookingFlow = () => {
                                           onClick={() => {
                                             setSelectedPassengerIndex(index);
                                             setSelectedPassengerKey(
-                                              passenger.Key
+                                              passenger.Key,
                                             );
                                           }}
                                         >
@@ -4500,14 +4821,14 @@ const ReturnBookingFlow = () => {
                                       );
                                     })
                                 : PassengerData.filter(
-                                    (passenger) => passenger.type !== "Infant"
+                                    (passenger) => passenger.type !== "Infant",
                                   ).map((passenger, index) => {
                                     const passengerMeal = selectedMeals[
                                       selectedSegmentType
                                     ].find(
                                       (m) =>
                                         m.passengerIndex === index &&
-                                        m.segmentKey === selectedSegmentKey
+                                        m.segmentKey === selectedSegmentKey,
                                     );
                                     // console.log(
                                     //   "Seleected meals",
@@ -4560,10 +4881,10 @@ const ReturnBookingFlow = () => {
                                     ) {
                                       setSelectedSegmentKey(0);
                                     }
-                                    // ✅ TBO onward
+                                    //  TBO onward
                                     else if (TboOnwardMealservice?.length > 0) {
                                       setSelectedSegmentKey(
-                                        `${TboOnwardMealservice[0].Origin.airport_iata_code}-${TboOnwardMealservice[0].Destination.airport_iata_code}`
+                                        `${TboOnwardMealservice[0].Origin.airport_iata_code}-${TboOnwardMealservice[0].Destination.airport_iata_code}`,
                                       );
                                     }
                                   }}
@@ -4593,10 +4914,10 @@ const ReturnBookingFlow = () => {
                                     ) {
                                       setSelectedSegmentKey(0);
                                     }
-                                    // ✅ TBO return
+                                    //  TBO return
                                     else if (TboReturnMealservice?.length > 0) {
                                       setSelectedSegmentKey(
-                                        `${TboReturnMealservice[0].Origin.airport_iata_code}-${TboReturnMealservice[0].Destination.airport_iata_code}`
+                                        `${TboReturnMealservice[0].Origin.airport_iata_code}-${TboReturnMealservice[0].Destination.airport_iata_code}`,
                                       );
                                     }
                                   }}
@@ -4669,8 +4990,8 @@ const ReturnBookingFlow = () => {
                                           key: `${item.Origin.airport_iata_code}-${item.Destination.airport_iata_code}`,
                                           label: `${item.Origin.airport_municipality} → ${item.Destination.airport_municipality}`,
                                         },
-                                      ])
-                                    ).values()
+                                      ]),
+                                    ).values(),
                                   ).map((segment) => (
                                     <Tab
                                       key={segment.key}
@@ -4693,12 +5014,12 @@ const ReturnBookingFlow = () => {
                                             ? UapiOnwardOptionalservice?.find(
                                                 (service) =>
                                                   service.Key ===
-                                                  selectedPassengerKey
+                                                  selectedPassengerKey,
                                               )
                                             : UapiReturnOptionalservice?.find(
                                                 (service) =>
                                                   service.Key ===
-                                                  selectedPassengerKey
+                                                  selectedPassengerKey,
                                               );
 
                                         const segmentData =
@@ -4729,7 +5050,7 @@ const ReturnBookingFlow = () => {
                                                 selectedPassengerIndex &&
                                               m.segmentKey === segmentKey &&
                                               m.meal.DisplayText ===
-                                                meal.DisplayText
+                                                meal.DisplayText,
                                           );
 
                                           return (
@@ -4756,7 +5077,7 @@ const ReturnBookingFlow = () => {
                                               <div className="flex items-center gap-6">
                                                 <div className="font-semibold text-sm">
                                                   {replaceINRWithSymbol(
-                                                    meal?.TotalPrice
+                                                    meal?.TotalPrice,
                                                   ) || "0.00"}
                                                 </div>
 
@@ -4780,7 +5101,7 @@ const ReturnBookingFlow = () => {
                                                               selectedPassengerIndex &&
                                                             m.segmentKey ===
                                                               segmentKey
-                                                          )
+                                                          ),
                                                       );
                                                       return {
                                                         ...prev,
@@ -4818,7 +5139,7 @@ const ReturnBookingFlow = () => {
                                           mealSource?.filter(
                                             (meal) =>
                                               `${meal.Meal.Origin}-${meal.Meal.Destination}` ===
-                                              selectedSegmentKey
+                                              selectedSegmentKey,
                                           ) || [];
                                         if (segmentMeals.length === 0) {
                                           return (
@@ -4839,7 +5160,7 @@ const ReturnBookingFlow = () => {
                                                 selectedPassengerIndex &&
                                               m.segmentKey ===
                                                 selectedSegmentKey &&
-                                              m.meal.Code === meal.Meal.Code
+                                              m.meal.Code === meal.Meal.Code,
                                           );
 
                                           return (
@@ -4896,7 +5217,7 @@ const ReturnBookingFlow = () => {
                                                               selectedPassengerIndex &&
                                                             m.segmentKey ===
                                                               selectedSegmentKey
-                                                          )
+                                                          ),
                                                       );
 
                                                       // add new selection
@@ -5028,11 +5349,11 @@ const ReturnBookingFlow = () => {
                                                     <div>{seat.seatCode}</div>
                                                     <div>
                                                       {replaceINRWithSymbol(
-                                                        seat.seatPrice
+                                                        seat.seatPrice,
                                                       )}
                                                     </div>
                                                   </div>
-                                                )
+                                                ),
                                               )}
                                             </div>
                                           )}
@@ -5051,11 +5372,11 @@ const ReturnBookingFlow = () => {
                                                     <div>{seat.seatCode}</div>
                                                     <div>
                                                       {replaceINRWithSymbol(
-                                                        seat.seatPrice
+                                                        seat.seatPrice,
                                                       )}
                                                     </div>
                                                   </div>
-                                                )
+                                                ),
                                               )}
                                             </div>
                                           )}
@@ -5085,7 +5406,7 @@ const ReturnBookingFlow = () => {
                                       ReturnSourceType === "Uapi")
                                       ? PassengerData.filter(
                                           (passenger) =>
-                                            passenger.type !== "Infant"
+                                            passenger.type !== "Infant",
                                         ) // Adjust key if needed
                                           .map((passenger, index) => {
                                             const SeatData =
@@ -5096,7 +5417,7 @@ const ReturnBookingFlow = () => {
                                               SeatData?.find(
                                                 (service) =>
                                                   service.TravellerKey ===
-                                                  selectedPassengerKey
+                                                  selectedPassengerKey,
                                               );
                                             const segmentIndex =
                                               currentFlightIndex;
@@ -5110,7 +5431,7 @@ const ReturnBookingFlow = () => {
                                             ].find(
                                               (m) =>
                                                 m.passengerIndex === index &&
-                                                m.segmentKey === segmentkey
+                                                m.segmentKey === segmentkey,
                                             );
                                             // //console.log("Selcted setas", selectedSeats)
                                             return (
@@ -5125,10 +5446,10 @@ const ReturnBookingFlow = () => {
                                                 }`}
                                                 onClick={() => {
                                                   setSelectedPassengerIndex(
-                                                    index
+                                                    index,
                                                   );
                                                   setSelectedPassengerKey(
-                                                    passenger.Key
+                                                    passenger.Key,
                                                   );
                                                 }}
                                               >
@@ -5153,7 +5474,7 @@ const ReturnBookingFlow = () => {
                                           })
                                       : PassengerData.filter(
                                           (passenger) =>
-                                            passenger.type !== "Infant"
+                                            passenger.type !== "Infant",
                                         ).map((passenger, index) => {
                                           const currentSegment =
                                             selectedSegmentType === "onward"
@@ -5171,7 +5492,7 @@ const ReturnBookingFlow = () => {
                                             (s) =>
                                               s.passengerIndex === index &&
                                               s.segmentKey ===
-                                                CurrentSegmentCode
+                                                CurrentSegmentCode,
                                           );
                                           // //console.log('Seleected seats', selectedSeats)
                                           return (
@@ -5310,7 +5631,7 @@ const ReturnBookingFlow = () => {
                                                   SeatData?.find(
                                                     (service) =>
                                                       service.TravellerKey ===
-                                                      selectedPassengerKey
+                                                      selectedPassengerKey,
                                                   );
                                                 const totalFlights =
                                                   passengerService?.Segments
@@ -5357,7 +5678,7 @@ const ReturnBookingFlow = () => {
                                                       SeatData?.find(
                                                         (service) =>
                                                           service.TravellerKey ===
-                                                          selectedPassengerKey
+                                                          selectedPassengerKey,
                                                       )?.Segments?.[
                                                         currentFlightIndex
                                                       ];
@@ -5421,7 +5742,7 @@ const ReturnBookingFlow = () => {
                                                         SeatData?.find(
                                                           (service) =>
                                                             service.TravellerKey ===
-                                                            selectedPassengerKey
+                                                            selectedPassengerKey,
                                                         );
                                                       const segmentIndex =
                                                         currentFlightIndex;
@@ -5436,7 +5757,7 @@ const ReturnBookingFlow = () => {
                                                       if (
                                                         !segmentData ||
                                                         !Array.isArray(
-                                                          segmentData.Rows
+                                                          segmentData.Rows,
                                                         ) ||
                                                         segmentData.Rows
                                                           .length === 0
@@ -5460,7 +5781,7 @@ const ReturnBookingFlow = () => {
                                                           const validSeats =
                                                             row.Seats?.filter(
                                                               (seat) =>
-                                                                seat?.SeatCode
+                                                                seat?.SeatCode,
                                                             );
 
                                                           if (
@@ -5475,7 +5796,7 @@ const ReturnBookingFlow = () => {
                                                             (seat) => {
                                                               const seatLetter =
                                                                 seat.SeatCode.split(
-                                                                  "-"
+                                                                  "-",
                                                                 )[1]; // A, B, etc.
                                                               rowMap[rowNo][
                                                                 seatLetter
@@ -5496,22 +5817,22 @@ const ReturnBookingFlow = () => {
                                                               };
 
                                                               seatLettersSet.add(
-                                                                seatLetter
+                                                                seatLetter,
                                                               );
-                                                            }
+                                                            },
                                                           );
-                                                        }
+                                                        },
                                                       );
 
                                                       const sortedRowNos =
                                                         Object.keys(
-                                                          rowMap
+                                                          rowMap,
                                                         ).sort(
-                                                          (a, b) => +a - +b
+                                                          (a, b) => +a - +b,
                                                         );
                                                       const sortedSeatLetters =
                                                         Array.from(
-                                                          seatLettersSet
+                                                          seatLettersSet,
                                                         ).sort();
 
                                                       return (
@@ -5519,7 +5840,7 @@ const ReturnBookingFlow = () => {
                                                           {sortedRowNos.map(
                                                             (
                                                               rowNo,
-                                                              rowIndex
+                                                              rowIndex,
                                                             ) => (
                                                               <li
                                                                 key={rowIndex}
@@ -5535,7 +5856,7 @@ const ReturnBookingFlow = () => {
                                                                   {sortedSeatLetters.map(
                                                                     (
                                                                       seatLetter,
-                                                                      seatIndex
+                                                                      seatIndex,
                                                                     ) => {
                                                                       const seat =
                                                                         rowMap[
@@ -5560,7 +5881,7 @@ const ReturnBookingFlow = () => {
                                                                         seat.seatCode;
                                                                       const seatPrice =
                                                                         replaceINRWithSymbol(
-                                                                          seat.price
+                                                                          seat.price,
                                                                         );
                                                                       const isUnavailable =
                                                                         seat.isUnavailable;
@@ -5568,8 +5889,8 @@ const ReturnBookingFlow = () => {
                                                                         parseFloat(
                                                                           seatPrice.replace(
                                                                             /[^\d.]/g,
-                                                                            ""
-                                                                          )
+                                                                            "",
+                                                                          ),
                                                                         );
 
                                                                       // disable condition
@@ -5588,7 +5909,7 @@ const ReturnBookingFlow = () => {
                                                                             s.segmentKey ===
                                                                               segmentkey &&
                                                                             s.passengerIndex !==
-                                                                              selectedPassengerIndex
+                                                                              selectedPassengerIndex,
                                                                         );
 
                                                                       return (
@@ -5617,33 +5938,33 @@ const ReturnBookingFlow = () => {
                                                                               selectedSegmentType
                                                                             ].some(
                                                                               (
-                                                                                s
+                                                                                s,
                                                                               ) =>
                                                                                 s.passengerIndex ===
                                                                                   selectedPassengerIndex &&
                                                                                 s.segmentKey ===
                                                                                   segmentkey &&
                                                                                 s.seatCode ===
-                                                                                  seatCode
+                                                                                  seatCode,
                                                                             )}
                                                                             onChange={() => {
                                                                               setSelectedSeats(
                                                                                 (
-                                                                                  prev
+                                                                                  prev,
                                                                                 ) => {
                                                                                   const updatedSegmentSeats =
                                                                                     prev[
                                                                                       selectedSegmentType
                                                                                     ].filter(
                                                                                       (
-                                                                                        s
+                                                                                        s,
                                                                                       ) =>
                                                                                         !(
                                                                                           s.passengerIndex ===
                                                                                             selectedPassengerIndex &&
                                                                                           s.segmentKey ===
                                                                                             segmentkey
-                                                                                        )
+                                                                                        ),
                                                                                     );
 
                                                                                   return {
@@ -5664,7 +5985,7 @@ const ReturnBookingFlow = () => {
                                                                                         },
                                                                                       ],
                                                                                   };
-                                                                                }
+                                                                                },
                                                                               );
                                                                               moveToNextPassenger();
                                                                             }}
@@ -5690,8 +6011,8 @@ const ReturnBookingFlow = () => {
                                                                                 0
                                                                                 ? "After ticketing paid seats will be available"
                                                                                 : isUnavailable
-                                                                                ? "Unavailable"
-                                                                                : `${seatPrice} Available`
+                                                                                  ? "Unavailable"
+                                                                                  : `${seatPrice} Available`
                                                                             }`}
                                                                           ></label>
                                                                           <span className="tooltip">
@@ -5701,16 +6022,16 @@ const ReturnBookingFlow = () => {
                                                                               0
                                                                               ? "After ticketing paid seats will be available"
                                                                               : isUnavailable
-                                                                              ? "Unavailable"
-                                                                              : `Available [${seatCode}] ₹${seatPrice}`}
+                                                                                ? "Unavailable"
+                                                                                : `Available [${seatCode}] ₹${seatPrice}`}
                                                                           </span>
                                                                         </li>
                                                                       );
-                                                                    }
+                                                                    },
                                                                   )}
                                                                 </ol>
                                                               </li>
-                                                            )
+                                                            ),
                                                           )}
                                                         </>
                                                       );
@@ -5837,7 +6158,7 @@ const ReturnBookingFlow = () => {
                                                     (row) => {
                                                       const validSeats =
                                                         row.Seats.filter(
-                                                          (s) => s.SeatNo
+                                                          (s) => s.SeatNo,
                                                         );
                                                       if (!validSeats.length)
                                                         return;
@@ -5851,20 +6172,20 @@ const ReturnBookingFlow = () => {
                                                             seat.SeatNo
                                                           ] = seat;
                                                           seatLettersSet.add(
-                                                            seat.SeatNo
+                                                            seat.SeatNo,
                                                           );
-                                                        }
+                                                        },
                                                       );
-                                                    }
+                                                    },
                                                   );
 
                                                   const sortedRowNos =
                                                     Object.keys(rowMap).sort(
-                                                      (a, b) => +a - +b
+                                                      (a, b) => +a - +b,
                                                     );
                                                   const sortedSeatLetters =
                                                     Array.from(
-                                                      seatLettersSet
+                                                      seatLettersSet,
                                                     ).sort();
 
                                                   return (
@@ -5913,7 +6234,7 @@ const ReturnBookingFlow = () => {
                                                             ) -
                                                             <span className="equipmentno">
                                                               {currentSegment.RowSeats[0].Seats[0].CraftType?.split(
-                                                                "-"
+                                                                "-",
                                                               )[0] || "Equip"}
                                                             </span>
                                                           </span>
@@ -5947,7 +6268,7 @@ const ReturnBookingFlow = () => {
                                                                 {sortedSeatLetters.map(
                                                                   (
                                                                     seatLetter,
-                                                                    seatIndex
+                                                                    seatIndex,
                                                                   ) => {
                                                                     const seat =
                                                                       rowMap[
@@ -5998,47 +6319,47 @@ const ReturnBookingFlow = () => {
                                                                               selectedSegmentType
                                                                             ].some(
                                                                               (
-                                                                                s
+                                                                                s,
                                                                               ) =>
                                                                                 s.seatCode ===
                                                                                   seatCode &&
                                                                                 s.segmentKey ===
                                                                                   currentSegmentKey &&
                                                                                 s.passengerIndex !==
-                                                                                  selectedPassengerIndex
+                                                                                  selectedPassengerIndex,
                                                                             )
                                                                           }
                                                                           checked={selectedSeats[
                                                                             selectedSegmentType
                                                                           ].some(
                                                                             (
-                                                                              s
+                                                                              s,
                                                                             ) =>
                                                                               s.passengerIndex ===
                                                                                 selectedPassengerIndex &&
                                                                               s.segmentKey ===
                                                                                 currentSegmentKey &&
                                                                               s.seatCode ===
-                                                                                seatCode
+                                                                                seatCode,
                                                                           )}
                                                                           onChange={() => {
                                                                             setSelectedSeats(
                                                                               (
-                                                                                prev
+                                                                                prev,
                                                                               ) => {
                                                                                 const filtered =
                                                                                   prev[
                                                                                     selectedSegmentType
                                                                                   ].filter(
                                                                                     (
-                                                                                      s
+                                                                                      s,
                                                                                     ) =>
                                                                                       !(
                                                                                         s.passengerIndex ===
                                                                                           selectedPassengerIndex &&
                                                                                         s.segmentKey ===
                                                                                           currentSegmentKey
-                                                                                      )
+                                                                                      ),
                                                                                   );
 
                                                                                 return {
@@ -6059,13 +6380,13 @@ const ReturnBookingFlow = () => {
                                                                                       },
                                                                                     ],
                                                                                 };
-                                                                              }
+                                                                              },
                                                                             );
                                                                             moveToNextPassenger();
                                                                           }}
                                                                         />
 
-                                                                        <label
+                                                                        {/* <label
                                                                           htmlFor={
                                                                             seatCode
                                                                           }
@@ -6080,6 +6401,22 @@ const ReturnBookingFlow = () => {
                                                                               : "available"
                                                                           }`}
                                                                           title={`[${seatCode}] ₹${seatPrice}`}
+                                                                        ></label> */}
+                                                                        <label
+                                                                          htmlFor={
+                                                                            seatCode
+                                                                          }
+                                                                          className={`${
+                                                                            seatPrice >
+                                                                            0
+                                                                              ? "paid"
+                                                                              : "free"
+                                                                          } ${
+                                                                            isUnavailable
+                                                                              ? "unavailable-seat"
+                                                                              : "available"
+                                                                          }`}
+                                                                          title={`[${seatCode}] ₹${seatPrice}`}
                                                                         ></label>
                                                                         <span className="tooltip">
                                                                           {isUnavailable
@@ -6088,11 +6425,11 @@ const ReturnBookingFlow = () => {
                                                                         </span>
                                                                       </li>
                                                                     );
-                                                                  }
+                                                                  },
                                                                 )}
                                                               </ol>
                                                             </li>
-                                                          )
+                                                          ),
                                                         )}
                                                       </ol>
 
@@ -6158,7 +6495,7 @@ const ReturnBookingFlow = () => {
                               <a href="#">Fare Rules</a> , the{" "}
                               <a href="#">Privacy Policy</a> , the{" "}
                               <a href="#">User Agreement</a> and{" "}
-                              <a href="#">Terms of Service</a> of Taxivaxi
+                              <a href="#">Terms of Service</a> of Cotrav
                             </label>
                             {showError && (
                               <div
@@ -6561,7 +6898,7 @@ const ReturnBookingFlow = () => {
                         <span />
                         <b>
                           {handleweekdatemonthyear(
-                            FlightData?.Origin?.OriginAirport?.DepTime
+                            FlightData?.Origin?.OriginAirport?.DepTime,
                           )}
                         </b>
                       </div>
@@ -6573,7 +6910,7 @@ const ReturnBookingFlow = () => {
                         <b>
                           {handleweekdatemonthyear(
                             ReturnFlightData?.Destination?.DestinationAirport
-                              ?.ArrTime
+                              ?.ArrTime,
                           )}
                         </b>
                       </div>
@@ -6754,12 +7091,12 @@ const ReturnBookingFlow = () => {
                                     <>
                                       {(() => {
                                         const airPricingInfos = Array.isArray(
-                                          FareData?.AirPricingInfo
+                                          FareData?.AirPricingInfo,
                                         )
                                           ? FareData.AirPricingInfo
                                           : FareData?.AirPricingInfo
-                                          ? [FareData.AirPricingInfo]
-                                          : [];
+                                            ? [FareData.AirPricingInfo]
+                                            : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -6769,11 +7106,11 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                ? [passengerTypes]
-                                                : [];
+                                                  ? [passengerTypes]
+                                                  : [];
 
                                             return passengerTypeArray.some(
-                                              (pt) => pt?.$?.Code === "ADT"
+                                              (pt) => pt?.$?.Code === "ADT",
                                             );
                                           });
 
@@ -6784,11 +7121,11 @@ const ReturnBookingFlow = () => {
                                           parseFloat(
                                             basePriceStr
                                               .replace("INR", "")
-                                              .replace(",", "")
+                                              .replace(",", ""),
                                           ) || 0;
                                         const adultCount =
                                           Number(
-                                            responseData?.Passenger_info?.Adult
+                                            responseData?.Passenger_info?.Adult,
                                           ) || 0;
                                         const total = basePrice * adultCount;
 
@@ -6800,7 +7137,7 @@ const ReturnBookingFlow = () => {
                                     <>
                                       ₹
                                       {PerPassOnwardTboFareData.find(
-                                        (item) => item.PassengerType === 1
+                                        (item) => item.PassengerType === 1,
                                       )?.BaseFare?.toFixed(2) || "0.00"}
                                     </>
                                   )}
@@ -6818,12 +7155,12 @@ const ReturnBookingFlow = () => {
                                     <>
                                       {(() => {
                                         const airPricingInfos = Array.isArray(
-                                          ReturnFareData?.AirPricingInfo
+                                          ReturnFareData?.AirPricingInfo,
                                         )
                                           ? ReturnFareData.AirPricingInfo
                                           : ReturnFareData?.AirPricingInfo
-                                          ? [ReturnFareData.AirPricingInfo]
-                                          : [];
+                                            ? [ReturnFareData.AirPricingInfo]
+                                            : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -6833,11 +7170,11 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                ? [passengerTypes]
-                                                : [];
+                                                  ? [passengerTypes]
+                                                  : [];
 
                                             return passengerTypeArray.some(
-                                              (pt) => pt?.$?.Code === "ADT"
+                                              (pt) => pt?.$?.Code === "ADT",
                                             );
                                           });
 
@@ -6848,11 +7185,11 @@ const ReturnBookingFlow = () => {
                                           parseFloat(
                                             basePriceStr
                                               .replace("INR", "")
-                                              .replace(",", "")
+                                              .replace(",", ""),
                                           ) || 0;
                                         const adultCount =
                                           Number(
-                                            responseData?.Passenger_info?.Adult
+                                            responseData?.Passenger_info?.Adult,
                                           ) || 0;
                                         const total = basePrice * adultCount;
 
@@ -6864,7 +7201,7 @@ const ReturnBookingFlow = () => {
                                     <>
                                       ₹
                                       {PerPassReturnTboFareData.find(
-                                        (item) => item.PassengerType === 1
+                                        (item) => item.PassengerType === 1,
                                       )?.BaseFare?.toFixed(2) || "0.00"}
                                     </>
                                   )}
@@ -6907,12 +7244,12 @@ const ReturnBookingFlow = () => {
                                     <>
                                       {(() => {
                                         const airPricingInfos = Array.isArray(
-                                          FareData?.AirPricingInfo
+                                          FareData?.AirPricingInfo,
                                         )
                                           ? FareData.AirPricingInfo
                                           : FareData?.AirPricingInfo
-                                          ? [FareData.AirPricingInfo]
-                                          : [];
+                                            ? [FareData.AirPricingInfo]
+                                            : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -6922,11 +7259,11 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                ? [passengerTypes]
-                                                : [];
+                                                  ? [passengerTypes]
+                                                  : [];
 
                                             return passengerTypeArray.some(
-                                              (pt) => pt?.$?.Code === "CNN"
+                                              (pt) => pt?.$?.Code === "CNN",
                                             );
                                           });
 
@@ -6937,11 +7274,11 @@ const ReturnBookingFlow = () => {
                                           parseFloat(
                                             basePriceStr
                                               .replace("INR", "")
-                                              .replace(",", "")
+                                              .replace(",", ""),
                                           ) || 0;
                                         const childCount =
                                           Number(
-                                            responseData?.Passenger_info?.Child
+                                            responseData?.Passenger_info?.Child,
                                           ) || 0;
                                         const total = basePrice * childCount;
 
@@ -6953,7 +7290,7 @@ const ReturnBookingFlow = () => {
                                     <>
                                       ₹
                                       {PerPassOnwardTboFareData.find(
-                                        (item) => item.PassengerType === 2
+                                        (item) => item.PassengerType === 2,
                                       )?.BaseFare?.toFixed(2) || "0.00"}
                                     </>
                                   )}
@@ -6971,12 +7308,12 @@ const ReturnBookingFlow = () => {
                                     <>
                                       {(() => {
                                         const airPricingInfos = Array.isArray(
-                                          ReturnFareData?.AirPricingInfo
+                                          ReturnFareData?.AirPricingInfo,
                                         )
                                           ? ReturnFareData.AirPricingInfo
                                           : ReturnFareData?.AirPricingInfo
-                                          ? [ReturnFareData.AirPricingInfo]
-                                          : [];
+                                            ? [ReturnFareData.AirPricingInfo]
+                                            : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -6986,11 +7323,11 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                ? [passengerTypes]
-                                                : [];
+                                                  ? [passengerTypes]
+                                                  : [];
 
                                             return passengerTypeArray.some(
-                                              (pt) => pt?.$?.Code === "CNN"
+                                              (pt) => pt?.$?.Code === "CNN",
                                             );
                                           });
 
@@ -7001,11 +7338,11 @@ const ReturnBookingFlow = () => {
                                           parseFloat(
                                             basePriceStr
                                               .replace("INR", "")
-                                              .replace(",", "")
+                                              .replace(",", ""),
                                           ) || 0;
                                         const childCount =
                                           Number(
-                                            responseData?.Passenger_info?.Child
+                                            responseData?.Passenger_info?.Child,
                                           ) || 0;
                                         const total = basePrice * childCount;
 
@@ -7017,7 +7354,7 @@ const ReturnBookingFlow = () => {
                                     <>
                                       ₹
                                       {PerPassReturnTboFareData.find(
-                                        (item) => item.PassengerType === 2
+                                        (item) => item.PassengerType === 2,
                                       )?.BaseFare?.toFixed(2) || "0.00"}
                                     </>
                                   )}
@@ -7060,12 +7397,12 @@ const ReturnBookingFlow = () => {
                                     <>
                                       {(() => {
                                         const airPricingInfos = Array.isArray(
-                                          FareData?.AirPricingInfo
+                                          FareData?.AirPricingInfo,
                                         )
                                           ? FareData.AirPricingInfo
                                           : FareData?.AirPricingInfo
-                                          ? [FareData.AirPricingInfo]
-                                          : [];
+                                            ? [FareData.AirPricingInfo]
+                                            : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -7075,11 +7412,11 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                ? [passengerTypes]
-                                                : [];
+                                                  ? [passengerTypes]
+                                                  : [];
 
                                             return passengerTypeArray.some(
-                                              (pt) => pt?.$?.Code === "INF"
+                                              (pt) => pt?.$?.Code === "INF",
                                             );
                                           });
 
@@ -7089,11 +7426,12 @@ const ReturnBookingFlow = () => {
                                           parseFloat(
                                             basePriceStr
                                               .replace("INR", "")
-                                              .replace(",", "")
+                                              .replace(",", ""),
                                           ) || 0;
                                         const infantCount =
                                           Number(
-                                            responseData?.Passenger_info?.Infant
+                                            responseData?.Passenger_info
+                                              ?.Infant,
                                           ) || 0;
                                         const total = basePrice * infantCount;
 
@@ -7105,7 +7443,7 @@ const ReturnBookingFlow = () => {
                                     <>
                                       ₹
                                       {PerPassOnwardTboFareData.find(
-                                        (item) => item.PassengerType === 3
+                                        (item) => item.PassengerType === 3,
                                       )?.BaseFare?.toFixed(2) || "0.00"}
                                     </>
                                   )}
@@ -7123,12 +7461,12 @@ const ReturnBookingFlow = () => {
                                     <>
                                       {(() => {
                                         const airPricingInfos = Array.isArray(
-                                          ReturnFareData?.AirPricingInfo
+                                          ReturnFareData?.AirPricingInfo,
                                         )
                                           ? ReturnFareData.AirPricingInfo
                                           : ReturnFareData?.AirPricingInfo
-                                          ? [ReturnFareData.AirPricingInfo]
-                                          : [];
+                                            ? [ReturnFareData.AirPricingInfo]
+                                            : [];
 
                                         const adultPricing =
                                           airPricingInfos.find((info) => {
@@ -7138,11 +7476,11 @@ const ReturnBookingFlow = () => {
                                               Array.isArray(passengerTypes)
                                                 ? passengerTypes
                                                 : passengerTypes
-                                                ? [passengerTypes]
-                                                : [];
+                                                  ? [passengerTypes]
+                                                  : [];
 
                                             return passengerTypeArray.some(
-                                              (pt) => pt?.$?.Code === "INF"
+                                              (pt) => pt?.$?.Code === "INF",
                                             );
                                           });
 
@@ -7152,11 +7490,12 @@ const ReturnBookingFlow = () => {
                                           parseFloat(
                                             basePriceStr
                                               .replace("INR", "")
-                                              .replace(",", "")
+                                              .replace(",", ""),
                                           ) || 0;
                                         const infantCount =
                                           Number(
-                                            responseData?.Passenger_info?.Infant
+                                            responseData?.Passenger_info
+                                              ?.Infant,
                                           ) || 0;
                                         const total = basePrice * infantCount;
 
@@ -7168,7 +7507,7 @@ const ReturnBookingFlow = () => {
                                     <>
                                       ₹
                                       {PerPassReturnTboFareData.find(
-                                        (item) => item.PassengerType === 3
+                                        (item) => item.PassengerType === 3,
                                       )?.BaseFare?.toFixed(2) || "0.00"}
                                     </>
                                   )}
@@ -7182,7 +7521,7 @@ const ReturnBookingFlow = () => {
                       )}
 
                       <div className="chk-line relative items-start gap-2">
-                        <div className="chk-l">27GST</div>
+                        <div className="chk-l">GST</div>
                         <span className="chk-r">
                           <button
                             className="cursor-pointer"
@@ -7214,10 +7553,7 @@ const ReturnBookingFlow = () => {
                                   </>
                                 )}
                               </span> */}
-                              <span className="chk-r">
-                                {OnwardGst_k3}
-
-                              </span>
+                              <span className="chk-r">{OnwardGst_k3}</span>
                             </div>
 
                             <hr className="my-2" />
@@ -7323,7 +7659,7 @@ const ReturnBookingFlow = () => {
 
                         <div className="clear" />
                       </div>
-                        <div className="chk-line relative items-start gap-2">
+                      <div className="chk-line relative items-start gap-2">
                         <div className="chk-l">Client Price Per Pax</div>
                         <span className="chk-r">
                           <button
@@ -7543,11 +7879,8 @@ const ReturnBookingFlow = () => {
                       <div className="chk-total-l">Total Price</div>
                       <div className="chk-total-r" style={{ fontWeight: 700 }}>
                         {(() => {
-                        
-
                           // ---- Grand total ----
-                          const grandTotal =
-                            Total + totalServicePrice;
+                          const grandTotal = Total + totalServicePrice;
 
                           return `₹${grandTotal.toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
@@ -7594,12 +7927,12 @@ const ReturnBookingFlow = () => {
                                               <div>
                                                 {meal.sourcetype === "Uapi"
                                                   ? replaceINRWithSymbol(
-                                                      meal.meal.TotalPrice
+                                                      meal.meal.TotalPrice,
                                                     )
                                                   : `₹ ${meal.meal.Price}`}
                                               </div>
                                             </div>
-                                          )
+                                          ),
                                         )}
                                       </div>
                                     )}
@@ -7626,12 +7959,12 @@ const ReturnBookingFlow = () => {
                                               <div>
                                                 {meal.sourcetype === "Uapi"
                                                   ? replaceINRWithSymbol(
-                                                      meal.meal.TotalPrice
+                                                      meal.meal.TotalPrice,
                                                     )
                                                   : `₹ ${meal.meal.Price}`}
                                               </div>
                                             </div>
-                                          )
+                                          ),
                                         )}
                                       </div>
                                     )}
@@ -7682,12 +8015,12 @@ const ReturnBookingFlow = () => {
                                               <div>
                                                 {b.source_type === "Uapi"
                                                   ? replaceINRWithSymbol(
-                                                      b.baggage.TotalPrice
+                                                      b.baggage.TotalPrice,
                                                     )
                                                   : `₹${b.baggage.Price}`}
                                               </div>
                                             </div>
-                                          )
+                                          ),
                                         )}
                                       </div>
                                     )}
@@ -7715,12 +8048,12 @@ const ReturnBookingFlow = () => {
                                               <div>
                                                 {b.source_type === "Uapi"
                                                   ? replaceINRWithSymbol(
-                                                      b.baggage.TotalPrice
+                                                      b.baggage.TotalPrice,
                                                     )
                                                   : `₹${b.baggage.Price}`}
                                               </div>
                                             </div>
-                                          )
+                                          ),
                                         )}
                                       </div>
                                     )}
@@ -7762,11 +8095,11 @@ const ReturnBookingFlow = () => {
                                               <div>{seat.seatCode}</div>
                                               <div>
                                                 {replaceINRWithSymbol(
-                                                  seat.seatPrice
+                                                  seat.seatPrice,
                                                 )}
                                               </div>
                                             </div>
-                                          )
+                                          ),
                                         )}
                                       </div>
                                     )}
@@ -7785,11 +8118,11 @@ const ReturnBookingFlow = () => {
                                               <div>{seat.seatCode}</div>
                                               <div>
                                                 {replaceINRWithSymbol(
-                                                  seat.seatPrice
+                                                  seat.seatPrice,
                                                 )}
                                               </div>
                                             </div>
-                                          )
+                                          ),
                                         )}
                                       </div>
                                     )}
