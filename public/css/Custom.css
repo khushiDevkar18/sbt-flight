@@ -722,3 +722,267 @@ html[dir=ltr] .appendRight5 {
   cursor: default !important;
 }
 
+/* Add to your component or global styles */
+/* .editable-table td[contenteditable="true"]:hover,
+[contenteditable="true"]:hover {
+  background-color: #e8f0fe !important;
+  transition: background-color 0.2s ease;
+}
+
+[contenteditable="true"]:focus {
+  outline: 2px solid #3498db !important;
+  background-color: #fff !important;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+
+span[data-index] {
+  transition: all 0.2s ease;
+}
+
+span[data-index]:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px rgba(255, 152, 0, 0.4) !important;
+}
+
+span[data-index]:focus {
+  outline: 3px solid #ff9800 !important;
+  background-color: #fff !important;
+} */
+ /* For the exact style in your image */
+.layover-simple {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25px;
+  margin-bottom: 15px;
+  padding: 12px 0;
+  border-top: 1px dashed #ccc;
+  border-bottom: 1px dashed #ccc;
+  width: 100%;
+}
+
+.layover-simple p {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+  text-align: center;
+}
+
+.layover-simple strong {
+  font-weight: 600;
+  color: #333;
+  margin-right: 3px;
+}
+
+.layover-simple span {
+  margin: 0 4px;
+}
+.tooltip-text {
+  visibility: hidden;
+  width: 180px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px 12px;
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  right: 100%; /* Position to the left */
+  transform: translateY(-50%);
+  margin-right: 10px; /* Add some space */
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+/* Tooltip arrow pointing right */
+.tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent transparent #333;
+}
+
+.minimized-ball:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.email-compose-form {
+  width: 100%;
+  max-width: 700px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.email-field-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.email-field {
+  display: flex;
+  align-items: flex-start;
+  padding: 4px 12px; /* Further reduced padding */
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.email-field:last-child {
+  border-bottom: none;
+}
+
+.field-label {
+  min-width: 40px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5f6368;
+  padding-top: 6px; /* Align with first line of chips */
+  line-height: 24px; /* Match chip height */
+}
+
+.chips-wrapper {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px; /* Reduced gap */
+  padding: 2px 0;
+  /* Remove any min-height that might cause extra space */
+  min-height: auto;
+  /* Let the content determine the height */
+  height: fit-content;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e4eef9;
+  border-radius: 16px;
+  padding: 2px 8px 2px 10px; /* Tighter padding */
+  font-size: 13px;
+  color: #202124;
+  border: 1px solid #d1d9e6;
+  gap: 2px;
+  height: 24px; /* Slightly smaller height */
+  max-width: 100%;
+  /* Allow text to wrap if needed */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* For very long emails, show ellipsis */
+.chip span {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip-remove {
+  background: none;
+  border: none;
+  color: #5f6368;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.chip-remove:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  color: #d93025;
+}
+
+.email-field-input {
+  flex: 1;
+  min-width: 150px;
+  border: none;
+  outline: none;
+  padding: 3px 0;
+  font-size: 14px;
+  background: transparent;
+  height: 24px; /* Match chip height */
+  line-height: 24px;
+}
+
+.email-field-input::placeholder {
+  color: #9aa0a6;
+  font-style: normal;
+  font-size: 13px;
+}
+
+/* When there's only one line of chips, no extra space */
+.chips-wrapper::after {
+  display: none;
+}
+
+/* Ensure no extra spacing at the bottom */
+.email-field:last-child {
+  padding-bottom: 4px;
+}
+/* Add to your CSS file */
+.grid {
+  display: grid;
+}
+
+@media (max-width: 640px) {
+  .grid-cols-1 {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .lg\:grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Card hover effect */
+.optionsflights {
+  transition: all 0.2s ease-in-out;
+}
+
+.optionsflights:hover {
+  transform: translateY(-2px);
+}
+
+/* Price styling */
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+/* Button transitions */
+button {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Selected state */
+.selected-flight-fare {
+  border-color: #785eff;
+  box-shadow: 0 4px 12px rgba(120, 94, 255, 0.15);
+}

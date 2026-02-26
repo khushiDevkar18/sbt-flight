@@ -279,7 +279,7 @@ button.viewprice {
 }
 
 .priceoption {
-  width: 30% !important;
+  width: 47% !important;
   margin: 1% 1.5% !important;
 
   .pricecontent {
@@ -546,4 +546,257 @@ button.viewprice {
 .Flight-segment-container{
   display: block;
   margin-bottom: 2% !important;
+}
+
+/* Flight Fares Container */
+.flight-price-wrapper {
+  width: 100%;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+/* Grid Layout - 2 cards per row */
+.fare-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  /* box-shadow: rgba(0, 0, 0, 0.1) 0px -1px 5px; */
+}
+.fare-mini-grid-onward {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  /* box-shadow: rgba(0, 0, 0, 0.1) 0px -1px 5px; */
+}
+
+/* Mini Card - Plain with minimal styling */
+.fare-mini-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 5px;
+}
+
+.fare-mini-card.mini-selected {
+  border: 2px solid #785eff;
+}
+
+.fare-mini-content {
+  padding: 6px 6px 6px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Header with Fare Type and Policy */
+.fare-mini-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.fare-mini-type {
+  font-size: 10px;
+  font-weight: 900;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 18px);
+  line-height: 1.2;
+}
+
+/* Policy Button - Mini */
+.fare-mini-policy {
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.mini-policy-icon {
+  width: 10px;
+  height: 10px;
+  color: #aaa;
+}
+
+.mini-policy-icon.mini-policy-active {
+  color: #785eff;
+}
+
+.mini-policy-loading {
+  font-size: 8px;
+  color: #999;
+}
+
+/* Source - Highlighted */
+.fare-mini-source {
+  font-size: 9px;
+  font-weight: 500;
+  color: #785eff;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Price - Normal display */
+.fare-mini-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #222;
+  line-height: 1.2;
+  margin: 2px 0;
+}
+
+/* Price Row - When Book Now is hidden (price and toggle inline) */
+.fare-mini-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 2px 0;
+}
+
+.fare-mini-price-row .fare-mini-price {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #222;
+}
+
+/* Button Group - Book Now and Toggle side by side */
+.fare-mini-button-group {
+  display: flex;
+  align-items: center;
+  gap: 35px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+/* Book Now Button - Takes remaining space */
+.fare-mini-book {
+  flex: 1;
+  height: 20px;
+  background-color: #785eff;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.fare-mini-book:hover {
+  background-color: #6244e0;
+}
+
+/* Toggle Button - Fixed width */
+.fare-mini-toggle {
+  width: 24px;
+  height: 20px;
+  border: 1px solid #785eff;
+  background-color: white;
+  color: #785eff;
+  border-radius: 4px;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* .fare-mini-toggle:hover {
+  background-color: #785eff;
+  color: white;
+} */
+
+/* .fare-mini-toggle.toggle-active {
+  background-color: #785eff;
+  color: white;
+} */
+
+/* Remove left border colors - plain cards only
+.fare-mini-card.cat-indigo,
+.fare-mini-card.cat-saver,
+.fare-mini-card.cat-corporate,
+.fare-mini-card.cat-sme,
+.fare-mini-card.cat-flexi {
+  border-left: 1px solid #e0e0e0;
+} */
+
+/* Responsive for very small screens */
+@media (max-width: 380px) {
+  .fare-mini-type {
+    font-size: 9px;
+  }
+  
+  .fare-mini-source {
+    font-size: 8px;
+  }
+  
+  .fare-mini-price,
+  .fare-mini-price-row .fare-mini-price {
+    font-size: 12px;
+  }
+  
+  .fare-mini-book {
+    height: 22px;
+    font-size: 8px;
+  }
+  
+  .fare-mini-toggle {
+    width: 22px;
+    height: 20px;
+    font-size: 13px;
+  }
+}
+
+/* For larger screens where you want even more cards */
+@media (min-width: 600px) {
+  .fare-mini-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .fare-mini-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (min-width: 600px) {
+  .fare-mini-grid-onward {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .fare-mini-grid-onward {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }

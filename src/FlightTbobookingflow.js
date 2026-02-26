@@ -2088,9 +2088,9 @@ const FlightTbobookingflow = () => {
                                     : null;
 
                                   const rangeText = toDate
-                                    ? `${formatDate(fromDate)} to ${formatDate(
+                                    ? `${formatDate(
                                         toDate
-                                      )}`
+                                      )} to ${formatDate(fromDate)}`
                                     : `Before ${formatDate(fromDate)}`;
 
                                   const details =

@@ -44,7 +44,8 @@ const FinalSearchFlight = () => {
   // console.log("response from taxivaxi", location.state.responseData);
   const isOnline = useOnlineStatus();
   const bookingid = location.state && location.state.responseData?.bookingid;
-  const reference_no = location.state && location.state.responseData?.reference_no;
+  const reference_no =
+    location.state && location.state.responseData?.reference_no;
 
   const flight_query_id =
     location.state && location.state.responseData?.flight_query_id;
@@ -87,15 +88,14 @@ const FinalSearchFlight = () => {
   const [sortOrder, setSortOrder] = useState("asc");
 
   const [showPrices, setShowPrices] = useState(new Set());
-;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [showFlightDetails, setShowFlightDetails] = useState(null);
   const [showContent, setshowcontent] = useState("flight_details");
 
-const [showReturnFlightDetails, setShowReturnFlightDetails] = useState(null);
+  const [showReturnFlightDetails, setShowReturnFlightDetails] = useState(null);
 
-const [returnShowContent, setReturnShowContent] = useState("flight_details");
+  const [returnShowContent, setReturnShowContent] = useState("flight_details");
   const [minFare, setMinFare] = useState(0);
   const [minreturnFare, setMinReturnFare] = useState(0);
   const [maxFare, setMaxFare] = useState(100000);
@@ -106,19 +106,21 @@ const [returnShowContent, setReturnShowContent] = useState("flight_details");
   const [ReturnFlightFares, setReturnFlightFare] = useState([]);
   const [selectedStops, setSelectedStops] = React.useState(new Set());
 
-// Return Flights States
-const [returnFlightFares, setReturnFlightFares] = useState({}); // key: flightId
+  // Return Flights States
+  const [returnFlightFares, setReturnFlightFares] = useState({}); // key: flightId
 
-const [showReturnPrices, setShowReturnPrices] = useState(new Set()); // Set of flightIds
+  const [showReturnPrices, setShowReturnPrices] = useState(new Set()); // Set of flightIds
 
-// Return Filter States
-const [returnSelectedStops, setReturnSelectedStops] = useState(new Set());
-const [returnSelectedDepartures, setReturnSelectedDepartures] = useState([]);
-const [returnSelectedArrivals, setReturnSelectedArrivals] = useState([]);
-const [returnSelectedAirlines, setReturnSelectedAirlines] = useState(new Set());
-const [priceReturnRange, setPriceReturnRange] = useState([0, 100000]);
-const [sortReturnField, setSortReturnField] = useState("price");
-const [sortReturnOrder, setSortReturnOrder] = useState("asc");
+  // Return Filter States
+  const [returnSelectedStops, setReturnSelectedStops] = useState(new Set());
+  const [returnSelectedDepartures, setReturnSelectedDepartures] = useState([]);
+  const [returnSelectedArrivals, setReturnSelectedArrivals] = useState([]);
+  const [returnSelectedAirlines, setReturnSelectedAirlines] = useState(
+    new Set(),
+  );
+  const [priceReturnRange, setPriceReturnRange] = useState([0, 100000]);
+  const [sortReturnField, setSortReturnField] = useState("price");
+  const [sortReturnOrder, setSortReturnOrder] = useState("asc");
 
   const [selectedDepartures, setSelectedDepartures] = useState([]);
   const [selectedReturnDepartures, setSelectedReturnDepartures] = useState([]);
@@ -126,14 +128,14 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
   const [selectedReturnArrivals, setSelectedReturnArrivals] = useState([]);
   const [selectedAirlines, setSelectedAirlines] = React.useState(new Set());
   const [selectedReturnAirlines, setSelectedReturnAirlines] = React.useState(
-    new Set()
+    new Set(),
   );
   const [selectedFlightoption, setSelectedFlightoption] = React.useState([]);
   const [selectedReturnFlightoption, setSelectedReturnFlightoption] =
     React.useState([]);
   const [selectedFlightIds, setSelectedFlightIds] = React.useState([]);
   const [selectedReturnFlightIds, setSelectedReturnFlightIds] = React.useState(
-    []
+    [],
   );
   const [selectedFares, setSelectedFares] = React.useState([]);
   const [selectedReturnFares, setSelectedReturnFares] = React.useState([]);
@@ -169,10 +171,13 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
   const [htmlContent, setHtmlContent] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [FLightType, setFlightType] = useState(
-    location.state.responseData?.flight_type
+    location.state.responseData?.flight_type,
   );
   const [FlightReturnOptions, setFlightReturnOptions] = useState([]);
   const [AirportData, setAirportData] = useState([]);
+  const [showPolicyPopup, setShowPolicyPopup] = useState(false);
+  const [selectedFarePolicy, setSelectedFarePolicy] = useState(null);
+  const [selectedFareForPopup, setSelectedFareForPopup] = useState(null);
   useEffect(() => {
     const loadAirports = async () => {
       const Airportlist = localStorage.getItem("apiairportsdata");
@@ -185,13 +190,13 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
         // If not, fetch from API
         try {
           const response = await axios.get(
-            "https://selfbooking.taxivaxi.com/api/airports"
+            "https://selfbooking.taxivaxi.com/api/airports",
           );
           setAirportData(response.data);
           // console.log(response.data);
           localStorage.setItem(
             "apiairportsdata",
-            JSON.stringify(response.data)
+            JSON.stringify(response.data),
           ); // Save to localStorage
         } catch (error) {
           // console.error("Error fetching airport data:", error);
@@ -246,7 +251,7 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
         emails
           .map((e) => e.trim())
           .filter(Boolean)
-          .filter((email) => !normalizedSpocEmails.includes(email)) // 🔥 SPOC has priority
+          .filter((email) => !normalizedSpocEmails.includes(email)), // 🔥 SPOC has priority
       ),
     ];
   }, [ccmail, normalizedSpocEmails]);
@@ -258,7 +263,7 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
   const [spocEmailInput, setSpocEmailInput] = useState("");
 
   const [additionalEmails, setAdditionalEmails] = useState(
-    normalizedAdditionalEmails
+    normalizedAdditionalEmails,
   );
   const [additionalEmailInput, setAdditionalEmailInput] = useState("");
   const [remark, setRemark] = useState("");
@@ -275,7 +280,7 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
       const [day, month, year] = dateStr.split("/").map(Number);
       return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
         2,
-        "0"
+        "0",
       )}T00:00:00.000+05:30`;
     }
     if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -421,7 +426,7 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
     const filtered = airports.filter(
       (airport) =>
         airport.label.toLowerCase().includes(value.toLowerCase()) ||
-        airport.airportName?.toLowerCase().includes(value.toLowerCase())
+        airport.airportName?.toLowerCase().includes(value.toLowerCase()),
     );
 
     setFilteredAirports(filtered);
@@ -449,7 +454,7 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
     const filtered = airports.filter(
       (airport) =>
         airport.label.toLowerCase().includes(value.toLowerCase()) ||
-        airport.airportName?.toLowerCase().includes(value.toLowerCase())
+        airport.airportName?.toLowerCase().includes(value.toLowerCase()),
     );
 
     setFilteredDestinationAirports(filtered);
@@ -552,7 +557,7 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
 
   const fetchData = async () => {
     const response = await axios.get(
-      "https://selfbooking.taxivaxi.com/api/airports"
+      "https://selfbooking.taxivaxi.com/api/airports",
     );
     const AirportData = response.data;
     // // console.log(AirportData)
@@ -560,7 +565,7 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
       ? inputValue.originAirport
       : extractAirportCode(fromAirport);
     const airportOrigin = AirportData.find(
-      (airport) => airport.airport_iata_code === origincode
+      (airport) => airport.airport_iata_code === origincode,
     );
     const OriginCountryCode = airportOrigin?.airport_iso_country;
     const destcode = inputValue.destinationAriport
@@ -568,7 +573,7 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
       : extractAirportCode(ToAirport);
 
     const airportdest = AirportData.find(
-      (airport) => airport.airport_iata_code === destcode
+      (airport) => airport.airport_iata_code === destcode,
     );
 
     const destinationCountryCode = airportdest?.airport_iso_country;
@@ -677,7 +682,7 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
             ([name, logo]) => ({
               name,
               logo,
-            })
+            }),
           );
 
           setUniqueReturnAirlines(result);
@@ -703,116 +708,222 @@ const [sortReturnOrder, setSortReturnOrder] = useState("asc");
       hasFetched.current = true;
     }
   }, []);
-    // ----------------------------------Flight fares api--------------------------------
-  //Onward flights
-const getFlightUniqueId = (flight) => {
-  if (!flight) return '';
-  return `${flight?.originAirport?.CityCode}-${flight?.destinationAirport?.CityCode}-${flight?.depTime}-${flight?.arrTime}-${flight?.segments?.[0]?.Airline?.FlightNumber}`;
-};
-// 2. flightFares ko ID-based banao
-const [flightFares, setFlightFares] = useState({}); // key: flightId, value: fareData
 
-// 3. Getfares function update karo
-const Getfares = async (data, flightId) => {
-  const requestData = {
-    unique_id: data.unique_id,
-    trace_price: data.trace_price,
-    trace_search: data.trace_search,
-    trace_option: data.trace_option,
-    passengerDetails: PassengerDetails,
-  };
-  
-  try {
-    setFareloadingg(prev => ({ ...prev, [flightId]: true }));
-    
-    const response = await fetch(`${base_url}searchPrices`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestData),
+  // Function to handle showing policy popup
+  const handleShowPolicy = (flightData, fare, flightId, basefare) => {
+    console.log("Showing policy for fare:", { flightData, fare, flightId });
+
+    // Get the policy key
+    const policyKey = `${flightId}_${fare.type}`;
+    const policyData = cancellationPolicies[policyKey];
+
+    // Store the selected fare data for popup
+    setSelectedFareForPopup({
+      flightData,
+      fare,
+      flightId,
+      basefare,
+      airlineName: flightData?.segments?.[0]?.Airline?.AirlineName,
+      flightNumber: flightData?.segments?.[0]?.Airline?.FlightNumber,
+      airlineLogo: flightData?.segments?.[0]?.Airline?.AirlineLogo,
+      originCity: flightData?.originAirport?.CityName,
+      destinationCity: flightData?.destinationAirport?.CityName,
+      depTime: flightData?.depTime,
+      arrTime: flightData?.arrTime,
     });
 
-    const Data = await response.json();
-    const fareData = Data.data;
-    
-    setFlightFares(prev => ({
-      ...prev,
-      [flightId]: fareData
-    }));
-    
-    setFareloadingg(prev => ({ ...prev, [flightId]: false }));
-  } catch {
-    setFareloadingg(prev => ({ ...prev, [flightId]: false }));
-  }
-};
+    setSelectedFarePolicy(policyData);
 
-// 4. showPrices ko bhi ID-based banao
+    // Show the popup
+    setShowPolicyPopup(true);
+  };
+  // ----------------------------------Flight fares api--------------------------------
+  //Onward flights
+  const getFlightUniqueId = (flight) => {
+    if (!flight) return "";
+    return `${flight?.originAirport?.CityCode}-${flight?.destinationAirport?.CityCode}-${flight?.depTime}-${flight?.arrTime}-${flight?.segments?.[0]?.Airline?.FlightNumber}`;
+  };
+  // 2. flightFares ko ID-based banao
+  const [flightFares, setFlightFares] = useState({}); // key: flightId, value: fareData
 
-const toggleShowPrices = (flightId) => {
-  setShowPrices(prev => {
-    const newSet = new Set(prev);
-    if (newSet.has(flightId)) {
-      newSet.delete(flightId);
-    } else {
-      newSet.add(flightId);
+  // 3. Getfares function update karo
+  const Getfares = async (data, flightId) => {
+    const requestData = {
+      unique_id: data.unique_id,
+      trace_price: data.trace_price,
+      trace_search: data.trace_search,
+      trace_option: data.trace_option,
+      passengerDetails: PassengerDetails,
+    };
+
+    try {
+      setFareloadingg((prev) => ({ ...prev, [flightId]: true }));
+
+      const response = await fetch(`${base_url}searchPrices`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
+      });
+
+      const Data = await response.json();
+      const fareData = Data.data;
+
+      setFlightFares((prev) => ({
+        ...prev,
+        [flightId]: fareData,
+      }));
+
+      // AFTER getting fares, fetch cancellation policies for each fare
+      if (fareData) {
+        // Combine all fares from uapi and tbo
+        const allFares = [
+          ...(fareData.uapi_fares || []).map((fare) => ({
+            ...fare,
+            from: "Uapi",
+            type: fare.SupplierFareClass || "",
+            Resultindex: fare.ResultIndex,
+            TraceId: fare.trace_id,
+          })),
+          ...(fareData.tbo_fares || []).map((fare) => ({
+            ...fare,
+            from: "Tbo",
+            type: fare.SupplierFareClass || "Regular Fare",
+            Resultindex: fare.ResultIndex,
+            TraceId: fare.trace_id,
+          })),
+        ];
+
+        // Fetch policies for all unique fares
+        for (const fare of allFares) {
+          const resultIndex = fare.Resultindex || fare.ResultIndex || fare.key;
+          if (resultIndex) {
+            // Don't await, fetch in background
+            fetchCancellationPolicy(fare, flightId, resultIndex);
+          }
+        }
+      }
+
+      setFareloadingg((prev) => ({ ...prev, [flightId]: false }));
+    } catch {
+      setFareloadingg((prev) => ({ ...prev, [flightId]: false }));
     }
-    return newSet;
-  });
-};
+  };
 
-const toggleShowReturnPrices = (flightId) => {
-  setShowReturnPrices(prev => {
-    const newSet = new Set(prev);
-    if (newSet.has(flightId)) {
-      newSet.delete(flightId);
-    } else {
-      newSet.add(flightId);
-    }
-    return newSet;
-  });
-};
+  // 4. showPrices ko bhi ID-based banao
+
+  const toggleShowPrices = (flightId) => {
+    setShowPrices((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(flightId)) {
+        newSet.delete(flightId);
+      } else {
+        newSet.add(flightId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleShowReturnPrices = (flightId) => {
+    setShowReturnPrices((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(flightId)) {
+        newSet.delete(flightId);
+      } else {
+        newSet.add(flightId);
+      }
+      return newSet;
+    });
+  };
   // Selected flight options
 
-const handleFareToggle = (flightData, fare, flightId, basefare) => {
-  // Update selectedFares
-  setSelectedFares((prevFares) => {
-    const isAlreadySelected = prevFares.some(
-      (f) => f.flightId === flightId && f.fareType === fare.type
+  const handleFareToggle = async (flightData, fare, flightId, basefare) => {
+    console.log("handleFareToggle called with:", {
+      flightId,
+      fareType: fare.type,
+    });
+    // Check if this is a selection or deselection
+    const isAlreadySelected = selectedFares.some(
+      (f) => f.flightId === flightId && f.fareType === fare.type,
     );
 
-    let updatedFares;
     if (isAlreadySelected) {
-      updatedFares = prevFares.filter(
-        (f) => !(f.flightId === flightId && f.fareType === fare.type)
+      // DESELECTION: Remove fare without fetching policy
+      setSelectedFares((prevFares) =>
+        prevFares.filter(
+          (f) => !(f.flightId === flightId && f.fareType === fare.type),
+        ),
       );
-    } else {
-      updatedFares = [...prevFares, { flightId, fareType: fare.type }];
+
+      setSelectedFlightoption((prevOptions) =>
+        prevOptions.filter(
+          (item) =>
+            !(item.flightId === flightId && item.fare.type === fare.type),
+        ),
+      );
+
+      // Check if there are any other fares selected for this flight
+      const hasOtherFares = selectedFares.some(
+        (f) => f.flightId === flightId && f.fareType !== fare.type,
+      );
+
+      if (!hasOtherFares) {
+        setSelectedFlightIds((prevIds) =>
+          prevIds.filter((id) => id !== flightId),
+        );
+      }
+
+      return;
     }
 
-    // Update selectedFlightIds
-    setSelectedFlightIds((prevIds) => {
-      const hasOtherFares = updatedFares.some((f) => f.flightId === flightId);
-      if (!hasOtherFares) {
-        return prevIds.filter((id) => id !== flightId);
-      } else if (!prevIds.includes(flightId)) {
-        return [...prevIds, flightId];
-      }
-      return prevIds;
-    });
+    // SELECTION: Fetch cancellation policy first
+    // IMPORTANT: Get the resultIndex from the fare object
+    const resultIndex =
+      fare.ResultIndex || fare.result_index || fare.key || fare.Resultindex;
 
-    return updatedFares;
-  });
+    if (!resultIndex) {
+      console.error("No resultIndex found for fare:", fare);
+      // Optionally show an alert to user
+      return;
+    }
 
-  // Update selectedFlightoption
-  setSelectedFlightoption((prevOptions) => {
-    const isAlreadySelected = prevOptions.some(
-      (item) => item.flightId === flightId && item.fare.type === fare.type
+    // Fetch cancellation policy with all three parameters
+    const policyData = await fetchCancellationPolicy(
+      fare,
+      flightId,
+      resultIndex,
     );
 
-    if (isAlreadySelected) {
-      return prevOptions.filter(
-        (item) => !(item.flightId === flightId && item.fare.type === fare.type)
+    // First update selectedFares
+    setSelectedFares((prevFares) => {
+      // Double-check it wasn't added while we were fetching
+      const exists = prevFares.some(
+        (f) => f.flightId === flightId && f.fareType === fare.type,
       );
-    } else {
+
+      if (exists) return prevFares;
+
+      return [
+        ...prevFares,
+        {
+          flightId,
+          fareType: fare.type,
+          policy: policyData,
+          resultIndex: resultIndex,
+        },
+      ];
+    });
+
+    // Then update selectedFlightoption
+    setSelectedFlightoption((prevOptions) => {
+      // Double-check it wasn't added while we were fetching
+      const exists = prevOptions.some(
+        (item) => item.flightId === flightId && item.fare.type === fare.type,
+      );
+
+      if (exists) return prevOptions;
+
+      console.log("Adding new option with policy:", policyData); // Debug log
+
       return [
         ...prevOptions,
         {
@@ -828,173 +939,216 @@ const handleFareToggle = (flightData, fare, flightId, basefare) => {
           arrTime: flightData?.arrTime,
           originCity: flightData?.originAirport?.CityName,
           destinationCity: flightData?.destinationAirport?.CityName,
+          cancellation_policy: policyData,
+          result_index: resultIndex,
         },
       ];
-    }
-  });
-};
-const groupedFlights = React.useMemo(() => {
-  return selectedFlightoption.reduce((acc, curr) => {
-    if (!acc[curr.flightId]) {
-      acc[curr.flightId] = {
-        flightData: curr.flightData,
-        fares: []
-      };
-    }
-    acc[curr.flightId].fares.push(curr.fare);
-    return acc;
-  }, {});
-}, [selectedFlightoption]);
+    });
+
+    // Finally update selectedFlightIds
+    setSelectedFlightIds((prevIds) => {
+      if (!prevIds.includes(flightId)) {
+        return [...prevIds, flightId];
+      }
+      return prevIds;
+    });
+  };
+  const groupedFlights = React.useMemo(() => {
+    return selectedFlightoption.reduce((acc, curr) => {
+      if (!acc[curr.flightId]) {
+        acc[curr.flightId] = {
+          flightData: curr.flightData,
+          fares: [],
+        };
+      }
+      acc[curr.flightId].fares.push(curr.fare);
+      return acc;
+    }, {});
+  }, [selectedFlightoption]);
+  // console.log('grouped flights', groupedFlights);
   // Remove selected Flight option
-const handleRemoveFare = (flightId, fareType) => {
-  setSelectedFlightoption((prev) =>
-    prev.filter(
-      (item) => !(item.flightId === flightId && item.fare.type === fareType)
-    )
-  );
-
-  setSelectedFares((prev) =>
-    prev.filter((f) => !(f.flightId === flightId && f.fareType === fareType))
-  );
-
-  setSelectedFlightIds((prev) => {
-    const hasOtherFares = selectedFares.some(
-      (f) => f.flightId === flightId && f.fareType !== fareType
+  const handleRemoveFare = (flightId, fareType) => {
+    setSelectedFlightoption((prev) =>
+      prev.filter(
+        (item) => !(item.flightId === flightId && item.fare.type === fareType),
+      ),
     );
-    if (!hasOtherFares) {
-      return prev.filter((id) => id !== flightId);
-    }
-    return prev;
-  });
-};
+
+    setSelectedFares((prev) =>
+      prev.filter((f) => !(f.flightId === flightId && f.fareType === fareType)),
+    );
+
+    setSelectedFlightIds((prev) => {
+      const hasOtherFares = selectedFares.some(
+        (f) => f.flightId === flightId && f.fareType !== fareType,
+      );
+      if (!hasOtherFares) {
+        return prev.filter((id) => id !== flightId);
+      }
+      return prev;
+    });
+  };
 
   //Return Flights
-const GetreturnFares = async (data, flightId) => { // Add flightId parameter
-  const requestData = {
-    unique_id: data.unique_id,
-    trace_price: data.trace_price,
-    trace_search: data.trace_search,
-    trace_option: data.trace_option,
-    passengerDetails: PassengerDetails,
-  };
-  
-  try {
-    setreturnFareLoadingg(prev => ({ ...prev, [flightId]: true })); // Set loading for specific flight
-    
-    const response = await fetch(`${base_url}searchPrices`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestData),
-    });
+  const GetreturnFares = async (data, flightId) => {
+    // Add flightId parameter
+    const requestData = {
+      unique_id: data.unique_id,
+      trace_price: data.trace_price,
+      trace_search: data.trace_search,
+      trace_option: data.trace_option,
+      passengerDetails: PassengerDetails,
+    };
 
-    const Data = await response.json();
-    const fareData = Data.data;
-    
-    setReturnFlightFares(prev => ({
-      ...prev,
-      [flightId]: fareData
-    }));
-    
-    setreturnFareLoadingg(prev => ({ ...prev, [flightId]: false }));
-  } catch {
-    setreturnFareLoadingg(prev => ({ ...prev, [flightId]: false }));
-  }
-};
-  // Selected flight options
-const handleReturnFareToggle = (flightData, fare, flightId, basefare) => {
-  setSelectedReturnFares((prevFares) => {
-    const isAlreadySelected = prevFares.some(
-      (f) => f.flightId === flightId && f.fareType === fare.type
-    );
+    try {
+      setreturnFareLoadingg((prev) => ({ ...prev, [flightId]: true })); // Set loading for specific flight
 
-    let updatedFares;
-    if (isAlreadySelected) {
-      updatedFares = prevFares.filter(
-        (f) => !(f.flightId === flightId && f.fareType === fare.type)
-      );
-    } else {
-      updatedFares = [...prevFares, { flightId, fareType: fare.type }];
-    }
-
-    setSelectedReturnFlightIds((prevIds) => {
-      const hasOtherFares = updatedFares.some((f) => f.flightId === flightId);
-      if (!hasOtherFares) {
-        return prevIds.filter((id) => id !== flightId);
-      } else if (!prevIds.includes(flightId)) {
-        return [...prevIds, flightId];
-      }
-      return prevIds;
-    });
-
-    return updatedFares;
-  });
-
-  setSelectedReturnFlightoption((prevOptions) => {
-    const isAlreadySelected = prevOptions.some(
-      (item) => item.flightId === flightId && item.fare.type === fare.type
-    );
-
-    if (isAlreadySelected) {
-      return prevOptions.filter(
-        (item) => !(item.flightId === flightId && item.fare.type === fare.type)
-      );
-    } else {
-      return [
-        ...prevOptions,
-        {
-          flightId: flightId,
-          flight: flightData,
-          fare: fare,
-          base_fare: basefare,
-          flightData: flightData,
-          airlineName: flightData?.segments?.[0]?.Airline?.AirlineName,
-          flightNumber: flightData?.segments?.[0]?.Airline?.FlightNumber,
-          airlineLogo: flightData?.segments?.[0]?.Airline?.AirlineLogo,
-          depTime: flightData?.depTime,
-          arrTime: flightData?.arrTime,
-          originCity: flightData?.originAirport?.CityName,
-          destinationCity: flightData?.destinationAirport?.CityName,
+      const response = await fetch(`${base_url}searchPrices`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      ];
+        body: JSON.stringify(requestData),
+      });
+
+      const Data = await response.json();
+      const fareData = Data.data;
+
+      setReturnFlightFares((prev) => ({
+        ...prev,
+        [flightId]: fareData,
+      }));
+      
+
+      // AFTER getting fares, fetch cancellation policies for each fare
+      if (fareData) {
+        // Combine all fares from uapi and tbo
+        const allFares = [
+          ...(fareData.uapi_fares || []).map((fare) => ({
+            ...fare,
+            from: "Uapi",
+            type: fare.SupplierFareClass || "",
+            Resultindex: fare.ResultIndex,
+            TraceId: fare.trace_id,
+          })),
+          ...(fareData.tbo_fares || []).map((fare) => ({
+            ...fare,
+            from: "Tbo",
+            type: fare.SupplierFareClass || "Regular Fare",
+            Resultindex: fare.ResultIndex,
+            TraceId: fare.trace_id,
+          })),
+        ];
+
+        // Fetch policies for all unique fares
+        for (const fare of allFares) {
+          const resultIndex = fare.Resultindex || fare.ResultIndex || fare.key;
+          if (resultIndex) {
+            // Don't await, fetch in background
+            fetchCancellationPolicy(fare, flightId, resultIndex);
+          }
+        }
+      }
+
+      setreturnFareLoadingg((prev) => ({ ...prev, [flightId]: false }));
+    } catch {
+      setreturnFareLoadingg((prev) => ({ ...prev, [flightId]: false }));
     }
-  });
-};
+  };
+  // Selected flight options
+  const handleReturnFareToggle = (flightData, fare, flightId, basefare) => {
+    setSelectedReturnFares((prevFares) => {
+      const isAlreadySelected = prevFares.some(
+        (f) => f.flightId === flightId && f.fareType === fare.type,
+      );
+
+      let updatedFares;
+      if (isAlreadySelected) {
+        updatedFares = prevFares.filter(
+          (f) => !(f.flightId === flightId && f.fareType === fare.type),
+        );
+      } else {
+        updatedFares = [...prevFares, { flightId, fareType: fare.type }];
+      }
+
+      setSelectedReturnFlightIds((prevIds) => {
+        const hasOtherFares = updatedFares.some((f) => f.flightId === flightId);
+        if (!hasOtherFares) {
+          return prevIds.filter((id) => id !== flightId);
+        } else if (!prevIds.includes(flightId)) {
+          return [...prevIds, flightId];
+        }
+        return prevIds;
+      });
+
+      return updatedFares;
+    });
+
+    setSelectedReturnFlightoption((prevOptions) => {
+      const isAlreadySelected = prevOptions.some(
+        (item) => item.flightId === flightId && item.fare.type === fare.type,
+      );
+
+      if (isAlreadySelected) {
+        return prevOptions.filter(
+          (item) =>
+            !(item.flightId === flightId && item.fare.type === fare.type),
+        );
+      } else {
+        return [
+          ...prevOptions,
+          {
+            flightId: flightId,
+            flight: flightData,
+            fare: fare,
+            base_fare: basefare,
+            flightData: flightData,
+            airlineName: flightData?.segments?.[0]?.Airline?.AirlineName,
+            flightNumber: flightData?.segments?.[0]?.Airline?.FlightNumber,
+            airlineLogo: flightData?.segments?.[0]?.Airline?.AirlineLogo,
+            depTime: flightData?.depTime,
+            arrTime: flightData?.arrTime,
+            originCity: flightData?.originAirport?.CityName,
+            destinationCity: flightData?.destinationAirport?.CityName,
+          },
+        ];
+      }
+    });
+  };
   const groupedReturnFlights = React.useMemo(() => {
-  return selectedReturnFlightoption.reduce((acc, curr) => {
-    if (!acc[curr.flightId]) {
-      acc[curr.flightId] = {
-        flightData: curr.flightData,
-        fares: []
-      };
-    }
-    acc[curr.flightId].fares.push(curr.fare);
-    return acc;
-  }, {});
-}, [selectedReturnFlightoption]);
+    return selectedReturnFlightoption.reduce((acc, curr) => {
+      if (!acc[curr.flightId]) {
+        acc[curr.flightId] = {
+          flightData: curr.flightData,
+          fares: [],
+        };
+      }
+      acc[curr.flightId].fares.push(curr.fare);
+      return acc;
+    }, {});
+  }, [selectedReturnFlightoption]);
   // Remove selected Flight option
-const handleRemoveReturnFare = (flightId, fareType) => {
-  setSelectedReturnFlightoption((prev) =>
-    prev.filter(
-      (item) => !(item.flightId === flightId && item.fare.type === fareType)
-    )
-  );
-
-  setSelectedReturnFares((prev) =>
-    prev.filter((f) => !(f.flightId === flightId && f.fareType === fareType))
-  );
-
-  setSelectedReturnFlightIds((prev) => {
-    const hasOtherFares = selectedReturnFares.some(
-      (f) => f.flightId === flightId && f.fareType !== fareType
+  const handleRemoveReturnFare = (flightId, fareType) => {
+    setSelectedReturnFlightoption((prev) =>
+      prev.filter(
+        (item) => !(item.flightId === flightId && item.fare.type === fareType),
+      ),
     );
-    if (!hasOtherFares) {
-      return prev.filter((id) => id !== flightId);
-    }
-    return prev;
-  });
-};
+
+    setSelectedReturnFares((prev) =>
+      prev.filter((f) => !(f.flightId === flightId && f.fareType === fareType)),
+    );
+
+    setSelectedReturnFlightIds((prev) => {
+      const hasOtherFares = selectedReturnFares.some(
+        (f) => f.flightId === flightId && f.fareType !== fareType,
+      );
+      if (!hasOtherFares) {
+        return prev.filter((id) => id !== flightId);
+      }
+      return prev;
+    });
+  };
 
   // ------------------------------------------------ Onward Fliter--------------------------------------------------------
   //Fliter stop
@@ -1010,7 +1164,7 @@ const handleRemoveReturnFare = (flightId, fareType) => {
     });
     setSelectedFlightIds([]);
     setSelectedFares([]);
-    setShowPrices(new Set());;
+    setShowPrices(new Set());
   };
   // Airline Filter
   const toggleAirline = (airlineName) => {
@@ -1026,7 +1180,7 @@ const handleRemoveReturnFare = (flightId, fareType) => {
     });
     setSelectedFlightIds([]);
     setSelectedFares([]);
-    setShowPrices(new Set());;
+    setShowPrices(new Set());
   };
 
   const toggleSelection = (slotKey, isDeparture) => {
@@ -1035,11 +1189,11 @@ const handleRemoveReturnFare = (flightId, fareType) => {
     updater(
       current.includes(slotKey)
         ? current.filter((key) => key !== slotKey)
-        : [...current, slotKey]
+        : [...current, slotKey],
     );
     setSelectedFlightIds([]);
     setSelectedFares([]);
-    setShowPrices(new Set());;
+    setShowPrices(new Set());
   };
 
   const getTimeSlot = (hour) => {
@@ -1171,108 +1325,122 @@ const handleRemoveReturnFare = (flightId, fareType) => {
   //       return 0;
   //   }
   // });
-// Filtered Onward Flights
-const filteredFlights = React.useMemo(() => {
-  if (!FlightOptions?.length) return [];
-  
-  return FlightOptions.filter((response) => {
-    const flight = response?.flight;
-    if (!flight) return false;
+  // Filtered Onward Flights
+  const filteredFlights = React.useMemo(() => {
+    if (!FlightOptions?.length) return [];
 
-    // Stops filter
-    const stopsCount = flight.segments?.length - 1;
-    if (selectedStops.size > 0 && !selectedStops.has(stopsCount)) return false;
+    return FlightOptions.filter((response) => {
+      const flight = response?.flight;
+      if (!flight) return false;
 
-    // Departure Time filter
-    const depTime = new Date(flight?.depTime);
-    const depSlot = getTimeSlot(depTime.getHours());
-    if (selectedDepartures.length > 0 && !selectedDepartures.includes(depSlot))
-      return false;
+      // Stops filter
+      const stopsCount = flight.segments?.length - 1;
+      if (selectedStops.size > 0 && !selectedStops.has(stopsCount))
+        return false;
 
-    // Arrival Time filter
-    const arrTime = new Date(flight?.arrTime);
-    const arrSlot = getTimeSlot(arrTime.getHours());
-    if (selectedArrivals.length > 0 && !selectedArrivals.includes(arrSlot))
-      return false;
+      // Departure Time filter
+      const depTime = new Date(flight?.depTime);
+      const depSlot = getTimeSlot(depTime.getHours());
+      if (
+        selectedDepartures.length > 0 &&
+        !selectedDepartures.includes(depSlot)
+      )
+        return false;
 
-    // Airlines filter
-    if (selectedAirlines.size > 0) {
-      const flightAirlines = new Set(
-        flight.segments?.map((s) => s.Airline?.AirlineName) || []
-      );
-      let airlineMatch = false;
-      for (let airline of selectedAirlines) {
-        if (flightAirlines.has(airline)) {
-          airlineMatch = true;
-          break;
+      // Arrival Time filter
+      const arrTime = new Date(flight?.arrTime);
+      const arrSlot = getTimeSlot(arrTime.getHours());
+      if (selectedArrivals.length > 0 && !selectedArrivals.includes(arrSlot))
+        return false;
+
+      // Airlines filter
+      if (selectedAirlines.size > 0) {
+        const flightAirlines = new Set(
+          flight.segments?.map((s) => s.Airline?.AirlineName) || [],
+        );
+        let airlineMatch = false;
+        for (let airline of selectedAirlines) {
+          if (flightAirlines.has(airline)) {
+            airlineMatch = true;
+            break;
+          }
         }
-      }
-      if (!airlineMatch) return false;
-    }
-
-    // Price range filter
-    const price = Number(response.prices?.TotalPrice);
-    if (price < priceRange[0] || price > priceRange[1]) {
-      return false;
-    }
-    
-    return true;
-  });
-}, [FlightOptions, selectedStops, selectedDepartures, selectedArrivals, 
-    selectedAirlines, priceRange]);
-
-// Sorted Onward Flights
-const sortedFlights = React.useMemo(() => {
-  // Remove duplicates based on flightId
-  const uniqueFlights = [];
-  const seenFlightIds = new Set();
-  
-  filteredFlights.forEach(flight => {
-    const flightId = getFlightUniqueId(flight.flight);
-    if (!seenFlightIds.has(flightId)) {  
-      seenFlightIds.add(flightId);
-      uniqueFlights.push(flight);
-    }
-  });
-
-  // Sort
-  return [...uniqueFlights].sort((a, b) => {
-    const getTime = (timeStr) => new Date(timeStr).getTime();
-
-    switch (sortField) {
-      case "departure":
-        return sortOrder === "asc"
-          ? getTime(a.flight.depTime) - getTime(b.flight.depTime)
-          : getTime(b.flight.depTime) - getTime(a.flight.depTime);
-
-      case "arrival":
-        return sortOrder === "asc"
-          ? getTime(a.flight.arrTime) - getTime(b.flight.arrTime)
-          : getTime(b.flight.arrTime) - getTime(a.flight.arrTime);
-
-      case "travelTime": {
-        const durationA = getTime(a.flight.arrTime) - getTime(a.flight.depTime);
-        const durationB = getTime(b.flight.arrTime) - getTime(b.flight.depTime);
-        return sortOrder === "asc" ? durationA - durationB : durationB - durationA;
+        if (!airlineMatch) return false;
       }
 
-      case "stops": {
-        const stopsA = a.flight.segments.length - 1;
-        const stopsB = b.flight.segments.length - 1;
-        return sortOrder === "asc" ? stopsA - stopsB : stopsB - stopsA;
-      }
-      
-      case "price": {
-        const priceA = Number(a.prices.TotalPrice);
-        const priceB = Number(b.prices.TotalPrice);
-        return sortOrder === "asc" ? priceA - priceB : priceB - priceA;
+      // Price range filter
+      const price = Number(response.prices?.TotalPrice);
+      if (price < priceRange[0] || price > priceRange[1]) {
+        return false;
       }
 
-      default:
-        return 0;
-    }
-  });
-}, [filteredFlights, sortField, sortOrder]);
+      return true;
+    });
+  }, [
+    FlightOptions,
+    selectedStops,
+    selectedDepartures,
+    selectedArrivals,
+    selectedAirlines,
+    priceRange,
+  ]);
+
+  // Sorted Onward Flights
+  const sortedFlights = React.useMemo(() => {
+    // Remove duplicates based on flightId
+    const uniqueFlights = [];
+    const seenFlightIds = new Set();
+
+    filteredFlights.forEach((flight) => {
+      const flightId = getFlightUniqueId(flight.flight);
+      if (!seenFlightIds.has(flightId)) {
+        seenFlightIds.add(flightId);
+        uniqueFlights.push(flight);
+      }
+    });
+
+    // Sort
+    return [...uniqueFlights].sort((a, b) => {
+      const getTime = (timeStr) => new Date(timeStr).getTime();
+
+      switch (sortField) {
+        case "departure":
+          return sortOrder === "asc"
+            ? getTime(a.flight.depTime) - getTime(b.flight.depTime)
+            : getTime(b.flight.depTime) - getTime(a.flight.depTime);
+
+        case "arrival":
+          return sortOrder === "asc"
+            ? getTime(a.flight.arrTime) - getTime(b.flight.arrTime)
+            : getTime(b.flight.arrTime) - getTime(a.flight.arrTime);
+
+        case "travelTime": {
+          const durationA =
+            getTime(a.flight.arrTime) - getTime(a.flight.depTime);
+          const durationB =
+            getTime(b.flight.arrTime) - getTime(b.flight.depTime);
+          return sortOrder === "asc"
+            ? durationA - durationB
+            : durationB - durationA;
+        }
+
+        case "stops": {
+          const stopsA = a.flight.segments.length - 1;
+          const stopsB = b.flight.segments.length - 1;
+          return sortOrder === "asc" ? stopsA - stopsB : stopsB - stopsA;
+        }
+
+        case "price": {
+          const priceA = Number(a.prices.TotalPrice);
+          const priceB = Number(b.prices.TotalPrice);
+          return sortOrder === "asc" ? priceA - priceB : priceB - priceA;
+        }
+
+        default:
+          return 0;
+      }
+    });
+  }, [filteredFlights, sortField, sortOrder]);
   const handleSort = (field) => {
     if (field === sortField) {
       // Toggle order
@@ -1281,7 +1449,7 @@ const sortedFlights = React.useMemo(() => {
       setSortField(field);
       setSortOrder("asc");
     }
-    setShowPrices(new Set());;
+    setShowPrices(new Set());
     setShowFlightDetails(null);
   };
   //Clear filter
@@ -1291,246 +1459,262 @@ const sortedFlights = React.useMemo(() => {
     setSelectedArrivals([]);
     setSelectedAirlines(new Set());
     setPriceRange([minFare, maxFare]); // or your initial default range
-    setShowPrices(new Set());;
+    setShowPrices(new Set());
   };
 
   // -------------------------------------------- Return Filter ---------------------------------------------
   //Fliter stop
-// Make sure these are defined correctly
-const toggleReturnStop = (stop) => {
-  setReturnSelectedStops((prev) => {
-    const newSet = new Set(prev);
-    if (newSet.has(stop)) {
-      newSet.delete(stop);
-    } else {
-      newSet.add(stop);
-    }
-    console.log('Return stops updated:', Array.from(newSet)); // Debug
-    return newSet;
-  });
-  setSelectedReturnFlightIds([]);
-  setSelectedReturnFares([]);
-  setShowReturnPrices(new Set());
-};
-
-// Airline filter
-const toggleReturnAirline = (airlineName) => {
-  setSelectedReturnAirlines((prev) => {
-    const newSet = new Set(prev);
-    if (newSet.has(airlineName)) {
-      newSet.delete(airlineName);
-    } else {
-      newSet.add(airlineName);
-    }
-    // console.log('Return airlines updated:', Array.from(newSet)); // Debug
-    return newSet;
-  });
-  setSelectedReturnFlightIds([]);
-  setSelectedReturnFares([]);
-  setShowReturnPrices(new Set());
-};
-
-// Time slot filter
-const toggleReturnSelection = (slotKey, isDeparture) => {
-  const updater = isDeparture ? setSelectedReturnDepartures : setSelectedReturnArrivals;
-  const current = isDeparture ? selectedReturnDepartures : selectedReturnArrivals;
-  
-  updater(
-    current.includes(slotKey)
-      ? current.filter((key) => key !== slotKey)
-      : [...current, slotKey]
-  );
-  
-  // console.log('Return departures:', selectedReturnDepartures); // Debug
-  // console.log('Return arrivals:', selectedReturnArrivals); // Debug
-  
-  setSelectedReturnFlightIds([]);
-  setSelectedReturnFares([]);
-  setShowReturnPrices(new Set());
-};
-
-const getReturnTimeSlot = (hour) => {
-  if (hour < 6) return "before6AM";
-  if (hour < 12) return "6AMto12PM";
-  if (hour < 18) return "12PMto6PM";
-  return "after6PM";
-};
-
-// Filtered data - FIXED VERSION
-const filteredReturnFlights = React.useMemo(() => {
-  // console.log('=== FILTERING RETURN FLIGHTS ===');
-  // console.log('Selected stops:', Array.from(returnSelectedStops || []));
-  // console.log('Selected departures:', selectedReturnDepartures);
-  // console.log('Selected arrivals:', selectedReturnArrivals);
-  // console.log('Selected airlines:', Array.from(selectedReturnAirlines || []));
-  // console.log('Price range:', priceReturnRange);
-  
-  if (!FlightReturnOptions?.length) {
-    // console.log('No return flights to filter');
-    return [];
-  }
-  
-  // Debug first few flights to see airline names
-  // console.log('Sample flight airlines:');
-  FlightReturnOptions.slice(0, 5).forEach((resp, idx) => {
-    const airlines = resp?.flight?.segments?.map(s => s.Airline?.AirlineName) || [];
-    // console.log(`Flight ${idx} airlines:`, airlines);
-  });
-  
-  const filtered = FlightReturnOptions.filter((response, idx) => {
-    const flight = response?.flight;
-    if (!flight) return false;
-
-    // STOP FILTER
-    const stopsCount = flight.segments?.length - 1;
-    if (returnSelectedStops.size > 0) {
-      if (!returnSelectedStops.has(stopsCount)) {
-        if (idx < 5) console.log(`Flight ${idx} rejected by stops`);
-        return false;
+  // Make sure these are defined correctly
+  const toggleReturnStop = (stop) => {
+    setReturnSelectedStops((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(stop)) {
+        newSet.delete(stop);
+      } else {
+        newSet.add(stop);
       }
+      console.log("Return stops updated:", Array.from(newSet)); // Debug
+      return newSet;
+    });
+    setSelectedReturnFlightIds([]);
+    setSelectedReturnFares([]);
+    setShowReturnPrices(new Set());
+  };
+
+  // Airline filter
+  const toggleReturnAirline = (airlineName) => {
+    setSelectedReturnAirlines((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(airlineName)) {
+        newSet.delete(airlineName);
+      } else {
+        newSet.add(airlineName);
+      }
+      // console.log('Return airlines updated:', Array.from(newSet)); // Debug
+      return newSet;
+    });
+    setSelectedReturnFlightIds([]);
+    setSelectedReturnFares([]);
+    setShowReturnPrices(new Set());
+  };
+
+  // Time slot filter
+  const toggleReturnSelection = (slotKey, isDeparture) => {
+    const updater = isDeparture
+      ? setSelectedReturnDepartures
+      : setSelectedReturnArrivals;
+    const current = isDeparture
+      ? selectedReturnDepartures
+      : selectedReturnArrivals;
+
+    updater(
+      current.includes(slotKey)
+        ? current.filter((key) => key !== slotKey)
+        : [...current, slotKey],
+    );
+
+    // console.log('Return departures:', selectedReturnDepartures); // Debug
+    // console.log('Return arrivals:', selectedReturnArrivals); // Debug
+
+    setSelectedReturnFlightIds([]);
+    setSelectedReturnFares([]);
+    setShowReturnPrices(new Set());
+  };
+
+  const getReturnTimeSlot = (hour) => {
+    if (hour < 6) return "before6AM";
+    if (hour < 12) return "6AMto12PM";
+    if (hour < 18) return "12PMto6PM";
+    return "after6PM";
+  };
+
+  // Filtered data - FIXED VERSION
+  const filteredReturnFlights = React.useMemo(() => {
+    // console.log('=== FILTERING RETURN FLIGHTS ===');
+    // console.log('Selected stops:', Array.from(returnSelectedStops || []));
+    // console.log('Selected departures:', selectedReturnDepartures);
+    // console.log('Selected arrivals:', selectedReturnArrivals);
+    // console.log('Selected airlines:', Array.from(selectedReturnAirlines || []));
+    // console.log('Price range:', priceReturnRange);
+
+    if (!FlightReturnOptions?.length) {
+      // console.log('No return flights to filter');
+      return [];
     }
 
-    // DEPARTURE TIME FILTER
-    if (selectedReturnDepartures.length > 0) {
-      const depTime = new Date(flight?.depTime);
-      const depSlot = getReturnTimeSlot(depTime.getHours());
-      if (!selectedReturnDepartures.includes(depSlot)) {
-        if (idx < 5) console.log(`Flight ${idx} rejected by departure time`);
-        return false;
-      }
-    }
+    // Debug first few flights to see airline names
+    // console.log('Sample flight airlines:');
+    FlightReturnOptions.slice(0, 5).forEach((resp, idx) => {
+      const airlines =
+        resp?.flight?.segments?.map((s) => s.Airline?.AirlineName) || [];
+      // console.log(`Flight ${idx} airlines:`, airlines);
+    });
 
-    // ARRIVAL TIME FILTER
-    if (selectedReturnArrivals.length > 0) {
-      const arrTime = new Date(flight?.arrTime);
-      const arrSlot = getReturnTimeSlot(arrTime.getHours());
-      if (!selectedReturnArrivals.includes(arrSlot)) {
-        if (idx < 5) console.log(`Flight ${idx} rejected by arrival time`);
-        return false;
-      }
-    }
+    const filtered = FlightReturnOptions.filter((response, idx) => {
+      const flight = response?.flight;
+      if (!flight) return false;
 
-    // AIRLINE FILTER - WITH DEBUG
-    if (selectedReturnAirlines.size > 0) {
-      const flightAirlines = flight.segments?.map(s => s.Airline?.AirlineName) || [];
-      const selectedAirlinesArray = Array.from(selectedReturnAirlines);
-      
-      // Debug first few flights
-      if (idx < 5) {
-        // console.log(`Flight ${idx} airlines:`, flightAirlines);
-        // console.log(`Selected airlines:`, selectedAirlinesArray);
-      }
-      
-      // Check if ANY selected airline matches ANY flight airline
-      let hasMatchingAirline = false;
-      for (let selectedAirline of selectedAirlinesArray) {
-        if (flightAirlines.includes(selectedAirline)) {
-          hasMatchingAirline = true;
-          break;
+      // STOP FILTER
+      const stopsCount = flight.segments?.length - 1;
+      if (returnSelectedStops.size > 0) {
+        if (!returnSelectedStops.has(stopsCount)) {
+          if (idx < 5) console.log(`Flight ${idx} rejected by stops`);
+          return false;
         }
       }
-      
-      if (!hasMatchingAirline) {
-        if (idx < 5) console.log(`Flight ${idx} rejected by airlines`);
+
+      // DEPARTURE TIME FILTER
+      if (selectedReturnDepartures.length > 0) {
+        const depTime = new Date(flight?.depTime);
+        const depSlot = getReturnTimeSlot(depTime.getHours());
+        if (!selectedReturnDepartures.includes(depSlot)) {
+          if (idx < 5) console.log(`Flight ${idx} rejected by departure time`);
+          return false;
+        }
+      }
+
+      // ARRIVAL TIME FILTER
+      if (selectedReturnArrivals.length > 0) {
+        const arrTime = new Date(flight?.arrTime);
+        const arrSlot = getReturnTimeSlot(arrTime.getHours());
+        if (!selectedReturnArrivals.includes(arrSlot)) {
+          if (idx < 5) console.log(`Flight ${idx} rejected by arrival time`);
+          return false;
+        }
+      }
+
+      // AIRLINE FILTER - WITH DEBUG
+      if (selectedReturnAirlines.size > 0) {
+        const flightAirlines =
+          flight.segments?.map((s) => s.Airline?.AirlineName) || [];
+        const selectedAirlinesArray = Array.from(selectedReturnAirlines);
+
+        // Debug first few flights
+        if (idx < 5) {
+          // console.log(`Flight ${idx} airlines:`, flightAirlines);
+          // console.log(`Selected airlines:`, selectedAirlinesArray);
+        }
+
+        // Check if ANY selected airline matches ANY flight airline
+        let hasMatchingAirline = false;
+        for (let selectedAirline of selectedAirlinesArray) {
+          if (flightAirlines.includes(selectedAirline)) {
+            hasMatchingAirline = true;
+            break;
+          }
+        }
+
+        if (!hasMatchingAirline) {
+          if (idx < 5) console.log(`Flight ${idx} rejected by airlines`);
+          return false;
+        }
+
+        if (idx < 5) console.log(`Flight ${idx} accepted by airlines`);
+      }
+
+      // PRICE FILTER
+      const price = Number(response.prices?.TotalPrice);
+      if (price < priceReturnRange[0] || price > priceReturnRange[1]) {
+        if (idx < 5) console.log(`Flight ${idx} rejected by price`);
         return false;
       }
-      
-      if (idx < 5) console.log(`Flight ${idx} accepted by airlines`);
-    }
 
-    // PRICE FILTER
-    const price = Number(response.prices?.TotalPrice);
-    if (price < priceReturnRange[0] || price > priceReturnRange[1]) {
-      if (idx < 5) console.log(`Flight ${idx} rejected by price`);
-      return false;
-    }
-    
-    if (idx < 5) console.log(`Flight ${idx} ACCEPTED all filters`);
-    return true;
-  });
-  
-  // console.log('Filtered count:', filtered.length);
-  return filtered;
-}, [FlightReturnOptions, returnSelectedStops, selectedReturnDepartures, 
-    selectedReturnArrivals, selectedReturnAirlines, priceReturnRange]);
+      if (idx < 5) console.log(`Flight ${idx} ACCEPTED all filters`);
+      return true;
+    });
 
-// Sort the filtered flights
-const sortedReturnFlights = React.useMemo(() => {
-  // Remove duplicates
-  const uniqueFlights = [];
-  const seenFlightIds = new Set();
-  
-  filteredReturnFlights.forEach(flight => {
-    const flightId = getFlightUniqueId(flight.flight);
-    if (!seenFlightIds.has(flightId)) {
-      seenFlightIds.add(flightId);
-      uniqueFlights.push(flight);
-    }
-  });
+    // console.log('Filtered count:', filtered.length);
+    return filtered;
+  }, [
+    FlightReturnOptions,
+    returnSelectedStops,
+    selectedReturnDepartures,
+    selectedReturnArrivals,
+    selectedReturnAirlines,
+    priceReturnRange,
+  ]);
 
-  // Sort
-  return [...uniqueFlights].sort((a, b) => {
-    const getTime = (timeStr) => new Date(timeStr).getTime();
+  // Sort the filtered flights
+  const sortedReturnFlights = React.useMemo(() => {
+    // Remove duplicates
+    const uniqueFlights = [];
+    const seenFlightIds = new Set();
 
-    switch (sortReturnField) {
-      case "departure":
-        return sortReturnOrder === "asc"
-          ? getTime(a.flight.depTime) - getTime(b.flight.depTime)
-          : getTime(b.flight.depTime) - getTime(a.flight.depTime);
-
-      case "arrival":
-        return sortReturnOrder === "asc"
-          ? getTime(a.flight.arrTime) - getTime(b.flight.arrTime)
-          : getTime(b.flight.arrTime) - getTime(a.flight.arrTime);
-
-      case "travelTime": {
-        const durationA = getTime(a.flight.arrTime) - getTime(a.flight.depTime);
-        const durationB = getTime(b.flight.arrTime) - getTime(b.flight.depTime);
-        return sortReturnOrder === "asc" ? durationA - durationB : durationB - durationA;
+    filteredReturnFlights.forEach((flight) => {
+      const flightId = getFlightUniqueId(flight.flight);
+      if (!seenFlightIds.has(flightId)) {
+        seenFlightIds.add(flightId);
+        uniqueFlights.push(flight);
       }
+    });
 
-      case "stops": {
-        const stopsA = a.flight.segments.length - 1;
-        const stopsB = b.flight.segments.length - 1;
-        return sortReturnOrder === "asc" ? stopsA - stopsB : stopsB - stopsA;
-      }
-      
-      case "price": {
-        const priceA = Number(a.prices.TotalPrice);
-        const priceB = Number(b.prices.TotalPrice);
-        return sortReturnOrder === "asc" ? priceA - priceB : priceB - priceA;
-      }
+    // Sort
+    return [...uniqueFlights].sort((a, b) => {
+      const getTime = (timeStr) => new Date(timeStr).getTime();
 
-      default:
-        return 0;
+      switch (sortReturnField) {
+        case "departure":
+          return sortReturnOrder === "asc"
+            ? getTime(a.flight.depTime) - getTime(b.flight.depTime)
+            : getTime(b.flight.depTime) - getTime(a.flight.depTime);
+
+        case "arrival":
+          return sortReturnOrder === "asc"
+            ? getTime(a.flight.arrTime) - getTime(b.flight.arrTime)
+            : getTime(b.flight.arrTime) - getTime(a.flight.arrTime);
+
+        case "travelTime": {
+          const durationA =
+            getTime(a.flight.arrTime) - getTime(a.flight.depTime);
+          const durationB =
+            getTime(b.flight.arrTime) - getTime(b.flight.depTime);
+          return sortReturnOrder === "asc"
+            ? durationA - durationB
+            : durationB - durationA;
+        }
+
+        case "stops": {
+          const stopsA = a.flight.segments.length - 1;
+          const stopsB = b.flight.segments.length - 1;
+          return sortReturnOrder === "asc" ? stopsA - stopsB : stopsB - stopsA;
+        }
+
+        case "price": {
+          const priceA = Number(a.prices.TotalPrice);
+          const priceB = Number(b.prices.TotalPrice);
+          return sortReturnOrder === "asc" ? priceA - priceB : priceB - priceA;
+        }
+
+        default:
+          return 0;
+      }
+    });
+  }, [filteredReturnFlights, sortReturnField, sortReturnOrder]);
+
+  // Sort handler
+  const handleReturnSort = (field) => {
+    if (field === sortReturnField) {
+      setSortReturnOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortReturnField(field);
+      setSortReturnOrder("asc");
     }
-  });
-}, [filteredReturnFlights, sortReturnField, sortReturnOrder]);
+    setSelectedReturnFlightIds([]);
+    setSelectedReturnFares([]);
+    setShowReturnPrices(new Set());
+  };
 
-// Sort handler
-const handleReturnSort = (field) => {
-  if (field === sortReturnField) {
-    setSortReturnOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-  } else {
-    setSortReturnField(field);
-    setSortReturnOrder("asc");
-  }
-  setSelectedReturnFlightIds([]);
-  setSelectedReturnFares([]);
-  setShowReturnPrices(new Set());
-};
-
-// Clear all filters
-const handleClearReturnFilters = () => {
-  setReturnSelectedStops(new Set());
-  setSelectedReturnDepartures([]);
-  setSelectedReturnArrivals([]);
-  setSelectedReturnAirlines(new Set());
-  setPriceReturnRange([minFare, maxFare]);
-  setShowReturnPrices(new Set());
-  setSelectedReturnFlightIds([]);
-  setSelectedReturnFares([]);
-};
+  // Clear all filters
+  const handleClearReturnFilters = () => {
+    setReturnSelectedStops(new Set());
+    setSelectedReturnDepartures([]);
+    setSelectedReturnArrivals([]);
+    setSelectedReturnAirlines(new Set());
+    setPriceReturnRange([minFare, maxFare]);
+    setShowReturnPrices(new Set());
+    setSelectedReturnFlightIds([]);
+    setSelectedReturnFares([]);
+  };
   const handleScrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -1613,8 +1797,16 @@ const handleClearReturnFilters = () => {
 
   //Navigate to next page on click on price div
   const [markup, setMarkup] = useState("");
-  const [ClientPrice, setClientPrice] = useState("");
-  const [priceError, setPriceError] = useState("");
+  const [fromCity, setFromCity] = useState("");
+  const [toCity, setToCity] = useState("");
+  const [flightRouteInfo, setFlightRouteInfo] = useState({
+    fromCity: "",
+    fromAirport: "",
+    fromCode: "",
+    toCity: "",
+    toAirport: "",
+    toCode: "",
+  });
   // Add these state variables
   const [ClientPriceOnward, setClientPriceOnward] = useState("");
   const [ClientPriceReturn, setClientPriceReturn] = useState("");
@@ -1622,13 +1814,7 @@ const handleClearReturnFilters = () => {
   const [priceErrorReturn, setPriceErrorReturn] = useState("");
 
   // Update modal close function
-  const closeModal = () => {
-    setIsModalOpen2(false);
-    setClientPriceOnward("");
-    setClientPriceReturn("");
-    setPriceErrorOnward("");
-    setPriceErrorReturn("");
-  };
+
   // console.log(ClientPrice);
 
   const safeFormatTime = (dateValue) => {
@@ -1639,51 +1825,7 @@ const handleClearReturnFilters = () => {
   };
 
   const [bookingPayload, setBookingPayload] = useState(null);
-  // const calculateDuration = (segments) => {
-  //   if (!segments || segments.length === 0) return "0H 0M";
 
-  //   // Calculate total duration from segments
-  //   let totalMinutes = 0;
-  //   segments.forEach(segment => {
-  //     if (segment.duration) {
-  //       // Assuming duration is in "PT2H10M" format or similar
-  //       const match = segment.duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
-  //       if (match) {
-  //         const hours = parseInt(match[1] || 0);
-  //         const minutes = parseInt(match[2] || 0);
-  //         totalMinutes += hours * 60 + minutes;
-  //       }
-  //     }
-  //   });
-
-  //   const hours = Math.floor(totalMinutes / 60);
-  //   const minutes = totalMinutes % 60;
-  //   return `${hours}H ${minutes}M`;
-  // };
-  // const AddClientPrice = (
-  //   fare,
-  //   segments,
-  //   Cabinclass,
-  //   inputValue,
-  //   FlightInfo,
-  //   isRoundTrip = false,
-  //   returnFlightData = null
-  // ) => {
-  //   setBookingPayload({
-  //     fare,
-  //     segments,
-  //     Cabinclass,
-  //     inputValue,
-  //     FlightInfo,
-  //     isRoundTrip,
-  //     returnFlightData,
-  //     totalPrice: isRoundTrip
-  //       ? (fare?.price || 0) + (returnFlightData?.fare?.price || 0)
-  //       : fare?.price || 0
-  //   });
-
-  //   setIsModalOpen2(true);
-  // };
   const AddClientPrice = (
     fare,
     segments,
@@ -1691,7 +1833,7 @@ const handleClearReturnFilters = () => {
     inputValue,
     FlightInfo,
     isRoundTrip = false,
-    returnData = null
+    returnData = null,
   ) => {
     // For one-way flight or onward flight only
     const bookingData = {
@@ -1724,13 +1866,14 @@ const handleClearReturnFilters = () => {
     setBookingPayload(bookingData);
     setIsModalOpen2(true);
   };
+  console.log("Booking Payload:", bookingPayload); // Debug log
   const NavigatetoBookingflow = (
     fare,
     segments,
     Cabinclass,
     inputValue,
     FlightInfo,
-    ClientPrice
+    ClientPrice,
   ) => {
     const adultCount = inputValue.adult
       ? Number(inputValue.adult)
@@ -1774,7 +1917,7 @@ const handleClearReturnFilters = () => {
     FlightData,
     cabinClass,
     inputValue,
-    ClientPrice = null
+    ClientPrice = null,
   ) => {
     const adultCount = inputValue.adult
       ? Number(inputValue.adult)
@@ -1805,7 +1948,7 @@ const handleClearReturnFilters = () => {
 
     sessionStorage.setItem(
       "returnPriceResponse",
-      JSON.stringify(PriceResponse)
+      JSON.stringify(PriceResponse),
     );
 
     window.open("/ReturnBookingFlow", "_blank");
@@ -1876,18 +2019,7 @@ const handleClearReturnFilters = () => {
   };
 
   // helper to calculate duration between dep & arr
-  function calculateDuration(dep, arr) {
-    if (!dep || !arr) return "";
-    const depDate = new Date(dep);
-    const arrDate = new Date(arr);
-    const diffMs = arrDate - depDate;
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
-    // console.log("time");
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}:00`;
-  }
+
   function calculateDurationFlight(segments = []) {
     if (!segments.length) return "00h 00m";
 
@@ -1907,205 +2039,188 @@ const handleClearReturnFilters = () => {
 
     return `${hours}h ${minutes}m`;
   }
+  const [cancellationPolicies, setCancellationPolicies] = useState({}); // key: flightId_fareType, value: policy data
+  const [policyLoading, setPolicyLoading] = useState({});
 
-const Shareflight = async () => {
-  // Helper function to clean text
+  const fetchCancellationPolicy = async (fare, flightId, resultIndex) => {
+    console.log("Fetching policy with:", { fare, flightId, resultIndex });
 
-  const cleanText = (text) => {
-    if (!text || typeof text !== "string") return text;
+    if (!resultIndex) {
+      console.error("No resultIndex found for fare");
+      return null;
+    }
 
-    // Remove special characters but keep spaces, letters, numbers, basic punctuation
-    return text
-      .replace(/[^\w\s(),.-]/g, "") // Keep alphanumeric, spaces, and basic punctuation
-      .replace(/\s+/g, " ") // Replace multiple spaces with single space
-      .trim();
+    const policyKey = `${flightId}_${fare.type}`;
+    console.log("Policy key:", policyKey);
+
+    // Don't fetch if already have policy or currently loading
+    if (cancellationPolicies[policyKey] || policyLoading[policyKey]) {
+      console.log("Policy already exists or loading:", policyKey);
+      return cancellationPolicies[policyKey];
+    }
+
+    try {
+      setPolicyLoading((prev) => ({ ...prev, [policyKey]: true }));
+
+      const requestData = {
+        onwardKeys: {
+          key: resultIndex,
+          traceId: fare.trace_id || fare.traceId || fare.TraceId || "", // Make sure trace_id is available in fare object
+          source_type: fare.from  ,// Get source from fare
+          flighttype: FLightType,
+          isLCC: fare.isLCC,
+          FareClass: fare.SupplierFareClass || "",
+        },
+      };
+
+      console.log("API Request Data:", requestData);
+
+      const response = await fetch(
+        `${base_url}cancellationsPolicies`,
+        // "https://www.nirixak.com/testuapi/api/flights/cancellationsPolicies",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        },
+      );
+
+      console.log("API Response status:", response.status);
+
+      const data = await response.json();
+      console.log("API Response data:", data);
+
+      if (data.status && data.data) {
+        // Store the policy
+        setCancellationPolicies((prev) => ({
+          ...prev,
+          [policyKey]: data.data,
+        }));
+        return data.data;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error fetching cancellation policy:", error);
+      return null;
+    } finally {
+      setPolicyLoading((prev) => ({ ...prev, [policyKey]: false }));
+    }
   };
 
-  // Helper function to calculate duration
-  const calculateDuration = (departure, arrival) => {
-    if (!departure || !arrival) return "00 Hrs : 00 mins";
-    
-    const dep = new Date(departure);
-    const arr = new Date(arrival);
-    const diffMs = arr - dep;
+  const Shareflight = async () => {
+    // Helper function to clean text
 
-    if (diffMs < 0) return "00 Hrs : 00 mins";
+    const cleanText = (text) => {
+      if (!text || typeof text !== "string") return text;
 
-    const diffH = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffM = Math.floor((diffMs / (1000 * 60)) % 60);
+      // Remove special characters but keep spaces, letters, numbers, basic punctuation
+      return text
+        .replace(/[^\w\s(),.-]/g, "") // Keep alphanumeric, spaces, and basic punctuation
+        .replace(/\s+/g, " ") // Replace multiple spaces with single space
+        .trim();
+    };
 
-    return `${String(diffH).padStart(2, "0")} Hrs : ${String(diffM).padStart(
-      2,
-      "0"
-    )} mins`;
-  };
+    // Helper function to calculate duration
+    const calculateDuration = (departure, arrival) => {
+      if (!departure || !arrival) return "00 Hrs : 00 mins";
 
-  // Convert layover difference into HH:MM:SS
-  const calculateLayover = (arrival, departure) => {
-    if (!arrival || !departure) return "00 Hrs : 00 mins";
-    
-    const arr = new Date(arrival);
-    const dep = new Date(departure);
-    const diffMs = dep - arr;
+      const dep = new Date(departure);
+      const arr = new Date(arrival);
+      const diffMs = arr - dep;
 
-    if (diffMs < 0) return "00 Hrs : 00 mins";
+      if (diffMs < 0) return "00 Hrs : 00 mins";
 
-    const diffH = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffM = Math.floor((diffMs / (1000 * 60)) % 60);
+      const diffH = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffM = Math.floor((diffMs / (1000 * 60)) % 60);
 
-    return `${String(diffH).padStart(2, "0")} Hrs : ${String(diffM).padStart(
-      2,
-      "0"
-    )} mins`;
-  };
+      return `${String(diffH).padStart(2, "0")} Hrs : ${String(diffM).padStart(
+        2,
+        "0",
+      )} mins`;
+    };
 
-  // Build initial object
-  let transformedFlights = {
-    flights: {}
-  };
+    // Convert layover difference into HH:MM:SS
+    const calculateLayover = (arrival, departure) => {
+      if (!arrival || !departure) return "00 Hrs : 00 mins";
 
-  let is_return = 0;
+      const arr = new Date(arrival);
+      const dep = new Date(departure);
+      const diffMs = dep - arr;
 
-  // Check for onward flights
-  if (Object.keys(groupedFlights || {}).length > 0) {
-    transformedFlights.flights.onward = { flight_options: [] };
-  }
+      if (diffMs < 0) return "00 Hrs : 00 mins";
 
-  // Check for return flights
-  if (Object.keys(groupedReturnFlights || {}).length > 0) {
-    transformedFlights.flights.return = { flight_options: [] };
-    is_return = 1;
-  }
+      const diffH = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffM = Math.floor((diffMs / (1000 * 60)) % 60);
 
-  // ------------------------- ONWARD FLIGHTS ----------------------------
-  Object.entries(groupedFlights || {}).forEach(([flightId, item]) => {
-    // Get flight data - check if it's in item.flightData or item.flight
-    const flightData = item.flightData || item.flight;
-    if (!flightData) return;
-    
-    const segments = flightData.segments || [];
+      return `${String(diffH).padStart(2, "0")} Hrs : ${String(diffM).padStart(
+        2,
+        "0",
+      )} mins`;
+    };
 
-    const flightNos = segments
-      .map((seg) => seg.Airline?.FlightNumber)
-      .filter(Boolean)
-      .join(", ");
-    
-    const airlineNames = segments
-      .map((seg) => cleanText(seg.Airline?.AirlineName))
-      .filter(Boolean)
-      .join(", ");
-    
-    const carriers = segments
-      .map((seg) => cleanText(seg.Airline?.AirlineCode))
-      .filter(Boolean)
-      .join(", ");
+    // Build initial object
+    let transformedFlights = {
+      flights: {},
+    };
 
-    // --------------------- LAYOVER CALCULATION ---------------------
-    const stops = [];
-    if (segments.length > 1) {
-      for (let i = 0; i < segments.length - 1; i++) {
-        const currentSeg = segments[i];
-        const nextSeg = segments[i + 1];
+    let is_return = 0;
 
-        const stopAirport = currentSeg?.Destination?.Airport;
+    // Check for onward flights
+    if (Object.keys(groupedFlights || {}).length > 0) {
+      transformedFlights.flights.onward = { flight_options: [] };
+    }
 
-        const layoverTime = calculateLayover(
-          currentSeg?.Destination?.ArrTime,
-          nextSeg?.Origin?.DepTime
+    // Check for return flights
+    if (Object.keys(groupedReturnFlights || {}).length > 0) {
+      transformedFlights.flights.return = { flight_options: [] };
+      is_return = 1;
+    }
+    // After transforming flights, update the city states
+    if (groupedFlights && Object.keys(groupedFlights).length > 0) {
+      const firstFlight = Object.values(groupedFlights)[0];
+      const flightData = firstFlight.flightData || firstFlight.flight;
+
+      if (flightData) {
+        setFromCity(
+          flightData.originAirport?.CityName ||
+            flightData.originAirport?.AirportName ||
+            "",
         );
-
-        stops.push({
-          stop_airport: cleanText(
-            `${stopAirport?.AirportName || ''} ${stopAirport?.CityName || ''} (${stopAirport?.AirportCode || ''})`
-          ),
-          duration: layoverTime,
-        });
+        setToCity(
+          flightData.destinationAirport?.CityName ||
+            flightData.destinationAirport?.AirportName ||
+            "",
+        );
       }
     }
 
-    // Get base fare from first fare
-    const baseFare = item.fares?.[0]?.price || 0;
-    // console.log("Base Price",baseFare);
-    const markupValue = Number(markup) || 0;
-
-    // ---------------------- ADD FLIGHT OPTION ----------------------
-    transformedFlights.flights.onward.flight_options.push({
-     flight_no: cleanText(carriers) + ' ' + cleanText(flightNos),
-      airline_name: cleanText(airlineNames),
-      from_city: cleanText(flightData.originAirport?.AirportName),
-      from_city_code: cleanText(flightData.originAirport?.AirportCode),
-      to_city: cleanText(flightData.destinationAirport?.AirportName),
-      to_city_code: cleanText(flightData.destinationAirport?.AirportCode),
-      departure_datetime: flightData?.depTime,
-      arrival_datetime: flightData?.arrTime,
-      base_price: baseFare,
-      price: baseFare + markupValue,
-      markup: markupValue,
-      is_return,
-      no_of_stops: segments.length - 1,
-      carrier: cleanText(carriers),
-      provider_code: cleanText(item?.fares?.[0]?.ProviderCode || ""),
-      duration: calculateDuration(flightData?.depTime, flightData?.arrTime),
-      is_refundable: item.fares?.[0]?.is_refundable || 0,
-
-      fare_details: (item?.fares || []).map((f) => ({
-        fare_type: cleanText(f.type || "Corporate Fare"),
-        base_price: f.price || 0,
-        price: (f.price || 0) + markupValue,
-        markup: markupValue,
-        source: cleanText(f.from || "Uapi"),
-        updated_total_price: (f.price || 0) + markupValue,
-      })),
-
-      flight_details: segments.map((seg) => ({
-        flight_no: cleanText(seg.Airline?.FlightNumber),
-        airline_name: cleanText(seg.Airline?.AirlineName),
-        from_city: cleanText(seg.Origin?.Airport?.AirportName),
-        from_city_code: cleanText(seg.Origin?.Airport?.AirportCode),
-        to_city: cleanText(seg.Destination?.Airport?.AirportName),
-        to_city_code: cleanText(seg.Destination?.Airport?.AirportCode),
-        departure_datetime: seg.Origin?.DepTime,
-        arrival_datetime: seg.Destination?.ArrTime,
-        origin_airline_city: cleanText(seg.Origin?.Airport?.CityName),
-        destination_airline_city: cleanText(seg.Destination?.Airport?.CityName),
-        provider_code: cleanText(item?.fares?.[0]?.ProviderCode || ""),
-        OriginTerminal: cleanText(seg.Origin?.Airport?.Terminal || ""),
-        DestinationTerminal: cleanText(seg.Destination?.Airport?.Terminal || ""),
-      })),
-
-      DestinationTerminal: cleanText(flightData.destinationAirport?.Terminal || ""),
-      OriginTerminal: cleanText(flightData.originAirport?.Terminal || ""),
-
-      // ADD LAYOVER STOPS
-      stops,
-    });
-  });
-
-  // ------------------------- RETURN FLIGHTS ----------------------------
-  if (Object.keys(groupedReturnFlights || {}).length > 0) {
-    Object.entries(groupedReturnFlights).forEach(([flightId, item]) => {
+    // ------------------------- ONWARD FLIGHTS ----------------------------
+    Object.entries(groupedFlights || {}).forEach(([flightId, item]) => {
       // Get flight data - check if it's in item.flightData or item.flight
       const flightData = item.flightData || item.flight;
       if (!flightData) return;
-      
+
       const segments = flightData.segments || [];
 
       const flightNos = segments
         .map((seg) => seg.Airline?.FlightNumber)
         .filter(Boolean)
         .join(", ");
-      
+
       const airlineNames = segments
         .map((seg) => cleanText(seg.Airline?.AirlineName))
         .filter(Boolean)
         .join(", ");
-      
+
       const carriers = segments
         .map((seg) => cleanText(seg.Airline?.AirlineCode))
         .filter(Boolean)
         .join(", ");
 
-      // ----------------- RETURN LAYOVER CALCULATION -----------------
+      // --------------------- LAYOVER CALCULATION ---------------------
       const stops = [];
       if (segments.length > 1) {
         for (let i = 0; i < segments.length - 1; i++) {
@@ -2116,12 +2231,12 @@ const Shareflight = async () => {
 
           const layoverTime = calculateLayover(
             currentSeg?.Destination?.ArrTime,
-            nextSeg?.Origin?.DepTime
+            nextSeg?.Origin?.DepTime,
           );
 
           stops.push({
             stop_airport: cleanText(
-              `${stopAirport?.AirportName || ''} ${stopAirport?.CityName || ''} (${stopAirport?.AirportCode || ''})`
+              `${stopAirport?.AirportName || ""} ${stopAirport?.CityName || ""} (${stopAirport?.AirportCode || ""})`,
             ),
             duration: layoverTime,
           });
@@ -2130,11 +2245,12 @@ const Shareflight = async () => {
 
       // Get base fare from first fare
       const baseFare = item.fares?.[0]?.price || 0;
+      // console.log("Base Price",baseFare);
       const markupValue = Number(markup) || 0;
 
       // ---------------------- ADD FLIGHT OPTION ----------------------
-      transformedFlights.flights.return.flight_options.push({
-       flight_no: cleanText(carriers) + ' ' + cleanText(flightNos),
+      transformedFlights.flights.onward.flight_options.push({
+        flight_no: cleanText(carriers) + " " + cleanText(flightNos),
         airline_name: cleanText(airlineNames),
         from_city: cleanText(flightData.originAirport?.AirportName),
         from_city_code: cleanText(flightData.originAirport?.AirportCode),
@@ -2143,23 +2259,62 @@ const Shareflight = async () => {
         departure_datetime: flightData?.depTime,
         arrival_datetime: flightData?.arrTime,
         base_price: baseFare,
-        price: baseFare + markupValue, // Fixed: removed duplicate price property
+        price: baseFare + markupValue,
         markup: markupValue,
-        is_return: 1,
+        is_return,
         no_of_stops: segments.length - 1,
         carrier: cleanText(carriers),
         provider_code: cleanText(item?.fares?.[0]?.ProviderCode || ""),
         duration: calculateDuration(flightData?.depTime, flightData?.arrTime),
         is_refundable: item.fares?.[0]?.is_refundable || 0,
 
-        fare_details: (item?.fares || []).map((f) => ({
-          fare_type: cleanText(f.type || "Corporate Fare"),
-          base_price: f.price || 0,
-          price: (f.price || 0) + markupValue,
-          markup: markupValue,
-          source: cleanText(f.from || "Uapi"),
-          updated_total_price: (f.price || 0) + markupValue,
-        })),
+        // In Shareflight function, when creating fare_details:
+        fare_details: (item?.fares || []).map((f) => {
+          // Find if this fare is selected from selectedFlightoption
+          const selectedOption = selectedFlightoption.find(
+            (opt) => opt.flightId === flightId && opt.fare.type === f.type,
+          );
+
+          // Extract policy data if available
+          let cancellationPolicyDetail = "No cancellation policy available";
+          let dateChangePolicyDetail = "No date change policy available";
+          let fareRuleDetail = "";
+
+          if (selectedOption?.cancellation_policy?.onward) {
+            const policy = selectedOption.cancellation_policy.onward;
+
+            // Get FareRuleDetail if available
+            if (policy.FareRules && policy.FareRules[0]) {
+              fareRuleDetail = policy.FareRules[0].FareRuleDetail || "";
+              cancellationPolicyDetail =
+                fareRuleDetail || "Cancellation policy available";
+            }
+
+            // Get date change policy from MiniFareRules
+            if (policy.MiniFareRules && policy.MiniFareRules[0]) {
+              const reissueRules = policy.MiniFareRules[0].filter(
+                (rule) => rule.Type === "Reissue",
+              );
+              if (reissueRules.length > 0) {
+                dateChangePolicyDetail = JSON.stringify(reissueRules);
+              }
+            }
+          }
+
+          return {
+            fare_type: cleanText(f.type || "Corporate Fare"),
+            base_price: f.price || 0,
+            price: (f.price || 0) + markupValue,
+            markup: markupValue,
+            source: cleanText(f.from || "Uapi"),
+            updated_total_price: (f.price || 0) + markupValue,
+            result_index: f.ResultIndex || f.result_index || "",
+            cancellation_policy: cancellationPolicyDetail,
+            date_change_policy: dateChangePolicyDetail,
+            fare_rule_detail: fareRuleDetail,
+            is_selected: !!selectedOption,
+          };
+        }),
 
         flight_details: segments.map((seg) => ({
           flight_no: cleanText(seg.Airline?.FlightNumber),
@@ -2171,286 +2326,451 @@ const Shareflight = async () => {
           departure_datetime: seg.Origin?.DepTime,
           arrival_datetime: seg.Destination?.ArrTime,
           origin_airline_city: cleanText(seg.Origin?.Airport?.CityName),
-          destination_airline_city: cleanText(seg.Destination?.Airport?.CityName),
+          destination_airline_city: cleanText(
+            seg.Destination?.Airport?.CityName,
+          ),
           provider_code: cleanText(item?.fares?.[0]?.ProviderCode || ""),
           OriginTerminal: cleanText(seg.Origin?.Airport?.Terminal || ""),
-          DestinationTerminal: cleanText(seg.Destination?.Airport?.Terminal || ""),
+          DestinationTerminal: cleanText(
+            seg.Destination?.Airport?.Terminal || "",
+          ),
         })),
 
-        DestinationTerminal: cleanText(flightData.destinationAirport?.Terminal || ""),
+        DestinationTerminal: cleanText(
+          flightData.destinationAirport?.Terminal || "",
+        ),
         OriginTerminal: cleanText(flightData.originAirport?.Terminal || ""),
 
         // ADD LAYOVER STOPS
         stops,
       });
     });
-  }
 
-  // ---------------------- FINAL REQUEST BODY ----------------------
-  const requestData = {
-    booking_id: cleanText(bookingid || ""),
-    email: Array.isArray(spocEmails) ? spocEmails.filter(Boolean) : [],
-    seat_type: cleanText(cabinclass || ""),
-    departure_date: searchdeparturedate || null,
-    return_date: searchreturndate || null,
-    no_of_seats: no_of_seats || 1,
-    ...transformedFlights,
-    additional_emails: Array.isArray(additionalEmails) ? additionalEmails.filter(Boolean) : [],
-    cc_email: Array.isArray(ccEmails) ? ccEmails.filter(Boolean) : [],
-    remark: cleanText(remark || ""),
-    client_name: cleanText(client_name || ""),
-    spoc_name: cleanText(spocname || ""),
-    htmlContent: "",
-    flag: "",
-    query_id: queryId || null,
-  };
+    // ------------------------- RETURN FLIGHTS ----------------------------
+    if (Object.keys(groupedReturnFlights || {}).length > 0) {
+      Object.entries(groupedReturnFlights).forEach(([flightId, item]) => {
+        // Get flight data - check if it's in item.flightData or item.flight
+        const flightData = item.flightData || item.flight;
+        if (!flightData) return;
 
-  // console.log("requestData", requestData);
-  setshareoptionsrequest(requestData);
+        const segments = flightData.segments || [];
 
-  try {
-    const response = await fetch(
-      `${CONFIG.MAIN_API}/api/flights/addCotravFlightOptionBooking`,
-      {
-        method: "POST",
-        headers: {
-          Origin :"*",
-          // "Content-Type": "application/json", // Added proper header
-        },
-        body: JSON.stringify(requestData),
-      }
-    );
+        const flightNos = segments
+          .map((seg) => seg.Airline?.FlightNumber)
+          .filter(Boolean)
+          .join(", ");
 
-    const responsedata = await response.json();
-    if (responsedata.success === "1") {
-      setHtmlContent(responsedata.data);
-      setIsModalOpen(false);
-      setShowModal(true);
-      setIsMinimized(true);
-    }
-    console.log("responsedata", responsedata.data);
-  } catch (error) {
-    console.error("Error sharing flight options:", error);
-  }
-};
-  //Update transformHtmlForEditing function
-const transformHtmlForEditing = (htmlContent) => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(htmlContent, "text/html");
+        const airlineNames = segments
+          .map((seg) => cleanText(seg.Airline?.AirlineName))
+          .filter(Boolean)
+          .join(", ");
 
-  // Find all spans with data-index that already exist in the HTML
-  const priceSpans = doc.querySelectorAll("span[data-index]");
+        const carriers = segments
+          .map((seg) => cleanText(seg.Airline?.AirlineCode))
+          .filter(Boolean)
+          .join(", ");
 
-  priceSpans.forEach((span, index) => {
-    // Get the original text from the span
-    const originalText = span.textContent.trim();
-    const dataIndex = span.getAttribute("data-index");
+        // ----------------- RETURN LAYOVER CALCULATION -----------------
+        const stops = [];
+        if (segments.length > 1) {
+          for (let i = 0; i < segments.length - 1; i++) {
+            const currentSeg = segments[i];
+            const nextSeg = segments[i + 1];
 
-    // Parse the data-index to understand which flight and fare it belongs to
-    let flightType = 'onward';
-    let flightIndex = 0;
-    let fareIndex = 0;
-    
-    if (dataIndex.startsWith('R-')) {
-      flightType = 'return';
-      const parts = dataIndex.split('-');
-      flightIndex = parseInt(parts[1]); // Get flight index
-      fareIndex = parseInt(parts[2]); // Get fare index
-    } else {
-      const parts = dataIndex.split('-');
-      flightIndex = parseInt(parts[0]); // Get flight index
-      fareIndex = parseInt(parts[1]); // Get fare index
-    }
+            const stopAirport = currentSeg?.Destination?.Airport;
 
-    // Extract the number from "INR 1669" format - KEEP DECIMALS
-    let numberMatch = originalText.match(/INR\s+([\d,.]+)/);
-    let priceNumber = "";
+            const layoverTime = calculateLayover(
+              currentSeg?.Destination?.ArrTime,
+              nextSeg?.Origin?.DepTime,
+            );
 
-    if (numberMatch) {
-      priceNumber = numberMatch[1].replace(/,/g, ''); // Remove commas but keep decimals
-    } else {
-      // Last resort - just get numbers including decimal
-      const numbersWithDecimal = originalText.replace(/[^\d.]/g, "");
-      if (numbersWithDecimal) {
-        priceNumber = numbersWithDecimal;
-      }
-    }
+            stops.push({
+              stop_airport: cleanText(
+                `${stopAirport?.AirportName || ""} ${stopAirport?.CityName || ""} (${stopAirport?.AirportCode || ""})`,
+              ),
+              duration: layoverTime,
+            });
+          }
+        }
 
-    if (priceNumber) {
-      // Store original value and metadata (keep as string to preserve decimals)
-      span.setAttribute("data-original", priceNumber);
-      span.setAttribute("data-flight-type", flightType);
-      span.setAttribute("data-flight-index", flightIndex);
-      span.setAttribute("data-fare-index", fareIndex);
+        // Get base fare from first fare
+        const baseFare = item.fares?.[0]?.price || 0;
+        const markupValue = Number(markup) || 0;
 
-      // Make it editable
-      span.setAttribute("contenteditable", "true");
+        // ---------------------- ADD FLIGHT OPTION ----------------------
+        transformedFlights.flights.return.flight_options.push({
+          flight_no: cleanText(carriers) + " " + cleanText(flightNos),
+          airline_name: cleanText(airlineNames),
+          from_city: cleanText(flightData.originAirport?.AirportName),
+          from_city_code: cleanText(flightData.originAirport?.AirportCode),
+          to_city: cleanText(flightData.destinationAirport?.AirportName),
+          to_city_code: cleanText(flightData.destinationAirport?.AirportCode),
+          departure_datetime: flightData?.depTime,
+          arrival_datetime: flightData?.arrTime,
+          base_price: baseFare,
+          price: baseFare + markupValue, // Fixed: removed duplicate price property
+          markup: markupValue,
+          is_return: 1,
+          no_of_stops: segments.length - 1,
+          carrier: cleanText(carriers),
+          provider_code: cleanText(item?.fares?.[0]?.ProviderCode || ""),
+          duration: calculateDuration(flightData?.depTime, flightData?.arrTime),
+          is_refundable: item.fares?.[0]?.is_refundable || 0,
 
-      // Add styling
-      span.style.backgroundColor = "#fff8e1";
-      span.style.border = "1px solid #ff9800";
-      span.style.padding = "2px 4px";
-      span.style.borderRadius = "3px";
-      span.style.display = "inline-block";
-      span.style.margin = "0 2px";
-      span.style.cursor = "text";
-      span.style.fontWeight = "bold";
-      span.style.minWidth = "50px";
+          fare_details: (item?.fares || []).map((f) => ({
+            fare_type: cleanText(f.type || "Corporate Fare"),
+            base_price: f.price || 0,
+            price: (f.price || 0) + markupValue,
+            markup: markupValue,
+            source: cleanText(f.from || "Uapi"),
+            updated_total_price: (f.price || 0) + markupValue,
+          })),
 
-      // Format with 2 decimal places if it has decimals
-      const numValue = parseFloat(priceNumber);
-      if (numValue % 1 !== 0) {
-        // Has decimal places
-        span.textContent = numValue.toLocaleString("en-IN", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
+          flight_details: segments.map((seg) => ({
+            flight_no: cleanText(seg.Airline?.FlightNumber),
+            airline_name: cleanText(seg.Airline?.AirlineName),
+            from_city: cleanText(seg.Origin?.Airport?.AirportName),
+            from_city_code: cleanText(seg.Origin?.Airport?.AirportCode),
+            to_city: cleanText(seg.Destination?.Airport?.AirportName),
+            to_city_code: cleanText(seg.Destination?.Airport?.AirportCode),
+            departure_datetime: seg.Origin?.DepTime,
+            arrival_datetime: seg.Destination?.ArrTime,
+            origin_airline_city: cleanText(seg.Origin?.Airport?.CityName),
+            destination_airline_city: cleanText(
+              seg.Destination?.Airport?.CityName,
+            ),
+            provider_code: cleanText(item?.fares?.[0]?.ProviderCode || ""),
+            OriginTerminal: cleanText(seg.Origin?.Airport?.Terminal || ""),
+            DestinationTerminal: cleanText(
+              seg.Destination?.Airport?.Terminal || "",
+            ),
+          })),
+
+          DestinationTerminal: cleanText(
+            flightData.destinationAirport?.Terminal || "",
+          ),
+          OriginTerminal: cleanText(flightData.originAirport?.Terminal || ""),
+
+          // ADD LAYOVER STOPS
+          stops,
         });
-      } else {
-        // Integer
-        span.textContent = numValue.toLocaleString("en-IN");
-      }
-
-      // console.log(
-      //   `Span: data-index="${dataIndex}", flightType=${flightType}, flightIndex=${flightIndex}, fareIndex=${fareIndex}, original="${priceNumber}"`
-      // );
-    }
-  });
-
-  return doc.documentElement.outerHTML;
-};
-  // 2. SIMPLE EXTRACTION THAT WORKS
-const extractFareDetailsFromHtml = (container) => {
-  const updatedFares = [];
-
-  // Find all editable spans with data-index
-  const spans = container.querySelectorAll("span[data-index]");
-
-  spans.forEach((span) => {
-    const dataIndex = span.getAttribute("data-index");
-    const originalValue = span.getAttribute("data-original");
-    const flightType = span.getAttribute("data-flight-type");
-    const flightIndex = span.getAttribute("data-flight-index");
-    const fareIndex = span.getAttribute("data-fare-index");
-    const currentText = span.textContent.trim();
-
-    // Extract numeric value from current text (handles commas and decimals)
-    const numberMatch = currentText.match(/[\d,]+(\.\d+)?/);
-    if (numberMatch && originalValue) {
-      // Parse as float to handle decimals
-      const currentValue = parseFloat(numberMatch[0].replace(/,/g, ""));
-      const originalValueNum = parseFloat(originalValue);
-
-      updatedFares.push({
-        dataIndex: dataIndex,
-        flightType: flightType || (dataIndex.startsWith('R-') ? 'return' : 'onward'),
-        flightIndex: flightIndex ? parseInt(flightIndex) : 
-                    (dataIndex.startsWith('R-') ? parseInt(dataIndex.split('-')[1]) : parseInt(dataIndex.split('-')[0])),
-        fareIndex: fareIndex ? parseInt(fareIndex) : 
-                  (dataIndex.startsWith('R-') ? parseInt(dataIndex.split('-')[2]) : parseInt(dataIndex.split('-')[1])),
-        originalValue: originalValueNum,
-        currentValue: currentValue,
-        isEdited: Math.abs(currentValue - originalValueNum) > 0.01, // Use tolerance for float comparison
       });
     }
-  });
 
-  // console.log("Extracted fares:", updatedFares);
-  return updatedFares;
-};
-const setupPriceFormatting = (container) => {
-  if (!container) return;
+    // ---------------------- FINAL REQUEST BODY ----------------------
+    const requestData = {
+      booking_id: cleanText(bookingid || ""),
+      email: Array.isArray(spocEmails) ? spocEmails.filter(Boolean) : [],
+      seat_type: cleanText(cabinclass || ""),
+      departure_date: searchdeparturedate || null,
+      return_date: searchreturndate || null,
+      no_of_seats: no_of_seats || 1,
+      ...transformedFlights,
+      additional_emails: Array.isArray(additionalEmails)
+        ? additionalEmails.filter(Boolean)
+        : [],
+      cc_email: Array.isArray(ccEmails) ? ccEmails.filter(Boolean) : [],
+      remark: cleanText(remark || ""),
+      client_name: cleanText(client_name || ""),
+      spoc_name: cleanText(spocname || ""),
+      htmlContent: "",
+      flag: "",
+      query_id: queryId || null,
+    };
 
-  // console.log("Setting up price formatting...");
+    // console.log("requestData", requestData);
+    setshareoptionsrequest(requestData);
 
-  // Format on input
-  const handleInput = (e) => {
-    const target = e.target;
-    if (!target.hasAttribute("data-index")) return;
+    try {
+      const response = await fetch(
+        `${CONFIG.MAIN_API}/api/flights/addCotravFlightOptionBooking`,
+        {
+          method: "POST",
+          headers: {
+            Origin: "*",
+            // "Content-Type": "application/json", // Added proper header
+          },
+          body: JSON.stringify(requestData),
+        },
+      );
 
-    // console.log(
-    //   "Input event on span with data-index:",
-    //   target.getAttribute("data-index")
-    // );
-
-    // Get current text
-    let text = target.textContent.trim();
-
-    // Remove all non-digits and non-decimal point
-    const numberStr = text.replace(/[^\d.]/g, "");
-    
-    // Ensure only one decimal point
-    const parts = numberStr.split('.');
-    const validNumberStr = parts[0] + (parts.length > 1 ? '.' + parts.slice(1).join('') : '');
-
-    if (validNumberStr) {
-      const number = parseFloat(validNumberStr);
-      if (!isNaN(number)) {
-        // Format with 2 decimals if it has decimal part
-        if (number % 1 !== 0) {
-          target.textContent = number.toLocaleString("en-IN", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+      const responsedata = await response.json();
+      if (responsedata.success === "1") {
+        setHtmlContent(responsedata.data);
+        if (requestData.flights?.onward?.flight_options?.length > 0) {
+          const firstFlight =
+            requestData.flights.onward.flight_options[0].flight_details[0];
+          setFlightRouteInfo({
+            fromCity: firstFlight.origin_airline_city,
+            fromAirport: firstFlight.from_city || "",
+            fromCode: firstFlight.from_city_code || "",
+            toCity: firstFlight.destination_airline_city,
+            toAirport: firstFlight.to_city || "",
+            toCode: firstFlight.to_city_code || "",
           });
-        } else {
-          target.textContent = number.toLocaleString("en-IN");
+        }
+        setIsModalOpen(false);
+        setShowModal(true);
+        setIsMinimized(true);
+      }
+      console.log("responsedata", responsedata.data);
+    } catch (error) {
+      console.error("Error sharing flight options:", error);
+    }
+  };
+  //Update transformHtmlForEditing function
+  const transformHtmlForEditing = (htmlContent) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, "text/html");
+
+    // Make the entire body editable
+    const body = doc.body;
+    body.setAttribute("contenteditable", "true");
+
+    // ===== PROCESS PRICE SPANS (KEEP YOUR EXISTING LOGIC) =====
+    const priceSpans = doc.querySelectorAll("span[data-index]");
+    priceSpans.forEach((span, index) => {
+      // Get the original text from the span
+      const originalText = span.textContent.trim();
+      const dataIndex = span.getAttribute("data-index");
+
+      // Parse the data-index to understand which flight and fare it belongs to
+      let flightType = "onward";
+      let flightIndex = 0;
+      let fareIndex = 0;
+
+      if (dataIndex.startsWith("R-")) {
+        flightType = "return";
+        const parts = dataIndex.split("-");
+        flightIndex = parseInt(parts[1]);
+        fareIndex = parseInt(parts[2]);
+      } else {
+        const parts = dataIndex.split("-");
+        flightIndex = parseInt(parts[0]);
+        fareIndex = parseInt(parts[1]);
+      }
+
+      // Extract the number from "INR 1669" format
+      let numberMatch = originalText.match(/INR\s+([\d,.]+)/);
+      let priceNumber = "";
+
+      if (numberMatch) {
+        priceNumber = numberMatch[1].replace(/,/g, "");
+      } else {
+        const numbersWithDecimal = originalText.replace(/[^\d.]/g, "");
+        if (numbersWithDecimal) {
+          priceNumber = numbersWithDecimal;
         }
       }
-    } else {
-      // Restore original if empty
-      const original = target.getAttribute("data-original");
-      if (original) {
-        const number = parseFloat(original);
-        if (number % 1 !== 0) {
-          target.textContent = number.toLocaleString("en-IN", {
+
+      if (priceNumber) {
+        span.setAttribute("data-original", priceNumber);
+        span.setAttribute("data-flight-type", flightType);
+        span.setAttribute("data-flight-index", flightIndex);
+        span.setAttribute("data-fare-index", fareIndex);
+        span.setAttribute("contenteditable", "true");
+
+        span.style.backgroundColor = "#fff8e1";
+        span.style.border = "1px solid #ff9800";
+        span.style.padding = "2px 4px";
+        span.style.borderRadius = "3px";
+        span.style.display = "inline-block";
+        span.style.margin = "0 2px";
+        span.style.cursor = "text";
+        span.style.fontWeight = "bold";
+        span.style.minWidth = "50px";
+
+        const numValue = parseFloat(priceNumber);
+        if (numValue % 1 !== 0) {
+          span.textContent = numValue.toLocaleString("en-IN", {
             minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+            maximumFractionDigits: 2,
           });
         } else {
-          target.textContent = number.toLocaleString("en-IN");
+          span.textContent = numValue.toLocaleString("en-IN");
         }
       }
+    });
+
+    // ===== FIX FOOTER IMAGES (MOVED OUTSIDE THE LOOP) =====
+
+    // 1. Fix Google Play Store image
+    // const googlePlayImg = doc.querySelector('img[src*="google-play-store"]');
+    // if (googlePlayImg) {
+    //   const possibleUrls = [
+    //     'https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg',
+    //     'https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png',
+    //     'https://corporate.taxivaxi.com/image/google-play-store.png'
+    //   ];
+
+    //   googlePlayImg.setAttribute('src', possibleUrls[0]);
+    //   googlePlayImg.setAttribute('width', '120');
+    //   googlePlayImg.setAttribute('height', '40');
+    //   googlePlayImg.setAttribute('alt', 'Get it on Google Play');
+
+    //   googlePlayImg.setAttribute('onerror', function() {
+    //     let currentSrc = this.src;
+    //     let urls = ['https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg',
+    //                 'https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png',
+    //                 'https://corporate.taxivaxi.com/image/google-play-store.png'];
+    //     let currentIndex = urls.indexOf(currentSrc);
+    //     if (currentIndex < urls.length - 1) {
+    //       this.src = urls[currentIndex + 1];
+    //     }
+    //   });
+    // }
+
+    // // 5. Ensure footer structure matches your image
+    // const footerTables = doc.querySelectorAll('table[bgcolor="#e8e4ff"]');
+    // footerTables.forEach(table => {
+    //   const html = table.outerHTML;
+
+    //   // If this is the app download section
+    //   if (html.includes('Download') || html.includes('The App')) {
+    //     // Create new footer that matches your image
+    //     const newFooter = doc.createElement('table');
+    //     newFooter.setAttribute('border', '0');
+    //     newFooter.setAttribute('cellspacing', '0');
+    //     newFooter.setAttribute('width', '100%');
+    //     newFooter.setAttribute('bgcolor', '#e8e4ff');
+    //     newFooter.style.cssText = 'font-family: "Trebuchet MS", Helvetica, sans-serif; font-size: 12px; ';
+
+    //     newFooter.innerHTML = `
+    //       <td style="font-family:Trebuchet MS, Helvetica, sans-serif; text-align:right; text-transform:uppercase; padding-right:15px; vertical-align:middle;">
+    //       <span style="font-weight:bold; font-size:15px; display:block; line-height:1.3;">DOWNLOAD<br/>THE APP</span>
+    //     </td>
+    //     <td style="padding-right:10px; text-align:center;">
+    //     <a href="https://play.google.com/store/apps/details?id=co.cotrav.app.cotrav" target="blank"
+    //          style="text-decoration:none; display:flex; flex-direction:column; align-items:center;">
+
+    //         <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+    //              width="135" height="40"
+    //              alt="Google Play"
+    //              style="display:block;">
+
+    //       </a>
+    //     </td>
+    //     <td style="border-left:2px solid #000; height:50px; width:1px;"></td>
+    //     <td style="padding-left:10px; text-align:center;">
+    //       	<a href="https://apps.apple.com/in/app/cotrav/id6677036537" target="blank"
+    //          style="text-decoration:none; display:flex; flex-direction:column; align-items:center;">
+
+    //         <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
+    //              width="135" height="40"
+    //              alt="App Store"
+    //              style="display:block;">
+
+    //       </a>
+    //     </td>
+    //     `;
+
+    //     // Replace the old table with new footer
+    //     table.parentNode.replaceChild(newFooter, table);
+    //   }
+    // });
+
+    return doc.documentElement.outerHTML;
+  };
+  // Update setupPriceFormatting to work with fully editable content
+  const setupPriceFormatting = (container) => {
+    if (!container) return;
+
+    // Make the container itself editable if not already
+    if (!container.hasAttribute("contenteditable")) {
+      container.setAttribute("contenteditable", "true");
     }
 
-    // Move cursor to end
-    setTimeout(() => {
-      const range = document.createRange();
-      const selection = window.getSelection();
-      range.selectNodeContents(target);
-      range.collapse(false);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }, 0);
-  };
+    // Format on input - only for price spans
+    const handleInput = (e) => {
+      const target = e.target;
 
-  // Handle paste
-  const handlePaste = (e) => {
-    const target = e.target;
-    if (target.hasAttribute("data-index")) {
-      e.preventDefault();
-      const pastedText = e.clipboardData.getData("text/plain");
-      // Extract numbers including decimal
-      const numbersWithDecimal = pastedText.replace(/[^\d.]/g, "");
-      
-      // Ensure only one decimal point
-      const parts = numbersWithDecimal.split('.');
-      const validNumberStr = parts[0] + (parts.length > 1 ? '.' + parts.slice(1).join('') : '');
+      // Only format price spans, not other content
+      if (target.hasAttribute("data-index")) {
+        // Get current text
+        let text = target.textContent.trim();
 
-      if (validNumberStr) {
-        const number = parseFloat(validNumberStr);
-        if (!isNaN(number)) {
-          if (number % 1 !== 0) {
-            target.textContent = number.toLocaleString("en-IN", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            });
-          } else {
-            target.textContent = number.toLocaleString("en-IN");
+        // Remove all non-digits and non-decimal point
+        const numberStr = text.replace(/[^\d.]/g, "");
+
+        // Ensure only one decimal point
+        const parts = numberStr.split(".");
+        const validNumberStr =
+          parts[0] + (parts.length > 1 ? "." + parts.slice(1).join("") : "");
+
+        if (validNumberStr) {
+          const number = parseFloat(validNumberStr);
+          if (!isNaN(number)) {
+            // Format with 2 decimals if it has decimal part
+            if (number % 1 !== 0) {
+              target.textContent = number.toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              });
+            } else {
+              target.textContent = number.toLocaleString("en-IN");
+            }
+          }
+        } else {
+          // Restore original if empty
+          const original = target.getAttribute("data-original");
+          if (original) {
+            const number = parseFloat(original);
+            if (number % 1 !== 0) {
+              target.textContent = number.toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              });
+            } else {
+              target.textContent = number.toLocaleString("en-IN");
+            }
+          }
+        }
+
+        // Move cursor to end
+        setTimeout(() => {
+          const range = document.createRange();
+          const selection = window.getSelection();
+          range.selectNodeContents(target);
+          range.collapse(false);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }, 0);
+      }
+      // If not a price span, let normal editing happen
+    };
+
+    // Handle paste - only for price spans
+    const handlePaste = (e) => {
+      const target = e.target;
+      if (target.hasAttribute("data-index")) {
+        e.preventDefault();
+        const pastedText = e.clipboardData.getData("text/plain");
+        // Extract numbers including decimal
+        const numbersWithDecimal = pastedText.replace(/[^\d.]/g, "");
+
+        // Ensure only one decimal point
+        const parts = numbersWithDecimal.split(".");
+        const validNumberStr =
+          parts[0] + (parts.length > 1 ? "." + parts.slice(1).join("") : "");
+
+        if (validNumberStr) {
+          const number = parseFloat(validNumberStr);
+          if (!isNaN(number)) {
+            if (number % 1 !== 0) {
+              target.textContent = number.toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              });
+            } else {
+              target.textContent = number.toLocaleString("en-IN");
+            }
           }
         }
       }
-    }
-  };
-    // Select all on click
+      // If not a price span, allow normal paste
+    };
+
+    // Select all on click - only for price spans
     const handleClick = (e) => {
       const target = e.target;
       if (target.hasAttribute("data-index") && target.isContentEditable) {
@@ -2464,231 +2784,332 @@ const setupPriceFormatting = (container) => {
       }
     };
 
+    // Handle keydown to prevent formatting shortcuts from interfering
+    const handleKeyDown = (e) => {
+      const target = e.target;
+
+      // Allow normal editing shortcuts (Ctrl+B, Ctrl+I, etc.) for all content
+      // But for price spans, prevent formatting
+      if (target.hasAttribute("data-index")) {
+        // Prevent formatting shortcuts for price spans
+        if (e.ctrlKey || e.metaKey) {
+          if (
+            e.key === "b" ||
+            e.key === "i" ||
+            e.key === "u" ||
+            e.key === "k"
+          ) {
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
     // Add event listeners
     container.addEventListener("input", handleInput);
     container.addEventListener("paste", handlePaste);
     container.addEventListener("click", handleClick);
+    container.addEventListener("keydown", handleKeyDown);
 
     // Cleanup function
     return () => {
       container.removeEventListener("input", handleInput);
       container.removeEventListener("paste", handlePaste);
       container.removeEventListener("click", handleClick);
+      container.removeEventListener("keydown", handleKeyDown);
     };
   };
-  
-const updateRequestDataWithEditedPrices = (requestData, editedFares) => {
-  // Deep clone the request data
-  const updatedData = JSON.parse(JSON.stringify(requestData));
 
-  // Group edited fares by flight type
-  const onwardFares = editedFares.filter(fare => fare.flightType === 'onward');
-  const returnFares = editedFares.filter(fare => fare.flightType === 'return');
+  // Update extractFareDetailsFromHtml - this remains largely the same
+  const extractFareDetailsFromHtml = (container) => {
+    const updatedFares = [];
 
-  // console.log("Onward fares to update:", onwardFares);
-  // console.log("Return fares to update:", returnFares);
+    // Find all editable spans with data-index
+    const spans = container.querySelectorAll("span[data-index]");
 
-  // Update onward flight fares for ALL flight options
-  if (updatedData.flights?.onward?.flight_options?.length > 0) {
-    onwardFares.forEach((fare) => {
-      const flightOption = updatedData.flights.onward.flight_options[fare.flightIndex];
-      
-      if (flightOption && flightOption.fare_details && 
-          flightOption.fare_details.length > fare.fareIndex) {
-        
-        // console.log(`Updating onward flight ${fare.flightIndex}, fare ${fare.fareIndex} to ${fare.currentValue}`);
-        
-        // Update the specific fare detail
-        flightOption.fare_details[fare.fareIndex].updated_total_price = fare.currentValue;
-        
-        // Update price field if this is the base fare (fareIndex 0)
-        if (fare.fareIndex === 0) {
-          flightOption.price = fare.currentValue;
-        }
-      } else {
-        // console.warn(`Could not find onward flight ${fare.flightIndex} or fare ${fare.fareIndex}`);
+    spans.forEach((span) => {
+      const dataIndex = span.getAttribute("data-index");
+      const originalValue = span.getAttribute("data-original");
+      const flightType = span.getAttribute("data-flight-type");
+      const flightIndex = span.getAttribute("data-flight-index");
+      const fareIndex = span.getAttribute("data-fare-index");
+      const currentText = span.textContent.trim();
+
+      // Extract numeric value from current text (handles commas and decimals)
+      const numberMatch = currentText.match(/[\d,]+(\.\d+)?/);
+      if (numberMatch && originalValue) {
+        // Parse as float to handle decimals
+        const currentValue = parseFloat(numberMatch[0].replace(/,/g, ""));
+        const originalValueNum = parseFloat(originalValue);
+
+        updatedFares.push({
+          dataIndex: dataIndex,
+          flightType:
+            flightType || (dataIndex.startsWith("R-") ? "return" : "onward"),
+          flightIndex: flightIndex
+            ? parseInt(flightIndex)
+            : dataIndex.startsWith("R-")
+              ? parseInt(dataIndex.split("-")[1])
+              : parseInt(dataIndex.split("-")[0]),
+          fareIndex: fareIndex
+            ? parseInt(fareIndex)
+            : dataIndex.startsWith("R-")
+              ? parseInt(dataIndex.split("-")[2])
+              : parseInt(dataIndex.split("-")[1]),
+          originalValue: originalValueNum,
+          currentValue: currentValue,
+          isEdited: Math.abs(currentValue - originalValueNum) > 0.01, // Use tolerance for float comparison
+        });
       }
     });
-  }
 
-  // Update return flight fares for ALL flight options
-  if (updatedData.flights?.return?.flight_options?.length > 0) {
-    returnFares.forEach((fare) => {
-      const flightOption = updatedData.flights.return.flight_options[fare.flightIndex];
-      
-      if (flightOption && flightOption.fare_details && 
-          flightOption.fare_details.length > fare.fareIndex) {
-        
-        // console.log(`Updating return flight ${fare.flightIndex}, fare ${fare.fareIndex} to ${fare.currentValue}`);
-        
-        // Update the specific fare detail
-        flightOption.fare_details[fare.fareIndex].updated_total_price = fare.currentValue;
-        
-        // Update price field if this is the base fare (fareIndex 0)
-        if (fare.fareIndex === 0) {
-          flightOption.price = fare.currentValue;
+    return updatedFares;
+  };
+
+  const updateRequestDataWithEditedPrices = (requestData, editedFares) => {
+    // Deep clone the request data
+    const updatedData = JSON.parse(JSON.stringify(requestData));
+
+    // Group edited fares by flight type
+    const onwardFares = editedFares.filter(
+      (fare) => fare.flightType === "onward",
+    );
+    const returnFares = editedFares.filter(
+      (fare) => fare.flightType === "return",
+    );
+
+    // console.log("Onward fares to update:", onwardFares);
+    // console.log("Return fares to update:", returnFares);
+
+    // Update onward flight fares for ALL flight options
+    if (updatedData.flights?.onward?.flight_options?.length > 0) {
+      onwardFares.forEach((fare) => {
+        const flightOption =
+          updatedData.flights.onward.flight_options[fare.flightIndex];
+
+        if (
+          flightOption &&
+          flightOption.fare_details &&
+          flightOption.fare_details.length > fare.fareIndex
+        ) {
+          // console.log(`Updating onward flight ${fare.flightIndex}, fare ${fare.fareIndex} to ${fare.currentValue}`);
+
+          // Update the specific fare detail
+          flightOption.fare_details[fare.fareIndex].updated_total_price =
+            fare.currentValue;
+
+          // Update price field if this is the base fare (fareIndex 0)
+          if (fare.fareIndex === 0) {
+            flightOption.price = fare.currentValue;
+          }
+        } else {
+          // console.warn(`Could not find onward flight ${fare.flightIndex} or fare ${fare.fareIndex}`);
         }
-      } else {
-        // console.warn(`Could not find return flight ${fare.flightIndex} or fare ${fare.fareIndex}`);
-      }
-    });
-  }
+      });
+    }
 
-  return updatedData;
-};
+    // Update return flight fares for ALL flight options
+    if (updatedData.flights?.return?.flight_options?.length > 0) {
+      returnFares.forEach((fare) => {
+        const flightOption =
+          updatedData.flights.return.flight_options[fare.flightIndex];
+
+        if (
+          flightOption &&
+          flightOption.fare_details &&
+          flightOption.fare_details.length > fare.fareIndex
+        ) {
+          // console.log(`Updating return flight ${fare.flightIndex}, fare ${fare.fareIndex} to ${fare.currentValue}`);
+
+          // Update the specific fare detail
+          flightOption.fare_details[fare.fareIndex].updated_total_price =
+            fare.currentValue;
+
+          // Update price field if this is the base fare (fareIndex 0)
+          if (fare.fareIndex === 0) {
+            flightOption.price = fare.currentValue;
+          }
+        } else {
+          // console.warn(`Could not find return flight ${fare.flightIndex} or fare ${fare.fareIndex}`);
+        }
+      });
+    }
+
+    return updatedData;
+  };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-const confirmAndCloseModal = async () => {
-  if (!contentRef.current) return;
-  setIsSubmitting(true);
-  
-  try {
-    // 1. Extract edited fares from HTML
-    const editedFares = extractFareDetailsFromHtml(contentRef.current);
-    // console.log("Edited fares:", editedFares);
+  const confirmAndCloseModal = async () => {
+    if (!contentRef.current) return;
+    setIsSubmitting(true);
 
-    // 2. Update the request data with edited prices
-    const updatedRequestData = updateRequestDataWithEditedPrices(
-      shareoptionrequest,
-      editedFares
-    );
+    try {
+      // 1. Extract edited fares from HTML
+      const editedFares = extractFareDetailsFromHtml(contentRef.current);
+      // console.log("Edited fares:", editedFares);
 
-    // 3. Check price comparisons
-    let hasPriceLowerThanBase = false;
-    let hasPriceEqualToBase = false;
-    let hasPriceHigherThanBase = false;
-    const priceDetails = [];
+      // 2. Update the request data with edited prices
+      const updatedRequestData = updateRequestDataWithEditedPrices(
+        shareoptionrequest,
+        editedFares,
+      );
 
-    // Helper function to get airline info
-    const getAirlineInfo = (flightOption) => {
-      // Get flight number from flight_details if available
-      let flightNumber = 'N/A';
-      if (flightOption.flight_details && flightOption.flight_details.length > 0) {
-        flightNumber = flightOption.flight_details[0].flight_no || 'N/A';
-      } else {
-        flightNumber = flightOption.flight_no || flightOption.airline_no || 'N/A';
-      }
-      
-      return {
-        name: flightOption.airline_name || 'Unknown Airline',
-        number: flightNumber,
-        code: (flightOption.airline_no || flightOption.flight_number || 'XX').split(' ')[0],
-        flightNo: flightNumber
+      // 3. Check price comparisons
+      let hasPriceLowerThanBase = false;
+      let hasPriceEqualToBase = false;
+      let hasPriceHigherThanBase = false;
+      const priceDetails = [];
+
+      // Helper function to get airline info
+      const getAirlineInfo = (flightOption) => {
+        // Get flight number from flight_details if available
+        let flightNumber = "N/A";
+        if (
+          flightOption.flight_details &&
+          flightOption.flight_details.length > 0
+        ) {
+          flightNumber = flightOption.flight_details[0].flight_no || "N/A";
+        } else {
+          flightNumber =
+            flightOption.flight_no || flightOption.airline_no || "N/A";
+        }
+
+        return {
+          name: flightOption.airline_name || "Unknown Airline",
+          number: flightNumber,
+          code: (
+            flightOption.airline_no ||
+            flightOption.flight_number ||
+            "XX"
+          ).split(" ")[0],
+          flightNo: flightNumber,
+        };
       };
-    };
 
-    // Check onward flights
-    if (updatedRequestData.flights?.onward?.flight_options?.length > 0) {
-      updatedRequestData.flights.onward.flight_options.forEach((flightOption, flightIdx) => {
-        const airline = getAirlineInfo(flightOption);
-        
-        if (flightOption.fare_details && flightOption.fare_details.length > 0) {
-          flightOption.fare_details.forEach((fare, fareIdx) => {
-            const basePrice = fare.base_price || 0;
-            const updatedPrice = fare.updated_total_price || fare.price || 0;
+      // Check onward flights
+      if (updatedRequestData.flights?.onward?.flight_options?.length > 0) {
+        updatedRequestData.flights.onward.flight_options.forEach(
+          (flightOption, flightIdx) => {
+            const airline = getAirlineInfo(flightOption);
 
-            // Check different conditions
-            if (updatedPrice < basePrice) {
-              hasPriceLowerThanBase = true;
-              priceDetails.push({
-                flightType: 'Onward',
-                flightNumber: flightIdx + 1,
-                airlineName: airline.name,
-                airlineNumber: airline.number,
-                airlineCode: airline.code,
-                flightNo: airline.flightNo,
-                fareType: fare.fare_type || `Fare ${fareIdx + 1}`,
-                basePrice: basePrice,
-                updatedPrice: updatedPrice,
-                difference: basePrice - updatedPrice,
-                origin: flightOption.from_city_code || 'N/A',
-                destination: flightOption.to_city_code || 'N/A',
-                condition: 'lower'
+            if (
+              flightOption.fare_details &&
+              flightOption.fare_details.length > 0
+            ) {
+              flightOption.fare_details.forEach((fare, fareIdx) => {
+                const basePrice = fare.base_price || 0;
+                const updatedPrice =
+                  fare.updated_total_price || fare.price || 0;
+
+                // Check different conditions
+                if (updatedPrice < basePrice) {
+                  hasPriceLowerThanBase = true;
+                  priceDetails.push({
+                    flightType: "Onward",
+                    flightNumber: flightIdx + 1,
+                    airlineName: airline.name,
+                    airlineNumber: airline.number,
+                    airlineCode: airline.code,
+                    flightNo: airline.flightNo,
+                    fareType: fare.fare_type || `Fare ${fareIdx + 1}`,
+                    basePrice: basePrice,
+                    updatedPrice: updatedPrice,
+                    difference: basePrice - updatedPrice,
+                    origin: flightOption.from_city_code || "N/A",
+                    destination: flightOption.to_city_code || "N/A",
+                    condition: "lower",
+                  });
+                } else if (updatedPrice === basePrice) {
+                  hasPriceEqualToBase = true;
+                  priceDetails.push({
+                    flightType: "Onward",
+                    flightNumber: flightIdx + 1,
+                    airlineName: airline.name,
+                    airlineNumber: airline.number,
+                    airlineCode: airline.code,
+                    flightNo: airline.flightNo,
+                    fareType: fare.fare_type || `Fare ${fareIdx + 1}`,
+                    basePrice: basePrice,
+                    updatedPrice: updatedPrice,
+                    difference: 0,
+                    origin: flightOption.from_city_code || "N/A",
+                    destination: flightOption.to_city_code || "N/A",
+                    condition: "equal",
+                  });
+                } else if (updatedPrice > basePrice) {
+                  hasPriceHigherThanBase = true;
+                }
               });
-            } else if (updatedPrice === basePrice) {
-              hasPriceEqualToBase = true;
-              priceDetails.push({
-                flightType: 'Onward',
-                flightNumber: flightIdx + 1,
-                airlineName: airline.name,
-                airlineNumber: airline.number,
-                airlineCode: airline.code,
-                flightNo: airline.flightNo,
-                fareType: fare.fare_type || `Fare ${fareIdx + 1}`,
-                basePrice: basePrice,
-                updatedPrice: updatedPrice,
-                difference: 0,
-                origin: flightOption.from_city_code || 'N/A',
-                destination: flightOption.to_city_code || 'N/A',
-                condition: 'equal'
-              });
-            } else if (updatedPrice > basePrice) {
-              hasPriceHigherThanBase = true;
             }
-          });
-        }
-      });
-    }
+          },
+        );
+      }
 
-    // Check return flights
-    if (updatedRequestData.flights?.return?.flight_options?.length > 0) {
-      updatedRequestData.flights.return.flight_options.forEach((flightOption, flightIdx) => {
-        const airline = getAirlineInfo(flightOption);
-        
-        if (flightOption.fare_details && flightOption.fare_details.length > 0) {
-          flightOption.fare_details.forEach((fare, fareIdx) => {
-            const basePrice = fare.base_price || 0;
-            const updatedPrice = fare.updated_total_price || fare.price || 0;
+      // Check return flights
+      if (updatedRequestData.flights?.return?.flight_options?.length > 0) {
+        updatedRequestData.flights.return.flight_options.forEach(
+          (flightOption, flightIdx) => {
+            const airline = getAirlineInfo(flightOption);
 
-            // Check different conditions
-            if (updatedPrice < basePrice) {
-              hasPriceLowerThanBase = true;
-              priceDetails.push({
-                flightType: 'Return',
-                flightNumber: flightIdx + 1,
-                airlineName: airline.name,
-                airlineNumber: airline.number,
-                airlineCode: airline.code,
-                flightNo: airline.flightNo,
-                fareType: fare.fare_type || `Fare ${fareIdx + 1}`,
-                basePrice: basePrice,
-                updatedPrice: updatedPrice,
-                difference: basePrice - updatedPrice,
-                origin: flightOption.from_city_code || 'N/A',
-                destination: flightOption.to_city_code || 'N/A',
-                condition: 'lower'
+            if (
+              flightOption.fare_details &&
+              flightOption.fare_details.length > 0
+            ) {
+              flightOption.fare_details.forEach((fare, fareIdx) => {
+                const basePrice = fare.base_price || 0;
+                const updatedPrice =
+                  fare.updated_total_price || fare.price || 0;
+
+                // Check different conditions
+                if (updatedPrice < basePrice) {
+                  hasPriceLowerThanBase = true;
+                  priceDetails.push({
+                    flightType: "Return",
+                    flightNumber: flightIdx + 1,
+                    airlineName: airline.name,
+                    airlineNumber: airline.number,
+                    airlineCode: airline.code,
+                    flightNo: airline.flightNo,
+                    fareType: fare.fare_type || `Fare ${fareIdx + 1}`,
+                    basePrice: basePrice,
+                    updatedPrice: updatedPrice,
+                    difference: basePrice - updatedPrice,
+                    origin: flightOption.from_city_code || "N/A",
+                    destination: flightOption.to_city_code || "N/A",
+                    condition: "lower",
+                  });
+                } else if (updatedPrice === basePrice) {
+                  hasPriceEqualToBase = true;
+                  priceDetails.push({
+                    flightType: "Return",
+                    flightNumber: flightIdx + 1,
+                    airlineName: airline.name,
+                    airlineNumber: airline.number,
+                    airlineCode: airline.code,
+                    flightNo: airline.flightNo,
+                    fareType: fare.fare_type || `Fare ${fareIdx + 1}`,
+                    basePrice: basePrice,
+                    updatedPrice: updatedPrice,
+                    difference: 0,
+                    origin: flightOption.from_city_code || "N/A",
+                    destination: flightOption.to_city_code || "N/A",
+                    condition: "equal",
+                  });
+                } else if (updatedPrice > basePrice) {
+                  hasPriceHigherThanBase = true;
+                }
               });
-            } else if (updatedPrice === basePrice) {
-              hasPriceEqualToBase = true;
-              priceDetails.push({
-                flightType: 'Return',
-                flightNumber: flightIdx + 1,
-                airlineName: airline.name,
-                airlineNumber: airline.number,
-                airlineCode: airline.code,
-                flightNo: airline.flightNo,
-                fareType: fare.fare_type || `Fare ${fareIdx + 1}`,
-                basePrice: basePrice,
-                updatedPrice: updatedPrice,
-                difference: 0,
-                origin: flightOption.from_city_code || 'N/A',
-                destination: flightOption.to_city_code || 'N/A',
-                condition: 'equal'
-              });
-            } else if (updatedPrice > basePrice) {
-              hasPriceHigherThanBase = true;
             }
-          });
-        }
-      });
-    }
+          },
+        );
+      }
 
-    // 4. Handle different scenarios based on price comparisons
-    
-    // Scenario 1: If any price is lower than base - Show warning with ONLY Review button
-    if (hasPriceLowerThanBase) {
-      let warningMessage = `
+      // 4. Handle different scenarios based on price comparisons
+
+      // Scenario 1: If any price is lower than base - Show warning with ONLY Review button
+      if (hasPriceLowerThanBase) {
+        let warningMessage = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; text-align: left;">
 
           <!-- Header -->
@@ -2710,9 +3131,11 @@ const confirmAndCloseModal = async () => {
           <div style="max-height: 280px; overflow-y: auto; padding-right: 2px;">
       `;
 
-      // Only show lower price details
-      priceDetails.filter(d => d.condition === 'lower').forEach((detail) => {
-        warningMessage += `
+        // Only show lower price details
+        priceDetails
+          .filter((d) => d.condition === "lower")
+          .forEach((detail) => {
+            warningMessage += `
           <div style="
             background: #ffffff;
             border: 1px solid #fee2e2;
@@ -2729,8 +3152,8 @@ const confirmAndCloseModal = async () => {
               margin-bottom: 6px;
             ">
               <span style="
-                background: ${detail.flightType === 'Onward' ? '#e6f0fa' : '#f0e6fa'};
-                color: ${detail.flightType === 'Onward' ? '#2563eb' : '#9333ea'};
+                background: ${detail.flightType === "Onward" ? "#e6f0fa" : "#f0e6fa"};
+                color: ${detail.flightType === "Onward" ? "#2563eb" : "#9333ea"};
                 padding: 2px 8px;
                 border-radius: 12px;
                 font-size: 10px;
@@ -2768,14 +3191,14 @@ const confirmAndCloseModal = async () => {
             ">
               <div>
                 <span style="font-size: 10px; color: #64748b;">Vendor Price</span>
-                <span style="margin-left: 4px; font-weight: 500; color: #334155; font-size: 12px;">₹${detail.basePrice.toLocaleString('en-IN')}</span>
+                <span style="margin-left: 4px; font-weight: 500; color: #334155; font-size: 12px;">₹${detail.basePrice.toLocaleString("en-IN")}</span>
               </div>
               
               <div style="color: #94a3b8;">→</div>
               
               <div>
                 <span style="font-size: 10px; color: #64748b;">Our Price</span>
-                <span style="margin-left: 4px; font-weight: 600; color: #dc2626; font-size: 12px;">₹${detail.updatedPrice.toLocaleString('en-IN')}</span>
+                <span style="margin-left: 4px; font-weight: 600; color: #dc2626; font-size: 12px;">₹${detail.updatedPrice.toLocaleString("en-IN")}</span>
               </div>
               
               <div style="
@@ -2786,14 +3209,14 @@ const confirmAndCloseModal = async () => {
                 font-size: 10px;
                 font-weight: 500;
               ">
-                -₹${detail.difference.toLocaleString('en-IN')}
+                -₹${detail.difference.toLocaleString("en-IN")}
               </div>
             </div>
           </div>
         `;
-      });
+          });
 
-      warningMessage += `
+        warningMessage += `
           </div>
 
           <!-- Footer Question - Only Review Option -->
@@ -2812,30 +3235,30 @@ const confirmAndCloseModal = async () => {
         </div>
       `;
 
-      // Show confirmation alert with ONLY Review button
-      const result = await Swal.fire({
-        title: '',
-        html: warningMessage,
-        showCancelButton: false,
-        showConfirmButton: true,
-        confirmButtonText: 'Review',
-        confirmButtonColor: '#2563eb',
-        width: 380,
-        padding: '12px',
-        backdrop: 'rgba(0,0,0,0.5)',
-        showCloseButton: true,
-      });
+        // Show confirmation alert with ONLY Review button
+        const result = await Swal.fire({
+          title: "",
+          html: warningMessage,
+          showCancelButton: false,
+          showConfirmButton: true,
+          confirmButtonText: "Review",
+          confirmButtonColor: "#2563eb",
+          width: 380,
+          padding: "12px",
+          backdrop: "rgba(0,0,0,0.5)",
+          // showCloseButton: true,
+        });
 
-      // When user clicks Review, stop the process
-      if (result.isConfirmed) {
-        // console.log("User clicked Review - stopping operation");
-        setIsSubmitting(false);
-        return; // Stop here, don't proceed to API
+        // When user clicks Review, stop the process
+        if (result.isConfirmed) {
+          // console.log("User clicked Review - stopping operation");
+          setIsSubmitting(false);
+          return; // Stop here, don't proceed to API
+        }
       }
-    }
-    // Scenario 2: If prices are equal to base (but no lower prices) - Show both buttons
-    else if (hasPriceEqualToBase && !hasPriceLowerThanBase) {
-      let warningMessage = `
+      // Scenario 2: If prices are equal to base (but no lower prices) - Show both buttons
+      else if (hasPriceEqualToBase && !hasPriceLowerThanBase) {
+        let warningMessage = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; text-align: left;">
 
           <!-- Header -->
@@ -2857,9 +3280,11 @@ const confirmAndCloseModal = async () => {
           <div style="max-height: 280px; overflow-y: auto; padding-right: 2px;">
       `;
 
-      // Show equal price details
-      priceDetails.filter(d => d.condition === 'equal').forEach((detail) => {
-        warningMessage += `
+        // Show equal price details
+        priceDetails
+          .filter((d) => d.condition === "equal")
+          .forEach((detail) => {
+            warningMessage += `
           <div style="
             background: #ffffff;
             border: 1px solid #e9eef2;
@@ -2875,8 +3300,8 @@ const confirmAndCloseModal = async () => {
               margin-bottom: 6px;
             ">
               <span style="
-                background: ${detail.flightType === 'Onward' ? '#e6f0fa' : '#f0e6fa'};
-                color: ${detail.flightType === 'Onward' ? '#2563eb' : '#9333ea'};
+                background: ${detail.flightType === "Onward" ? "#e6f0fa" : "#f0e6fa"};
+                color: ${detail.flightType === "Onward" ? "#2563eb" : "#9333ea"};
                 padding: 2px 8px;
                 border-radius: 12px;
                 font-size: 10px;
@@ -2914,21 +3339,21 @@ const confirmAndCloseModal = async () => {
             ">
               <div>
                 <span style="font-size: 10px; color: #64748b;">Vendor Price</span>
-                <span style="margin-left: 4px; font-weight: 500; color: #334155; font-size: 12px;">₹${detail.basePrice.toLocaleString('en-IN')}</span>
+                <span style="margin-left: 4px; font-weight: 500; color: #334155; font-size: 12px;">₹${detail.basePrice.toLocaleString("en-IN")}</span>
               </div>
               
               <div style="color: #94a3b8;">→</div>
               
               <div>
                 <span style="font-size: 10px; color: #64748b;">Our Price</span>
-                <span style="margin-left: 4px; font-weight: 600; color: #059669; font-size: 12px;">₹${detail.updatedPrice.toLocaleString('en-IN')}</span>
+                <span style="margin-left: 4px; font-weight: 600; color: #059669; font-size: 12px;">₹${detail.updatedPrice.toLocaleString("en-IN")}</span>
               </div>
             </div>
           </div>
         `;
-      });
+          });
 
-      warningMessage += `
+        warningMessage += `
           </div>
 
           <!-- Footer Question - Both Options -->
@@ -2947,245 +3372,259 @@ const confirmAndCloseModal = async () => {
         </div>
       `;
 
-      // Show confirmation alert with both buttons
-      const result = await Swal.fire({
-        title: '',
-        html: warningMessage,
-        showCancelButton: true,
-        confirmButtonText: 'Proceed Anyway',
-        cancelButtonText: 'Review',
-        confirmButtonColor: '#059669',
-        cancelButtonColor: '#64748b',
-        width: 380,
-        padding: '12px',
-        backdrop: 'rgba(0,0,0,0.5)',
-        showCloseButton: true,
-        reverseButtons: true
+        // Show confirmation alert with both buttons
+        const result = await Swal.fire({
+          title: "",
+          html: warningMessage,
+          showCancelButton: true,
+          confirmButtonText: "Proceed Anyway",
+          cancelButtonText: "Review",
+          confirmButtonColor: "#059669",
+          cancelButtonColor: "#64748b",
+          width: 380,
+          padding: "12px",
+          backdrop: "rgba(0,0,0,0.5)",
+          showCloseButton: true,
+          reverseButtons: true,
+        });
+
+        // If user clicks Review, stop the process
+        if (!result.isConfirmed) {
+          // console.log("User clicked Review - stopping operation");
+          setIsSubmitting(false);
+          return;
+        }
+        // If Proceed Anyway clicked, continue to API (fall through to API call)
+      }
+
+      // ===== REMOVE ALL HIGHLIGHTING, OUTLINES, AND EDITING INDICATORS FROM THE CONTENT BEFORE SENDING =====
+
+      // Create a deep clone of the content to modify for email
+      const emailContent = contentRef.current.cloneNode(true);
+
+      // Function to remove all highlighting styles, outlines, borders, and editing indicators
+      const removeAllHighlighting = (element) => {
+        if (!element) return;
+
+        // Remove common highlight classes
+        const highlightClasses = [
+          "editable-highlight",
+          "editable-price",
+          "highlight",
+          "editable",
+          "bg-warning",
+          "bg-yellow",
+          "yellow-bg",
+          "editable-field",
+          "price-editable",
+          "editable-cell",
+          "highlighted",
+          "editable-price-cell",
+        ];
+
+        highlightClasses.forEach((className) => {
+          if (element.classList && element.classList.contains(className)) {
+            element.classList.remove(className);
+          }
+        });
+
+        // Remove any inline styles that might cause highlighting or outlines
+        if (element.style) {
+          // Remove background colors
+          const bgColor = element.style.backgroundColor;
+          if (
+            bgColor &&
+            (bgColor.includes("255, 243, 205") || // #fff3cd
+              bgColor.includes("#fff3cd") ||
+              bgColor.includes("yellow") ||
+              bgColor.includes("#ffff99") ||
+              bgColor.includes("#ffeb3b") ||
+              bgColor.includes("rgb(255, 243, 205)") ||
+              bgColor.includes("#fef9e7") ||
+              bgColor.includes("#fff3e0"))
+          ) {
+            element.style.backgroundColor = "";
+          }
+
+          // Remove cursor pointer that indicates editability
+          if (
+            element.style.cursor === "pointer" ||
+            element.style.cursor === "text"
+          ) {
+            element.style.cursor = "";
+          }
+
+          // Remove ALL outlines (this is key for removing the outline you mentioned)
+          if (element.style.outline) {
+            element.style.outline = "";
+          }
+
+          // Remove borders that might have been added for highlighting
+          if (
+            element.style.border &&
+            (element.style.border.includes("2px") ||
+              element.style.border.includes("dashed") ||
+              element.style.border.includes("dotted"))
+          ) {
+            element.style.border = "";
+          }
+
+          // Remove box-shadow that might indicate highlight
+          if (element.style.boxShadow) {
+            element.style.boxShadow = "";
+          }
+
+          // Remove any border properties
+          if (element.style.borderColor) element.style.borderColor = "";
+          if (element.style.borderWidth) element.style.borderWidth = "";
+          if (element.style.borderStyle) element.style.borderStyle = "";
+
+          // Remove focus rings
+          if (element.style.ring) element.style.ring = "";
+          if (element.style.ringColor) element.style.ringColor = "";
+          if (element.style.ringOffset) element.style.ringOffset = "";
+        }
+
+        // Remove specific attributes that might cause highlighting
+        const attrsToRemove = [
+          "data-editable",
+          "data-highlighted",
+          "contenteditable",
+          "data-price-edited",
+        ];
+        attrsToRemove.forEach((attr) => {
+          if (element.hasAttribute && element.hasAttribute(attr)) {
+            element.removeAttribute(attr);
+          }
+        });
+
+        // Remove style attribute if it only contained highlighting styles
+        const styleAttr = element.getAttribute("style");
+        if (styleAttr) {
+          // If after processing, style is empty or only contains whitespace, remove it
+          const cleanedStyle = styleAttr
+            .replace(/background-color:\s*[^;]+;?/gi, "")
+            .replace(/background:\s*[^;]+;?/gi, "")
+            .replace(/cursor:\s*[^;]+;?/gi, "")
+            .replace(/outline:\s*[^;]+;?/gi, "")
+            .replace(/border:\s*[^;]+;?/gi, "")
+            .replace(/border-\w+:\s*[^;]+;?/gi, "")
+            .replace(/box-shadow:\s*[^;]+;?/gi, "")
+            .replace(/ring:\s*[^;]+;?/gi, "")
+            .trim();
+
+          if (cleanedStyle === "") {
+            element.removeAttribute("style");
+          } else {
+            element.setAttribute("style", cleanedStyle);
+          }
+        }
+
+        // Recursively process all children
+        if (element.children) {
+          Array.from(element.children).forEach((child) =>
+            removeAllHighlighting(child),
+          );
+        }
+      };
+
+      // Apply highlighting removal to the entire email content
+      removeAllHighlighting(emailContent);
+
+      // Specifically target table cells that might contain prices
+      const tableCells = emailContent.querySelectorAll("td, th");
+      tableCells.forEach((cell) => {
+        removeAllHighlighting(cell);
+
+        // Check if cell contains price (₹ symbol)
+        if (cell.textContent && cell.textContent.includes("₹")) {
+          // Ensure no special styling on price cells
+          if (cell.style) {
+            cell.style.backgroundColor = "";
+            cell.style.outline = "";
+            cell.style.border = "";
+          }
+        }
       });
 
-      // If user clicks Review, stop the process
-      if (!result.isConfirmed) {
-        // console.log("User clicked Review - stopping operation");
-        setIsSubmitting(false);
-        return;
-      }
-      // If Proceed Anyway clicked, continue to API (fall through to API call)
-    }
-    
-    // ===== REMOVE ALL HIGHLIGHTING, OUTLINES, AND EDITING INDICATORS FROM THE CONTENT BEFORE SENDING =====
-    
-    // Create a deep clone of the content to modify for email
-    const emailContent = contentRef.current.cloneNode(true);
-    
-    // Function to remove all highlighting styles, outlines, borders, and editing indicators
-    const removeAllHighlighting = (element) => {
-      if (!element) return;
-      
-      // Remove common highlight classes
-      const highlightClasses = [
-        'editable-highlight', 
-        'editable-price', 
-        'highlight', 
-        'editable',
-        'bg-warning',
-        'bg-yellow',
-        'yellow-bg',
-        'editable-field',
-        'price-editable',
-        'editable-cell',
-        'highlighted',
-        'editable-price-cell'
-      ];
-      
-      highlightClasses.forEach(className => {
-        if (element.classList && element.classList.contains(className)) {
-          element.classList.remove(className);
-        }
+      // Target any elements that might have been edited
+      const editedElements = emailContent.querySelectorAll(
+        '[class*="edit"], [style*="background"], [style*="cursor"], [style*="outline"], [style*="border"]',
+      );
+      editedElements.forEach((el) => {
+        removeAllHighlighting(el);
       });
-      
-      // Remove any inline styles that might cause highlighting or outlines
-      if (element.style) {
-        // Remove background colors
-        const bgColor = element.style.backgroundColor;
-        if (bgColor && (
-          bgColor.includes('255, 243, 205') || // #fff3cd
-          bgColor.includes('#fff3cd') ||
-          bgColor.includes('yellow') ||
-          bgColor.includes('#ffff99') ||
-          bgColor.includes('#ffeb3b') ||
-          bgColor.includes('rgb(255, 243, 205)') ||
-          bgColor.includes('#fef9e7') ||
-          bgColor.includes('#fff3e0')
-        )) {
-          element.style.backgroundColor = '';
-        }
-        
-        // Remove cursor pointer that indicates editability
-        if (element.style.cursor === 'pointer' || element.style.cursor === 'text') {
-          element.style.cursor = '';
-        }
-        
-        // Remove ALL outlines (this is key for removing the outline you mentioned)
-        if (element.style.outline) {
-          element.style.outline = '';
-        }
-        
-        // Remove borders that might have been added for highlighting
-        if (element.style.border && (
-          element.style.border.includes('2px') ||
-          element.style.border.includes('dashed') ||
-          element.style.border.includes('dotted')
-        )) {
-          element.style.border = '';
-        }
-        
-        // Remove box-shadow that might indicate highlight
-        if (element.style.boxShadow) {
-          element.style.boxShadow = '';
-        }
-        
-        // Remove any border properties
-        if (element.style.borderColor) element.style.borderColor = '';
-        if (element.style.borderWidth) element.style.borderWidth = '';
-        if (element.style.borderStyle) element.style.borderStyle = '';
-        
-        // Remove focus rings
-        if (element.style.ring) element.style.ring = '';
-        if (element.style.ringColor) element.style.ringColor = '';
-        if (element.style.ringOffset) element.style.ringOffset = '';
-      }
-      
-      // Remove specific attributes that might cause highlighting
-      const attrsToRemove = ['data-editable', 'data-highlighted', 'contenteditable', 'data-price-edited'];
-      attrsToRemove.forEach(attr => {
-        if (element.hasAttribute && element.hasAttribute(attr)) {
-          element.removeAttribute(attr);
-        }
-      });
-      
-      // Remove style attribute if it only contained highlighting styles
-      const styleAttr = element.getAttribute('style');
-      if (styleAttr) {
-        // If after processing, style is empty or only contains whitespace, remove it
-        const cleanedStyle = styleAttr
-          .replace(/background-color:\s*[^;]+;?/gi, '')
-          .replace(/background:\s*[^;]+;?/gi, '')
-          .replace(/cursor:\s*[^;]+;?/gi, '')
-          .replace(/outline:\s*[^;]+;?/gi, '')
-          .replace(/border:\s*[^;]+;?/gi, '')
-          .replace(/border-\w+:\s*[^;]+;?/gi, '')
-          .replace(/box-shadow:\s*[^;]+;?/gi, '')
-          .replace(/ring:\s*[^;]+;?/gi, '')
-          .trim();
-        
-        if (cleanedStyle === '') {
-          element.removeAttribute('style');
-        } else {
-          element.setAttribute('style', cleanedStyle);
-        }
-      }
-      
-      // Recursively process all children
-      if (element.children) {
-        Array.from(element.children).forEach(child => removeAllHighlighting(child));
-      }
-    };
-    
-    // Apply highlighting removal to the entire email content
-    removeAllHighlighting(emailContent);
-    
-    // Specifically target table cells that might contain prices
-    const tableCells = emailContent.querySelectorAll('td, th');
-    tableCells.forEach(cell => {
-      removeAllHighlighting(cell);
-      
-      // Check if cell contains price (₹ symbol)
-      if (cell.textContent && cell.textContent.includes('₹')) {
-        // Ensure no special styling on price cells
-        if (cell.style) {
-          cell.style.backgroundColor = '';
-          cell.style.outline = '';
-          cell.style.border = '';
-        }
-      }
-    });
-    
-    // Target any elements that might have been edited
-    const editedElements = emailContent.querySelectorAll('[class*="edit"], [style*="background"], [style*="cursor"], [style*="outline"], [style*="border"]');
-    editedElements.forEach(el => {
-      removeAllHighlighting(el);
-    });
-    
-    // Get the cleaned HTML for email
-    const emailHtmlContent = emailContent.innerHTML;
-    
-    // Also clean the original content for UI update after successful send
-    const cleanOriginalContent = () => {
-      if (contentRef.current) {
-        removeAllHighlighting(contentRef.current);
-      }
-    };
 
-    // 5. Prepare the final request with cleaned HTML (no highlights, no outlines)
-    const finalRequest = {
-      ...updatedRequestData,
-      htmlContent: emailHtmlContent, // Use the cleaned HTML without any highlights or outlines
-      flag: "send",
-    };
+      // Get the cleaned HTML for email
+      const emailHtmlContent = emailContent.innerHTML;
 
-    // 6. Send to server
-    const response = await fetch(
-      `${CONFIG.MAIN_API}/api/flights/addCotravFlightOptionBooking`,
-      {
-        method: "POST",
-        headers: {
-          Origin: "*",
-          // 'Content-Type': 'application/json',
+      // Also clean the original content for UI update after successful send
+      const cleanOriginalContent = () => {
+        if (contentRef.current) {
+          removeAllHighlighting(contentRef.current);
+        }
+      };
+
+      // 5. Prepare the final request with cleaned HTML (no highlights, no outlines)
+      const finalRequest = {
+        ...updatedRequestData,
+        htmlContent: emailHtmlContent, // Use the cleaned HTML without any highlights or outlines
+        flag: "send",
+      };
+
+      // 6. Send to server
+      const response = await fetch(
+        `${CONFIG.MAIN_API}/api/flights/addCotravFlightOptionBooking`,
+        {
+          method: "POST",
+          headers: {
+            Origin: "*",
+            // 'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(finalRequest),
         },
-        body: JSON.stringify(finalRequest),
+      );
+
+      const responseData = await response.json();
+
+      if (responseData.success === "1") {
+        // Clean the original content to remove highlights from the modal UI
+        cleanOriginalContent();
+
+        await Swal.fire({
+          title: "Success!",
+          text: "Mail has been sent successfully.",
+          imageUrl: "https://cdn-icons-png.flaticon.com/512/845/845646.png",
+          imageWidth: 75,
+          imageHeight: 75,
+          confirmButtonText: "OK",
+          confirmButtonColor: "#10b981",
+        });
+
+        setShowModal(false);
+        // if (onSuccess) onSuccess();
+      } else {
+        Swal.fire({
+          title: "Error!",
+          text: responseData.message || "Failed to update prices.",
+          icon: "error",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#dc2626",
+        });
       }
-    );
-
-    const responseData = await response.json();
-
-    if (responseData.success === "1") {
-      // Clean the original content to remove highlights from the modal UI
-      cleanOriginalContent();
-      
-      await Swal.fire({
-        title: 'Success!',
-        text: 'Mail has been sent successfully.',
-        imageUrl: "https://cdn-icons-png.flaticon.com/512/845/845646.png",
-        imageWidth: 75,
-        imageHeight: 75,
-        confirmButtonText: "OK",
-        confirmButtonColor: '#10b981'
-      });
-      
-      setShowModal(false);
-      // if (onSuccess) onSuccess();
-    } else {
+    } catch (error) {
+      // console.error("Error:", error);
       Swal.fire({
-        title: 'Error!',
-        text: responseData.message || 'Failed to update prices.',
-        icon: 'error',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#dc2626'
+        title: "Error!",
+        text: "An error occurred while updating prices.",
+        icon: "error",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#dc2626",
       });
+    } finally {
+      setIsSubmitting(false);
     }
-  } catch (error) {
-    // console.error("Error:", error);
-    Swal.fire({
-      title: 'Error!',
-      text: 'An error occurred while updating prices.',
-      icon: 'error',
-      confirmButtonText: 'OK',
-      confirmButtonColor: '#dc2626'
-    });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
   // Add a debug function to see what's in the HTML
   const debugHtmlContent = (htmlContent) => {
     const parser = new DOMParser();
@@ -3195,7 +3634,7 @@ const confirmAndCloseModal = async () => {
 
     // Find all price cells
     const priceCells = doc.querySelectorAll(
-      'table:has(th[bgcolor="#785eff"]) td:last-child'
+      'table:has(th[bgcolor="#785eff"]) td:last-child',
     );
     // console.log(`Found ${priceCells.length} price cells`);
 
@@ -3223,16 +3662,8 @@ const confirmAndCloseModal = async () => {
 
   useEffect(() => {
     if (showModal && htmlContent) {
-      // First debug the original HTML
-      // console.log("=== ORIGINAL HTML ===");
-      const debugged = debugHtmlContent(htmlContent);
-
-      // Then transform it
+      // Transform the HTML
       const transformed = transformHtmlForEditing(htmlContent);
-
-      // Debug the transformed HTML
-      // console.log("=== TRANSFORMED HTML ===");
-      debugHtmlContent(transformed);
 
       // Update state with transformed HTML
       setHtmlContent(transformed);
@@ -3242,21 +3673,19 @@ const confirmAndCloseModal = async () => {
         if (contentRef.current) {
           setupPriceFormatting(contentRef.current);
 
-          // Debug what we have in the DOM
-          const editableSpans =
-            contentRef.current.querySelectorAll("span[data-index]");
-          // console.log(
-          //   `Found ${editableSpans.length} editable price spans in DOM`
-          // );
-
-          editableSpans.forEach((span, index) => {
-            // console.log(`DOM Span ${index}:`, {
-            //   text: span.textContent,
-            //   "data-index": span.getAttribute("data-index"),
-            //   "data-original": span.getAttribute("data-original"),
-            //   editable: span.contentEditable,
-            // });
-          });
+          // Add some CSS to indicate editable areas (optional)
+          const style = document.createElement("style");
+          style.textContent = `
+          [contenteditable="true"]:focus {
+            outline: 2px solid #007bff;
+            outline-offset: 2px;
+          }
+          span[data-index] {
+            background-color: #fff8e1 !important;
+            border: 1px solid #ff9800 !important;
+          }
+        `;
+          document.head.appendChild(style);
         }
       }, 50);
     }
@@ -3589,8 +4018,8 @@ const confirmAndCloseModal = async () => {
                       inputValue.bookingType === "1"
                         ? "__/__/____"
                         : inputValue.returnDate
-                        ? ddmmyyyyformatDate(inputValue.returnDate)
-                        : ddmmyyyyformatDate(inputValue.departureDate)
+                          ? ddmmyyyyformatDate(inputValue.returnDate)
+                          : ddmmyyyyformatDate(inputValue.departureDate)
                     }
                     // disabled={!isReturnEnabled}
                     // open={isretOpen}
@@ -3864,7 +4293,7 @@ const confirmAndCloseModal = async () => {
                                   : `${value} class`}
                               </label>
                             </React.Fragment>
-                          )
+                          ),
                         )}
                       </div>
                     </div>
@@ -3882,26 +4311,35 @@ const confirmAndCloseModal = async () => {
                 </div>
               </div>
               <button
-                type="button"
-                className="srch-btn"
-                style={{
-                  width: "98px",
-                  marginBottom: "-5px",
-                  height: "39px",
-                  fontSize: "14px",
-                }}
-                  disabled={
-  inputValue.bookingType === "1" || 
-  (bookingid !== null && bookingid !== undefined && bookingid !== "")
-}
-                onClick={() => {
-                  fetchData();
-                  handleserachfunction();
-                  
-                }}
-              >
-                Search
-              </button>
+  type="button"
+  className="srch-btn"
+  style={{
+    width: "98px",
+    marginBottom: "-5px",
+    height: "39px",
+    fontSize: "14px",
+    // Add cursor style for disabled state
+    cursor: (inputValue.bookingType === "1" || 
+             (bookingid !== null && bookingid !== undefined && bookingid !== "")) 
+             ? "not-allowed" : "pointer",
+    // Optional: make it look more disabled
+    opacity: (inputValue.bookingType === "1" || 
+             (bookingid !== null && bookingid !== undefined && bookingid !== "")) 
+             ? 0.6 : 1
+  }}
+  disabled={
+    inputValue.bookingType === "1" ||
+    (bookingid !== null &&
+      bookingid !== undefined &&
+      bookingid !== "")
+  }
+  onClick={() => {
+    fetchData();
+    handleserachfunction();
+  }}
+>
+  Search
+</button>
             </div>
           </div>
         </form>
@@ -3928,50 +4366,6 @@ const confirmAndCloseModal = async () => {
                 <div className="two-colls-left font-Montserrat space-y-2">
                   {Array.isArray(FlightOptions) && FlightOptions.length > 0 && (
                     <>
-                      {/* <div className='side-block fly-in headingofflights'>
-                      Flights <FlightTakeoffTwoTone /> from {inputValue.originAirport ? inputOrigin : fromAirport} to <FlightLandOutlined/>{inputValue.destinationAriport ? inputDestination : ToAirport}
-                    </div> */}
-                      {/* <div className=" side-block fly-in headingofflights flex flex-col md:flex-row gap-4 w-full max-w-3xl mx-auto">
-
-                      <div className="flex items-center gap-2">
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-800">Departure</span>
-                          <span className="font-bold text-gray-500 text-sm">
-                            {inputValue.originAirport ? inputOrigin : fromAirport}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center text-gray-500 font-semibold text-base">
-                        <span >—</span>
-                        <span className="mx-2">✈</span>
-                        <span >—</span>
-                      </div>
-
-
-                      <div className="flex items-center gap-2">
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-800">Arrival</span>
-                          <span className="font-bold text-gray-500 text-sm">
-                            {inputValue.destinationAriport ? inputDestination : ToAirport}
-                          </span>
-                        </div>
-                      </div>
-                    </div> */}
-                      {/* <div className="side-block fly-in headingofflights">
-                      <div className="flex">
-                        <span className="text-[#785eff] mr-2 w-12">From:</span>
-                        <span>
-                          {inputValue.originAirport ? inputOrigin : fromAirport}
-                        </span>
-                      </div>
-                      <div className="flex mt-2 ">
-                        <span className="text-[#785eff] mr-2 w-12">To:</span>
-                        <span>
-                          {inputValue.destinationAriport ? inputDestination : ToAirport}
-                        </span>
-                      </div>
-                    </div> */}
                       <div className="side-block fly-in">
                         <button
                           className="scrolltotop"
@@ -3993,9 +4387,9 @@ const confirmAndCloseModal = async () => {
                             new Set([
                               0,
                               ...FlightOptions?.map(
-                                (data) => data?.flight?.segments?.length - 1
+                                (data) => data?.flight?.segments?.length - 1,
                               ).filter((stops) => stops > 0),
-                            ])
+                            ]),
                           )
                             .sort((a, b) => a - b)
                             .map((stopCount) => (
@@ -4009,7 +4403,7 @@ const confirmAndCloseModal = async () => {
                                   checked={selectedStops.has(stopCount)}
                                   onChange={() => {
                                     toggleStop(stopCount);
-                                    setShowPrices(new Set());;
+                                    setShowPrices(new Set());
                                   }}
                                 />
                                 <span>
@@ -4043,7 +4437,7 @@ const confirmAndCloseModal = async () => {
                               }`}
                               onClick={() => {
                                 toggleSelection(slot.key, true);
-                                setShowPrices(new Set());;
+                                setShowPrices(new Set());
                               }}
                             >
                               <span
@@ -4077,7 +4471,7 @@ const confirmAndCloseModal = async () => {
                               }`}
                               onClick={() => {
                                 toggleSelection(slot.key, false);
-                                setShowPrices(new Set());;
+                                setShowPrices(new Set());
                               }}
                             >
                               <span
@@ -4108,7 +4502,7 @@ const confirmAndCloseModal = async () => {
                                   checked={selectedAirlines.has(airline.name)}
                                   onChange={() => {
                                     toggleAirline(airline.name);
-                                    setShowPrices(new Set());;
+                                    setShowPrices(new Set());
                                   }}
                                 />
                                 <span className="flex items-center space-x-1">
@@ -4142,7 +4536,7 @@ const confirmAndCloseModal = async () => {
                               value={priceRange}
                               onChange={(value) => {
                                 setPriceRange(value);
-                                setShowPrices(new Set());;
+                                setShowPrices(new Set());
                               }}
                             />
                           </div>
@@ -4277,718 +4671,1040 @@ const confirmAndCloseModal = async () => {
                               </p>
                             </div>
                           ) : (
-                        // Onward flights section
-sortedFlights.map((response, index) => {
-  const FlightInfo = response?.flight;
-  const flightId = getFlightUniqueId(FlightInfo);
-  const depTime = FlightInfo?.depTime || "";
-  const arrTime = FlightInfo?.arrTime || "";
-  
-  const formattedDepTime = FlightInfo?.depTime
-    ? format(new Date(depTime), "HH:mm")
-    : "N/A";
-  const formattedArrTime = FlightInfo?.arrTime
-    ? format(new Date(arrTime), "HH:mm")
-    : "N/A";
+                            // Onward flights section
+                            sortedFlights.map((response, index) => {
+                              const FlightInfo = response?.flight;
+                              const flightId = getFlightUniqueId(FlightInfo);
+                              const depTime = FlightInfo?.depTime || "";
+                              const arrTime = FlightInfo?.arrTime || "";
 
-  // Calculate duration
-  const durationMs =
-    new Date(arrTime).getTime() - new Date(depTime).getTime();
-  const durationHours = Math.floor(durationMs / (1000 * 60 * 60));
-  const durationMinutes = Math.floor(
-    (durationMs % (1000 * 60 * 60)) / (1000 * 60)
-  );
-  const duration = `${durationHours}H ${durationMinutes}M`;
+                              const formattedDepTime = FlightInfo?.depTime
+                                ? format(new Date(depTime), "HH:mm")
+                                : "N/A";
+                              const formattedArrTime = FlightInfo?.arrTime
+                                ? format(new Date(arrTime), "HH:mm")
+                                : "N/A";
 
-  // Layover calculation
-  const segments = FlightInfo.segments;
-  let totalLayoverMinutes = 0;
-  let Totallayover = "";
-  if (segments.length > 1) {
-    for (let i = 0; i < segments.length - 1; i++) {
-      const arrivalTime = dayjs(segments[i].Destination.ArrTime);
-      const nextDepartureTime = dayjs(segments[i + 1].Origin.DepTime);
-      const layoverMinutes = nextDepartureTime.diff(arrivalTime, "minute");
-      totalLayoverMinutes += layoverMinutes;
-    }
+                              // Calculate duration
+                              const durationMs =
+                                new Date(arrTime).getTime() -
+                                new Date(depTime).getTime();
+                              const durationHours = Math.floor(
+                                durationMs / (1000 * 60 * 60),
+                              );
+                              const durationMinutes = Math.floor(
+                                (durationMs % (1000 * 60 * 60)) / (1000 * 60),
+                              );
+                              const duration = `${durationHours}H ${durationMinutes}M`;
 
-    const totalLayoverDuration = dayjs.duration(totalLayoverMinutes, "minutes");
-    const totalHours = totalLayoverDuration.hours();
-    const totalMinutes = totalLayoverDuration.minutes();
+                              // Layover calculation
+                              const segments = FlightInfo.segments;
+                              let totalLayoverMinutes = 0;
+                              let Totallayover = "";
+                              if (segments.length > 1) {
+                                for (let i = 0; i < segments.length - 1; i++) {
+                                  const arrivalTime = dayjs(
+                                    segments[i].Destination.ArrTime,
+                                  );
+                                  const nextDepartureTime = dayjs(
+                                    segments[i + 1].Origin.DepTime,
+                                  );
+                                  const layoverMinutes = nextDepartureTime.diff(
+                                    arrivalTime,
+                                    "minute",
+                                  );
+                                  totalLayoverMinutes += layoverMinutes;
+                                }
 
-    Totallayover = `${
-      totalHours > 0 ? `${totalHours}h ` : ""
-    }${totalMinutes}m Total Layover`;
-  }
+                                const totalLayoverDuration = dayjs.duration(
+                                  totalLayoverMinutes,
+                                  "minutes",
+                                );
+                                const totalHours = totalLayoverDuration.hours();
+                                const totalMinutes =
+                                  totalLayoverDuration.minutes();
 
-  // Fare processing - ONLY if currentFlightFares exists
-  let uniqueFares = [];
-const currentFlightFares = flightFares[flightId];
+                                Totallayover = `${
+                                  totalHours > 0 ? `${totalHours}h ` : ""
+                                }${totalMinutes}m Total Layover`;
+                              }
 
+                              // Fare processing - ONLY if currentFlightFares exists
+                              let uniqueFares = [];
+                              const currentFlightFares = flightFares[flightId];
 
-  //  IMPORTANT: Sirf tabhi process karo jab data ho
-  // if (currentFlightFares) {
-  const formattedUapiFares = (currentFlightFares?.uapi_fares || []).map((fare) => ({
-      type: (fare.SupplierFareClass || "").trim(),
-      price: parseFloat(fare.TotalPrice),
-      from: "Uapi",
-      Resultindex: fare.ResultIndex,
-      TraceId: fare.trace_id,
-    }));
+                              //  IMPORTANT: Sirf tabhi process karo jab data ho
+                              // if (currentFlightFares) {
+                              const formattedUapiFares = (
+                                currentFlightFares?.uapi_fares || []
+                              ).map((fare) => ({
+                                type: (fare.SupplierFareClass || "").trim(),
+                                price: parseFloat(fare.TotalPrice),
+                                from: "Uapi",
+                                Resultindex: fare.ResultIndex,
+                                TraceId: fare.trace_id,
+                              }));
 
-  const formattedTboFares = (currentFlightFares?.tbo_fares || []).map((fare) => ({
-      type: (fare.SupplierFareClass || "Regular Fare").trim(),
-      price: parseFloat(fare.TotalPrice),
-      from: "Tbo",
-      Resultindex: fare.ResultIndex,
-      TraceId: fare.trace_id,
-    }));  
+                              const formattedTboFares = (
+                                currentFlightFares?.tbo_fares || []
+                              ).map((fare) => ({
+                                type: (
+                                  fare.SupplierFareClass || "Regular Fare"
+                                ).trim(),
+                                price: parseFloat(fare.TotalPrice),
+                                from: "Tbo",
+                                Resultindex: fare.ResultIndex,
+                                TraceId: fare.trace_id,
+                              }));
 
+                              // Combine all fares
+                              const combinedFares = [
+                                ...formattedUapiFares,
+                                ...formattedTboFares,
+                              ];
 
-    // Combine all fares
-    const combinedFares = [...formattedUapiFares, ...formattedTboFares];
+                              // Group by fare type
+                              const grouped = combinedFares.reduce(
+                                (acc, fare) => {
+                                  if (!acc[fare.type]) acc[fare.type] = [];
+                                  acc[fare.type].push(fare);
+                                  return acc;
+                                },
+                                {},
+                              );
 
-    // Group by fare type
-    const grouped = combinedFares.reduce((acc, fare) => {
-      if (!acc[fare.type]) acc[fare.type] = [];
-      acc[fare.type].push(fare);
-      return acc;
-    }, {});
+                              // Apply rules
+                              Object.keys(grouped).forEach((fareType) => {
+                                const fares = grouped[fareType];
 
-    // Apply rules
-    Object.keys(grouped).forEach((fareType) => {
-      const fares = grouped[fareType];
+                                if (
+                                  fareType.toLowerCase().includes("corporate")
+                                ) {
+                                  const uapiFare = fares.find(
+                                    (f) => f.from === "Uapi",
+                                  );
+                                  if (uapiFare) {
+                                    uniqueFares.push(uapiFare);
+                                  } else {
+                                    uniqueFares.push(fares[0]);
+                                  }
+                                  return;
+                                }
 
-      if (fareType.toLowerCase().includes("corporate")) {
-        const uapiFare = fares.find((f) => f.from === "Uapi");
-        if (uapiFare) {
-          uniqueFares.push(uapiFare);
-        } else {
-          uniqueFares.push(fares[0]);
-        }
-        return;
-      }
+                                const cheapest = fares.reduce((a, b) =>
+                                  a.price < b.price ? a : b,
+                                );
+                                uniqueFares.push(cheapest);
+                              });
 
-      const cheapest = fares.reduce((a, b) => (a.price < b.price ? a : b));
-      uniqueFares.push(cheapest);
-    });
+                              // Sort by price ASC
+                              uniqueFares.sort((a, b) => a.price - b.price);
+                              // }
 
-    // Sort by price ASC
-    uniqueFares.sort((a, b) => a.price - b.price);
-  // }
+                              // Number of days calculation
+                              const dep = new Date(depTime);
+                              const arr = new Date(arrTime);
+                              const depDate = new Date(
+                                dep.getFullYear(),
+                                dep.getMonth(),
+                                dep.getDate(),
+                              );
+                              const arrDate = new Date(
+                                arr.getFullYear(),
+                                arr.getMonth(),
+                                arr.getDate(),
+                              );
+                              const diffInMs =
+                                arrDate.getTime() - depDate.getTime();
+                              const diffInDays = Math.round(
+                                diffInMs / (1000 * 60 * 60 * 24),
+                              );
+                              const date = new Date(arr);
 
-  // Number of days calculation
-  const dep = new Date(depTime);
-  const arr = new Date(arrTime);
-  const depDate = new Date(dep.getFullYear(), dep.getMonth(), dep.getDate());
-  const arrDate = new Date(arr.getFullYear(), arr.getMonth(), arr.getDate());
-  const diffInMs = arrDate.getTime() - depDate.getTime();
-  const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
-  const date = new Date(arr);
+                              const options = {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              };
+                              const formattedDate = date.toLocaleDateString(
+                                "en-GB",
+                                options,
+                              );
 
-  const options = {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  };
-  const formattedDate = date.toLocaleDateString("en-GB", options);
+                              return (
+                                <div
+                                  key={flightId} //  key flightId based
+                                  className={`flight-item fly-in ${
+                                    selectedFlightIds.includes(index)
+                                      ? "selected-flight"
+                                      : ""
+                                  }`}
+                                >
+                                  <div className="flt-i-a flex flex-col">
+                                    <div className="flt-i-b ">
+                                      <div className="flt-l-b">
+                                        <div className="mb-1">
+                                          {[
+                                            ...new Set(
+                                              FlightInfo?.segments?.map(
+                                                (segment) =>
+                                                  segment.Airline.AirlineLogo,
+                                              ),
+                                            ),
+                                          ].map((logo) => {
+                                            return (
+                                              <img
+                                                key={logo}
+                                                src={`${logo}`}
+                                                className="w-9 h-9 inline-block mr-2"
+                                                alt="airline logo"
+                                              />
+                                            );
+                                          })}
+                                          <p className="cardbody_font font-Montserrat mt-1 mb-1">
+                                            {[
+                                              ...new Set(
+                                                FlightInfo?.segments?.map(
+                                                  (segment) =>
+                                                    segment.Airline.AirlineName,
+                                                ),
+                                              ),
+                                            ].join(" , ")}
+                                          </p>
+                                        </div>
+                                        <p className=" text-[11px] font-Montserrat mb-1">
+                                          {FlightInfo?.segments
+                                            ?.map(
+                                              (segment) =>
+                                                `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`,
+                                            )
+                                            .join(" , ")}
+                                        </p>
+                                      </div>
 
-  return (
-    <div
-      key={flightId} //  key flightId based
-      className={`flight-item fly-in ${
-        selectedFlightIds.includes(index) ? "selected-flight" : ""
-      }`}
-    >
-      <div className="flt-i-a flex flex-col">
-        <div className="flt-i-b ">
-          <div className="flt-l-b">
-            <div className="mb-1">
-              {[
-                ...new Set(
-                  FlightInfo?.segments?.map(
-                    (segment) => segment.Airline.AirlineLogo
-                  )
-                ),
-              ].map((logo) => {
-                return (
-                  <img
-                    key={logo}
-                    src={`${logo}`}
-                    className="w-9 h-9 inline-block mr-2"
-                    alt="airline logo"
-                  />
-                );
-              })}
-              <p className="cardbody_font font-Montserrat mt-1 mb-1">
-                {[
-                  ...new Set(
-                    FlightInfo?.segments?.map(
-                      (segment) => segment.Airline.AirlineName
-                    )
-                  ),
-                ].join(" , ")}
-              </p>
-            </div>
-            <p className=" text-[11px] font-Montserrat mb-1">
-              {FlightInfo?.segments
-                ?.map(
-                  (segment) =>
-                    `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`
-                )
-                .join(" , ")}
-            </p>
-          </div>
-
-          <div className="flt-l-c">
-            <div className="flt-l-cb flight-line">
-              <div className="flight-line-a" style={{ width: "58px" }}>
-                <div className="text-[15px] font-bold">{formattedDepTime}</div>
-                <div className="cardbody_font">
-                  {FlightInfo?.originAirport?.CityName}{" "}
-                </div>
-                <div className="apiairportresult">
-                  {FlightInfo?.originAirport?.AirportName}{" "}
-                  {FlightInfo?.originAirport?.Terminal}
-                </div>
-              </div>
-              <div className="flight-line-d1"></div>
-              <div className="flight-line-a mt-7 text-center font-Montserrat">
-                <div className="stop-badge-container relative group">
-                  <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 z-10">
-                    <div className="bg-white text-black text-[8px] font-Montserrat px-3 py-2 rounded border shadow-md whitespace-nowrap relative">
-                      {segments.length === 1 ? (
-                        <span className="text-[8px]">
-                          This is a direct flight with no stops
-                        </span>
-                      ) : (
-                        <span
-                          className=" leading-tight"
-                          style={{
-                            fontSize: "10px",
-                          }}
-                        >
-                          <p className="mb-0">Plane Change</p>
-                          <p className="mb-1">
-                            {segments[0].Destination.Airport.CityName} |{" "}
-                            {Totallayover}
-                          </p>
-                        </span>
-                      )}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-white"></div>
-                    </div>
-                  </div>
-                  <div className="flight-line-a">
-                    <span className="text-sm">{duration}</span>
-                    <div className="w-fit mx-auto stop-badge">
-                      {segments.length === 1 ? (
-                        <p className=" cursor-pointer leading-tight">Non-stop</p>
-                      ) : (
-                        <p className="cursor-pointer leading-tight">
-                          {segments.length - 1} stop
-                          {segments.length - 1 > 1 ? "s" : ""} via{" "}
-                          {segments[0].Destination.Airport.CityName}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="flight-line-d2"></div>
-              <div className="flight-line-a" style={{ width: "90px" }}>
-                <div className="flex items-center space-x-1">
-                  <div className="text-[15px] font-bold">{formattedArrTime}</div>
-                  {diffInDays > 0 && (
-                    <div className="relative group inline-block">
-                      <span
-                        className="font-medium cursor-pointer"
-                        style={{
-                          fontSize: "10px",
-                          color: "red",
-                        }}
-                      >
-                        +{diffInDays} {diffInDays > 1 ? "DAYS" : "DAY"}
-                      </span>
-                      <div className="absolute hidden group-hover:block bottom-full mb-1 left-1/2 -translate-x-1/2 z-10">
-                        <div className="relative bg-white text-black text-[12px] font-Montserrat px-3 py-1 rounded border shadow-md whitespace-nowrap">
-                          {formattedDate}
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-white drop-shadow-md"></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="cardbody_font">
-                  {FlightInfo?.destinationAirport?.CityName}
-                </div>
-                <div className="text-[9px] text-gray-500 leading-tight">
-                  {FlightInfo?.destinationAirport?.AirportName}{" "}
-                  {FlightInfo?.destinationAirport?.Terminal}
-                </div>
-              </div>
-              <div className="flt-i-price">
-                ₹ {Number(response.prices.TotalPrice)}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/*  Price Display Section - flightId based */}
-        {showPrices.has(flightId) && (
-        <div className="row selectcontainer w-full block">
-          {fareloadingg[flightId] && (
-              <div className="flex items-center justify-center bg-white/30">
-                <div className="big-loader flex items-center justify-center">
-                  <img
-                    style={{
-                      width: "100px",
-                      height: "100px",
-                    }}
-                    src="/img/cotravloader.gif"
-                    alt="Loader"
-                  />
-                  <p className="text-center ml-4 text-gray-600 text-xs">
-                    Retrieving flight fares. Please wait a moment.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/*  Fares Display */}
-             {uniqueFares.map((fare, idx) => {
-            const isSelected = selectedFares.some(
-              (f) => f.flightId === flightId && f.fareType === fare.type
-            );
-
-
-              return (
-                <div className="col-md-3 optionsflights" key={idx}>
-                  <div className="optionsflight">
-                    <div className="modal-data cursor-pointer">
-                      <div className="seelctheader">
-                        {fare.type}{" "}
-                        <span className="text-[7px] text-gray-800">
-                          ({fare.from})
-                        </span>
-                      </div>
-                      <div className="selectprice">₹ {fare.price}</div>
-                    </div>
-                  </div>
-                  <div className="buttonbook">
-                    <button
-                      type="button"
-                      className="continuebutton"
-                      style={{
-                        color: "white",
-                        backgroundColor: "#785eff",
-                        border: "none",
-                        padding: "2%",
-                        borderRadius: "3px",
-                        marginRight: "3px",
-                      }}
-                      onClick={() =>
-                        AddClientPrice(
-                          fare,
-                          FlightInfo?.segments,
-                          cabinClass,
-                          inputValue,
-                          FlightInfo
-                        )
-                      }
-                    >
-                      Book Now
-                    </button>
-                  </div>
-                  <button
-                    className="add-btn"
-                    type="button"
-                    title={isSelected ? "Remove Fare" : "Select Fare"}
-                   onClick={() => handleFareToggle(
-                    FlightInfo,
-                    fare,
-                    flightId,
-                    currentFlightFares?.base_fare
-                  )}
-                  >
-                    {isSelected ? "-" : "+"}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Flight Details Section */}
-        <div className="flt-l-cr">
-                                          {showFlightDetails === index && (
-                                            <>
-                                        
-                                              <div
-                                                className="flight-details"
-                                                style={{ display: "block" }}
-                                              >
-                                                {/* Tabs */}
-                                                <Nav className="flight_detailnav ">
-                                                  <Nav.Item>
-                                                    <Nav.Link
-                                                      role="button"
-                                                      className={` ${
-                                                        showContent ===
-                                                        "flight_details"
-                                                          ? "active"
-                                                          : ""
-                                                      }`}
-                                                      onClick={() =>
-                                                        setshowcontent(
-                                                          "flight_details"
-                                                        )
-                                                      }
-                                                    >
-                                                      FLIGHT DETAIL{" "}
-                                                    </Nav.Link>
-                                                  </Nav.Item>
-                                                  <Nav.Item>
-                                                    <Nav.Link
-                                                      role="button"
-                                                      className={` ${
-                                                        showContent ===
-                                                        "fare_summary"
-                                                          ? "active"
-                                                          : ""
-                                                      }`}
-                                                      onClick={() =>
-                                                        setshowcontent(
-                                                          "fare_summary"
-                                                        )
-                                                      }
-                                                    >
-                                                      FARE SUMMARY
-                                                    </Nav.Link>
-                                                  </Nav.Item>
-                                                  <Nav.Item>
-                                                    <Nav.Link
-                                                      role="button"
-                                                      className={` ${
-                                                        showContent ===
-                                                        "date_change"
-                                                          ? "active"
-                                                          : ""
-                                                      }`}
-                                                      onClick={() =>
-                                                        setshowcontent(
-                                                          "date_change"
-                                                        )
-                                                      }
-                                                    >
-                                                      DATE CHANGE
-                                                    </Nav.Link>
-                                                  </Nav.Item>
-                                                  <Nav.Item>
-                                                    <Nav.Link
-                                                      role="button"
-                                                      className={` ${
-                                                        showContent ===
-                                                        "cancellation"
-                                                          ? "active"
-                                                          : ""
-                                                      }`}
-                                                      onClick={() =>
-                                                        setshowcontent(
-                                                          "cancellation"
-                                                        )
-                                                      }
-                                                    >
-                                                      CANCELLATION
-                                                    </Nav.Link>
-                                                  </Nav.Item>
-                                                </Nav>
-
-                                                <div>
-                                                  {showContent ===
-                                                    "flight_details" && (
-                                                    <div
-                                                      className="tabcontent"
+                                      <div className="flt-l-c">
+                                        <div className="flt-l-cb flight-line">
+                                          <div
+                                            className="flight-line-a"
+                                            style={{ width: "58px" }}
+                                          >
+                                            <div className="text-[15px] font-bold">
+                                              {formattedDepTime}
+                                            </div>
+                                            <div className="cardbody_font">
+                                              {
+                                                FlightInfo?.originAirport
+                                                  ?.CityName
+                                              }{" "}
+                                            </div>
+                                            <div className="apiairportresult">
+                                              {
+                                                FlightInfo?.originAirport
+                                                  ?.AirportName
+                                              }{" "}
+                                              {
+                                                FlightInfo?.originAirport
+                                                  ?.Terminal
+                                              }
+                                            </div>
+                                          </div>
+                                          <div className="flight-line-d1"></div>
+                                          <div className="flight-line-a mt-7 text-center font-Montserrat">
+                                            <div className="stop-badge-container relative group">
+                                              <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 z-10">
+                                                <div className="bg-white text-black text-[8px] font-Montserrat px-3 py-2 rounded border shadow-md whitespace-nowrap relative">
+                                                  {segments.length === 1 ? (
+                                                    <span className="text-[8px]">
+                                                      This is a direct flight
+                                                      with no stops
+                                                    </span>
+                                                  ) : (
+                                                    <span
+                                                      className=" leading-tight"
                                                       style={{
-                                                        display: "block",
+                                                        fontSize: "10px",
                                                       }}
                                                     >
+                                                      <p className="mb-0">
+                                                        Plane Change
+                                                      </p>
+                                                      <p className="mb-1">
+                                                        {
+                                                          segments[0]
+                                                            .Destination.Airport
+                                                            .CityName
+                                                        }{" "}
+                                                        | {Totallayover}
+                                                      </p>
+                                                    </span>
+                                                  )}
+                                                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-white"></div>
+                                                </div>
+                                              </div>
+                                              <div className="flight-line-a">
+                                                <span className="text-sm">
+                                                  {duration}
+                                                </span>
+                                                <div className="w-fit mx-auto stop-badge">
+                                                  {segments.length === 1 ? (
+                                                    <p className=" cursor-pointer leading-tight">
+                                                      Non-stop
+                                                    </p>
+                                                  ) : (
+                                                    <p className="cursor-pointer leading-tight">
+                                                      {segments.length - 1} stop
+                                                      {segments.length - 1 > 1
+                                                        ? "s"
+                                                        : ""}{" "}
+                                                      via{" "}
+                                                      {
+                                                        segments[0].Destination
+                                                          .Airport.CityName
+                                                      }
+                                                    </p>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div className="flight-line-d2"></div>
+                                          <div
+                                            className="flight-line-a"
+                                            style={{ width: "90px" }}
+                                          >
+                                            <div className="flex items-center space-x-1">
+                                              <div className="text-[15px] font-bold">
+                                                {formattedArrTime}
+                                              </div>
+                                              {diffInDays > 0 && (
+                                                <div className="relative group inline-block">
+                                                  <span
+                                                    className="font-medium cursor-pointer"
+                                                    style={{
+                                                      fontSize: "10px",
+                                                      color: "red",
+                                                    }}
+                                                  >
+                                                    +{diffInDays}{" "}
+                                                    {diffInDays > 1
+                                                      ? "DAYS"
+                                                      : "DAY"}
+                                                  </span>
+                                                  <div className="absolute hidden group-hover:block bottom-full mb-1 left-1/2 -translate-x-1/2 z-10">
+                                                    <div className="relative bg-white text-black text-[12px] font-Montserrat px-3 py-1 rounded border shadow-md whitespace-nowrap">
+                                                      {formattedDate}
+                                                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-white drop-shadow-md"></div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                            <div className="cardbody_font">
+                                              {
+                                                FlightInfo?.destinationAirport
+                                                  ?.CityName
+                                              }
+                                            </div>
+                                            <div className="text-[9px] text-gray-500 leading-tight">
+                                              {
+                                                FlightInfo?.destinationAirport
+                                                  ?.AirportName
+                                              }{" "}
+                                              {
+                                                FlightInfo?.destinationAirport
+                                                  ?.Terminal
+                                              }
+                                            </div>
+                                          </div>
+                                          <div className="flt-i-price">
+                                            ₹{" "}
+                                            {Number(response.prices.TotalPrice)}
+                                            <br />
+                                            <span className="text-[10px] text-gray-500">
+                                              Per Passenger{" "}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/*  Price Display Section - flightId based */}
+                                  
+  {showPrices.has(flightId) && (
+                                          <div className="price-fixed-container">
+                                            {fareloadingg[flightId] && (
+                                              <div className="flex items-center justify-center bg-white/30">
+                                                <div className="big-loader flex items-center justify-center">
+                                                  <img
+                                                    style={{
+                                                      width: "100px",
+                                                      height: "100px",
+                                                    }}
+                                                    src="/img/cotravloader.gif"
+                                                    alt="Loader"
+                                                  />
+                                                  <p className="text-center ml-4 text-gray-600 text-xs">
+                                                    Retrieving flight fares.
+                                                    Please wait a moment.
+                                                  </p>
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            <div className="fare-mini-grid-onward">
+                                              {uniqueFares.map((fare, idx) => {
+                                                const isSelected =
+                                                  selectedFares.some(
+                                                    (f) =>
+                                                      f.flightId === flightId &&
+                                                      f.fareType === fare.type,
+                                                  );
+                                                const policyKey = `${flightId}_${fare.type}`;
+                                                const isPolicyLoading =
+                                                  policyLoading[policyKey];
+                                                const hasPolicy =
+                                                  cancellationPolicies[
+                                                    policyKey
+                                                  ];
+
+                                                // Check if Book Now button should be hidden
+                                                const hideBookNow = false; // Replace with your actual condition
+
+                                                return (
+                                                  <div
+                                                    className={`fare-mini-card ${isSelected ? "mini-selected" : ""}`}
+                                                    key={idx}
+                                                  >
+                                                    <div className="fare-mini-content">
+                                                      {/* Fare Type and Policy Icon */}
+                                                      <div className="fare-mini-header">
+                                                        <span className="fare-mini-type">
+                                                          {fare.type}
+                                                        </span>
+                                                        <button
+                                                          className="fare-mini-policy"
+                                                          type="button"
+                                                          onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleShowPolicy(
+                                                              FlightInfo,
+                                                              fare,
+                                                              flightId,
+                                                              currentFlightFares?.base_fare,
+                                                            );
+                                                          }}
+                                                          title="View Cancellation & Date Change Policy"
+                                                        >
+                                                          {isPolicyLoading ? (
+                                                            <span className="mini-policy-loading">
+                                                              ...
+                                                            </span>
+                                                          ) : (
+                                                            <svg
+                                                              width="10"
+                                                              height="10"
+                                                              viewBox="0 0 24 24"
+                                                              fill="none"
+                                                              xmlns="http://www.w3.org/2000/svg"
+                                                              className={`mini-policy-icon ${hasPolicy ? "mini-policy-active" : ""}`}
+                                                            >
+                                                              <path
+                                                                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                                                stroke="currentColor"
+                                                                strokeWidth="2"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                              />
+                                                              <path
+                                                                d="M12 16V12"
+                                                                stroke="currentColor"
+                                                                strokeWidth="2"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                              />
+                                                              <path
+                                                                d="M12 8H12.01"
+                                                                stroke="currentColor"
+                                                                strokeWidth="2"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                              />
+                                                            </svg>
+                                                          )}
+                                                        </button>
+                                                      </div>
+
+                                                      {/* Source - Highlighted */}
+                                                      {fare.from && (
+                                                        <div className="fare-mini-source">
+                                                          ({fare.from})
+                                                        </div>
+                                                      )}
+
+                                                      {/* Price Row - Conditional rendering based on hideBookNow */}
+                                                      {hideBookNow ? (
+                                                        <div className="fare-mini-price-row">
+                                                          <span className="fare-mini-price">
+                                                            ₹{fare.price}
+                                                          </span>
+                                                          <button
+                                                            className={`fare-mini-toggle ${isSelected ? "toggle-active" : ""}`}
+                                                            type="button"
+                                                            title={
+                                                              isSelected
+                                                                ? "Remove Fare"
+                                                                : "Select fare and share"
+                                                            }
+                                                              onClick={() =>
+                                                    AddClientPrice(
+                                                      fare,
+                                                      FlightInfo?.segments,
+                                                      cabinClass,
+                                                      inputValue,
+                                                      FlightInfo,
+                                                    )
+                                                  }
+                                                          >
+                                                            {isSelected
+                                                              ? "−"
+                                                              : "+"}
+                                                          </button>
+                                                        </div>
+                                                      ) : (
+                                                        <>
+                                                          <div className="fare-mini-price">
+                                                            ₹{fare.price}
+                                                          </div>
+                                                          {/* Button Group with Book Now and Toggle */}
+                                                          <div className="fare-mini-button-group">
+                                                            <button
+                                                              type="button"
+                                                              className="fare-mini-book"
+                                                              onClick={() =>
+                                                                handleSingleSelect(
+                                                                  FlightInfo,
+                                                                  fare,
+                                                                  flightId,
+                                                                  currentFlightFares?.base_fare,
+                                                                  "Onward",
+                                                                )
+                                                              }
+                                                            >
+                                                              BOOK NOW
+                                                            </button>
+
+                                                            <button
+                                                              className={`fare-mini-toggle ${isSelected ? "toggle-active" : ""}`}
+                                                              type="button"
+                                                              title={
+                                                                isSelected
+                                                                  ? "Remove Fare"
+                                                                  : "Select fare and share"
+                                                              }
+                                                              onClick={() =>
+                                                                handleFareToggle(
+                                                                  FlightInfo,
+                                                                  fare,
+                                                                  flightId,
+                                                                  currentFlightFares?.base_fare,
+                                                                )
+                                                              }
+                                                            >
+                                                              {isSelected
+                                                                ? "−"
+                                                                : "+"}
+                                                            </button>
+                                                          </div>
+                                                        </>
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        )}
+                                    {/* Flight Details Section */}
+                                    <div className="flt-l-cr">
+                                      {showFlightDetails === index && (
+                                        <>
+                                          <div
+                                            className="flight-details"
+                                            style={{ display: "block" }}
+                                          >
+                                            {/* Tabs */}
+                                            <Nav className="flight_detailnav ">
+                                              <Nav.Item>
+                                                <Nav.Link
+                                                  role="button"
+                                                  className={` ${
+                                                    showContent ===
+                                                    "flight_details"
+                                                      ? "active"
+                                                      : ""
+                                                  }`}
+                                                  onClick={() =>
+                                                    setshowcontent(
+                                                      "flight_details",
+                                                    )
+                                                  }
+                                                >
+                                                  FLIGHT DETAIL{" "}
+                                                </Nav.Link>
+                                              </Nav.Item>
+                                              <Nav.Item>
+                                                <Nav.Link
+                                                  role="button"
+                                                  className={` ${
+                                                    showContent ===
+                                                    "fare_summary"
+                                                      ? "active"
+                                                      : ""
+                                                  }`}
+                                                  onClick={() =>
+                                                    setshowcontent(
+                                                      "fare_summary",
+                                                    )
+                                                  }
+                                                >
+                                                  FARE SUMMARY
+                                                </Nav.Link>
+                                              </Nav.Item>
+                                            
+                                            
+                                            </Nav>
+
+                                            <div>
+                                              {showContent ===
+                                                "flight_details" && (
+                                                <div
+                                                  className="tabcontent"
+                                                  style={{
+                                                    display: "block",
+                                                  }}
+                                                >
+                                                  <div>
+                                                    <div>
                                                       <div>
                                                         <div>
-                                                          <div>
-                                                            <div>
-                                                              {segments.map(
-                                                                (
-                                                                  segment,
-                                                                  index
-                                                                ) => {
-                                                                  const {
-                                                                    Airline,
-                                                                    Origin,
-                                                                    Destination,
-                                                                    Equipment,
-                                                                  } = segment;
-                                                                  const depTime =
-                                                                    new Date(
-                                                                      Origin?.DepTime
-                                                                    );
-                                                                  const arrTime =
-                                                                    new Date(
-                                                                      Destination?.ArrTime
-                                                                    );
-                                                                  // Calculate duration
-                                                                  const durationMs =
-                                                                    new Date(
-                                                                      arrTime.toUTCString()
-                                                                    ).getTime() -
-                                                                    new Date(
-                                                                      depTime.toUTCString()
-                                                                    ).getTime();
-                                                                  const durationHours =
-                                                                    Math.floor(
-                                                                      durationMs /
-                                                                        (1000 *
-                                                                          60 *
-                                                                          60)
-                                                                    );
-                                                                  const durationMinutes =
-                                                                    Math.floor(
-                                                                      (durationMs %
-                                                                        (1000 *
-                                                                          60 *
-                                                                          60)) /
-                                                                        (1000 *
-                                                                          60)
-                                                                    );
-                                                                  const duration = `${durationHours}H ${durationMinutes}M`;
+                                                          {segments.map(
+                                                            (
+                                                              segment,
+                                                              index,
+                                                            ) => {
+                                                              const {
+                                                                Airline,
+                                                                Origin,
+                                                                Destination,
+                                                                Equipment,
+                                                              } = segment;
+                                                              const depTime =
+                                                                new Date(
+                                                                  Origin?.DepTime,
+                                                                );
+                                                              const arrTime =
+                                                                new Date(
+                                                                  Destination?.ArrTime,
+                                                                );
+                                                              // Calculate duration
+                                                              const durationMs =
+                                                                new Date(
+                                                                  arrTime.toUTCString(),
+                                                                ).getTime() -
+                                                                new Date(
+                                                                  depTime.toUTCString(),
+                                                                ).getTime();
+                                                              const durationHours =
+                                                                Math.floor(
+                                                                  durationMs /
+                                                                    (1000 *
+                                                                      60 *
+                                                                      60),
+                                                                );
+                                                              const durationMinutes =
+                                                                Math.floor(
+                                                                  (durationMs %
+                                                                    (1000 *
+                                                                      60 *
+                                                                      60)) /
+                                                                    (1000 * 60),
+                                                                );
+                                                              const duration = `${durationHours}H ${durationMinutes}M`;
+                                                              const cleanText =
+                                                                (text) => {
+                                                                  if (
+                                                                    !text ||
+                                                                    typeof text !==
+                                                                      "string"
+                                                                  )
+                                                                    return text;
 
-                                                                  return (
-                                                                    <div
-                                                                      key={
-                                                                        index
-                                                                      }
-                                                                    >
-                                                                      <div className="flight-details-d"></div>
-                                                                      <div className="flight-details-a ">
-                                                                        {
-                                                                          Airline?.AirlineName
-                                                                        }{" "}
-                                                                        .{" "}
-                                                                        {
-                                                                          Airline?.AirlineCode
-                                                                        }
-                                                                        {
-                                                                          Airline?.FlightNumber
-                                                                        }{" "}
-                                                                        ||{" "}
+                                                                  // Remove special characters but keep spaces, letters, numbers, basic punctuation
+                                                                  return text
+                                                                    .replace(
+                                                                      /[^\w\s(),.-]/g,
+                                                                      "",
+                                                                    ) // Keep alphanumeric, spaces, and basic punctuation
+                                                                    .replace(
+                                                                      /\s+/g,
+                                                                      " ",
+                                                                    ) // Replace multiple spaces with single space
+                                                                    .trim();
+                                                                };
+                                                              const calculateLayover =
+                                                                (
+                                                                  arrival,
+                                                                  departure,
+                                                                ) => {
+                                                                  if (
+                                                                    !arrival ||
+                                                                    !departure
+                                                                  )
+                                                                    return "00 Hrs : 00 mins";
+
+                                                                  const arr =
+                                                                    new Date(
+                                                                      arrival,
+                                                                    );
+                                                                  const dep =
+                                                                    new Date(
+                                                                      departure,
+                                                                    );
+                                                                  const diffMs =
+                                                                    dep - arr;
+
+                                                                  if (
+                                                                    diffMs < 0
+                                                                  )
+                                                                    return "00 Hrs : 00 mins";
+
+                                                                  const diffH =
+                                                                    Math.floor(
+                                                                      diffMs /
+                                                                        (1000 *
+                                                                          60 *
+                                                                          60),
+                                                                    );
+                                                                  const diffM =
+                                                                    Math.floor(
+                                                                      (diffMs /
+                                                                        (1000 *
+                                                                          60)) %
+                                                                        60,
+                                                                    );
+
+                                                                  return `${String(diffH).padStart(2, "0")} Hrs : ${String(
+                                                                    diffM,
+                                                                  ).padStart(
+                                                                    2,
+                                                                    "0",
+                                                                  )} mins`;
+                                                                };
+                                                              const stops = [];
+                                                              if (
+                                                                segments &&
+                                                                segments.length >
+                                                                  1
+                                                              ) {
+                                                                for (
+                                                                  let i = 0;
+                                                                  i <
+                                                                  segments.length -
+                                                                    1;
+                                                                  i++
+                                                                ) {
+                                                                  const currentSeg =
+                                                                    segments[i];
+                                                                  const nextSeg =
+                                                                    segments[
+                                                                      i + 1
+                                                                    ];
+
+                                                                  const stopAirport =
+                                                                    currentSeg
+                                                                      ?.Destination
+                                                                      ?.Airport;
+
+                                                                  const layoverTime =
+                                                                    calculateLayover(
+                                                                      currentSeg
+                                                                        ?.Destination
+                                                                        ?.ArrTime,
+                                                                      nextSeg
+                                                                        ?.Origin
+                                                                        ?.DepTime,
+                                                                    );
+
+                                                                  stops.push({
+                                                                    stop_airport:
+                                                                      cleanText(
+                                                                        `${stopAirport?.AirportName || ""} ${stopAirport?.CityName || ""} (${stopAirport?.AirportCode || ""})`,
+                                                                      ),
+                                                                    duration:
+                                                                      layoverTime,
+                                                                  });
+                                                                }
+                                                              }
+                                                              return (
+                                                                <div
+                                                                  key={index}
+                                                                >
+                                                                  <div className="flight-details-d"></div>
+                                                                  <div className="flight-details-a ">
+                                                                    {
+                                                                      Airline?.AirlineName
+                                                                    }{" "}
+                                                                    .{" "}
+                                                                    {
+                                                                      Airline?.AirlineCode
+                                                                    }
+                                                                    {
+                                                                      Airline?.FlightNumber
+                                                                    }{" "}
+                                                                    ||{" "}
+                                                                    {
+                                                                      Origin
+                                                                        ?.Airport
+                                                                        ?.CityName
+                                                                    }{" "}
+                                                                    To{" "}
+                                                                    {
+                                                                      Destination
+                                                                        ?.Airport
+                                                                        ?.CityName
+                                                                    }{" "}
+                                                                    ,{" "}
+                                                                    {formatdatemonth(
+                                                                      Origin?.DepTime,
+                                                                    )}
+                                                                  </div>
+                                                                  <div className="clear"></div>
+
+                                                                  {/* Flight Segment Details */}
+                                                                  <div className="flightstopdetail">
+                                                                    <div className="flight-details-lr">
+                                                                      <p className="flight-details-b">
                                                                         {
                                                                           Origin
                                                                             ?.Airport
                                                                             ?.CityName
-                                                                        }{" "}
-                                                                        To{" "}
+                                                                        }
+                                                                      </p>
+                                                                      <p className="flight-details-b mb-1">
+                                                                        {handleweekdatemonthyear(
+                                                                          Origin?.DepTime,
+                                                                        )}
+                                                                      </p>
+                                                                      <p className="flight-details-c mb-0">
+                                                                        {format(
+                                                                          new Date(
+                                                                            Origin?.DepTime,
+                                                                          ),
+                                                                          "HH:mm",
+                                                                        )}
+                                                                      </p>
+                                                                      <p className="flight-details-c1 mb-1">
+                                                                        {
+                                                                          Origin
+                                                                            ?.Airport
+                                                                            ?.AirportName
+                                                                        }
+                                                                      </p>
+                                                                      <p className="flight-details-c mb-0">
+                                                                        {Origin
+                                                                          ?.Airport
+                                                                          ?.Terminal
+                                                                          ? ` Terminal ${Origin?.Airport?.Terminal}`
+                                                                          : ""}
+                                                                      </p>
+                                                                    </div>
+
+                                                                    <div className="flight-details-mr">
+                                                                      <p className="flight-details-e">
+                                                                        {
+                                                                          duration
+                                                                        }
+                                                                      </p>
+                                                                      <div className="flight-details-e">
+                                                                        <hr />
+                                                                      </div>
+                                                                    </div>
+
+                                                                    <div className="flight-details-rr">
+                                                                      <p className="flight-details-b">
                                                                         {
                                                                           Destination
                                                                             ?.Airport
                                                                             ?.CityName
-                                                                        }{" "}
-                                                                        ,{" "}
-                                                                        {formatdatemonth(
-                                                                          Origin?.DepTime
+                                                                        }
+                                                                      </p>
+                                                                      <p className="flight-details-b">
+                                                                        {handleweekdatemonthyear(
+                                                                          Destination?.ArrTime,
                                                                         )}
-                                                                        {/* <span className="equipmentno">
-                                                                          {
-                                                                            Equipment
-                                                                          }
-                                                                        </span> */}
-                                                                      </div>
-                                                                      <div className="clear"></div>
-                                                                      <div className="flightstopdetail">
-                                                                        <div className="flight-details-lr">
-                                                                          <p className="flight-details-b">
-                                                                            {
-                                                                              Origin
-                                                                                ?.Airport
-                                                                                ?.CityName
-                                                                            }
-                                                                          </p>
-                                                                          <p className="flight-details-b mb-1">
-                                                                            {handleweekdatemonthyear(
-                                                                              Origin?.DepTime
-                                                                            )}
-                                                                          </p>
-                                                                          <p className="flight-details-c mb-0">
-                                                                            {format(
-                                                                              new Date(
-                                                                                Origin?.DepTime
-                                                                              ),
-                                                                              "HH:mm"
-                                                                            )}
-                                                                          </p>
-                                                                          <p className="flight-details-c1 mb-1">
-                                                                            {
-                                                                              Origin
-                                                                                ?.Airport
-                                                                                ?.AirportName
-                                                                            }
-                                                                            {
-                                                                              Origin
-                                                                                ?.Airline
-                                                                                ?.Terminal
-                                                                            }
-                                                                          </p>
-                                                                        </div>
-                                                                        <div className="flight-details-mr">
-                                                                          <p className="flight-details-e">
-                                                                            {
-                                                                              duration
-                                                                            }
-                                                                          </p>
-                                                                          <div className="flight-details-e">
-                                                                            <hr />
-                                                                          </div>
-                                                                        </div>
-                                                                        <div className="flight-details-rr">
-                                                                          <p className="flight-details-b">
-                                                                            {
-                                                                              Destination
-                                                                                ?.Airport
-                                                                                ?.CityName
-                                                                            }
-                                                                          </p>
-                                                                          <p className="flight-details-b">
-                                                                            {handleweekdatemonthyear(
-                                                                              Destination?.ArrTime
-                                                                            )}
-                                                                          </p>
-                                                                          <p className="flight-details-c mb-0">
-                                                                            {format(
-                                                                              new Date(
-                                                                                Destination?.ArrTime
-                                                                              ),
-                                                                              "HH:mm"
-                                                                            )}
-                                                                          </p>
-                                                                          <p className="flight-details-c1 mb-1">
-                                                                            {
-                                                                              Destination
-                                                                                ?.Airport
-                                                                                ?.AirportName
-                                                                            }
-                                                                            {
-                                                                              Destination
-                                                                                ?.Airport
-                                                                                ?.Terminal
-                                                                            }
-                                                                          </p>
-                                                                        </div>
-                                                                      </div>
-                                                                      <div className="clear"></div>
+                                                                      </p>
+                                                                      <p className="flight-details-c mb-0">
+                                                                        {format(
+                                                                          new Date(
+                                                                            Destination?.ArrTime,
+                                                                          ),
+                                                                          "HH:mm",
+                                                                        )}
+                                                                      </p>
+                                                                      <p className="flight-details-c1 mb-1">
+                                                                        {
+                                                                          Destination
+                                                                            ?.Airport
+                                                                            ?.AirportName
+                                                                        }
+                                                                      </p>
+                                                                      <p className="flight-details-c mb-0">
+                                                                        {Destination
+                                                                          ?.Airport
+                                                                          ?.Terminal
+                                                                          ? ` Terminal ${Destination?.Airport?.Terminal}`
+                                                                          : ""}
+                                                                      </p>
                                                                     </div>
-                                                                  );
-                                                                }
-                                                              )}
-                                                            </div>
-                                                          </div>
+                                                                  </div>
+
+                                                                  {/* Layover Information - THIS SHOULD BE AFTER flightstopdetail, NOT INSIDE IT */}
+                                                                  {index <
+                                                                    segments.length -
+                                                                      1 &&
+                                                                    stops[
+                                                                      index
+                                                                    ] && (
+                                                                      <div className="layover-simple">
+                                                                        <p>
+                                                                          {/* Change of planes if applicable */}
+                                                                          {/* {segments[index]?.Airline?.FlightNumber !== segments[index + 1]?.Airline?.FlightNumber && (
+        <>Change of planes <span>·</span></>
+      )} */}
+                                                                          {/* Layover duration and location */}
+                                                                          <strong>
+                                                                            {
+                                                                              stops[
+                                                                                index
+                                                                              ]
+                                                                                .duration
+                                                                            }
+                                                                          </strong>{" "}
+                                                                          Layover
+                                                                          in{" "}
+                                                                          {segments[
+                                                                            index
+                                                                          ]
+                                                                            ?.Destination
+                                                                            ?.Airport
+                                                                            ?.CityName ||
+                                                                            "Ahmedabad"}
+                                                                        </p>
+                                                                      </div>
+                                                                    )}
+
+                                                                  <div className="clear"></div>
+                                                                </div>
+                                                              );
+                                                            },
+                                                          )}
                                                         </div>
                                                       </div>
                                                     </div>
-                                                  )}
-                                                  {showContent ===
-                                                    "fare_summary" && (
-                                                    <div className="tabcontent">
-                                                      <div className="flight-details-a">
-                                                        Fare Breakup (For All
-                                                        Passengers)
-                                                      </div>
-                                                      <div className="flight-details-l">
-                                                        <p className="flight-details-b">
-                                                          Total Fare
-                                                        </p>
-                                                        <p className="flight-details-c mb-0">
-                                                          Base Price
-                                                        </p>
-                                                        <p className="flight-details-c mb-0">
-                                                          Tax
-                                                        </p>
-                                                        <p className="flight-details-c mb-0">
-                                                          IN
-                                                        </p>
-                                                        <p className="flight-details-c mb-0 ">
-                                                          Surcharge
-                                                        </p>
-                                                      </div>
-                                                      <div className="flight-details-r">
-                                                        <p className="flight-details-b">
-                                                          ₹{" "}
-                                                          {
-                                                            response.prices
-                                                              .TotalPrice
-                                                          }
-                                                        </p>
-                                                        <p className="flight-details-c mb-0">
-                                                          ₹{" "}
-                                                          {
-                                                            response.prices
-                                                              .BaseFare
-                                                          }
-                                                        </p>
-                                                        <p className="flight-details-c mb-0">
-                                                          ₹{" "}
-                                                          {
-                                                            response.prices
-                                                              .Taxes
-                                                          }
-                                                        </p>
-                                                        <p className="flight-details-c mb-0">
-                                                          ₹ 00
-                                                        </p>
-                                                        <p className="flight-details-c mb-0">
-                                                          ₹ 00
-                                                        </p>
-                                                      </div>
-                                                    </div>
-                                                  )}
+                                                  </div>
                                                 </div>
-                                              </div>
-                                            </>
-                                          )}
-                                        </div>
-      </div>
+                                              )}
+                                              {showContent ===
+                                                "fare_summary" && (
+                                                <div className="tabcontent">
+                                                  <div className="flight-details-a">
+                                                    Fare Breakup (For Per
+                                                    Passenger)
+                                                  </div>
+                                                  <div className="flight-details-l">
+                                                    <p className="flight-details-b">
+                                                      Total Fare
+                                                    </p>
+                                                    <p className="flight-details-c mb-0">
+                                                      Base Price
+                                                    </p>
+                                                    <p className="flight-details-c mb-0">
+                                                      Tax
+                                                    </p>
+                                                    <p className="flight-details-c mb-0">
+                                                      IN
+                                                    </p>
+                                                    <p className="flight-details-c mb-0 ">
+                                                      Surcharge
+                                                    </p>
+                                                  </div>
+                                                  <div className="flight-details-r">
+                                                    <p className="flight-details-b">
+                                                      ₹{" "}
+                                                      {
+                                                        response.prices
+                                                          .TotalPrice
+                                                      }
+                                                    </p>
+                                                    <p className="flight-details-c mb-0">
+                                                      ₹{" "}
+                                                      {response.prices.BaseFare}
+                                                    </p>
+                                                    <p className="flight-details-c mb-0">
+                                                      ₹ {response.prices.Taxes}
+                                                    </p>
+                                                    <p className="flight-details-c mb-0">
+                                                      ₹ 00
+                                                    </p>
+                                                    <p className="flight-details-c mb-0">
+                                                      ₹ 00
+                                                    </p>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
 
-      {/*  Action Buttons - flightId based */}
-      <div className="flt-i-c">
-        <div className="flt-i-padding">
-          <button
-            className="srch-btn"
-            style={{ borderRadius: "18px" }}
-            onClick={() => {
-              //  flightId use karo, index nahi
-              if (!flightFares[flightId]) {
-                Getfares(response, flightId); //  flightId bhejo
-              }
-              toggleShowPrices(flightId); //  flightId bhejo
-            }}
-          >
-            <span className="text-[12px]">View Prices</span>
-          </button>
-        </div>
-        <div className="flight-line-b">
-          <b
-            onClick={() =>
-                                                  setShowFlightDetails(
-                                                    showFlightDetails === index
-                                                      ? null
-                                                      : index
-                                                  )
-                                                }
-          >
-            Show Flight Details
-          </b>
-        </div>
-      </div>
-    </div>
-  );
-})
+                                  {/*  Action Buttons - flightId based */}
+                                  <div className="flt-i-c">
+                                    <div className="flt-i-padding">
+                                      <button
+                                        className="srch-btn"
+                                        style={{ borderRadius: "18px" }}
+                                        onClick={() => {
+                                          //  flightId use karo, index nahi
+                                          if (!flightFares[flightId]) {
+                                            Getfares(response, flightId); //  flightId bhejo
+                                          }
+                                          toggleShowPrices(flightId); //  flightId bhejo
+                                        }}
+                                      >
+                                        <span className="text-[12px]">
+                                          View Prices
+                                        </span>
+                                      </button>
+                                    </div>
+                                    <div className="flight-line-b">
+                                      <b
+                                        onClick={() =>
+                                          setShowFlightDetails(
+                                            showFlightDetails === index
+                                              ? null
+                                              : index,
+                                          )
+                                        }
+                                      >
+                                        Show Flight Details
+                                      </b>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })
                           )}
                         </div>
                       </div>
@@ -5045,9 +5761,9 @@ const currentFlightFares = flightFares[flightId];
                             new Set([
                               0,
                               ...FlightOptions?.map(
-                                (data) => data?.flight?.segments?.length - 1
+                                (data) => data?.flight?.segments?.length - 1,
                               ).filter((stops) => stops > 0),
-                            ])
+                            ]),
                           )
                             .sort((a, b) => a - b)
                             .map((stopCount) => (
@@ -5061,7 +5777,7 @@ const currentFlightFares = flightFares[flightId];
                                   checked={selectedStops.has(stopCount)}
                                   onChange={() => {
                                     toggleStop(stopCount);
-                                    setShowPrices(new Set());;
+                                    setShowPrices(new Set());
                                   }}
                                 />
                                 <span>
@@ -5094,7 +5810,7 @@ const currentFlightFares = flightFares[flightId];
                               }`}
                               onClick={() => {
                                 toggleSelection(slot.key, true);
-                                setShowPrices(new Set());;
+                                setShowPrices(new Set());
                               }}
                             >
                               <span
@@ -5127,7 +5843,7 @@ const currentFlightFares = flightFares[flightId];
                               }`}
                               onClick={() => {
                                 toggleSelection(slot.key, false);
-                                setShowPrices(new Set());;
+                                setShowPrices(new Set());
                               }}
                             >
                               <span
@@ -5157,7 +5873,7 @@ const currentFlightFares = flightFares[flightId];
                                   checked={selectedAirlines.has(airline.name)}
                                   onChange={() => {
                                     toggleAirline(airline.name);
-                                    setShowPrices(new Set());;
+                                    setShowPrices(new Set());
                                   }}
                                 />
                                 <span className="flex items-center space-x-1">
@@ -5191,7 +5907,7 @@ const currentFlightFares = flightFares[flightId];
                               value={priceRange}
                               onChange={(value) => {
                                 setPriceRange(value);
-                                setShowPrices(new Set());;
+                                setShowPrices(new Set());
                               }}
                             />
                           </div>
@@ -5233,9 +5949,9 @@ const currentFlightFares = flightFares[flightId];
                             new Set([
                               0,
                               ...FlightReturnOptions?.map(
-                                (data) => data?.flight?.segments?.length - 1
+                                (data) => data?.flight?.segments?.length - 1,
                               ).filter((stops) => stops > 0),
-                            ])
+                            ]),
                           )
                             .sort((a, b) => a - b)
                             .map((stopCount) => (
@@ -5249,7 +5965,7 @@ const currentFlightFares = flightFares[flightId];
                                   checked={returnSelectedStops.has(stopCount)}
                                   onChange={() => {
                                     toggleReturnStop(stopCount);
-                                    setShowPrices(new Set());;
+                                    setShowPrices(new Set());
                                   }}
                                 />
                                 <span>
@@ -5282,7 +5998,7 @@ const currentFlightFares = flightFares[flightId];
                               }`}
                               onClick={() => {
                                 toggleReturnSelection(slot.key, true);
-                                setShowPrices(new Set());;
+                                setShowPrices(new Set());
                               }}
                             >
                               <span
@@ -5315,7 +6031,7 @@ const currentFlightFares = flightFares[flightId];
                               }`}
                               onClick={() => {
                                 toggleReturnSelection(slot.key, false);
-                                setShowPrices(new Set());;
+                                setShowPrices(new Set());
                               }}
                             >
                               <span
@@ -5343,11 +6059,11 @@ const currentFlightFares = flightFares[flightId];
                                   type="checkbox"
                                   className="accent-blue-600"
                                   checked={selectedReturnAirlines.has(
-                                    airline.name
+                                    airline.name,
                                   )}
                                   onChange={() => {
                                     toggleReturnAirline(airline.name);
-                                    setShowPrices(new Set());;
+                                    setShowPrices(new Set());
                                   }}
                                 />
                                 <span className="flex items-center space-x-1">
@@ -5381,7 +6097,7 @@ const currentFlightFares = flightFares[flightId];
                               value={priceReturnRange}
                               onChange={(value) => {
                                 setPriceReturnRange(value);
-                                setShowPrices(new Set());;
+                                setShowPrices(new Set());
                               }}
                             />
                           </div>
@@ -5442,7 +6158,7 @@ const currentFlightFares = flightFares[flightId];
                                 {formatDate(
                                   inputValue.departureDate
                                     ? extractDate(inputValue.departureDate)
-                                    : extractDate(DepartureDate)
+                                    : extractDate(DepartureDate),
                                 )}
                               </span>
                             </div>
@@ -5548,7 +6264,7 @@ const currentFlightFares = flightFares[flightId];
                                 const FlightInfo = response?.flight;
                                 const depTime = FlightInfo?.depTime || "";
                                 const arrTime = FlightInfo?.arrTime || "";
- const flightId = getFlightUniqueId(FlightInfo);
+                                const flightId = getFlightUniqueId(FlightInfo);
                                 const formattedDepTime = FlightInfo?.depTime
                                   ? format(new Date(depTime), "HH:mm")
                                   : "N/A";
@@ -5561,10 +6277,10 @@ const currentFlightFares = flightFares[flightId];
                                   new Date(arrTime).getTime() -
                                   new Date(depTime).getTime();
                                 const durationHours = Math.floor(
-                                  durationMs / (1000 * 60 * 60)
+                                  durationMs / (1000 * 60 * 60),
                                 );
                                 const durationMinutes = Math.floor(
-                                  (durationMs % (1000 * 60 * 60)) / (1000 * 60)
+                                  (durationMs % (1000 * 60 * 60)) / (1000 * 60),
                                 );
                                 const duration = `${durationHours}H ${durationMinutes}M`;
 
@@ -5579,22 +6295,22 @@ const currentFlightFares = flightFares[flightId];
                                     i++
                                   ) {
                                     const arrivalTime = dayjs(
-                                      segments[i].Destination.ArrTime
+                                      segments[i].Destination.ArrTime,
                                     );
                                     const nextDepartureTime = dayjs(
-                                      segments[i + 1].Origin.DepTime
+                                      segments[i + 1].Origin.DepTime,
                                     );
                                     const layoverMinutes =
                                       nextDepartureTime.diff(
                                         arrivalTime,
-                                        "minute"
+                                        "minute",
                                       );
                                     totalLayoverMinutes += layoverMinutes;
                                   }
 
                                   const totalLayoverDuration = dayjs.duration(
                                     totalLayoverMinutes,
-                                    "minutes"
+                                    "minutes",
                                   );
                                   const totalHours =
                                     totalLayoverDuration.hours();
@@ -5606,31 +6322,36 @@ const currentFlightFares = flightFares[flightId];
                                   }${totalMinutes}m Total Layover`;
                                 }
 
-                               let uniqueFares = [];
-const currentFlightFares = flightFares[flightId]; 
+                                let uniqueFares = [];
+                                const currentFlightFares =
+                                  flightFares[flightId];
 
-                              const formattedUapiFares = (
-    currentFlightFares?.uapi_fares || []  //  FlightFares nahi, currentFlightFares
-  ).map((fare) => ({
-    type: (fare.SupplierFareClass || "").trim(),
-    price: parseFloat(fare.TotalPrice),
-    from: "Uapi",
-    Resultindex: fare.ResultIndex,
-    TraceId: fare.trace_id,
-    isLCC: fare.isLCC,
-    ProviderCode: fare.ProviderCode,
-  }));
+                                const formattedUapiFares = (
+                                  currentFlightFares?.uapi_fares || []
+                                ) //  FlightFares nahi, currentFlightFares
+                                  .map((fare) => ({
+                                    type: (fare.SupplierFareClass || "").trim(),
+                                    price: parseFloat(fare.TotalPrice),
+                                    from: "Uapi",
+                                    Resultindex: fare.ResultIndex,
+                                    TraceId: fare.trace_id,
+                                    isLCC: fare.isLCC,
+                                    ProviderCode: fare.ProviderCode,
+                                  }));
 
-  const formattedTboFares = (
-    currentFlightFares?.tbo_fares || []  //  FlightFares nahi, currentFlightFares
-  ).map((fare) => ({
-    type: (fare.SupplierFareClass || "Regular Fare").trim(),
-    price: parseFloat(fare.TotalPrice),
-    from: "Tbo",
-    Resultindex: fare.ResultIndex,
-    TraceId: fare.trace_id,
-    ProviderCode: fare.ProviderCode,
-  }));
+                                const formattedTboFares = (
+                                  currentFlightFares?.tbo_fares || []
+                                ) //  FlightFares nahi, currentFlightFares
+                                  .map((fare) => ({
+                                    type: (
+                                      fare.SupplierFareClass || "Regular Fare"
+                                    ).trim(),
+                                    price: parseFloat(fare.TotalPrice),
+                                    from: "Tbo",
+                                    Resultindex: fare.ResultIndex,
+                                    TraceId: fare.trace_id,
+                                    ProviderCode: fare.ProviderCode,
+                                  }));
 
                                 // STEP 1: Combine all fares
                                 const combinedFares = [
@@ -5645,11 +6366,10 @@ const currentFlightFares = flightFares[flightId];
                                     acc[fare.type].push(fare);
                                     return acc;
                                   },
-                                  {}
+                                  {},
                                 );
 
                                 // STEP 3: Apply rules
-                              
 
                                 Object.keys(grouped).forEach((fareType) => {
                                   const fares = grouped[fareType];
@@ -5659,7 +6379,7 @@ const currentFlightFares = flightFares[flightId];
                                     fareType.toLowerCase().includes("corporate")
                                   ) {
                                     const uapiFare = fares.find(
-                                      (f) => f.from === "Uapi"
+                                      (f) => f.from === "Uapi",
                                     );
 
                                     if (uapiFare) {
@@ -5672,7 +6392,7 @@ const currentFlightFares = flightFares[flightId];
 
                                   // --- RULE 2: Other fare types → pick cheapest ---
                                   const cheapest = fares.reduce((a, b) =>
-                                    a.price < b.price ? a : b
+                                    a.price < b.price ? a : b,
                                   );
                                   uniqueFares.push(cheapest);
                                 });
@@ -5687,17 +6407,17 @@ const currentFlightFares = flightFares[flightId];
                                 const depDate = new Date(
                                   dep.getFullYear(),
                                   dep.getMonth(),
-                                  dep.getDate()
+                                  dep.getDate(),
                                 );
                                 const arrDate = new Date(
                                   arr.getFullYear(),
                                   arr.getMonth(),
-                                  arr.getDate()
+                                  arr.getDate(),
                                 );
                                 const diffInMs =
                                   arrDate.getTime() - depDate.getTime();
                                 const diffInDays = Math.round(
-                                  diffInMs / (1000 * 60 * 60 * 24)
+                                  diffInMs / (1000 * 60 * 60 * 24),
                                 );
                                 const date = new Date(arr);
 
@@ -5708,7 +6428,7 @@ const currentFlightFares = flightFares[flightId];
                                 };
                                 const formattedDate = date.toLocaleDateString(
                                   "en-GB",
-                                  options
+                                  options,
                                 );
                                 return (
                                   <div
@@ -5727,8 +6447,8 @@ const currentFlightFares = flightFares[flightId];
                                               ...new Set(
                                                 FlightInfo?.segments?.map(
                                                   (segment) =>
-                                                    segment.Airline.AirlineLogo
-                                                )
+                                                    segment.Airline.AirlineLogo,
+                                                ),
                                               ),
                                             ].map((logo) => {
                                               return (
@@ -5748,8 +6468,8 @@ const currentFlightFares = flightFares[flightId];
                                                   FlightInfo?.segments?.map(
                                                     (segment) =>
                                                       segment.Airline
-                                                        .AirlineName
-                                                  )
+                                                        .AirlineName,
+                                                  ),
                                                 ),
                                               ].join(" , ")}
                                             </p>
@@ -5758,7 +6478,7 @@ const currentFlightFares = flightFares[flightId];
                                               {FlightInfo?.segments
                                                 ?.map(
                                                   (segment) =>
-                                                    `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`
+                                                    `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`,
                                                 )
                                                 .join(" , ")}
                                             </p>
@@ -5889,7 +6609,7 @@ const currentFlightFares = flightFares[flightId];
                                               <span className="flightprice">
                                                 ₹{" "}
                                                 {Number(
-                                                  response.prices.TotalPrice
+                                                  response.prices.TotalPrice,
                                                 )}
                                               </span>
                                             </div>
@@ -5905,7 +6625,7 @@ const currentFlightFares = flightFares[flightId];
                                                   setShowFlightDetails(
                                                     showFlightDetails === index
                                                       ? null
-                                                      : index
+                                                      : index,
                                                   )
                                                 }
                                               >
@@ -5919,13 +6639,18 @@ const currentFlightFares = flightFares[flightId];
                                                   style={{
                                                     borderRadius: "18px",
                                                   }}
-                                                    onClick={() => {
-              //  flightId use karo, index nahi
-              if (!flightFares[flightId]) {
-                Getfares(response, flightId); //  flightId bhejo
-              }
-              toggleShowPrices(flightId); //  flightId bhejo
-            }}
+                                                  onClick={() => {
+                                                    //  flightId use karo, index nahi
+                                                    if (
+                                                      !flightFares[flightId]
+                                                    ) {
+                                                      Getfares(
+                                                        response,
+                                                        flightId,
+                                                      ); //  flightId bhejo
+                                                    }
+                                                    toggleShowPrices(flightId); //  flightId bhejo
+                                                  }}
                                                 >
                                                   <span className="text-[10px]">
                                                     View Prices
@@ -5938,7 +6663,7 @@ const currentFlightFares = flightFares[flightId];
                                       </div>
                                       <div>
                                         {showPrices.has(flightId) && (
-                                          <div className="row selectcontainer w-full block mt-4 pl-3">
+                                          <div className="flight-price-wrapper w-full mt-4">
                                             {fareloadingg[flightId] && (
                                               <div className="flex items-center justify-center bg-white/30">
                                                 <div className="big-loader flex items-center justify-center">
@@ -5957,87 +6682,177 @@ const currentFlightFares = flightFares[flightId];
                                                 </div>
                                               </div>
                                             )}
-                                            {/* {uniqueFares.map((fare, idx) => {
-                                              const isSelected =
-                                                selectedFares.some(
-                                                  (f) =>
-                                                    f.index === index &&
-                                                    f.fareType === fare.type
-                                                ); */}
-                                        {uniqueFares.map((fare, idx) => {
-            const isSelected = selectedFares.some(
-              (f) => f.flightId === flightId && f.fareType === fare.type
-            );
 
-                                              return (
-                                                <div
-                                                  className=" priceoption optionsflights "
-                                                  key={idx}
-                                                >
-                                                  <div className="pricecontent optionsflight">
-                                                    <div className="modal-data cursor-pointer">
-                                                      <div className="pricename">
-                                                        {fare.type}{" "}
-                                                        <span className="text-[6px] text-gray-800 font-bold">
-                                                          ({fare.from})
+                                            <div className="fare-mini-grid">
+                                              {uniqueFares.map((fare, idx) => {
+                                                const isSelected =
+                                                  selectedFares.some(
+                                                    (f) =>
+                                                      f.flightId === flightId &&
+                                                      f.fareType === fare.type,
+                                                  );
+                                                const policyKey = `${flightId}_${fare.type}`;
+                                                const isPolicyLoading =
+                                                  policyLoading[policyKey];
+                                                const hasPolicy =
+                                                  cancellationPolicies[
+                                                    policyKey
+                                                  ];
+
+                                                // Check if Book Now button should be hidden
+                                                const hideBookNow = false; // Replace with your actual condition
+
+                                                return (
+                                                  <div
+                                                    className={`fare-mini-card ${isSelected ? "mini-selected" : ""}`}
+                                                    key={idx}
+                                                  >
+                                                    <div className="fare-mini-content">
+                                                      {/* Fare Type and Policy Icon */}
+                                                      <div className="fare-mini-header">
+                                                        <span className="fare-mini-type">
+                                                          {fare.type}
                                                         </span>
+                                                        <button
+                                                          className="fare-mini-policy"
+                                                          type="button"
+                                                          onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleShowPolicy(
+                                                              FlightInfo,
+                                                              fare,
+                                                              flightId,
+                                                              currentFlightFares?.base_fare,
+                                                            );
+                                                          }}
+                                                          title="View Cancellation & Date Change Policy"
+                                                        >
+                                                          {isPolicyLoading ? (
+                                                            <span className="mini-policy-loading">
+                                                              ...
+                                                            </span>
+                                                          ) : (
+                                                            <svg
+                                                              width="10"
+                                                              height="10"
+                                                              viewBox="0 0 24 24"
+                                                              fill="none"
+                                                              xmlns="http://www.w3.org/2000/svg"
+                                                              className={`mini-policy-icon ${hasPolicy ? "mini-policy-active" : ""}`}
+                                                            >
+                                                              <path
+                                                                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                                                stroke="currentColor"
+                                                                strokeWidth="2"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                              />
+                                                              <path
+                                                                d="M12 16V12"
+                                                                stroke="currentColor"
+                                                                strokeWidth="2"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                              />
+                                                              <path
+                                                                d="M12 8H12.01"
+                                                                stroke="currentColor"
+                                                                strokeWidth="2"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                              />
+                                                            </svg>
+                                                          )}
+                                                        </button>
                                                       </div>
-                                                      <div className="selectprice">
-                                                        ₹ {fare.price}
-                                                      </div>
+
+                                                      {/* Source - Highlighted */}
+                                                      {fare.from && (
+                                                        <div className="fare-mini-source">
+                                                          ({fare.from})
+                                                        </div>
+                                                      )}
+
+                                                      {/* Price Row - Conditional rendering based on hideBookNow */}
+                                                      {hideBookNow ? (
+                                                        <div className="fare-mini-price-row">
+                                                          <span className="fare-mini-price">
+                                                            ₹{fare.price}
+                                                          </span>
+                                                          <button
+                                                            className={`fare-mini-toggle ${isSelected ? "toggle-active" : ""}`}
+                                                            type="button"
+                                                            title={
+                                                              isSelected
+                                                                ? "Remove Fare"
+                                                                : "Select fare and share"
+                                                            }
+                                                            onClick={() =>
+                                                              handleFareToggle(
+                                                                FlightInfo,
+                                                                fare,
+                                                                flightId,
+                                                                currentFlightFares?.base_fare,
+                                                              )
+                                                            }
+                                                          >
+                                                            {isSelected
+                                                              ? "−"
+                                                              : "+"}
+                                                          </button>
+                                                        </div>
+                                                      ) : (
+                                                        <>
+                                                          <div className="fare-mini-price">
+                                                            ₹{fare.price}
+                                                          </div>
+                                                          {/* Button Group with Book Now and Toggle */}
+                                                          <div className="fare-mini-button-group">
+                                                            <button
+                                                              type="button"
+                                                              className="fare-mini-book"
+                                                              onClick={() =>
+                                                                handleSingleSelect(
+                                                                  FlightInfo,
+                                                                  fare,
+                                                                  flightId,
+                                                                  currentFlightFares?.base_fare,
+                                                                  "Onward",
+                                                                )
+                                                              }
+                                                            >
+                                                              BOOK NOW
+                                                            </button>
+
+                                                            <button
+                                                              className={`fare-mini-toggle ${isSelected ? "toggle-active" : ""}`}
+                                                              type="button"
+                                                              title={
+                                                                isSelected
+                                                                  ? "Remove Fare"
+                                                                  : "Select fare and share"
+                                                              }
+                                                              onClick={() =>
+                                                                handleFareToggle(
+                                                                  FlightInfo,
+                                                                  fare,
+                                                                  flightId,
+                                                                  currentFlightFares?.base_fare,
+                                                                )
+                                                              }
+                                                            >
+                                                              {isSelected
+                                                                ? "−"
+                                                                : "+"}
+                                                            </button>
+                                                          </div>
+                                                        </>
+                                                      )}
                                                     </div>
                                                   </div>
-                                                  {/* {request_type === "book" && ( */}
-                                                    <div className="buttonbook">
-                                                      <button
-                                                        type="button"
-                                                        className="continuebutton text-white font-Montserrat text-xs"
-                                                        style={{
-                                                          color: "white",
-                                                          backgroundColor:
-                                                            "#785eff",
-                                                          border: "none",
-                                                          padding: "2%",
-                                                          borderRadius: "3px",
-                                                          marginRight: "3px",
-                                                            fontSize:"9px",
-                                                        }}
-                                                      onClick={() =>
-  handleSingleSelect(
-    FlightInfo,  //  FlightInfo bhejo
-    fare,
-    flightId,    //  flightId bhejo
-    currentFlightFares?.base_fare,
-    "Onward"
-  )
-}
-                                                      >
-                                                        Book Now
-                                                      </button>
-                                                    </div>
-                                                  {/* )} */}
-                                                    {/* {request_type === "search" || request_type === "book" && (  */}
-                                                  <button
-                                                    className="Pricebutton-add"
-                                                    type="button"
-                                                    title={
-                                                      isSelected
-                                                        ? "Remove Fare"
-                                                        : "Select Fare"
-                                                    }
-                                                   onClick={() => handleFareToggle(
-                    FlightInfo,
-                    fare,
-                    flightId,
-                    currentFlightFares?.base_fare
-                  )}
-                                                  >
-                                                    {isSelected ? "-" : "+"}
-                                                  </button>
-                                                  {/* )} */}
-                                                </div>
-                                              );
-                                            })}
+                                                );
+                                              })}
+                                            </div>
                                           </div>
                                         )}
                                         <div className="flt-l-cr">
@@ -6061,7 +6876,7 @@ const currentFlightFares = flightFares[flightId];
                                                       }`}
                                                       onClick={() =>
                                                         setshowcontent(
-                                                          "flight_details"
+                                                          "flight_details",
                                                         )
                                                       }
                                                     >
@@ -6079,49 +6894,15 @@ const currentFlightFares = flightFares[flightId];
                                                       }`}
                                                       onClick={() =>
                                                         setshowcontent(
-                                                          "fare_summary"
+                                                          "fare_summary",
                                                         )
                                                       }
                                                     >
                                                       FARE SUMMARY
                                                     </Nav.Link>
                                                   </Nav.Item>
-                                                  <Nav.Item>
-                                                    <Nav.Link
-                                                      role="button"
-                                                      className={` ${
-                                                        showContent ===
-                                                        "date_change"
-                                                          ? "active"
-                                                          : ""
-                                                      }`}
-                                                      onClick={() =>
-                                                        setshowcontent(
-                                                          "date_change"
-                                                        )
-                                                      }
-                                                    >
-                                                      DATE CHANGE
-                                                    </Nav.Link>
-                                                  </Nav.Item>
-                                                  <Nav.Item>
-                                                    <Nav.Link
-                                                      role="button"
-                                                      className={` ${
-                                                        showContent ===
-                                                        "cancellation"
-                                                          ? "active"
-                                                          : ""
-                                                      }`}
-                                                      onClick={() =>
-                                                        setshowcontent(
-                                                          "cancellation"
-                                                        )
-                                                      }
-                                                    >
-                                                      CANCELLATION
-                                                    </Nav.Link>
-                                                  </Nav.Item>
+                                                  
+                                                  
                                                 </Nav>
 
                                                 <div>
@@ -6140,7 +6921,7 @@ const currentFlightFares = flightFares[flightId];
                                                               {segments.map(
                                                                 (
                                                                   segment,
-                                                                  index
+                                                                  index,
                                                                 ) => {
                                                                   const {
                                                                     Airline,
@@ -6150,26 +6931,26 @@ const currentFlightFares = flightFares[flightId];
                                                                   } = segment;
                                                                   const depTime =
                                                                     new Date(
-                                                                      Origin?.DepTime
+                                                                      Origin?.DepTime,
                                                                     );
                                                                   const arrTime =
                                                                     new Date(
-                                                                      Destination?.ArrTime
+                                                                      Destination?.ArrTime,
                                                                     );
                                                                   // Calculate duration
                                                                   const durationMs =
                                                                     new Date(
-                                                                      arrTime.toUTCString()
+                                                                      arrTime.toUTCString(),
                                                                     ).getTime() -
                                                                     new Date(
-                                                                      depTime.toUTCString()
+                                                                      depTime.toUTCString(),
                                                                     ).getTime();
                                                                   const durationHours =
                                                                     Math.floor(
                                                                       durationMs /
                                                                         (1000 *
                                                                           60 *
-                                                                          60)
+                                                                          60),
                                                                     );
                                                                   const durationMinutes =
                                                                     Math.floor(
@@ -6178,10 +6959,131 @@ const currentFlightFares = flightFares[flightId];
                                                                           60 *
                                                                           60)) /
                                                                         (1000 *
-                                                                          60)
+                                                                          60),
                                                                     );
                                                                   const duration = `${durationHours}H ${durationMinutes}M`;
+                                                                  const cleanText =
+                                                                    (text) => {
+                                                                      if (
+                                                                        !text ||
+                                                                        typeof text !==
+                                                                          "string"
+                                                                      )
+                                                                        return text;
 
+                                                                      // Remove special characters but keep spaces, letters, numbers, basic punctuation
+                                                                      return text
+                                                                        .replace(
+                                                                          /[^\w\s(),.-]/g,
+                                                                          "",
+                                                                        ) // Keep alphanumeric, spaces, and basic punctuation
+                                                                        .replace(
+                                                                          /\s+/g,
+                                                                          " ",
+                                                                        ) // Replace multiple spaces with single space
+                                                                        .trim();
+                                                                    };
+                                                                  const calculateLayover =
+                                                                    (
+                                                                      arrival,
+                                                                      departure,
+                                                                    ) => {
+                                                                      if (
+                                                                        !arrival ||
+                                                                        !departure
+                                                                      )
+                                                                        return "00 Hrs : 00 mins";
+
+                                                                      const arr =
+                                                                        new Date(
+                                                                          arrival,
+                                                                        );
+                                                                      const dep =
+                                                                        new Date(
+                                                                          departure,
+                                                                        );
+                                                                      const diffMs =
+                                                                        dep -
+                                                                        arr;
+
+                                                                      if (
+                                                                        diffMs <
+                                                                        0
+                                                                      )
+                                                                        return "00 Hrs : 00 mins";
+
+                                                                      const diffH =
+                                                                        Math.floor(
+                                                                          diffMs /
+                                                                            (1000 *
+                                                                              60 *
+                                                                              60),
+                                                                        );
+                                                                      const diffM =
+                                                                        Math.floor(
+                                                                          (diffMs /
+                                                                            (1000 *
+                                                                              60)) %
+                                                                            60,
+                                                                        );
+
+                                                                      return `${String(diffH).padStart(2, "0")} Hrs : ${String(
+                                                                        diffM,
+                                                                      ).padStart(
+                                                                        2,
+                                                                        "0",
+                                                                      )} mins`;
+                                                                    };
+                                                                  const stops =
+                                                                    [];
+                                                                  if (
+                                                                    segments &&
+                                                                    segments.length >
+                                                                      1
+                                                                  ) {
+                                                                    for (
+                                                                      let i = 0;
+                                                                      i <
+                                                                      segments.length -
+                                                                        1;
+                                                                      i++
+                                                                    ) {
+                                                                      const currentSeg =
+                                                                        segments[
+                                                                          i
+                                                                        ];
+                                                                      const nextSeg =
+                                                                        segments[
+                                                                          i + 1
+                                                                        ];
+
+                                                                      const stopAirport =
+                                                                        currentSeg
+                                                                          ?.Destination
+                                                                          ?.Airport;
+
+                                                                      const layoverTime =
+                                                                        calculateLayover(
+                                                                          currentSeg
+                                                                            ?.Destination
+                                                                            ?.ArrTime,
+                                                                          nextSeg
+                                                                            ?.Origin
+                                                                            ?.DepTime,
+                                                                        );
+
+                                                                      stops.push(
+                                                                        {
+                                                                          stop_airport:
+                                                                            cleanText(
+                                                                              `${stopAirport?.AirportName || ""} ${stopAirport?.CityName || ""} (${stopAirport?.AirportCode || ""})`,
+                                                                            ),
+                                                                          duration:
+                                                                            layoverTime,
+                                                                        },
+                                                                      );
+                                                                    }
+                                                                  }
                                                                   return (
                                                                     <div
                                                                       key={
@@ -6214,15 +7116,12 @@ const currentFlightFares = flightFares[flightId];
                                                                         }{" "}
                                                                         ,{" "}
                                                                         {formatdatemonth(
-                                                                          Origin?.DepTime
+                                                                          Origin?.DepTime,
                                                                         )}
-                                                                        {/* <span className="equipmentno">
-                                                                          {
-                                                                            Equipment
-                                                                          }
-                                                                        </span> */}
                                                                       </div>
                                                                       <div className="clear"></div>
+
+                                                                      {/* Flight Segment Details */}
                                                                       <div className="flightstopdetail">
                                                                         <div className="flight-details-lr">
                                                                           <p className="flight-details-b">
@@ -6234,15 +7133,15 @@ const currentFlightFares = flightFares[flightId];
                                                                           </p>
                                                                           <p className="flight-details-b mb-1">
                                                                             {handleweekdatemonthyear(
-                                                                              Origin?.DepTime
+                                                                              Origin?.DepTime,
                                                                             )}
                                                                           </p>
                                                                           <p className="flight-details-c mb-0">
                                                                             {format(
                                                                               new Date(
-                                                                                Origin?.DepTime
+                                                                                Origin?.DepTime,
                                                                               ),
-                                                                              "HH:mm"
+                                                                              "HH:mm",
                                                                             )}
                                                                           </p>
                                                                           <p className="flight-details-c1 mb-1">
@@ -6251,13 +7150,16 @@ const currentFlightFares = flightFares[flightId];
                                                                                 ?.Airport
                                                                                 ?.AirportName
                                                                             }
-                                                                            {
-                                                                              Origin
-                                                                                ?.Airline
-                                                                                ?.Terminal
-                                                                            }
+                                                                          </p>
+                                                                          <p className="flight-details-c mb-0">
+                                                                            {Origin
+                                                                              ?.Airport
+                                                                              ?.Terminal
+                                                                              ? ` Terminal ${Origin?.Airport?.Terminal}`
+                                                                              : ""}
                                                                           </p>
                                                                         </div>
+
                                                                         <div className="flight-details-mr">
                                                                           <p className="flight-details-e">
                                                                             {
@@ -6268,6 +7170,7 @@ const currentFlightFares = flightFares[flightId];
                                                                             <hr />
                                                                           </div>
                                                                         </div>
+
                                                                         <div className="flight-details-rr">
                                                                           <p className="flight-details-b">
                                                                             {
@@ -6278,15 +7181,15 @@ const currentFlightFares = flightFares[flightId];
                                                                           </p>
                                                                           <p className="flight-details-b">
                                                                             {handleweekdatemonthyear(
-                                                                              Destination?.ArrTime
+                                                                              Destination?.ArrTime,
                                                                             )}
                                                                           </p>
                                                                           <p className="flight-details-c mb-0">
                                                                             {format(
                                                                               new Date(
-                                                                                Destination?.ArrTime
+                                                                                Destination?.ArrTime,
                                                                               ),
-                                                                              "HH:mm"
+                                                                              "HH:mm",
                                                                             )}
                                                                           </p>
                                                                           <p className="flight-details-c1 mb-1">
@@ -6295,18 +7198,56 @@ const currentFlightFares = flightFares[flightId];
                                                                                 ?.Airport
                                                                                 ?.AirportName
                                                                             }
-                                                                            {
-                                                                              Destination
-                                                                                ?.Airport
-                                                                                ?.Terminal
-                                                                            }
+                                                                          </p>
+                                                                          <p className="flight-details-c mb-0">
+                                                                            {Destination
+                                                                              ?.Airport
+                                                                              ?.Terminal
+                                                                              ? ` Terminal ${Destination?.Airport?.Terminal}`
+                                                                              : ""}
                                                                           </p>
                                                                         </div>
                                                                       </div>
+
+                                                                      {/* Layover Information - THIS SHOULD BE AFTER flightstopdetail, NOT INSIDE IT */}
+                                                                      {index <
+                                                                        segments.length -
+                                                                          1 &&
+                                                                        stops[
+                                                                          index
+                                                                        ] && (
+                                                                          <div className="layover-simple">
+                                                                            <p>
+                                                                              {/* Change of planes if applicable */}
+                                                                              {/* {segments[index]?.Airline?.FlightNumber !== segments[index + 1]?.Airline?.FlightNumber && (
+        <>Change of planes <span>·</span></>
+      )} */}
+                                                                              {/* Layover duration and location */}
+                                                                              <strong>
+                                                                                {
+                                                                                  stops[
+                                                                                    index
+                                                                                  ]
+                                                                                    .duration
+                                                                                }
+                                                                              </strong>{" "}
+                                                                              Layover
+                                                                              in{" "}
+                                                                              {segments[
+                                                                                index
+                                                                              ]
+                                                                                ?.Destination
+                                                                                ?.Airport
+                                                                                ?.CityName ||
+                                                                                "Ahmedabad"}
+                                                                            </p>
+                                                                          </div>
+                                                                        )}
+
                                                                       <div className="clear"></div>
                                                                     </div>
                                                                   );
-                                                                }
+                                                                },
                                                               )}
                                                             </div>
                                                           </div>
@@ -6433,92 +7374,103 @@ const currentFlightFares = flightFares[flightId];
                                   {formatDate(
                                     inputValue.returnDate
                                       ? extractDate(inputValue.returnDate)
-                                      : extractDate(ReturnDate)
+                                      : extractDate(ReturnDate),
                                   )}
                                 </span>
                               </div>
-                    <div className="row catalog_filters_return">
-  <div
-    className="col-md-2 departurefilter cursor-pointer"
-    onClick={() => handleReturnSort("departure")}
-    style={{
-      opacity: sortReturnField === "departure" ? "1" : "0.5",
-    }}
-  >
-    Departure
-    {sortReturnField === "departure" && (
-      <span style={{ marginLeft: "5px" }}>
-        {sortReturnOrder === "asc" ? "↑" : "↓"}
-      </span>
-    )}
-  </div>
-  
-  <div
-    className="col-md-3 travelfilter cursor-pointer"
-    onClick={() => handleReturnSort("travelTime")}
-    style={{
-      opacity: sortReturnField === "travelTime" ? "1" : "0.5",
-    }}
-  >
-    Travel Time
-    {sortReturnField === "travelTime" && (
-      <span style={{ marginLeft: "5px" }}>
-        {sortReturnOrder === "asc" ? "↑" : "↓"}
-      </span>
-    )}
-  </div>
-  
-  <div
-    className="col-md-2 arriavelfilter cursor-pointer"
-    onClick={() => handleReturnSort("arrival")}
-    style={{
-      opacity: sortReturnField === "arrival" ? "1" : "0.5",
-    }}
-  >
-    Arrival
-    {sortReturnField === "arrival" && (
-      <span style={{ marginLeft: "5px" }}>
-        {sortReturnOrder === "asc" ? "↑" : "↓"}
-      </span>
-    )}
-  </div>
-  
-  <div
-    className="col-md-2 stopsfilter cursor-pointer"
-    onClick={() => handleReturnSort("stops")}
-    style={{
-      opacity: sortReturnField === "stops" ? "1" : "0.5",
-    }}
-  >
-    Stops
-    {sortReturnField === "stops" && (
-      <span style={{ marginLeft: "5px" }}>
-        {sortReturnOrder === "asc" ? "↑" : "↓"}
-      </span>
-    )}
-  </div>
-  
-  <div
-    className="col-md-3 pricefilter cursor-pointer"
-    onClick={() => handleReturnSort("price")}
-    style={{
-      opacity: sortReturnField === "price" ? "1" : "0.5",
-    }}
-  >
-    Price
-    {sortReturnField === "price" && (
-      <span style={{ marginLeft: "5px" }}>
-        {sortReturnOrder === "asc" ? "↑" : "↓"}
-      </span>
-    )}
-  </div>
-</div>
+                              <div className="row catalog_filters_return">
+                                <div
+                                  className="col-md-2 departurefilter cursor-pointer"
+                                  onClick={() => handleReturnSort("departure")}
+                                  style={{
+                                    opacity:
+                                      sortReturnField === "departure"
+                                        ? "1"
+                                        : "0.5",
+                                  }}
+                                >
+                                  Departure
+                                  {sortReturnField === "departure" && (
+                                    <span style={{ marginLeft: "5px" }}>
+                                      {sortReturnOrder === "asc" ? "↑" : "↓"}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div
+                                  className="col-md-3 travelfilter cursor-pointer"
+                                  onClick={() => handleReturnSort("travelTime")}
+                                  style={{
+                                    opacity:
+                                      sortReturnField === "travelTime"
+                                        ? "1"
+                                        : "0.5",
+                                  }}
+                                >
+                                  Travel Time
+                                  {sortReturnField === "travelTime" && (
+                                    <span style={{ marginLeft: "5px" }}>
+                                      {sortReturnOrder === "asc" ? "↑" : "↓"}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div
+                                  className="col-md-2 arriavelfilter cursor-pointer"
+                                  onClick={() => handleReturnSort("arrival")}
+                                  style={{
+                                    opacity:
+                                      sortReturnField === "arrival"
+                                        ? "1"
+                                        : "0.5",
+                                  }}
+                                >
+                                  Arrival
+                                  {sortReturnField === "arrival" && (
+                                    <span style={{ marginLeft: "5px" }}>
+                                      {sortReturnOrder === "asc" ? "↑" : "↓"}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div
+                                  className="col-md-2 stopsfilter cursor-pointer"
+                                  onClick={() => handleReturnSort("stops")}
+                                  style={{
+                                    opacity:
+                                      sortReturnField === "stops" ? "1" : "0.5",
+                                  }}
+                                >
+                                  Stops
+                                  {sortReturnField === "stops" && (
+                                    <span style={{ marginLeft: "5px" }}>
+                                      {sortReturnOrder === "asc" ? "↑" : "↓"}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div
+                                  className="col-md-3 pricefilter cursor-pointer"
+                                  onClick={() => handleReturnSort("price")}
+                                  style={{
+                                    opacity:
+                                      sortReturnField === "price" ? "1" : "0.5",
+                                  }}
+                                >
+                                  Price
+                                  {sortReturnField === "price" && (
+                                    <span style={{ marginLeft: "5px" }}>
+                                      {sortReturnOrder === "asc" ? "↑" : "↓"}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                             <div
                               className="overflow-y-auto mt-2"
                               style={{ maxHeight: "400vh" }}
                             >
-                            {/* {console.log('===== FINAL RETURN FLIGHTS =====')}
+                              {/* {console.log('===== FINAL RETURN FLIGHTS =====')}
 {console.log('Total original:', FlightReturnOptions?.length)}
 {console.log('After filtering:', filteredReturnFlights?.length)}
 {console.log('After sorting/dedup:', sortedReturnFlights?.length)} */}
@@ -6540,130 +7492,186 @@ const currentFlightFares = flightFares[flightId];
                                   </p>
                                 </div>
                               ) : (
-                              
                                 sortedReturnFlights.map((response, index) => {
-  const FlightInfo = response?.flight;
-  const flightId = getFlightUniqueId(FlightInfo); //  flightId generate karo
-  const depTime = FlightInfo?.depTime || "";
-  const arrTime = FlightInfo?.arrTime || "";
-  
-  const formattedDepTime = FlightInfo?.depTime
-    ? format(new Date(depTime), "HH:mm")
-    : "N/A";
-  const formattedArrTime = FlightInfo?.arrTime
-    ? format(new Date(arrTime), "HH:mm")
-    : "N/A";
+                                  const FlightInfo = response?.flight;
+                                  const flightId =
+                                    getFlightUniqueId(FlightInfo); //  flightId generate karo
+                                  const depTime = FlightInfo?.depTime || "";
+                                  const arrTime = FlightInfo?.arrTime || "";
 
-  // Calculate duration
-  const durationMs =
-    new Date(arrTime).getTime() - new Date(depTime).getTime();
-  const durationHours = Math.floor(durationMs / (1000 * 60 * 60));
-  const durationMinutes = Math.floor(
-    (durationMs % (1000 * 60 * 60)) / (1000 * 60)
-  );
-  const duration = `${durationHours}H ${durationMinutes}M`;
+                                  const formattedDepTime = FlightInfo?.depTime
+                                    ? format(new Date(depTime), "HH:mm")
+                                    : "N/A";
+                                  const formattedArrTime = FlightInfo?.arrTime
+                                    ? format(new Date(arrTime), "HH:mm")
+                                    : "N/A";
 
-  // Layover calculation
-  const segments = FlightInfo.segments;
-  let totalLayoverMinutes = 0;
-  let Totallayover = "";
-  if (segments.length > 1) {
-    for (let i = 0; i < segments.length - 1; i++) {
-      const arrivalTime = dayjs(segments[i].Destination.ArrTime);
-      const nextDepartureTime = dayjs(segments[i + 1].Origin.DepTime);
-      const layoverMinutes = nextDepartureTime.diff(arrivalTime, "minute");
-      totalLayoverMinutes += layoverMinutes;
-    }
+                                  // Calculate duration
+                                  const durationMs =
+                                    new Date(arrTime).getTime() -
+                                    new Date(depTime).getTime();
+                                  const durationHours = Math.floor(
+                                    durationMs / (1000 * 60 * 60),
+                                  );
+                                  const durationMinutes = Math.floor(
+                                    (durationMs % (1000 * 60 * 60)) /
+                                      (1000 * 60),
+                                  );
+                                  const duration = `${durationHours}H ${durationMinutes}M`;
 
-    const totalLayoverDuration = dayjs.duration(totalLayoverMinutes, "minutes");
-    const totalHours = totalLayoverDuration.hours();
-    const totalMinutes = totalLayoverDuration.minutes();
+                                  // Layover calculation
+                                  const segments = FlightInfo.segments;
+                                  let totalLayoverMinutes = 0;
+                                  let Totallayover = "";
+                                  if (segments.length > 1) {
+                                    for (
+                                      let i = 0;
+                                      i < segments.length - 1;
+                                      i++
+                                    ) {
+                                      const arrivalTime = dayjs(
+                                        segments[i].Destination.ArrTime,
+                                      );
+                                      const nextDepartureTime = dayjs(
+                                        segments[i + 1].Origin.DepTime,
+                                      );
+                                      const layoverMinutes =
+                                        nextDepartureTime.diff(
+                                          arrivalTime,
+                                          "minute",
+                                        );
+                                      totalLayoverMinutes += layoverMinutes;
+                                    }
 
-    Totallayover = `${
-      totalHours > 0 ? `${totalHours}h ` : ""
-    }${totalMinutes}m Total Layover`;
-  }
+                                    const totalLayoverDuration = dayjs.duration(
+                                      totalLayoverMinutes,
+                                      "minutes",
+                                    );
+                                    const totalHours =
+                                      totalLayoverDuration.hours();
+                                    const totalMinutes =
+                                      totalLayoverDuration.minutes();
 
-  //  FARE PROCESSING - returnFlightFares use karo
-  let uniqueFares = [];
-  const currentReturnFlightFares = returnFlightFares[flightId]; //  returnFlightFares
+                                    Totallayover = `${
+                                      totalHours > 0 ? `${totalHours}h ` : ""
+                                    }${totalMinutes}m Total Layover`;
+                                  }
 
-  // if (currentReturnFlightFares) {
-    const formattedUapiFares = (
-      currentReturnFlightFares?.uapi_fares || []
-    ).map((fare) => ({
-      type: (fare.SupplierFareClass || "").trim(),
-      price: parseFloat(fare.TotalPrice),
-      from: "Uapi",
-      Resultindex: fare.ResultIndex,
-      TraceId: fare.trace_id,
-      isLCC: fare.isLCC,
-      ProviderCode: fare.ProviderCode,
-    }));
+                                  //  FARE PROCESSING - returnFlightFares use karo
+                                  let uniqueFares = [];
+                                  const currentReturnFlightFares =
+                                    returnFlightFares[flightId]; //  returnFlightFares
 
-    const formattedTboFares = (
-      currentReturnFlightFares?.tbo_fares || []
-    ).map((fare) => ({
-      type: (fare.SupplierFareClass || "Regular Fare").trim(),
-      price: parseFloat(fare.TotalPrice),
-      from: "Tbo",
-      Resultindex: fare.ResultIndex,
-      TraceId: fare.trace_id,
-      ProviderCode: fare.ProviderCode,
-    }));
+                                  // if (currentReturnFlightFares) {
+                                  const formattedUapiFares = (
+                                    currentReturnFlightFares?.uapi_fares || []
+                                  ).map((fare) => ({
+                                    type: (fare.SupplierFareClass || "").trim(),
+                                    price: parseFloat(fare.TotalPrice),
+                                    from: "Uapi",
+                                    Resultindex: fare.ResultIndex,
+                                    TraceId: fare.trace_id,
+                                    isLCC: fare.isLCC,
+                                    ProviderCode: fare.ProviderCode,
+                                  }));
 
-    const combinedFares = [...formattedUapiFares, ...formattedTboFares];
+                                  const formattedTboFares = (
+                                    currentReturnFlightFares?.tbo_fares || []
+                                  ).map((fare) => ({
+                                    type: (
+                                      fare.SupplierFareClass || "Regular Fare"
+                                    ).trim(),
+                                    price: parseFloat(fare.TotalPrice),
+                                    from: "Tbo",
+                                    Resultindex: fare.ResultIndex,
+                                    TraceId: fare.trace_id,
+                                    ProviderCode: fare.ProviderCode,
+                                  }));
 
-    const grouped = combinedFares.reduce((acc, fare) => {
-      if (!acc[fare.type]) acc[fare.type] = [];
-      acc[fare.type].push(fare);
-      return acc;
-    }, {});
+                                  const combinedFares = [
+                                    ...formattedUapiFares,
+                                    ...formattedTboFares,
+                                  ];
 
-    Object.keys(grouped).forEach((fareType) => {
-      const fares = grouped[fareType];
+                                  const grouped = combinedFares.reduce(
+                                    (acc, fare) => {
+                                      if (!acc[fare.type]) acc[fare.type] = [];
+                                      acc[fare.type].push(fare);
+                                      return acc;
+                                    },
+                                    {},
+                                  );
 
-      if (fareType.toLowerCase().includes("corporate")) {
-        const uapiFare = fares.find((f) => f.from === "Uapi");
-        if (uapiFare) {
-          uniqueFares.push(uapiFare);
-        } else {
-          uniqueFares.push(fares[0]);
-        }
-        return;
-      }
+                                  Object.keys(grouped).forEach((fareType) => {
+                                    const fares = grouped[fareType];
 
-      const cheapest = fares.reduce((a, b) => a.price < b.price ? a : b);
-      uniqueFares.push(cheapest);
-    });
+                                    if (
+                                      fareType
+                                        .toLowerCase()
+                                        .includes("corporate")
+                                    ) {
+                                      const uapiFare = fares.find(
+                                        (f) => f.from === "Uapi",
+                                      );
+                                      if (uapiFare) {
+                                        uniqueFares.push(uapiFare);
+                                      } else {
+                                        uniqueFares.push(fares[0]);
+                                      }
+                                      return;
+                                    }
 
-    uniqueFares.sort((a, b) => a.price - b.price);
-  // }
+                                    const cheapest = fares.reduce((a, b) =>
+                                      a.price < b.price ? a : b,
+                                    );
+                                    uniqueFares.push(cheapest);
+                                  });
 
-  // Number of days calculation
-  const dep = new Date(depTime);
-  const arr = new Date(arrTime);
-  const depDate = new Date(dep.getFullYear(), dep.getMonth(), dep.getDate());
-  const arrDate = new Date(arr.getFullYear(), arr.getMonth(), arr.getDate());
-  const diffInMs = arrDate.getTime() - depDate.getTime();
-  const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
-  const date = new Date(arr);
+                                  uniqueFares.sort((a, b) => a.price - b.price);
+                                  // }
 
-  const options = {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  };
-  const formattedDate = date.toLocaleDateString("en-GB", options);
+                                  // Number of days calculation
+                                  const dep = new Date(depTime);
+                                  const arr = new Date(arrTime);
+                                  const depDate = new Date(
+                                    dep.getFullYear(),
+                                    dep.getMonth(),
+                                    dep.getDate(),
+                                  );
+                                  const arrDate = new Date(
+                                    arr.getFullYear(),
+                                    arr.getMonth(),
+                                    arr.getDate(),
+                                  );
+                                  const diffInMs =
+                                    arrDate.getTime() - depDate.getTime();
+                                  const diffInDays = Math.round(
+                                    diffInMs / (1000 * 60 * 60 * 24),
+                                  );
+                                  const date = new Date(arr);
 
-  return (
-    <div
-      key={flightId} //  key flightId based
-      className={`flight-item fly-in ${
-        selectedReturnFlightIds.includes(flightId) ? "selected-flight" : "" //  flightId se check
-      }`}
-    >
-      <div className="flt-i-a flex flex-col">
+                                  const options = {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                  };
+                                  const formattedDate = date.toLocaleDateString(
+                                    "en-GB",
+                                    options,
+                                  );
+
+                                  return (
+                                    <div
+                                      key={flightId} //  key flightId based
+                                      className={`flight-item fly-in ${
+                                        selectedReturnFlightIds.includes(
+                                          flightId,
+                                        )
+                                          ? "selected-flight"
+                                          : "" //  flightId se check
+                                      }`}
+                                    >
+                                      <div className="flt-i-a flex flex-col">
                                         <div className="flt-i-br ">
                                           <div className="flt-l-br">
                                             <div className="mb-1 flt-l-img ">
@@ -6672,8 +7680,8 @@ const currentFlightFares = flightFares[flightId];
                                                   FlightInfo?.segments?.map(
                                                     (segment) =>
                                                       segment.Airline
-                                                        .AirlineLogo
-                                                  )
+                                                        .AirlineLogo,
+                                                  ),
                                                 ),
                                               ].map((logo) => {
                                                 return (
@@ -6693,8 +7701,8 @@ const currentFlightFares = flightFares[flightId];
                                                     FlightInfo?.segments?.map(
                                                       (segment) =>
                                                         segment.Airline
-                                                          .AirlineName
-                                                    )
+                                                          .AirlineName,
+                                                    ),
                                                   ),
                                                 ].join(" , ")}
                                               </p>
@@ -6703,7 +7711,7 @@ const currentFlightFares = flightFares[flightId];
                                                 {FlightInfo?.segments
                                                   ?.map(
                                                     (segment) =>
-                                                      `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`
+                                                      `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`,
                                                   )
                                                   .join(" , ")}
                                               </p>
@@ -6840,7 +7848,7 @@ const currentFlightFares = flightFares[flightId];
                                                 <span className="flightprice">
                                                   ₹{" "}
                                                   {Number(
-                                                    response.prices.TotalPrice
+                                                    response.prices.TotalPrice,
                                                   )}
                                                 </span>
                                               </div>
@@ -6852,9 +7860,14 @@ const currentFlightFares = flightFares[flightId];
                                               <div className="flight-show-details">
                                                 <span
                                                   className="text-[11px] text-[#785eff]"
-                                                onClick={() =>
-                setShowReturnFlightDetails(showReturnFlightDetails  === index ? null : index)
-              }
+                                                  onClick={() =>
+                                                    setShowReturnFlightDetails(
+                                                      showReturnFlightDetails ===
+                                                        index
+                                                        ? null
+                                                        : index,
+                                                    )
+                                                  }
                                                 >
                                                   Show Flight Details
                                                 </span>
@@ -6867,11 +7880,20 @@ const currentFlightFares = flightFares[flightId];
                                                       borderRadius: "18px",
                                                     }}
                                                     onClick={() => {
-                  if (!returnFlightFares?.[flightId]) {
-                    GetreturnFares(response, flightId); // Pass both response and flightId
-                  }
-                  toggleShowReturnPrices(flightId);
-                }}
+                                                      if (
+                                                        !returnFlightFares?.[
+                                                          flightId
+                                                        ]
+                                                      ) {
+                                                        GetreturnFares(
+                                                          response,
+                                                          flightId,
+                                                        ); // Pass both response and flightId
+                                                      }
+                                                      toggleShowReturnPrices(
+                                                        flightId,
+                                                      );
+                                                    }}
                                                   >
                                                     <span className="text-[10px]">
                                                       View Prices
@@ -6883,9 +7905,9 @@ const currentFlightFares = flightFares[flightId];
                                           </div>
                                         </div>
                                         <div>
-                                           {showReturnPrices.has(flightId) && (
-        <div className="row selectcontainer w-full block mt-4 pl-3">
-          {returnFareLoadingg?.[flightId] && ( // Use optional chaining
+                                          {showReturnPrices.has(flightId) && (
+                                            <div className="flight-price-wrapper w-full mt-4">
+                                              {returnFareLoadingg[flightId] && (
                                                 <div className="flex items-center justify-center bg-white/30">
                                                   <div className="big-loader flex items-center justify-center">
                                                     <img
@@ -6897,97 +7919,193 @@ const currentFlightFares = flightFares[flightId];
                                                       alt="Loader"
                                                     />
                                                     <p className="text-center ml-4 text-gray-600 text-xs">
-                                                      Retrieving return flight
-                                                      fares. Please wait a
-                                                      moment.
+                                                      Retrieving flight fares.
+                                                      Please wait a moment.
                                                     </p>
                                                   </div>
                                                 </div>
                                               )}
 
-                                            {!returnFareLoadingg?.[flightId] && uniqueFares.map((fare, idx) => {
-            const isSelected = selectedReturnFares.some(
-              (f) => f.flightId === flightId && f.fareType === fare.type
-            );
+                                              <div className="fare-mini-grid">
+                                                {uniqueFares.map(
+                                                  (fare, idx) => {
+                                                    const isSelected =
+                                                      selectedReturnFares.some(
+                                                        (f) =>
+                                                          f.flightId ===
+                                                            flightId &&
+                                                          f.fareType ===
+                                                            fare.type,
+                                                      );
+                                                    const policyKey = `${flightId}_${fare.type}`;
+                                                    const isPolicyLoading =
+                                                      policyLoading[policyKey];
+                                                    const hasPolicy =
+                                                      cancellationPolicies[
+                                                        policyKey
+                                                      ];
 
+                                                    // Check if Book Now button should be hidden
+                                                    const hideBookNow = false; // Replace with your actual condition
 
-                                                return (
-                                                <div className="priceoption optionsflights" key={`${flightId}-${idx}`}>
-                                                  
-                                                    <div className="optionsflight pricecontent">
-                                                      <div className="modal-data cursor-pointer">
-                                                        <div className="pricename">
-                                                          {fare.type}{" "}
-                                                            <span className="text-[6px] text-gray-800">
-                                                            ({fare.from})
-                                                          </span>
-                                                          {/* <button className=" ml-1"><i className="fa fa-info-circle" aria-hidden="true" style={{ color: '#785EFF', fontSize: '12px' }} ></i></button> */}
-                                                        </div>
-                                                        <div className="selectprice">
-                                                          ₹ {fare.price}
+                                                    return (
+                                                      <div
+                                                        className={`fare-mini-card ${isSelected ? "mini-selected" : ""}`}
+                                                        key={idx}
+                                                      >
+                                                        <div className="fare-mini-content">
+                                                          {/* Fare Type and Policy Icon */}
+                                                          <div className="fare-mini-header">
+                                                            <span className="fare-mini-type">
+                                                              {fare.type}
+                                                            </span>
+                                                            <button
+                                                              className="fare-mini-policy"
+                                                              type="button"
+                                                              onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleShowPolicy(
+                                                                  FlightInfo,
+                                                                  fare,
+                                                                  flightId,
+                                                                  currentReturnFlightFares?.base_fare,
+                                                                );
+                                                              }}
+                                                              title="View Cancellation & Date Change Policy"
+                                                            >
+                                                              {isPolicyLoading ? (
+                                                                <span className="mini-policy-loading">
+                                                                  ...
+                                                                </span>
+                                                              ) : (
+                                                                <svg
+                                                                  width="10"
+                                                                  height="10"
+                                                                  viewBox="0 0 24 24"
+                                                                  fill="none"
+                                                                  xmlns="http://www.w3.org/2000/svg"
+                                                                  className={`mini-policy-icon ${hasPolicy ? "mini-policy-active" : ""}`}
+                                                                >
+                                                                  <path
+                                                                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                                                    stroke="currentColor"
+                                                                    strokeWidth="2"
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                  />
+                                                                  <path
+                                                                    d="M12 16V12"
+                                                                    stroke="currentColor"
+                                                                    strokeWidth="2"
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                  />
+                                                                  <path
+                                                                    d="M12 8H12.01"
+                                                                    stroke="currentColor"
+                                                                    strokeWidth="2"
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                  />
+                                                                </svg>
+                                                              )}
+                                                            </button>
+                                                          </div>
+
+                                                          {/* Source - Highlighted */}
+                                                          {fare.from && (
+                                                            <div className="fare-mini-source">
+                                                              ({fare.from})
+                                                            </div>
+                                                          )}
+
+                                                          {/* Price Row - Conditional rendering based on hideBookNow */}
+                                                          {hideBookNow ? (
+                                                            <div className="fare-mini-price-row">
+                                                              <span className="fare-mini-price">
+                                                                ₹{fare.price}
+                                                              </span>
+                                                              <button
+                                                                className={`fare-mini-toggle ${isSelected ? "toggle-active" : ""}`}
+                                                                type="button"
+                                                                title={
+                                                                  isSelected
+                                                                    ? "Remove Fare"
+                                                                    : "Select fare and share"
+                                                                }
+                                                                onClick={() =>
+                                                                  handleReturnFareToggle(
+                                                                    FlightInfo,
+                                                                    fare,
+                                                                    flightId,
+                                                                    currentReturnFlightFares?.base_fare,
+                                                                  )
+                                                                }
+                                                              >
+                                                                {isSelected
+                                                                  ? "−"
+                                                                  : "+"}
+                                                              </button>
+                                                            </div>
+                                                          ) : (
+                                                            <>
+                                                              <div className="fare-mini-price">
+                                                                ₹{fare.price}
+                                                              </div>
+                                                              {/* Button Group with Book Now and Toggle */}
+                                                              <div className="fare-mini-button-group">
+                                                                <button
+                                                                  type="button"
+                                                                  className="fare-mini-book"
+                                                                  onClick={() =>
+                                                                    handleSingleSelect(
+                                                                      FlightInfo, //  Use FlightInfo, not ReturnFlightFares
+                                                                      fare,
+                                                                      flightId, // Pass flightId
+                                                                      currentReturnFlightFares?.base_fare,
+                                                                      "Return",
+                                                                    )
+                                                                  }
+                                                                >
+                                                                  BOOK NOW
+                                                                </button>
+
+                                                                <button
+                                                                  className={`fare-mini-toggle ${isSelected ? "toggle-active" : ""}`}
+                                                                  type="button"
+                                                                  title={
+                                                                    isSelected
+                                                                      ? "Remove Fare"
+                                                                      : "Select fare and share"
+                                                                  }
+                                                                  onClick={() =>
+                                                                    handleReturnFareToggle(
+                                                                      FlightInfo,
+                                                                      fare,
+                                                                      flightId,
+                                                                      currentReturnFlightFares?.base_fare,
+                                                                    )
+                                                                  }
+                                                                >
+                                                                  {isSelected
+                                                                    ? "−"
+                                                                    : "+"}
+                                                                </button>
+                                                              </div>
+                                                            </>
+                                                          )}
                                                         </div>
                                                       </div>
-                                                    </div>
-                                                    {/* {request_type ===
-                                                      "book" && ( */}
-                                                      <div className="buttonbook">
-                                                        <button
-                                                          type="button"
-                                                          className="continuebutton text-white font-Montserrat text-xs"
-                                                          style={{
-                                                            color: "white",
-                                                            backgroundColor:
-                                                              "#785eff",
-                                                            border: "none",
-                                                            padding: "2%",
-                                                            borderRadius: "3px",
-                                                            marginRight: "3px",
-                                                            fontSize:"9px",
-                                                          }}
-                                                         onClick={() =>
-                      handleSingleSelect(
-                        FlightInfo, //  Use FlightInfo, not ReturnFlightFares
-                        fare,
-                        flightId, // Pass flightId
-                        currentReturnFlightFares?.base_fare,
-                        "Return"
-                      )
-                    }
-                                                        >
-                                                          Book Now
-                                                        </button>
-                                                      </div>
-                                                    {/* )} */}
-
-                                                    {/* {request_type == */}
-                                                    {/* "search" && (  */}
-                                                    <button
-                                                      className="Pricebutton-add"
-                                                      type="button"
-                                                      title={
-                                                        isSelected
-                                                          ? "Remove Fare"
-                                                          : "Select Fare"
-                                                      }
-                                                  onClick={() =>
-                    handleReturnFareToggle(
-                      FlightInfo,
-                      fare,
-                      flightId,
-                      currentReturnFlightFares?.base_fare
-                    )
-                  }
-                                                    >
-                                                      {isSelected ? "-" : "+"}
-                                                    </button>
-                                                    {/* )}  */}
-                                                  </div>
-                                                );
-                                              })}
+                                                    );
+                                                  },
+                                                )}
+                                              </div>
                                             </div>
                                           )}
+
                                           <div className="flt-l-cr">
-                                            {showReturnFlightDetails === index && (
+                                            {showReturnFlightDetails ===
+                                              index && (
                                               <>
                                                 <hr />
                                                 <div
@@ -7007,7 +8125,7 @@ const currentFlightFares = flightFares[flightId];
                                                         }`}
                                                         onClick={() =>
                                                           setReturnShowContent(
-                                                            "flight_details"
+                                                            "flight_details",
                                                           )
                                                         }
                                                       >
@@ -7025,49 +8143,14 @@ const currentFlightFares = flightFares[flightId];
                                                         }`}
                                                         onClick={() =>
                                                           setReturnShowContent(
-                                                            "fare_summary"
+                                                            "fare_summary",
                                                           )
                                                         }
                                                       >
                                                         FARE SUMMARY
                                                       </Nav.Link>
                                                     </Nav.Item>
-                                                    <Nav.Item>
-                                                      <Nav.Link
-                                                        role="button"
-                                                        className={` ${
-                                                          returnShowContent ===
-                                                          "date_change"
-                                                            ? "active"
-                                                            : ""
-                                                        }`}
-                                                        onClick={() =>
-                                                          setReturnShowContent(
-                                                            "date_change"
-                                                          )
-                                                        }
-                                                      >
-                                                        DATE CHANGE
-                                                      </Nav.Link>
-                                                    </Nav.Item>
-                                                    <Nav.Item>
-                                                      <Nav.Link
-                                                        role="button"
-                                                        className={` ${
-                                                          returnShowContent ===
-                                                          "cancellation"
-                                                            ? "active"
-                                                            : ""
-                                                        }`}
-                                                        onClick={() =>
-                                                          setReturnShowContent(
-                                                            "cancellation"
-                                                          )
-                                                        }
-                                                      >
-                                                        CANCELLATION
-                                                      </Nav.Link>
-                                                    </Nav.Item>
+                                                  
                                                   </Nav>
 
                                                   <div>
@@ -7086,7 +8169,7 @@ const currentFlightFares = flightFares[flightId];
                                                                 {segments.map(
                                                                   (
                                                                     segment,
-                                                                    index
+                                                                    index,
                                                                   ) => {
                                                                     const {
                                                                       Airline,
@@ -7096,26 +8179,26 @@ const currentFlightFares = flightFares[flightId];
                                                                     } = segment;
                                                                     const depTime =
                                                                       new Date(
-                                                                        Origin?.DepTime
+                                                                        Origin?.DepTime,
                                                                       );
                                                                     const arrTime =
                                                                       new Date(
-                                                                        Destination?.ArrTime
+                                                                        Destination?.ArrTime,
                                                                       );
                                                                     // Calculate duration
                                                                     const durationMs =
                                                                       new Date(
-                                                                        arrTime.toUTCString()
+                                                                        arrTime.toUTCString(),
                                                                       ).getTime() -
                                                                       new Date(
-                                                                        depTime.toUTCString()
+                                                                        depTime.toUTCString(),
                                                                       ).getTime();
                                                                     const durationHours =
                                                                       Math.floor(
                                                                         durationMs /
                                                                           (1000 *
                                                                             60 *
-                                                                            60)
+                                                                            60),
                                                                       );
                                                                     const durationMinutes =
                                                                       Math.floor(
@@ -7124,10 +8207,134 @@ const currentFlightFares = flightFares[flightId];
                                                                             60 *
                                                                             60)) /
                                                                           (1000 *
-                                                                            60)
+                                                                            60),
                                                                       );
                                                                     const duration = `${durationHours}H ${durationMinutes}M`;
+                                                                    const cleanText =
+                                                                      (
+                                                                        text,
+                                                                      ) => {
+                                                                        if (
+                                                                          !text ||
+                                                                          typeof text !==
+                                                                            "string"
+                                                                        )
+                                                                          return text;
 
+                                                                        // Remove special characters but keep spaces, letters, numbers, basic punctuation
+                                                                        return text
+                                                                          .replace(
+                                                                            /[^\w\s(),.-]/g,
+                                                                            "",
+                                                                          ) // Keep alphanumeric, spaces, and basic punctuation
+                                                                          .replace(
+                                                                            /\s+/g,
+                                                                            " ",
+                                                                          ) // Replace multiple spaces with single space
+                                                                          .trim();
+                                                                      };
+                                                                    const calculateLayover =
+                                                                      (
+                                                                        arrival,
+                                                                        departure,
+                                                                      ) => {
+                                                                        if (
+                                                                          !arrival ||
+                                                                          !departure
+                                                                        )
+                                                                          return "00 Hrs : 00 mins";
+
+                                                                        const arr =
+                                                                          new Date(
+                                                                            arrival,
+                                                                          );
+                                                                        const dep =
+                                                                          new Date(
+                                                                            departure,
+                                                                          );
+                                                                        const diffMs =
+                                                                          dep -
+                                                                          arr;
+
+                                                                        if (
+                                                                          diffMs <
+                                                                          0
+                                                                        )
+                                                                          return "00 Hrs : 00 mins";
+
+                                                                        const diffH =
+                                                                          Math.floor(
+                                                                            diffMs /
+                                                                              (1000 *
+                                                                                60 *
+                                                                                60),
+                                                                          );
+                                                                        const diffM =
+                                                                          Math.floor(
+                                                                            (diffMs /
+                                                                              (1000 *
+                                                                                60)) %
+                                                                              60,
+                                                                          );
+
+                                                                        return `${String(diffH).padStart(2, "0")} Hrs : ${String(
+                                                                          diffM,
+                                                                        ).padStart(
+                                                                          2,
+                                                                          "0",
+                                                                        )} mins`;
+                                                                      };
+                                                                    const stops =
+                                                                      [];
+                                                                    if (
+                                                                      segments &&
+                                                                      segments.length >
+                                                                        1
+                                                                    ) {
+                                                                      for (
+                                                                        let i = 0;
+                                                                        i <
+                                                                        segments.length -
+                                                                          1;
+                                                                        i++
+                                                                      ) {
+                                                                        const currentSeg =
+                                                                          segments[
+                                                                            i
+                                                                          ];
+                                                                        const nextSeg =
+                                                                          segments[
+                                                                            i +
+                                                                              1
+                                                                          ];
+
+                                                                        const stopAirport =
+                                                                          currentSeg
+                                                                            ?.Destination
+                                                                            ?.Airport;
+
+                                                                        const layoverTime =
+                                                                          calculateLayover(
+                                                                            currentSeg
+                                                                              ?.Destination
+                                                                              ?.ArrTime,
+                                                                            nextSeg
+                                                                              ?.Origin
+                                                                              ?.DepTime,
+                                                                          );
+
+                                                                        stops.push(
+                                                                          {
+                                                                            stop_airport:
+                                                                              cleanText(
+                                                                                `${stopAirport?.AirportName || ""} ${stopAirport?.CityName || ""} (${stopAirport?.AirportCode || ""})`,
+                                                                              ),
+                                                                            duration:
+                                                                              layoverTime,
+                                                                          },
+                                                                        );
+                                                                      }
+                                                                    }
                                                                     return (
                                                                       <div
                                                                         key={
@@ -7160,15 +8367,12 @@ const currentFlightFares = flightFares[flightId];
                                                                           }{" "}
                                                                           ,{" "}
                                                                           {formatdatemonth(
-                                                                            Origin?.DepTime
+                                                                            Origin?.DepTime,
                                                                           )}
-                                                                          {/* <span className="equipmentno">
-                                                                            {
-                                                                              Equipment
-                                                                            }
-                                                                          </span> */}
                                                                         </div>
                                                                         <div className="clear"></div>
+
+                                                                        {/* Flight Segment Details */}
                                                                         <div className="flightstopdetail">
                                                                           <div className="flight-details-lr">
                                                                             <p className="flight-details-b">
@@ -7180,15 +8384,15 @@ const currentFlightFares = flightFares[flightId];
                                                                             </p>
                                                                             <p className="flight-details-b mb-1">
                                                                               {handleweekdatemonthyear(
-                                                                                Origin?.DepTime
+                                                                                Origin?.DepTime,
                                                                               )}
                                                                             </p>
                                                                             <p className="flight-details-c mb-0">
                                                                               {format(
                                                                                 new Date(
-                                                                                  Origin?.DepTime
+                                                                                  Origin?.DepTime,
                                                                                 ),
-                                                                                "HH:mm"
+                                                                                "HH:mm",
                                                                               )}
                                                                             </p>
                                                                             <p className="flight-details-c1 mb-1">
@@ -7197,13 +8401,16 @@ const currentFlightFares = flightFares[flightId];
                                                                                   ?.Airport
                                                                                   ?.AirportName
                                                                               }
-                                                                              {
-                                                                                Origin
-                                                                                  ?.Airline
-                                                                                  ?.Terminal
-                                                                              }
+                                                                            </p>
+                                                                            <p className="flight-details-c mb-0">
+                                                                              {Origin
+                                                                                ?.Airport
+                                                                                ?.Terminal
+                                                                                ? ` Terminal ${Origin?.Airport?.Terminal}`
+                                                                                : ""}
                                                                             </p>
                                                                           </div>
+
                                                                           <div className="flight-details-mr">
                                                                             <p className="flight-details-e">
                                                                               {
@@ -7214,6 +8421,7 @@ const currentFlightFares = flightFares[flightId];
                                                                               <hr />
                                                                             </div>
                                                                           </div>
+
                                                                           <div className="flight-details-rr">
                                                                             <p className="flight-details-b">
                                                                               {
@@ -7224,15 +8432,15 @@ const currentFlightFares = flightFares[flightId];
                                                                             </p>
                                                                             <p className="flight-details-b">
                                                                               {handleweekdatemonthyear(
-                                                                                Destination?.ArrTime
+                                                                                Destination?.ArrTime,
                                                                               )}
                                                                             </p>
                                                                             <p className="flight-details-c mb-0">
                                                                               {format(
                                                                                 new Date(
-                                                                                  Destination?.ArrTime
+                                                                                  Destination?.ArrTime,
                                                                                 ),
-                                                                                "HH:mm"
+                                                                                "HH:mm",
                                                                               )}
                                                                             </p>
                                                                             <p className="flight-details-c1 mb-1">
@@ -7241,18 +8449,56 @@ const currentFlightFares = flightFares[flightId];
                                                                                   ?.Airport
                                                                                   ?.AirportName
                                                                               }
-                                                                              {
-                                                                                Destination
-                                                                                  ?.Airport
-                                                                                  ?.Terminal
-                                                                              }
+                                                                            </p>
+                                                                            <p className="flight-details-c mb-0">
+                                                                              {Destination
+                                                                                ?.Airport
+                                                                                ?.Terminal
+                                                                                ? ` Terminal ${Destination?.Airport?.Terminal}`
+                                                                                : ""}
                                                                             </p>
                                                                           </div>
                                                                         </div>
+
+                                                                        {/* Layover Information - THIS SHOULD BE AFTER flightstopdetail, NOT INSIDE IT */}
+                                                                        {index <
+                                                                          segments.length -
+                                                                            1 &&
+                                                                          stops[
+                                                                            index
+                                                                          ] && (
+                                                                            <div className="layover-simple">
+                                                                              <p>
+                                                                                {/* Change of planes if applicable */}
+                                                                                {/* {segments[index]?.Airline?.FlightNumber !== segments[index + 1]?.Airline?.FlightNumber && (
+        <>Change of planes <span>·</span></>
+      )} */}
+                                                                                {/* Layover duration and location */}
+                                                                                <strong>
+                                                                                  {
+                                                                                    stops[
+                                                                                      index
+                                                                                    ]
+                                                                                      .duration
+                                                                                  }
+                                                                                </strong>{" "}
+                                                                                Layover
+                                                                                in{" "}
+                                                                                {segments[
+                                                                                  index
+                                                                                ]
+                                                                                  ?.Destination
+                                                                                  ?.Airport
+                                                                                  ?.CityName ||
+                                                                                  "Ahmedabad"}
+                                                                              </p>
+                                                                            </div>
+                                                                          )}
+
                                                                         <div className="clear"></div>
                                                                       </div>
                                                                     );
-                                                                  }
+                                                                  },
                                                                 )}
                                                               </div>
                                                             </div>
@@ -7322,9 +8568,9 @@ const currentFlightFares = flightFares[flightId];
                                           </div>
                                         </div>
                                       </div>
-    </div>
-  );
-})
+                                    </div>
+                                  );
+                                })
                               )}
                             </div>
                           </div>
@@ -7355,12 +8601,15 @@ const currentFlightFares = flightFares[flightId];
           </div>
         </div>
       )}
-    {(selectedFlightoption.length > 0 ||
+      {(selectedFlightoption.length > 0 ||
         selectedReturnFlightoption.length > 0) && (
         <div>
           {isMinimized ? (
             <div className="minimized-ball" onClick={handleExpand}>
               ⚪
+              <span className="tooltip-text">
+                Click to see selected flights
+              </span>
             </div>
           ) : (
             <div className="selected-flight-container">
@@ -7375,10 +8624,10 @@ const currentFlightFares = flightFares[flightId];
                 {/*  Onward Flights */}
                 {selectedFlightoption.length > 0 && (
                   <div className="mb-3 border-b pb-2">
-                    <h4 className="font-semibold text-[13px] mb-2">
+                    <h4 className="font-semibold text-[12px] mb-2">
                       Onward Flights
                     </h4>
-                  
+
                     {Object.entries(groupedFlights).map(([flightId, data]) => {
                       // Get flight info from stored flightData
                       const flightInfo = data.flightData;
@@ -7407,17 +8656,23 @@ const currentFlightFares = flightFares[flightId];
                                 className="flight-logo w-8 h-8"
                               />
                               <div className="flight-detailss flex flex-col">
-                                <span className="flight-airline text-[12px] font-medium">
-                                  {Airline?.AirlineName} {Airline?.FlightNumber}
+                                <span className="text-[11px] font-bold">
+                                  {Airline?.AirlineName}{" "}
+                                  {segments.map((seg, idx) => (
+                                    <span key={idx}>
+                                      {idx > 0 && ", "}
+                                      {seg.Airline?.FlightNumber}
+                                    </span>
+                                  ))}
                                 </span>
-                                <span className="flight-time text-[11px] text-gray-600">
+                                <span className=" text-[11px] text-gray-600">
                                   {new Date(depTime).toLocaleTimeString(
                                     "en-US",
                                     {
                                       hour: "2-digit",
                                       minute: "2-digit",
                                       hour12: true,
-                                    }
+                                    },
                                   )}{" "}
                                   -{" "}
                                   {new Date(arrTime).toLocaleTimeString(
@@ -7426,7 +8681,7 @@ const currentFlightFares = flightFares[flightId];
                                       hour: "2-digit",
                                       minute: "2-digit",
                                       hour12: true,
-                                    }
+                                    },
                                   )}
                                 </span>
                               </div>
@@ -7437,21 +8692,20 @@ const currentFlightFares = flightFares[flightId];
                               {data.fares.map((fare, idx) => (
                                 <div
                                   key={idx}
-                                  className="flex justify-between items-center mb-1 mt-1"
+                                  className="flex justify-end items-center mb-1 mt-1 gap-0"
                                 >
-                                  <div className="flex flex-col">
-                                    <span className="text-[12px] font-bold">
+                                  <div className="flex flex-col items-end mr-2">
+                                    <span className="text-[10px] font-bold">
                                       ₹ {fare?.price}
                                     </span>
-                                    <span className="text-[10px] text-gray-500">
+                                    <span className="text-[9px] text-gray-500">
                                       {fare?.type}
                                     </span>
                                   </div>
                                   <button
-                                    className="remove-btn text-red-500 text-lg ml-2"
-                                    onClick={
-                                      () =>
-                                        handleRemoveFare(flightId, fare.type) // Pass flightId instead of index
+                                    className="remove-btn text-red-500 text-lg"
+                                    onClick={() =>
+                                      handleRemoveFare(flightId, fare.type)
                                     }
                                   >
                                     ×
@@ -7469,7 +8723,7 @@ const currentFlightFares = flightFares[flightId];
                 {/*  Return Flights */}
                 {selectedReturnFlightoption.length > 0 && (
                   <div>
-                    <h4 className="font-semibold text-[13px] mb-2">
+                    <h4 className="font-semibold text-[12px] mb-2">
                       Return Flights
                     </h4>
                     {Object.entries(groupedReturnFlights).map(
@@ -7501,18 +8755,23 @@ const currentFlightFares = flightFares[flightId];
                                   className="flight-logo w-8 h-8"
                                 />
                                 <div className="flight-detailss flex flex-col">
-                                  <span className="flight-airline text-[12px] font-medium">
+                                  <span className="text-[11px] font-bold">
                                     {Airline?.AirlineName}{" "}
-                                    {Airline?.FlightNumber}
+                                    {segments.map((seg, idx) => (
+                                      <span key={idx}>
+                                        {idx > 0 && ", "}
+                                        {seg.Airline?.FlightNumber}
+                                      </span>
+                                    ))}
                                   </span>
-                                  <span className="flight-time text-[11px] text-gray-600">
+                                  <span className="text-[11px] text-gray-600">
                                     {new Date(depTime).toLocaleTimeString(
                                       "en-US",
                                       {
                                         hour: "2-digit",
                                         minute: "2-digit",
                                         hour12: true,
-                                      }
+                                      },
                                     )}{" "}
                                     -{" "}
                                     {new Date(arrTime).toLocaleTimeString(
@@ -7521,7 +8780,7 @@ const currentFlightFares = flightFares[flightId];
                                         hour: "2-digit",
                                         minute: "2-digit",
                                         hour12: true,
-                                      }
+                                      },
                                     )}
                                   </span>
                                 </div>
@@ -7532,24 +8791,20 @@ const currentFlightFares = flightFares[flightId];
                                 {data.fares.map((fare, idx) => (
                                   <div
                                     key={idx}
-                                    className="flex justify-between items-center mb-1 mt-1"
+                                    className="flex justify-end items-center mb-1 mt-1 gap-0"
                                   >
-                                    <div className="flex flex-col">
-                                      <span className="text-[12px] font-bold">
+                                    <div className="flex flex-col items-end mr-2">
+                                      <span className="text-[10px] font-bold">
                                         ₹ {fare?.price}
                                       </span>
-                                      <span className="text-[10px] text-gray-500">
+                                      <span className="text-[9px] text-gray-500">
                                         {fare?.type}
                                       </span>
                                     </div>
                                     <button
-                                      className="remove-btn text-red-500 text-lg ml-2"
-                                      onClick={
-                                        () =>
-                                          handleRemoveReturnFare(
-                                            flightId,
-                                            fare.type
-                                          ) // Pass flightId
+                                      className="remove-btn text-red-500 text-lg"
+                                      onClick={() =>
+                                        handleRemoveFare(flightId, fare.type)
                                       }
                                     >
                                       ×
@@ -7560,7 +8815,7 @@ const currentFlightFares = flightFares[flightId];
                             </div>
                           </div>
                         );
-                      }
+                      },
                     )}
                   </div>
                 )}
@@ -7568,7 +8823,7 @@ const currentFlightFares = flightFares[flightId];
 
               {/*Share Button */}
               <div className="share-button-container mt-3 text-center">
-                <button className="share-btn" onClick={modalopen}>
+                <button className="share-btn" onClick={Shareflight}>
                   Share Flight Options
                 </button>
               </div>
@@ -7590,6 +8845,14 @@ const currentFlightFares = flightFares[flightId];
                         selectedFareforbooking.Onward.flight.segments[0].Airline
                           .AirlineName
                       }{" "}
+                      {selectedFareforbooking.Onward.flight.segments.map(
+                        (seg, idx) => (
+                          <span key={idx}>
+                            {idx > 0 && ", "}
+                            {seg.Airline?.FlightNumber}
+                          </span>
+                        ),
+                      )}
                     </div>
                     <div className="Fligth-detail-line">
                       <div className="flight-container">
@@ -7607,9 +8870,9 @@ const currentFlightFares = flightFares[flightId];
                             <div className="text-[12px] font-bold">
                               {format(
                                 new Date(
-                                  selectedFareforbooking.Onward.flight.depTime
+                                  selectedFareforbooking.Onward.flight.depTime,
                                 ),
-                                "HH:mm"
+                                "HH:mm",
                               )}
                             </div>
                             <div className="text-[10px]">
@@ -7636,9 +8899,9 @@ const currentFlightFares = flightFares[flightId];
                             <div className="text-[12px] font-bold">
                               {format(
                                 new Date(
-                                  selectedFareforbooking.Onward.flight.arrTime
+                                  selectedFareforbooking.Onward.flight.arrTime,
                                 ),
-                                "HH:mm"
+                                "HH:mm",
                               )}
                             </div>
                             <div className="text-[10px]">
@@ -7686,6 +8949,14 @@ const currentFlightFares = flightFares[flightId];
                         selectedFareforbooking.Return.flight.segments[0].Airline
                           .AirlineName
                       }{" "}
+                      {selectedFareforbooking.Return.flight.segments.map(
+                        (seg, idx) => (
+                          <span key={idx}>
+                            {idx > 0 && ", "}
+                            {seg.Airline?.FlightNumber}
+                          </span>
+                        ),
+                      )}
                     </div>
                     <div className="Fligth-detail-line">
                       <div className="flight-container">
@@ -7703,9 +8974,9 @@ const currentFlightFares = flightFares[flightId];
                             <div className="text-[12px] font-bold">
                               {format(
                                 new Date(
-                                  selectedFareforbooking.Return.flight.depTime
+                                  selectedFareforbooking.Return.flight.depTime,
                                 ),
-                                "HH:mm"
+                                "HH:mm",
                               )}
                             </div>
                             <div className="text-[10px]">
@@ -7732,9 +9003,9 @@ const currentFlightFares = flightFares[flightId];
                             <div className="text-[12px] font-bold">
                               {format(
                                 new Date(
-                                  selectedFareforbooking.Return.flight.arrTime
+                                  selectedFareforbooking.Return.flight.arrTime,
                                 ),
-                                "HH:mm"
+                                "HH:mm",
                               )}
                             </div>
                             <div className="text-[10px]">
@@ -7837,6 +9108,166 @@ const currentFlightFares = flightFares[flightId];
           </div>
         </div>
       )}
+  {showPolicyPopup && selectedFarePolicy?.onward && (
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+
+    <div className="w-full max-w-xl bg-white  shadow-2xl max-h-[90vh] flex flex-col">
+
+
+      {/* ================= HEADER ================= */}
+     <div className="relative z-20 shrink-0 bg-gradient-to-r from-[#0c1a2e] to-[#1e3a5f] px-3 py-2 flex justify-between items-center">
+      
+        <div className="flex items-center gap-3">
+          {/* <div className="w-9 h-9 bg-sky-500/20 text-sky-400 rounded-lg flex items-center justify-center">
+            📄
+          </div> */}
+          <div>
+            <h2 className="text-white font-semibold text-sm">
+              Fare Rules
+            </h2>
+            <p className="text-slate-400 text-[11px]">
+              Applicable charges & conditions
+            </p>
+          </div>
+        </div>
+
+      <button
+  onClick={() => setShowPolicyPopup(false)}
+  className="w-8 h-8 cursor-pointer bg-white/10 hover:bg-white/20 rounded-lg text-slate-300 hover:text-white flex items-center justify-center"
+>
+  ✕
+</button>
+      </div>
+
+      {/* ================= BODY ================= */}
+  <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-0">
+
+        {/* ================= Cancellation ================= */}
+        {selectedFarePolicy.onward.MiniFareRules?.[0]
+          ?.filter((r) => r.Type === "Cancellation").length > 0 && (
+          <div className="border rounded-xl overflow-y-auto border-slate-200">
+            
+            <div className="bg-orange-50 px-4 py-2 flex justify-between items-center border-t-4 border-orange-500">
+              <span className="text-xs font-semibold text-slate-800">
+                Cancellation
+              </span>
+              <span className="text-[10px] text-slate-400">
+                Per passenger
+              </span>
+            </div>
+
+            {selectedFarePolicy.onward.MiniFareRules[0]
+              .filter((r) => r.Type === "Cancellation")
+              .map((rule, i) => {
+                const text =
+                  rule.To === ""
+                    ? `Cancellation before ${rule.From} ${rule.Unit.toLowerCase()} of departure`
+                    : `Cancellation between ${rule.From} to ${rule.To} ${rule.Unit.toLowerCase()} of departure`;
+
+                const amount = rule.Details.replace("INR ", "");
+
+                return (
+                  <div
+                    key={i}
+                    className="flex justify-between items-center px-3 py-2 border-t marginbottom-0"
+                  >
+                    <div>
+                      <span className="text-[10px] uppercase text-slate-400 font-semibold">
+                        Time before departure
+                      </span>
+                      <div className="text-xs text-slate-700 font-medium">
+                        {text}
+                      </div>
+                    </div>
+
+                    {amount === "0" ? (
+                      <span className="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full border border-green-200">
+                        FREE
+                      </span>
+                    ) : (
+                      <span className="font-semibold text-red-600">
+                        ₹ {amount}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
+        {/* ================= Reschedule ================= */}
+        {selectedFarePolicy.onward.MiniFareRules?.[0]
+          ?.filter((r) => r.Type === "Reissue").length > 0 && (
+          <div className="border rounded-xl overflow-hidden border-slate-200">
+            
+          <div className="bg-green-50 px-4 py-2 flex justify-between items-center border-t-4 border-green-500">
+              <span className="text-xs font-semibold text-slate-800">
+                Reschedule
+              </span>
+              <span className="text-[10px] text-slate-400">
+                Per passenger
+              </span>
+            </div>
+
+            {selectedFarePolicy.onward.MiniFareRules[0]
+              .filter((r) => r.Type === "Reissue")
+              .map((rule, i) => {
+                const text =
+                  rule.To === ""
+                    ? `Reschedule before ${rule.From} ${rule.Unit.toLowerCase()} of departure`
+                    : `Reschedule between ${rule.From}-${rule.To} ${rule.Unit.toLowerCase()} of departure`;
+
+                const amount = rule.Details.replace("INR ", "");
+
+                return (
+                  <div
+                    key={i}
+                    className="flex justify-between items-center px-3 py-2 border-t"
+                  >
+                    <div>
+                      <span className="text-[10px] uppercase text-slate-400 font-semibold">
+                        Time before departure
+                      </span>
+                      <div className="text-xs text-slate-700 font-medium">
+                        {text}
+                      </div>
+                    </div>
+
+                    {amount === "0" ? (
+                      <span className="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full border border-green-200">
+                        FREE
+                      </span>
+                    ) : (
+                      <span className="font-semibold text-green-600">
+                        ₹ {amount}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
+        {/* ================= Terms ================= */}
+        {/* {selectedFarePolicy.onward.FareRules?.[0]?.FareRuleDetail && (
+          <div className="bg-slate-50 border rounded-xl p-4 text-[11px] text-slate-500 leading-relaxed">
+          
+
+            <div
+              dangerouslySetInnerHTML={{
+                __html:
+                  selectedFarePolicy.onward.FareRules[0].FareRuleDetail,
+              }}
+            />
+          </div>
+        )} */}
+
+      </div>
+
+    
+    </div>
+  </div>
+)}
       <Modal
         show={isModalOpen2}
         onHide={() => {
@@ -7859,11 +9290,11 @@ const currentFlightFares = flightFares[flightId];
             {bookingPayload?.isRoundTrip && bookingPayload?.returnFlight
               ? " - Round Trip"
               : bookingPayload?.isRoundTrip
-              ? " - Departure"
-              : ""}
+                ? " - Departure"
+                : ""}
           </Modal.Title>
           <button
-            className="text-gray-400 hover:text-gray-600 text-xl"
+            className="text-gray-400 hover:text-gray-600 text-3xl"
             onClick={() => {
               setIsModalOpen2(false);
               setClientPriceOnward("");
@@ -7895,7 +9326,16 @@ const currentFlightFares = flightFares[flightId];
                       : "Selected Flight"}
                   </div>
                 )}
+
                 <div className="border rounded-lg p-4 bg-white mb-3">
+                  <div className="text-xs bg-[#785ef7] bg-opacity-10 text-[#785ef7] px-2 py-1 rounded font-medium w-25 mb-2">
+                    {bookingPayload.onwardFlight.depTime
+                      ? format(
+                          new Date(bookingPayload.onwardFlight.depTime),
+                          "EEE, dd MMM yyyy",
+                        )
+                      : ""}
+                  </div>
                   <div className="flex items-center justify-between mb-3">
                     {/* Airline */}
                     <div className="flex items-center gap-3 w-[20%]">
@@ -7919,7 +9359,7 @@ const currentFlightFares = flightFares[flightId];
                           {bookingPayload.onwardFlight.segments
                             ?.map(
                               (segment) =>
-                                `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`
+                                `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`,
                             )
                             .join(" , ")}
                         </div>
@@ -7932,7 +9372,7 @@ const currentFlightFares = flightFares[flightId];
                         {bookingPayload.onwardFlight.depTime
                           ? format(
                               new Date(bookingPayload.onwardFlight.depTime),
-                              "HH:mm"
+                              "HH:mm",
                             )
                           : "--:--"}
                       </div>
@@ -7980,7 +9420,7 @@ const currentFlightFares = flightFares[flightId];
                         {bookingPayload.onwardFlight.arrTime
                           ? format(
                               new Date(bookingPayload.onwardFlight.arrTime),
-                              "HH:mm"
+                              "HH:mm",
                             )
                           : "--:--"}
                       </div>
@@ -8036,7 +9476,7 @@ const currentFlightFares = flightFares[flightId];
                                 bookingPayload.onwardFare?.price || 0;
                               if (value && Number(value) < minPrice) {
                                 setPriceErrorOnward(
-                                  `Must be at least ₹${minPrice}`
+                                  `Must be at least ₹${minPrice}`,
                                 );
                               } else {
                                 setPriceErrorOnward("");
@@ -8047,11 +9487,11 @@ const currentFlightFares = flightFares[flightId];
                               priceErrorOnward
                                 ? "border-red-500 bg-red-50 text-red-700"
                                 : ClientPriceOnward &&
-                                  !priceErrorOnward &&
-                                  Number(ClientPriceOnward) >=
-                                    (bookingPayload.onwardFare?.price || 0)
-                                ? "border-green-500 bg-green-50 text-green-700"
-                                : "border-gray-300 bg-white text-gray-800 hover:border-gray-400"
+                                    !priceErrorOnward &&
+                                    Number(ClientPriceOnward) >=
+                                      (bookingPayload.onwardFare?.price || 0)
+                                  ? "border-green-500 bg-green-50 text-green-700"
+                                  : "border-gray-300 bg-white text-gray-800 hover:border-gray-400"
                             }`}
                             min={bookingPayload.onwardFare?.price || 0}
                           />
@@ -8124,6 +9564,14 @@ const currentFlightFares = flightFares[flightId];
                   Return Flight
                 </div>
                 <div className="border rounded-lg p-4 bg-white">
+                  <div className="text-xs bg-[#785ef7] bg-opacity-10 text-[#785ef7] px-2 py-1 rounded font-medium w-25 mb-2">
+                    {bookingPayload.returnFlight.depTime
+                      ? format(
+                          new Date(bookingPayload.returnFlight.depTime),
+                          "EEE, dd MMM yyyy",
+                        )
+                      : ""}
+                  </div>
                   <div className="flex items-center justify-between mb-3">
                     {/* Airline */}
                     <div className="flex items-center gap-3 w-[20%]">
@@ -8147,7 +9595,7 @@ const currentFlightFares = flightFares[flightId];
                           {bookingPayload.returnFlight.segments
                             ?.map(
                               (segment) =>
-                                `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`
+                                `${segment.Airline.AirlineCode} ${segment.Airline.FlightNumber}`,
                             )
                             .join(" , ")}
                         </div>
@@ -8160,7 +9608,7 @@ const currentFlightFares = flightFares[flightId];
                         {bookingPayload.returnFlight.depTime
                           ? format(
                               new Date(bookingPayload.returnFlight.depTime),
-                              "HH:mm"
+                              "HH:mm",
                             )
                           : "--:--"}
                       </div>
@@ -8186,8 +9634,8 @@ const currentFlightFares = flightFares[flightId];
                         {bookingPayload.returnSegments?.length === 1
                           ? "Non-stop"
                           : bookingPayload.returnSegments?.length > 1
-                          ? "Connecting"
-                          : "Direct"}
+                            ? "Connecting"
+                            : "Direct"}
                       </div>
                     </div>
 
@@ -8197,7 +9645,7 @@ const currentFlightFares = flightFares[flightId];
                         {bookingPayload.returnFlight.arrTime
                           ? format(
                               new Date(bookingPayload.returnFlight.arrTime),
-                              "HH:mm"
+                              "HH:mm",
                             )
                           : "--:--"}
                       </div>
@@ -8252,7 +9700,7 @@ const currentFlightFares = flightFares[flightId];
                                 bookingPayload.returnFare?.price || 0;
                               if (value && Number(value) < minPrice) {
                                 setPriceErrorReturn(
-                                  `Must be at least ₹${minPrice}`
+                                  `Must be at least ₹${minPrice}`,
                                 );
                               } else {
                                 setPriceErrorReturn("");
@@ -8263,11 +9711,11 @@ const currentFlightFares = flightFares[flightId];
                               priceErrorReturn
                                 ? "border-red-500 bg-red-50 text-red-700"
                                 : ClientPriceReturn &&
-                                  !priceErrorReturn &&
-                                  Number(ClientPriceReturn) >=
-                                    (bookingPayload.returnFare?.price || 0)
-                                ? "border-green-500 bg-green-50 text-green-700"
-                                : "border-gray-300 bg-white text-gray-800 hover:border-gray-400"
+                                    !priceErrorReturn &&
+                                    Number(ClientPriceReturn) >=
+                                      (bookingPayload.returnFare?.price || 0)
+                                  ? "border-green-500 bg-green-50 text-green-700"
+                                  : "border-gray-300 bg-white text-gray-800 hover:border-gray-400"
                             }`}
                             min={bookingPayload.returnFare?.price || 0}
                           />
@@ -8417,7 +9865,8 @@ const currentFlightFares = flightFares[flightId];
                       },
                       bookingPayload.Cabinclass,
                       bookingPayload.inputValue,
-                      Number(ClientPriceOnward) + Number(ClientPriceReturn || 0)
+                      Number(ClientPriceOnward) +
+                        Number(ClientPriceReturn || 0),
                     );
                   } else {
                     // Handle one-way booking
@@ -8427,7 +9876,7 @@ const currentFlightFares = flightFares[flightId];
                       bookingPayload.Cabinclass,
                       bookingPayload.inputValue,
                       bookingPayload.FlightInfo,
-                      Number(ClientPriceOnward)
+                      Number(ClientPriceOnward),
                     );
                   }
                   setIsModalOpen2(false);
@@ -8547,7 +9996,7 @@ const currentFlightFares = flightFares[flightId];
               <div className="chips-input-container">
                 {[...new Set(ccEmails)]
                   .filter(
-                    (email) => typeof email === "string" && email.trim() !== ""
+                    (email) => typeof email === "string" && email.trim() !== "",
                   )
                   .map((email, index) => (
                     <div className="chip" key={index}>
@@ -8601,14 +10050,109 @@ const currentFlightFares = flightFares[flightId];
       </Modal>
       <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Edit Flight Prices</Modal.Title>
+          <Modal.Title>
+            {fromCity} - {toCity} | {adult} Passenger
+            {/* {is_return ? " (Round Trip)" : " (One Way)"} */}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          <div className="flex flex-col gap-2 mb-4">
+            <form className="email-compose-form">
+              <div className="email-field-row">
+                {/* To Field */}
+                <div className="email-field">
+                  <span className="field-label">To</span>
+                  <div className="chips-wrapper">
+                    {spocEmails.map((email, index) => (
+                      <div className="chip" key={index}>
+                        <span>{email}</span>
+                        <button
+                          type="button"
+                          className="chip-remove"
+                          onClick={() =>
+                            setSpocEmails(spocEmails.filter((e) => e !== email))
+                          }
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <input
+                      type="email"
+                      value={spocEmailInput || ""}
+                      onChange={(e) => setSpocEmailInput(e.target.value)}
+                      onBlur={handleAddSpocEmailOnBlur}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === ",") {
+                          e.preventDefault();
+                          handleAddSpocEmailOnBlur();
+                        }
+                      }}
+                      placeholder={
+                        spocEmails.length === 0 ? "Enter email addresses" : ""
+                      }
+                      className="email-field-input"
+                    />
+                  </div>
+                </div>
+
+                {/* Cc Field */}
+                <div className="email-field">
+                  <span className="field-label">Cc</span>
+                  <div className="chips-wrapper">
+                    {[...new Set(ccEmails)]
+                      .filter(
+                        (email) =>
+                          typeof email === "string" && email.trim() !== "",
+                      )
+                      .map((email, index) => (
+                        <div className="chip" key={index}>
+                          <span>{email}</span>
+                          <button
+                            type="button"
+                            className="chip-remove"
+                            onClick={() => handleRemoveCCEmail(email)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    <input
+                      type="email"
+                      value={ccEmailInput || ""}
+                      onChange={(e) => setCCEmailInput(e.target.value)}
+                      onBlur={handleAddCCEmailOnBlur}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === ",") {
+                          e.preventDefault();
+                          handleAddCCEmailOnBlur();
+                        }
+                      }}
+                      placeholder={
+                        ccEmails.length === 0 ? "Enter email addresses" : ""
+                      }
+                      className="email-field-input"
+                    />
+                  </div>
+                </div>
+                <div className="email-field">
+                  <span className="field-label">
+                    {reference_no} | Flight Options | {flightRouteInfo.fromCity}{" "}
+                    ({flightRouteInfo.fromAirport}({flightRouteInfo.fromCode}))
+                    - {flightRouteInfo.toCity} ({flightRouteInfo.toAirport} (
+                    {flightRouteInfo.toCode}))
+                  </span>
+                </div>
+              </div>
+            </form>
+          </div>
           <div className="alert alert-warning" style={{ marginBottom: "15px" }}>
-            <i className="fas fa-edit mr-2"></i>
-            <strong>Editing Instructions:</strong> Click on the
-            yellow-highlighted prices to edit them.
-            <div style={{ marginTop: "5px", fontSize: "12px" }}>
+            <div className="text-[12px]">
+              <i className="fas fa-edit mr-2 "></i>
+              <strong>Editing Instructions:</strong> Click on the
+              yellow-highlighted prices to edit them.
+            </div>
+            <div style={{ marginTop: "5px", fontSize: "10px" }}>
               <strong>Note:</strong> Prices will auto-format with commas. Edit
               values and click outside to save.
             </div>
@@ -8623,7 +10167,7 @@ const currentFlightFares = flightFares[flightId];
               border: "1px solid #ddd",
               padding: "15px",
               overflow: "auto",
-              backgroundColor: "#f9f9f9",
+              // backgroundColor: "#f9f9f9",
             }}
           />
         </Modal.Body>
@@ -8664,7 +10208,6 @@ const currentFlightFares = flightFares[flightId];
           </button>
         </Modal.Footer>
       </Modal>
-      
     </div>
   );
 };

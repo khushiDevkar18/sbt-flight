@@ -13,7 +13,7 @@ const Newbookflow = () => {
   
   const hasFetchedRef = useRef(false);
   const keyFetchRef = useRef(false);
-  let emptaxivaxi = [];
+  // let emptaxivaxi = [];
   
   const [loadingg, setLoadingg] = useState(true);
   const [selectedflight, setselectedflight] = useState([]);
@@ -25,7 +25,7 @@ const Newbookflow = () => {
   const [Taxivaxidata, setTaxivaxidata] = useState(null);
   const [bookingDataFetched, setBookingDataFetched] = useState(false);
   const [apiError, setApiError] = useState(false);
-  
+    const [emptaxivaxi, setEmptaxivaxi] = useState([]); // Add this state
   const [onwardFares, setOnwardFares] = useState(null);
   const [returnFares, setReturnFares] = useState(null);
   const [JourneyType, setJourneyType] = useState(1);
@@ -34,7 +34,7 @@ const Newbookflow = () => {
   // useEffect 1: Fetch booking data on component mount
   useEffect(() => {
     if (!bookingDataId) {
-      console.error("❌ No booking ID found in URL");
+      // console.error("❌ No booking ID found in URL");
       setLoadingg(false);
       Swal.fire({
         title: "Error",
@@ -57,15 +57,15 @@ const Newbookflow = () => {
   // useEffect 2: Process data only after API is successfully fetched
   useEffect(() => {
     if (bookingDataFetched && Taxivaxidata && !apiError) {
-      console.log("🔍 Checking trip_type:", Taxivaxidata[0]?.trip_type);
+      // console.log("🔍 Checking trip_type:", Taxivaxidata[0]?.trip_type);
       
       // Set Journey Type based on trip_type
       if (Taxivaxidata[0]?.trip_type === "Round Trip") {
         setJourneyType(2);
-        console.log("📊 Journey Type set to: 2 (Round Trip)");
+        // console.log("📊 Journey Type set to: 2 (Round Trip)");
       } else {
         setJourneyType(1);
-        console.log("📊 Journey Type set to: 1 (One Way)");
+        // console.log("📊 Journey Type set to: 1 (One Way)");
       }
       
       // Start the booking flow only if not already started
@@ -80,11 +80,11 @@ const Newbookflow = () => {
 
   // useEffect 3: Navigate to return booking flow when both fares are ready
   useEffect(() => {
-    console.log("🔄 useEffect 3 triggered");
-    console.log("onwardFares:", onwardFares);
-    console.log("returnFares:", returnFares);
-    console.log("faresFound:", faresFound);
-    console.log("JourneyType:", JourneyType);
+    // console.log("🔄 useEffect 3 triggered");
+    // console.log("onwardFares:", onwardFares);
+    // console.log("returnFares:", returnFares);
+    // console.log("faresFound:", faresFound);
+    // console.log("JourneyType:", JourneyType);
     
     // Only proceed if BOTH fares are found AND both are not null
     if (JourneyType === 2 && faresFound.onward && faresFound.return && onwardFares && returnFares) {
@@ -92,7 +92,7 @@ const Newbookflow = () => {
       setLoadingg(false);
       NavigatetoBookingflowReturn(onwardFares, returnFares, PassengerDetails);
     } else {
-      console.log("⏳ Waiting for all data to be ready...");
+      // console.log("⏳ Waiting for all data to be ready...");
       if (JourneyType !== 2) console.log("JourneyType is not 2");
       if (!faresFound.onward) console.log("onward fares not found");
       if (!faresFound.return) console.log("return fares not found");
@@ -171,53 +171,56 @@ const Newbookflow = () => {
   }
 
   // Generate keys
-  const Keyfetch = async () => {
-    if (!Taxivaxidata || !Taxivaxidata[0]) {
-      console.error("❌ Taxivaxidata not available in Keyfetch");
-      setLoadingg(false);
-      return;
-    }
+const Keyfetch = async () => {
+  if (!Taxivaxidata || !Taxivaxidata[0]) {
+    console.error("❌ Taxivaxidata not available in Keyfetch");
+    setLoadingg(false);
+    return;
+  }
+  
+  const requestData = {
+    ADT: Taxivaxidata[0]?.passengerDetailsArray?.length || 0,
+    CNN: 0,
+    INF: 0,
+  };
+  
+  try {
+    setLoadingg(true);
+    const response = await fetch(`${CONFIG.BASE_URL}generateKeys`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestData),
+    });
     
-    const requestData = {
-      ADT: Taxivaxidata[0]?.passengerDetailsArray?.length || 0,
-      CNN: 0,
-      INF: 0,
-    };
+    const Data = await response.json();
     
-    try {
-      setLoadingg(true);
-      const response = await fetch(`${CONFIG.BASE_URL}generateKeys`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestData),
-      });
+    if (Data.status) {
+      const responseData = Data.passengerDetails;
+      setPassengerDetails(responseData);
+
+      let employeeData = [];
+      if (Taxivaxidata[0]?.passengerDetailsArray) {
+        employeeData = await FetchEmployee(); // Get the returned data
+        console.log("✅ Employee data fetched:", employeeData);
+      }
       
-      const Data = await response.json();
-      
-      if (Data.status) {
-        const responseData = Data.passengerDetails;
-        setPassengerDetails(responseData);
-        
-        if (responseData && responseData.length > 0) {
-          await fetchData(responseData);
-        } else {
-          setLoadingg(false);
-        }
-        
-        if (Taxivaxidata[0]?.passengerDetailsArray) {
-          await FetchEmployee();
-        }
+      if (responseData && responseData.length > 0) {
+        // Pass employeeData directly to fetchData
+        await fetchData(responseData, employeeData);
       } else {
-        console.error("❌ Keyfetch failed:", Data);
         setLoadingg(false);
       }
-    } catch (error) {
-      console.error("❌ Fetch error in Keyfetch:", error.message);
+    } else {
+      console.error("❌ Keyfetch failed:", Data);
       setLoadingg(false);
     }
-  };
+  } catch (error) {
+    console.error("❌ Fetch error in Keyfetch:", error.message);
+    setLoadingg(false);
+  }
+};
 
   // Extract airport code
   function extractAirportCode(str) {
@@ -242,7 +245,7 @@ const Newbookflow = () => {
     return `${year}-${month}-${day}`;
   }
 
-  const fetchData = async (passengerDetails) => {
+  const fetchData = async (passengerDetails, employeeData = []) => {
     if (!Taxivaxidata || !Taxivaxidata[0]) {
       console.error("❌ Taxivaxidata not available in fetchData");
       setLoadingg(false);
@@ -253,13 +256,24 @@ const Newbookflow = () => {
     const isRoundTrip = Taxivaxidata[0]?.trip_type === "Round Trip";
     const currentJourneyType = isRoundTrip ? 2 : 1;
     
-    console.log("🛫 fetchData - currentJourneyType:", currentJourneyType);
+    // console.log("🛫 fetchData - currentJourneyType:", currentJourneyType);
     
     const url = `${CONFIG.BASE_URL}searchFlights_new`;
+const extractFlightNumbers = (flightString) => {
+    if (!flightString) return [];
     
-    const onwardFlightNos = Taxivaxidata[0]?.flight_no?.split(",").map(f => f.trim()) || [];
-    const returnFlightNos = Taxivaxidata[1]?.flight_no?.split(",").map(f => f.trim()) || [];
-    
+    return flightString.split(",").map(f => {
+        const trimmed = f.trim();
+        // This regex finds the last sequence of digits in the string
+        const matches = trimmed.match(/\d+$/); // $ means end of string
+        return matches ? matches[0] : null;
+    }).filter(Boolean);
+};
+
+const onwardFlightNos = extractFlightNumbers(Taxivaxidata[0]?.flight_no);
+console.log("Extracted onward flight numbers:", onwardFlightNos); // ["6212"]
+const returnFlightNos = extractFlightNumbers(Taxivaxidata[1]?.flight_no);
+console.log("Extracted return flight numbers:", returnFlightNos); // ["2280"]
     const requestData = {
       origin: extractAirportCode(Taxivaxidata[0]?.from_city),
       destination: extractAirportCode(Taxivaxidata[0]?.to_city),
@@ -315,7 +329,7 @@ const Newbookflow = () => {
         } else {
           setselectedflight(matchedFlight);
           // Pass the journey type to Getfares
-          await Getfares(matchedFlight, passengerDetails, currentJourneyType);
+        await Getfares(matchedFlight, passengerDetails, currentJourneyType, employeeData);
         }
         
         // Process return flight if round trip
@@ -346,7 +360,7 @@ const Newbookflow = () => {
           } else {
             setselectedflight_return(matchedFlight_return);
             // Pass the journey type to GetfaresReturn
-            await GetfaresReturn(matchedFlight_return, passengerDetails, currentJourneyType);
+            await GetfaresReturn(matchedFlight_return, passengerDetails, currentJourneyType , employeeData);
           }
         }
       } else {
@@ -359,9 +373,9 @@ const Newbookflow = () => {
   };
 
   // Get fares for onward flight
-  const Getfares = async (Flightdata, passengerDetails, journeyType) => {
-    console.log("💰 Getfares called for onward flight");
-    console.log("Received journeyType:", journeyType);
+const Getfares = async (Flightdata, passengerDetails, journeyType, employeeData = [])=>{
+    // console.log("💰 Getfares called for onward flight");
+    // console.log("Received journeyType:", journeyType);
     
     if (!Taxivaxidata || !Taxivaxidata[0]) {
       console.error("❌ Taxivaxidata not available in Getfares");
@@ -390,60 +404,23 @@ const Newbookflow = () => {
       const Data = await response.json();
       const data = Data.data;
       
-      // Get fare details from Taxivaxidata
-      let fareDetails = [];
-      try {
-        if (Taxivaxidata[0]?.fare_details) {
-          let fareDetailsString = Taxivaxidata[0].fare_details;
-          
-          if (typeof fareDetailsString === 'string' && fareDetailsString.startsWith('[')) {
-            if (!fareDetailsString.endsWith(']')) {
-              fareDetailsString = fareDetailsString + ']';
-              console.log("⚠️ Fixed truncated fare_details by adding closing bracket");
-            }
-            fareDetails = JSON.parse(fareDetailsString);
-            console.log("✅ Parsed fare_details array:", fareDetails);
-          } else {
-            fareDetails = [Taxivaxidata[0]];
-          }
-        } else {
-          fareDetails = [Taxivaxidata[0]];
-        }
-      } catch (e) {
-        console.error("❌ Error parsing fare_details:", e);
-        try {
-          if (Taxivaxidata[0]?.fare_details) {
-            const fareString = Taxivaxidata[0].fare_details;
-            const firstObjMatch = fareString.match(/\{.*?\}/);
-            if (firstObjMatch) {
-              fareDetails = [JSON.parse(firstObjMatch[0])];
-              console.log("✅ Extracted first fare object:", fareDetails);
-            } else {
-              fareDetails = [Taxivaxidata[0]];
-            }
-          } else {
-            fareDetails = [Taxivaxidata[0]];
-          }
-        } catch (e2) {
-          console.error("❌ Second parsing attempt failed:", e2);
-          fareDetails = [Taxivaxidata[0]];
-        }
-      }
+    
 
       if (journeyType === 1) {
-        console.log("🛫 Processing ONE-WAY journey");
+        // console.log("Processing ONE-WAY journey");
         const matchedObjects = [];
-        
-        for (const fareItem of fareDetails) {
-          const source = fareItem.source || "Uapi";
-          const fare_type = fareItem.fare_type || "Regular Fare";
-          const inputPrice = Math.round(parseFloat(fareItem.price_without_markup || fareItem.price) * 100) / 100;
+        // console.log("Fare details to match:", Taxivaxidata[0].price_without_markup);
+        // for (const fareItem of fareDetails) {
+          const source = Taxivaxidata[0].source;
+          const fare_type =  Taxivaxidata[0].fare_type || "Regular Fare";
+      const inputPrice = Math.round(parseFloat(Taxivaxidata[0].price_without_markup) * 100) / 100;
           
           let found = null;
 
           if (source === "Uapi") {
+      
             found = data.uapi_fares?.find((f) => {
-              const apiPrice = Math.round(parseFloat(f.TotalPrice) * 100) / 100;
+            const apiPrice = Math.round(parseFloat(f.TotalPrice) * 100) / 100;
               const typeMatch = f.SupplierFareClass?.toLowerCase().trim() === fare_type?.toLowerCase().trim();
               const priceMatch = apiPrice === inputPrice;
               return typeMatch && priceMatch;
@@ -484,15 +461,15 @@ const Newbookflow = () => {
               });
             }
           }
-        }
+        // }
 
-        console.log("✅ Matched Fare Objects for ONE-WAY:", matchedObjects);
+        // console.log("✅ Matched Fare Objects for ONE-WAY:", matchedObjects);
         setFlightFare(matchedObjects);
 
         if (matchedObjects.length > 0) {
-          console.log("🚀 Navigating to booking flow for one-way");
+          // console.log("🚀 Navigating to booking flow for one-way");
           setLoadingg(false);
-          NavigatetoBookingflow(matchedObjects, Flightdata, passengerDetails);
+        NavigatetoBookingflow(matchedObjects, Flightdata, passengerDetails, employeeData);
         } else {
           console.error("❌ No matching fares found for one-way");
           setLoadingg(false);
@@ -511,13 +488,13 @@ const Newbookflow = () => {
         }
       } 
       else if (journeyType === 2) {
-        console.log("🔄 Processing ROUND-TRIP journey - ONWARD FLIGHT");
+        // console.log("🔄 Processing ROUND-TRIP journey - ONWARD FLIGHT");
         const matchedObjects = [];
         
-        for (const fareItem of fareDetails) {
-          const source = fareItem.source || "Uapi";
-          const fare_type = fareItem.fare_type || "Regular Fare";
-          const inputPrice = Math.round(parseFloat(fareItem.price_without_markup || fareItem.price) * 100) / 100;
+        // for (const fareItem of fareDetails) {
+          const source = Taxivaxidata[0].source || "Uapi";
+          const fare_type = Taxivaxidata[0].fare_type || "Regular Fare";
+          const inputPrice = Math.round(parseFloat(Taxivaxidata[0].price_without_markup) * 100) / 100;
           
           let found = null;
 
@@ -568,9 +545,9 @@ const Newbookflow = () => {
               });
             }
           }
-        }
+        // }
 
-        console.log("✅ Matched ONWARD Fare Objects for Round Trip:", matchedObjects);
+        // console.log("✅ Matched ONWARD Fare Objects for Round Trip:", matchedObjects);
         setFlightFare(matchedObjects);
         
         if (matchedObjects.length > 0) {
@@ -603,7 +580,7 @@ const Newbookflow = () => {
   };
 
   // Get fares for return flight
-  const GetfaresReturn = async (FlightdataReturn, passengerDetails, journeyType) => {
+  const GetfaresReturn = async (FlightdataReturn, passengerDetails, journeyType , employeeData) => {
     console.log("💰 GetfaresReturn called for return flight");
     console.log("Received journeyType:", journeyType);
     
@@ -635,32 +612,14 @@ const Newbookflow = () => {
       const data = Data.data;
       
       // Get fare details for return flight
-      let fareDetailsReturn = [];
-      try {
-        if (Taxivaxidata[1]?.fare_details) {
-          let fareDetailsString = Taxivaxidata[1].fare_details;
-          
-          if (typeof fareDetailsString === 'string' && fareDetailsString.startsWith('[')) {
-            fareDetailsReturn = JSON.parse(fareDetailsString);
-            console.log("✅ Parsed return fare_details array:", fareDetailsReturn);
-          } else {
-            fareDetailsReturn = [Taxivaxidata[1]];
-          }
-        } else {
-          fareDetailsReturn = [Taxivaxidata[1]];
-        }
-      } catch (e) {
-        console.error("❌ Error parsing return fare_details:", e);
-        fareDetailsReturn = [Taxivaxidata[1]];
-      }
-      
+    
       // Match fares for return flight
       const matchedObjectsReturn = [];
       
-      for (const fareItem of fareDetailsReturn) {
-        const source = fareItem.source || "Uapi";
-        const fare_type = fareItem.fare_type || "Regular Fare";
-        const inputPrice = Math.round(parseFloat(fareItem.price_without_markup || fareItem.price) * 100) / 100;
+      // for (const fareItem of fareDetailsReturn) {
+        const source = Taxivaxidata[1].source;
+        const fare_type = Taxivaxidata[1].fare_type;
+        const inputPrice = Math.round(parseFloat(Taxivaxidata[1].price_without_markup) * 100) / 100;
         
         let found = null;
 
@@ -709,9 +668,9 @@ const Newbookflow = () => {
             });
           }
         }
-      }
+      // }
 
-      console.log("✅ Matched RETURN Fare Objects for Round Trip:", matchedObjectsReturn);
+      // console.log("✅ Matched RETURN Fare Objects for Round Trip:", matchedObjectsReturn);
       setFlightFareReturn(matchedObjectsReturn);
       
       if (matchedObjectsReturn.length > 0) {
@@ -744,67 +703,72 @@ const Newbookflow = () => {
     }
   };
 
-  const FetchEmployee = async () => {
-    if (!Taxivaxidata || !Taxivaxidata[0]) {
-      console.error("❌ Taxivaxidata not available in FetchEmployee");
-      return;
-    }
-    
-    const empIdsArray = Array.isArray(Taxivaxidata[0]?.passengerDetailsArray)
-      ? Taxivaxidata[0]?.passengerDetailsArray
-      : [Taxivaxidata[0]?.passengerDetailsArray];
+const FetchEmployee = async () => {
+  if (!Taxivaxidata || !Taxivaxidata[0]) {
+    console.error("❌ Taxivaxidata not available in FetchEmployee");
+    return [];
+  }
+  
+  const empIdsArray = Array.isArray(Taxivaxidata[0]?.passengerDetailsArray)
+    ? Taxivaxidata[0]?.passengerDetailsArray
+    : [Taxivaxidata[0]?.passengerDetailsArray];
 
-    const formData = new URLSearchParams();
-    empIdsArray.forEach((emp, index) => {
-      formData.append(`employee_id[${index}]`, emp);
-    });
+  const formData = new URLSearchParams();
+  empIdsArray.forEach((emp, index) => {
+    formData.append(`employee_id[${index}]`, emp);
+  });
 
-    try {
-      const response = await fetch(
-        `${CONFIG.MAIN_API}/api/flights/employeeByTaxivaxi`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: formData.toString(),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+  try {
+    const response = await fetch(
+      `${CONFIG.MAIN_API}/api/flights/employeeByTaxivaxi`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData.toString(),
       }
+    );
 
-      const responseData = await response.json();
-      const data = responseData.result;
-      
-      const cleanedPassengers = data.map((emp) => {
-        const [firstName, ...rest] = (emp.people_name || "").trim().split(" ");
-        const lastName = rest.join(" ") || "";
-
-        return {
-          date_of_birth: emp.date_of_birth,
-          employee_cid: emp.people_cid,
-          employee_contact: emp.people_contact,
-          employee_email: emp.people_email,
-          employee_name: emp.people_name,
-          firstName: firstName,
-          gender: emp.gender,
-          id: emp.id,
-          lastName: lastName,
-          user_type: "ADT",
-        };
-      });
-
-      setPassengerInfo(cleanedPassengers);
-      emptaxivaxi.push(...cleanedPassengers);
-    } catch (error) {
-      console.error("Error fetching employee data:", error);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
     }
-  };
 
+    const responseData = await response.json();
+    const data = responseData.result;
+    
+    const cleanedPassengers = data.map((emp) => {
+      const [firstName, ...rest] = (emp.people_name || "").trim().split(" ");
+      const lastName = rest.join(" ") || "";
+
+      return {
+        date_of_birth: emp.date_of_birth,
+        employee_cid: emp.people_cid,
+        employee_contact: emp.people_contact,
+        employee_email: emp.people_email,
+        employee_name: emp.people_name,
+        firstName: firstName,
+        gender: emp.gender,
+        id: emp.id,
+        lastName: lastName,
+        user_type: "ADT",
+      };
+    });
+    
+    console.log("✅ Cleaned Passenger Info:", cleanedPassengers);
+    setPassengerInfo(cleanedPassengers);
+    setEmptaxivaxi(prev => [...prev, ...cleanedPassengers]);
+    
+    return cleanedPassengers; // Return the data
+  } catch (error) {
+    console.error("Error fetching employee data:", error);
+    return [];
+  }
+};
+console.log("PassengerInfo state after FetchEmployee:", PassengerInfo);
+console.log("emptaxivaxi state after FetchEmployee:", emptaxivaxi);
   const Updatedtaxivaxidata = {
-    Passengerdetails: JourneyType == 1 ? emptaxivaxi : PassengerInfo,
+    Passengerdetails: PassengerInfo,
     searchfromcity: Taxivaxidata?.[0]?.from_city,
     searchtocity: Taxivaxidata?.[0]?.to_city,
     searchdeparture: getOnlyDate(Taxivaxidata?.[0]?.departure_date),
@@ -827,13 +791,35 @@ const Newbookflow = () => {
     agent_id: Taxivaxidata?.[0]?.agentId,
   };
 
-  const NavigatetoBookingflow = (fare, Flight, passengerDetails) => {
+  const NavigatetoBookingflow = (fare, Flight, passengerDetails,employeeData ) => {
     const adultCount = Taxivaxidata?.[0]?.passengerDetailsArray?.length || 0;
     const childCount = 0;
     const infantCount = 0;
 
     const fareObj = Array.isArray(fare) ? fare[0] : fare;
-
+ const flightDetails = {
+    Passengerdetails: employeeData, // Use current state
+    searchfromcity: Taxivaxidata?.[0]?.from_city,
+    searchtocity: Taxivaxidata?.[0]?.to_city,
+    searchdeparture: getOnlyDate(Taxivaxidata?.[0]?.departure_date),
+    searchreturnd: Taxivaxidata?.[0]?.return_date,
+    selectadult: Taxivaxidata?.[0]?.passengerDetailsArray?.length,
+    selectchild: "0",
+    selectinfant: "0",
+    selectclass: Taxivaxidata?.[0]?.seat_type,
+    bookingtype: Taxivaxidata?.[0]?.trip_type,
+    requesttype: Taxivaxidata?.[0]?.request_type,
+    clientname: Taxivaxidata?.[0]?.client_name,
+    clientid: Taxivaxidata?.[0]?.client_id,
+    markupdata: Taxivaxidata?.[0]?.markup_details,
+    bookingid: Taxivaxidata?.[0]?.booking_id,
+    isapproved: Taxivaxidata?.[0]?.is_approved,
+    no_of_seats: Taxivaxidata?.[0]?.no_of_seats,
+    is_gst_benefit: Taxivaxidata?.[0]?.is_gst_benifit,
+    flighttype: Taxivaxidata?.[0]?.flight_type,
+    accessToken: Taxivaxidata?.[0]?.access_token,
+    agent_id: Taxivaxidata?.[0]?.agentId,
+  };
     const PriceResponse = {
       key: fareObj?.ResultIndex || fareObj?.resultIndex,
       traceId: fareObj?.trace_id || fareObj?.traceId || fareObj?.TraceId,
@@ -849,7 +835,7 @@ const Newbookflow = () => {
       },
       passengerDetails: passengerDetails,
       FlightType: Taxivaxidata?.[0]?.flight_type,
-      FlightDetails: Updatedtaxivaxidata || "",
+      FlightDetails: flightDetails,
       ClientPrice: Taxivaxidata?.[0]?.price,
       rawFare: fareObj,
     };
@@ -874,12 +860,34 @@ const Newbookflow = () => {
   const NavigatetoBookingflowReturn = (
     matchedObjects,
     matchedObjectsReturn,
-    PassengerDetails
+    PassengerDetails, employeeData
   ) => {
     const adultCount = Taxivaxidata?.[0]?.passengerDetailsArray?.length || 0;
     const childCount = 0;
     const infantCount = 0;
-
+  //     const Updatedtaxivaxidata = { 
+  //     Passengerdetails: employeeData, // Use current state
+  //   searchfromcity: Taxivaxidata?.[0]?.from_city,
+  //   searchtocity: Taxivaxidata?.[0]?.to_city,
+  //   searchdeparture: getOnlyDate(Taxivaxidata?.[0]?.departure_date),
+  //   searchreturnd: Taxivaxidata?.[0]?.return_date,
+  //   selectadult: Taxivaxidata?.[0]?.passengerDetailsArray?.length,
+  //   selectchild: "0",
+  //   selectinfant: "0",
+  //   selectclass: Taxivaxidata?.[0]?.seat_type,
+  //   bookingtype: Taxivaxidata?.[0]?.trip_type,
+  //   requesttype: Taxivaxidata?.[0]?.request_type,
+  //   clientname: Taxivaxidata?.[0]?.client_name,
+  //   clientid: Taxivaxidata?.[0]?.client_id,
+  //   markupdata: Taxivaxidata?.[0]?.markup_details,
+  //   bookingid: Taxivaxidata?.[0]?.booking_id,
+  //   isapproved: Taxivaxidata?.[0]?.is_approved,
+  //   no_of_seats: Taxivaxidata?.[0]?.no_of_seats,
+  //   is_gst_benefit: Taxivaxidata?.[0]?.is_gst_benifit,
+  //   flighttype: Taxivaxidata?.[0]?.flight_type,
+  //   accessToken: Taxivaxidata?.[0]?.access_token,
+  //   agent_id: Taxivaxidata?.[0]?.agentId,
+  // };
     const PriceResponse = {
       onward: matchedObjects[0] || [],
       return: matchedObjectsReturn[0] || [],

@@ -81,6 +81,8 @@ const ReturnBookingFlow = () => {
   const [IsOnwardMealFree, setisOnwardmealfree] = useState([]);
   const [IsReturnMealFree, setisReturnmealfree] = useState([]);
   const [CancellationData, setcancellationData] = useState([]);
+  const [OnwardCancellationData, setOnwardCancellationData] = useState([]);
+  const [ReturncancellationData, setReturncancellationData] = useState([]);
   const [Policy, setpolicy] = useState([]);
   const [Locatorcode, setLocatorcode] = useState("");
   const [PassengerData, setPassengerData] = useState([]);
@@ -142,6 +144,9 @@ const ReturnBookingFlow = () => {
   const [OnwaredTboFare, setOnwaredTboFare] = useState("");
   const [ReturnTboFare, setReturnTboFare] = useState("");
   const [CancellationData1G, setcancellationData1G] = useState([]);
+  const [ReturnCancellationData, setReturnCancellationData] = useState(null);
+  const [ReturnCancellationData1G, setReturnCancellationData1G] =
+    useState(null);
   const [TboOnwardTraceId, setTboOnwardTraceId] = useState("");
   const [TboReturnTraceId, setTboReturnTraceId] = useState("");
   const [TbonwardResultIndex, setTboOnwardResultIndex] = useState("");
@@ -219,10 +224,10 @@ const ReturnBookingFlow = () => {
                 setOnwardSourceType(source_type);
                 const responseData = Data.data.onward.priceRequestResponse;
                 // //console.log(responseData)
-                if (Data.data.onward.cancellation) {
-                  const cancellation = Data.data.onward.cancellation;
-                  setcancellationData1G(cancellation);
-                }
+                // if (Data.data.onward.cancellation) {
+                //   const cancellation = Data.data.onward.cancellation;
+                //   setcancellationData1G(cancellation);
+                // }
                 if (responseData?.FlightDetails) {
                   const flightdetails = responseData?.FlightDetails;
                   setFlightData(flightdetails);
@@ -292,7 +297,12 @@ const ReturnBookingFlow = () => {
                   // console.log(total);
                   setOnwardTotal(total);
                 }
-
+                if (responseData.FareQuote_Response.Results.MiniFareRules) {
+                  const cancellation =
+                    responseData.FareQuote_Response.Results.MiniFareRules[0];
+                  // console.log(cancellation)
+                  setOnwardCancellationData(cancellation);
+                }
                 if (responseData.FareQuote_Response?.Results.FareBreakdown) {
                   const PerFare =
                     responseData.FareQuote_Response?.Results.FareBreakdown;
@@ -413,6 +423,12 @@ const ReturnBookingFlow = () => {
                   const total = Number(Fare?.PublishedFare);
                   // console.log(total);
                   setReturnTotal(total);
+                }
+                if (responseData.FareQuote_Response.Results.MiniFareRules) {
+                  const cancellation =
+                    responseData.FareQuote_Response.Results.MiniFareRules[0];
+                  // console.log(cancellation)
+                  setReturncancellationData(cancellation);
                 }
                 if (responseData.FareQuote_Response?.Results.FareBreakdown) {
                   const PerFare =
@@ -551,7 +567,7 @@ const ReturnBookingFlow = () => {
       );
       const Data = await response.json();
       // //console.log(Data)
-      setcancellationData(Data.data);
+      setcancellationData1G(Data.data);
     } catch (error) {
       console.error("Error fetching cancellation policy:", error);
     }
@@ -2407,68 +2423,197 @@ const ReturnBookingFlow = () => {
                                           </span>
                                         </div>
                                       </div> */}
-                                  <div className="flight-details-container">
-  {/* Departure Row - Time, City, Airport on same line */}
-  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
-    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
-      {new Date(data?.Origin?.DepTime).toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}
-    </span>
-    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
-      {data?.Origin?.Airport?.CityName}
-    </span>
-    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
-      {data?.Origin?.Airport?.AirportName} {data?.Origin?.Airport?.Terminal}
-    </span>
-  </div>
-  
-  {/* Date Row - On the same line as time (aligned under time) */}
-  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-    <span style={{ minWidth: '60px', fontSize: '12px', color: '#777', marginLeft:'8px' }}>
-      {handleweekdatemonthyear(data?.Origin?.DepTime)}
-    </span>
-  </div>
-  
-  {/* Arrival Row - Time, City, Airport on same line */}
-  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
-    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
-      {new Date(data?.Destination?.ArrTime).toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}
-    </span>
-    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
-      {data?.Destination?.Airport?.CityName}
-    </span>
-    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
-      {data?.Destination?.Airport?.AirportName} {data?.Destination?.Airport?.Terminal}
-    </span>
-  </div>
-  
-  {/* Baggage Info */}
-  <div className="baggage-info" style={{ display: 'flex', gap: '24px', marginTop: '7px', borderTop: '1px dashed #e0e0e0' }}>
-    <span className="cabin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
-      <img
-        src="/img/cabin_bag.svg"
-        alt="Cabin Baggage"
-        className="baggage-icon"
-        style={{ width: '18px', height: '18px', opacity: 0.7 }}
-      />
-      <strong style={{ fontWeight: '600' }}>Cabin Baggage:</strong> {formatWeight(data?.CabinBaggage) || "NA"}
-    </span>
-    <span className="checkin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
-      <img
-        src="/img/checkin_bag.svg"
-        alt="Check-in Baggage"
-        className="baggage-icon"
-        style={{ width: '18px', height: '18px', opacity: 0.7 }}
-      />
-      <strong style={{ fontWeight: '600' }}>Check-In Baggage:</strong> {formatWeight(data?.Baggage) || "NA"}
-    </span>
-  </div>
-</div>
+                                      <div className="flight-details-container">
+                                        {/* Departure Row - Time, City, Airport on same line */}
+                                        <div
+                                          className="row accordionfarename apiairportname"
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "baseline",
+                                            marginBottom: "4px",
+                                          }}
+                                        >
+                                          <span
+                                            className="CityName"
+                                            style={{
+                                              minWidth: "60px",
+                                              fontSize: "15px",
+                                              fontWeight: "500",
+                                            }}
+                                          >
+                                            {new Date(
+                                              data?.Origin?.DepTime,
+                                            ).toLocaleTimeString("en-GB", {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+                                          </span>
+                                          <span
+                                            className="CityName"
+                                            style={{
+                                              fontSize: "15px",
+                                              fontWeight: "500",
+                                              marginRight: "6px",
+                                            }}
+                                          >
+                                            {data?.Origin?.Airport?.CityName}
+                                          </span>
+                                          <span
+                                            className="airport"
+                                            style={{
+                                              fontSize: "13px",
+                                              color: "#666",
+                                            }}
+                                          >
+                                            {data?.Origin?.Airport?.AirportName}{" "}
+                                            {data?.Origin?.Airport?.Terminal}
+                                          </span>
+                                        </div>
+
+                                        {/* Date Row - On the same line as time (aligned under time) */}
+                                        <div
+                                          className="row accordionfarename apiairportname"
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            marginBottom: "8px",
+                                          }}
+                                        >
+                                          <span
+                                            style={{
+                                              minWidth: "60px",
+                                              fontSize: "12px",
+                                              color: "#777",
+                                              marginLeft: "8px",
+                                            }}
+                                          >
+                                            {handleweekdatemonthyear(
+                                              data?.Origin?.DepTime,
+                                            )}
+                                          </span>
+                                        </div>
+
+                                        {/* Arrival Row - Time, City, Airport on same line */}
+                                        <div
+                                          className="row accordionfarename apiairportname"
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "baseline",
+                                            marginBottom: "4px",
+                                          }}
+                                        >
+                                          <span
+                                            className="CityName"
+                                            style={{
+                                              minWidth: "60px",
+                                              fontSize: "15px",
+                                              fontWeight: "500",
+                                            }}
+                                          >
+                                            {new Date(
+                                              data?.Destination?.ArrTime,
+                                            ).toLocaleTimeString("en-GB", {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+                                          </span>
+                                          <span
+                                            className="CityName"
+                                            style={{
+                                              fontSize: "15px",
+                                              fontWeight: "500",
+                                              marginRight: "6px",
+                                            }}
+                                          >
+                                            {
+                                              data?.Destination?.Airport
+                                                ?.CityName
+                                            }
+                                          </span>
+                                          <span
+                                            className="airport"
+                                            style={{
+                                              fontSize: "13px",
+                                              color: "#666",
+                                            }}
+                                          >
+                                            {
+                                              data?.Destination?.Airport
+                                                ?.AirportName
+                                            }{" "}
+                                            {
+                                              data?.Destination?.Airport
+                                                ?.Terminal
+                                            }
+                                          </span>
+                                        </div>
+
+                                        {/* Baggage Info */}
+                                        <div
+                                          className="baggage-info"
+                                          style={{
+                                            display: "flex",
+                                            gap: "24px",
+                                            marginTop: "7px",
+                                            borderTop: "1px dashed #e0e0e0",
+                                          }}
+                                        >
+                                          <span
+                                            className="cabin-baggage"
+                                            style={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "6px",
+                                              fontSize: "13px",
+                                            }}
+                                          >
+                                            <img
+                                              src="/img/cabin_bag.svg"
+                                              alt="Cabin Baggage"
+                                              className="baggage-icon"
+                                              style={{
+                                                width: "18px",
+                                                height: "18px",
+                                                opacity: 0.7,
+                                              }}
+                                            />
+                                            <strong
+                                              style={{ fontWeight: "600" }}
+                                            >
+                                              Cabin Baggage:
+                                            </strong>{" "}
+                                            {formatWeight(data?.CabinBaggage) ||
+                                              "NA"}
+                                          </span>
+                                          <span
+                                            className="checkin-baggage"
+                                            style={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "6px",
+                                              fontSize: "13px",
+                                            }}
+                                          >
+                                            <img
+                                              src="/img/checkin_bag.svg"
+                                              alt="Check-in Baggage"
+                                              className="baggage-icon"
+                                              style={{
+                                                width: "18px",
+                                                height: "18px",
+                                                opacity: 0.7,
+                                              }}
+                                            />
+                                            <strong
+                                              style={{ fontWeight: "600" }}
+                                            >
+                                              Check-In Baggage:
+                                            </strong>{" "}
+                                            {formatWeight(data?.Baggage) ||
+                                              "NA"}
+                                          </span>
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -2652,70 +2797,197 @@ const ReturnBookingFlow = () => {
                                           </span>
                                         </div>
                                       </div> */}
-                                            <div className="flight-details-container">
-  {/* Departure Row - Time, City, Airport on same line */}
-  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
-    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
-      {new Date(
+                                      <div className="flight-details-container">
+                                        {/* Departure Row - Time, City, Airport on same line */}
+                                        <div
+                                          className="row accordionfarename apiairportname"
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "baseline",
+                                            marginBottom: "4px",
+                                          }}
+                                        >
+                                          <span
+                                            className="CityName"
+                                            style={{
+                                              minWidth: "60px",
+                                              fontSize: "15px",
+                                              fontWeight: "500",
+                                            }}
+                                          >
+                                            {new Date(
                                               data?.Origin?.DepTime,
                                             ).toLocaleTimeString("en-GB", {
                                               hour: "2-digit",
                                               minute: "2-digit",
                                             })}
-    </span>
-    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
-      {data?.Origin?.Airport?.CityName}
-    </span>
-    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
-      {data?.Origin?.Airport?.AirportName} {data?.Origin?.Airport?.Terminal}
-    </span>
-  </div>
-  
-  {/* Date Row - On the same line as time (aligned under time) */}
-  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-    <span style={{ minWidth: '60px', fontSize: '12px', color: '#777', marginLeft:'8px' }}>
-      {handleweekdatemonthyear(data?.Origin?.DepTime)}
-    </span>
-  </div>
-  
-  {/* Arrival Row - Time, City, Airport on same line */}
-  <div className="row accordionfarename apiairportname" style={{ display: 'flex', alignItems: 'baseline', marginBottom: '4px' }}>
-    <span className="CityName" style={{ minWidth: '60px', fontSize: '15px', fontWeight: '500' }}>
-      {new Date(data?.Destination?.ArrTime).toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}
-    </span>
-    <span className="CityName" style={{ fontSize: '15px', fontWeight: '500', marginRight: '6px' }}>
-      {data?.Destination?.Airport?.CityName}
-    </span>
-    <span className="airport" style={{ fontSize: '13px', color: '#666' }}>
-      {data?.Destination?.Airport?.AirportName} {data?.Destination?.Airport?.Terminal}
-    </span>
-  </div>
-  
-  {/* Baggage Info */}
-  <div className="baggage-info" style={{ display: 'flex', gap: '24px', marginTop: '7px', borderTop: '1px dashed #e0e0e0' }}>
-    <span className="cabin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
-      <img
-        src="/img/cabin_bag.svg"
-        alt="Cabin Baggage"
-        className="baggage-icon"
-        style={{ width: '18px', height: '18px', opacity: 0.7 }}
-      />
-      <strong style={{ fontWeight: '600' }}>Cabin Baggage:</strong> {formatWeight(data?.CabinBaggage) || "NA"}
-    </span>
-    <span className="checkin-baggage" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
-      <img
-        src="/img/checkin_bag.svg"
-        alt="Check-in Baggage"
-        className="baggage-icon"
-        style={{ width: '18px', height: '18px', opacity: 0.7 }}
-      />
-      <strong style={{ fontWeight: '600' }}>Check-In Baggage:</strong> {formatWeight(data?.Baggage) || "NA"}
-    </span>
-  </div>
-</div>
+                                          </span>
+                                          <span
+                                            className="CityName"
+                                            style={{
+                                              fontSize: "15px",
+                                              fontWeight: "500",
+                                              marginRight: "6px",
+                                            }}
+                                          >
+                                            {data?.Origin?.Airport?.CityName}
+                                          </span>
+                                          <span
+                                            className="airport"
+                                            style={{
+                                              fontSize: "13px",
+                                              color: "#666",
+                                            }}
+                                          >
+                                            {data?.Origin?.Airport?.AirportName}{" "}
+                                            {data?.Origin?.Airport?.Terminal}
+                                          </span>
+                                        </div>
+
+                                        {/* Date Row - On the same line as time (aligned under time) */}
+                                        <div
+                                          className="row accordionfarename apiairportname"
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            marginBottom: "8px",
+                                          }}
+                                        >
+                                          <span
+                                            style={{
+                                              minWidth: "60px",
+                                              fontSize: "12px",
+                                              color: "#777",
+                                              marginLeft: "8px",
+                                            }}
+                                          >
+                                            {handleweekdatemonthyear(
+                                              data?.Origin?.DepTime,
+                                            )}
+                                          </span>
+                                        </div>
+
+                                        {/* Arrival Row - Time, City, Airport on same line */}
+                                        <div
+                                          className="row accordionfarename apiairportname"
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "baseline",
+                                            marginBottom: "4px",
+                                          }}
+                                        >
+                                          <span
+                                            className="CityName"
+                                            style={{
+                                              minWidth: "60px",
+                                              fontSize: "15px",
+                                              fontWeight: "500",
+                                            }}
+                                          >
+                                            {new Date(
+                                              data?.Destination?.ArrTime,
+                                            ).toLocaleTimeString("en-GB", {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+                                          </span>
+                                          <span
+                                            className="CityName"
+                                            style={{
+                                              fontSize: "15px",
+                                              fontWeight: "500",
+                                              marginRight: "6px",
+                                            }}
+                                          >
+                                            {
+                                              data?.Destination?.Airport
+                                                ?.CityName
+                                            }
+                                          </span>
+                                          <span
+                                            className="airport"
+                                            style={{
+                                              fontSize: "13px",
+                                              color: "#666",
+                                            }}
+                                          >
+                                            {
+                                              data?.Destination?.Airport
+                                                ?.AirportName
+                                            }{" "}
+                                            {
+                                              data?.Destination?.Airport
+                                                ?.Terminal
+                                            }
+                                          </span>
+                                        </div>
+
+                                        {/* Baggage Info */}
+                                        <div
+                                          className="baggage-info"
+                                          style={{
+                                            display: "flex",
+                                            gap: "24px",
+                                            marginTop: "7px",
+                                            borderTop: "1px dashed #e0e0e0",
+                                          }}
+                                        >
+                                          <span
+                                            className="cabin-baggage"
+                                            style={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "6px",
+                                              fontSize: "13px",
+                                            }}
+                                          >
+                                            <img
+                                              src="/img/cabin_bag.svg"
+                                              alt="Cabin Baggage"
+                                              className="baggage-icon"
+                                              style={{
+                                                width: "18px",
+                                                height: "18px",
+                                                opacity: 0.7,
+                                              }}
+                                            />
+                                            <strong
+                                              style={{ fontWeight: "600" }}
+                                            >
+                                              Cabin Baggage:
+                                            </strong>{" "}
+                                            {formatWeight(data?.CabinBaggage) ||
+                                              "NA"}
+                                          </span>
+                                          <span
+                                            className="checkin-baggage"
+                                            style={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "6px",
+                                              fontSize: "13px",
+                                            }}
+                                          >
+                                            <img
+                                              src="/img/checkin_bag.svg"
+                                              alt="Check-in Baggage"
+                                              className="baggage-icon"
+                                              style={{
+                                                width: "18px",
+                                                height: "18px",
+                                                opacity: 0.7,
+                                              }}
+                                            />
+                                            <strong
+                                              style={{ fontWeight: "600" }}
+                                            >
+                                              Check-In Baggage:
+                                            </strong>{" "}
+                                            {formatWeight(data?.Baggage) ||
+                                              "NA"}
+                                          </span>
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -2726,17 +2998,21 @@ const ReturnBookingFlow = () => {
                         <div className="table-container">
                           <div className="flex items-center justify-between">
                             <h1>Cancellation / Date Change Charges</h1>
-                            {/* <a
-                              onClick={() => setIsOpen(true)}
-                              className="text-blue-500 text-[11px] mr-5 hover:underline cursor-pointer"
-                            >
-                              More Policy
-                            </a> */}
+                            {OnwardSourceType === "Tbo" && (
+                              <a
+                                onClick={() => setIsOpen(true)}
+                                className="text-blue-500 text-[11px] mr-5 hover:underline cursor-pointer"
+                              >
+                                More Policy
+                              </a>
+                            )}
                           </div>
+
+                          {/* More Policy Modal */}
                           {isOpen && (
                             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                               <div
-                                className="bg-white p-4 rounded-lg  shadow-lg relative"
+                                className="bg-white p-4 rounded-lg shadow-lg relative"
                                 style={{ width: "700px" }}
                               >
                                 <h2 className="text-lg bg-purple font-semibold mb-3">
@@ -2758,142 +3034,703 @@ const ReturnBookingFlow = () => {
                             </div>
                           )}
 
-                          {Segments?.some(
-                            (seg) => seg.Airline?.AirlineCode === "6E",
-                          ) ? (
-                            <table className="styled-table">
-                              <thead>
-                                <tr>
-                                  <th colSpan={2}>Cancellation</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {(() => {
-                                  const cancelItem =
-                                    CancellationData?.Cancellation?.find(
-                                      (item) => item.fare_name === fare_type,
-                                    );
-                                  return cancelItem ? (
-                                    <tr>
-                                      <td>
-                                        {cancelItem.fare_name} (
-                                        {cancelItem.airline_short_name})
-                                      </td>
-                                      <td>
-                                        {cancelItem.fee.replace(/INR/i, "₹")}
-                                      </td>
-                                    </tr>
-                                  ) : (
-                                    <tr>
-                                      <td colSpan={2}>
-                                        No cancellation policy found
-                                      </td>
-                                    </tr>
-                                  );
-                                })()}
+                          {/* Onward Flight Cancellation Policy */}
+                          <div className="mb-3 shadow-md">
+                            <span className="Returnflight-heading">
+                              {OnwardFlight?.originAirport?.CityName}{" "}
+                              <ArrowForwardSharp style={{ width: "70%" }} />{" "}
+                              {OnwardFlight?.destinationAirport?.CityName}
+                            </span>
+                            {OnwardFlight && (
+                              <div className="mb-6">
+                                {/* Check Source Type for Onward Flight */}
+                                {OnwardSourceType === "Tbo" ? (
+                                  // TBO Cancellation Display
+                                  <table className="styled-table">
+                                    <thead>
+                                      <tr>
+                                        <th colSpan={2}>Cancellation</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {Array.isArray(OnwardCancellationData) &&
+                                        OnwardCancellationData.filter(
+                                          (item) =>
+                                            item.Type === "Cancellation",
+                                        ).map((item, index) => {
+                                          const formatDate = (d) =>
+                                            d.toLocaleString("en-GB", {
+                                              day: "2-digit",
+                                              month: "short",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            });
 
-                                <tr>
-                                  <th colSpan={2}>Date Change</th>
-                                </tr>
+                                          const hasValidFrom =
+                                            item.From !== null &&
+                                            item.From !== "";
+                                          const hasValidTo =
+                                            item.To !== null && item.To !== "";
 
-                                {(() => {
-                                  const dateChangeItem =
-                                    CancellationData?.Date_Change?.find(
-                                      (item) => item.fare_name === fare_type,
-                                    );
-                                  return dateChangeItem ? (
-                                    <tr>
-                                      <td>
-                                        {dateChangeItem.fare_name}(
-                                        {dateChangeItem.airline_short_name})
-                                      </td>
-                                      <td>
-                                        {dateChangeItem.fee.replace(
-                                          /INR/i,
-                                          "₹",
-                                        )}
-                                      </td>
-                                    </tr>
-                                  ) : (
-                                    <tr>
-                                      <td colSpan={2}>
-                                        No date change policy found
-                                      </td>
-                                    </tr>
-                                  );
-                                })()}
-                              </tbody>
-                            </table>
-                          ) : (
-                            <table className="styled-table">
-                              <thead>
-                                <tr>
-                                  <th colSpan={2}>Cancellation</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {(() => {
-                                  const cancelItem =
-                                    CancellationData1G?.CancelPenalty;
-                                  const formatValue = (item) => {
-                                    if (item?.Amount) {
-                                      return item.Amount.includes("INR")
-                                        ? item.Amount.replace(/INR/i, "₹")
-                                        : item.Amount;
-                                    } else if (item?.Percentage) {
-                                      return `${item.Percentage}%`;
-                                    } else {
-                                      return "N/A";
-                                    }
-                                  };
-                                  return cancelItem ? (
-                                    <tr>
-                                      <td>{cancelItem.PenaltyApplies}</td>
-                                      <td>{formatValue(cancelItem)}</td>
-                                    </tr>
-                                  ) : (
-                                    <tr>
-                                      <td colSpan={2}>
-                                        No cancellation policy found
-                                      </td>
-                                    </tr>
-                                  );
-                                })()}
+                                          if (!hasValidFrom && !hasValidTo) {
+                                            const details =
+                                              item.Details?.replace(
+                                                /INR/i,
+                                                "₹",
+                                              ) || "₹ 0";
+                                            return (
+                                              <tr key={index}>
+                                                <td colSpan={2}>{details}</td>
+                                              </tr>
+                                            );
+                                          }
 
-                                <tr>
-                                  <th colSpan={2}>Date Change</th>
-                                </tr>
-                                {(() => {
-                                  const cancelItem =
-                                    CancellationData1G?.ChangePenalty;
-                                  const formatValue = (item) => {
-                                    if (item?.Amount) {
-                                      return item.Amount.includes("INR")
-                                        ? item.Amount.replace(/INR/i, "₹")
-                                        : item.Amount;
-                                    } else if (item?.Percentage) {
-                                      return `${item.Percentage}%`;
-                                    } else {
-                                      return "N/A";
-                                    }
-                                  };
-                                  return cancelItem ? (
-                                    <tr>
-                                      <td>{cancelItem.PenaltyApplies}</td>
-                                      <td>{formatValue(cancelItem)}</td>
-                                    </tr>
-                                  ) : (
-                                    <tr>
-                                      <td colSpan={2}>
-                                        No Date Change policy found
-                                      </td>
-                                    </tr>
-                                  );
-                                })()}
-                              </tbody>
-                            </table>
-                          )}
+                                          const fromHours =
+                                            parseFloat(item.From) *
+                                            (item.Unit === "DAYS" ? 24 : 1);
+                                          const toHours =
+                                            hasValidTo && item.To
+                                              ? parseFloat(item.To) *
+                                                (item.Unit === "DAYS" ? 24 : 1)
+                                              : null;
 
+                                          const fromDate = new Date(
+                                            new Date(
+                                              OnwardFlight?.depTime,
+                                            ).getTime() -
+                                              fromHours * 60 * 60 * 1000,
+                                          );
+                                          const toDate = toHours
+                                            ? new Date(
+                                                new Date(
+                                                  OnwardFlight?.depTime,
+                                                ).getTime() -
+                                                  toHours * 60 * 60 * 1000,
+                                              )
+                                            : null;
+
+                                          const rangeText = toDate
+                                            ? `${formatDate(fromDate)} to ${formatDate(toDate)}`
+                                            : `Before ${formatDate(fromDate)}`;
+
+                                          const details =
+                                            item.Details?.replace(
+                                              /INR/i,
+                                              "₹",
+                                            ) || "₹ 0";
+
+                                          return (
+                                            <tr key={index}>
+                                              <td>{rangeText}</td>
+                                              <td>{details}</td>
+                                            </tr>
+                                          );
+                                        })}
+
+                                      <tr>
+                                        <th colSpan={2}>Date Change</th>
+                                      </tr>
+
+                                      {Array.isArray(OnwardCancellationData) &&
+                                        OnwardCancellationData.filter(
+                                          (item) => item.Type === "Reissue",
+                                        ).map((item, index) => {
+                                          const formatDate = (d) =>
+                                            d.toLocaleString("en-GB", {
+                                              day: "2-digit",
+                                              month: "short",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            });
+
+                                          const hasValidFrom =
+                                            item.From !== null &&
+                                            item.From !== "";
+                                          const hasValidTo =
+                                            item.To !== null && item.To !== "";
+
+                                          if (!hasValidFrom && !hasValidTo) {
+                                            const details =
+                                              item.Details?.replace(
+                                                /INR/i,
+                                                "₹",
+                                              ) || "₹ 0";
+                                            return (
+                                              <tr key={index}>
+                                                <td colSpan={2}>{details}</td>
+                                              </tr>
+                                            );
+                                          }
+
+                                          const fromHours =
+                                            parseFloat(item.From) *
+                                            (item.Unit === "DAYS" ? 24 : 1);
+                                          const toHours =
+                                            hasValidTo && item.To
+                                              ? parseFloat(item.To) *
+                                                (item.Unit === "DAYS" ? 24 : 1)
+                                              : null;
+
+                                          const fromDate = new Date(
+                                            new Date(
+                                              OnwardFlight?.depTime,
+                                            ).getTime() -
+                                              fromHours * 60 * 60 * 1000,
+                                          );
+                                          const toDate = toHours
+                                            ? new Date(
+                                                new Date(
+                                                  OnwardFlight?.depTime,
+                                                ).getTime() -
+                                                  toHours * 60 * 60 * 1000,
+                                              )
+                                            : null;
+
+                                          const rangeText = toDate
+                                            ? `${formatDate(fromDate)} to ${formatDate(toDate)}`
+                                            : `Before ${formatDate(fromDate)}`;
+
+                                          const details =
+                                            item.Details?.replace(
+                                              /INR/i,
+                                              "₹",
+                                            ) || "₹ 0";
+
+                                          return (
+                                            <tr key={index}>
+                                              <td>{rangeText}</td>
+                                              <td>{details}</td>
+                                            </tr>
+                                          );
+                                        })}
+                                    </tbody>
+                                  </table>
+                                ) : (
+                                  // UAPI Cancellation Display
+                                  <>
+                                    {Segments?.some(
+                                      (seg) =>
+                                        seg.Airline?.AirlineCode === "6E",
+                                    ) ? (
+                                      <table className="styled-table">
+                                        <thead>
+                                          <tr>
+                                            <th colSpan={2}>Cancellation</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {(() => {
+                                            const cancelItem =
+                                              CancellationData?.Cancellation?.find(
+                                                (item) =>
+                                                  item.fare_name === fare_type,
+                                              );
+                                            return cancelItem ? (
+                                              <tr>
+                                                <td>
+                                                  {cancelItem.fare_name} (
+                                                  {
+                                                    cancelItem.airline_short_name
+                                                  }
+                                                  )
+                                                </td>
+                                                <td>
+                                                  {cancelItem.fee.replace(
+                                                    /INR/i,
+                                                    "₹",
+                                                  )}
+                                                </td>
+                                              </tr>
+                                            ) : (
+                                              <tr>
+                                                <td colSpan={2}>
+                                                  No cancellation policy found
+                                                </td>
+                                              </tr>
+                                            );
+                                          })()}
+
+                                          <tr>
+                                            <th colSpan={2}>Date Change</th>
+                                          </tr>
+
+                                          {(() => {
+                                            const dateChangeItem =
+                                              CancellationData?.Date_Change?.find(
+                                                (item) =>
+                                                  item.fare_name === fare_type,
+                                              );
+                                            return dateChangeItem ? (
+                                              <tr>
+                                                <td>
+                                                  {dateChangeItem.fare_name}(
+                                                  {
+                                                    dateChangeItem.airline_short_name
+                                                  }
+                                                  )
+                                                </td>
+                                                <td>
+                                                  {dateChangeItem.fee.replace(
+                                                    /INR/i,
+                                                    "₹",
+                                                  )}
+                                                </td>
+                                              </tr>
+                                            ) : (
+                                              <tr>
+                                                <td colSpan={2}>
+                                                  No date change policy found
+                                                </td>
+                                              </tr>
+                                            );
+                                          })()}
+                                        </tbody>
+                                      </table>
+                                    ) : (
+                                      <table className="styled-table">
+                                        <thead>
+                                          <tr>
+                                            <th colSpan={2}>Cancellation</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {(() => {
+                                            const cancelItem =
+                                              CancellationData1G?.CancelPenalty;
+                                            const formatValue = (item) => {
+                                              if (item?.Amount) {
+                                                return item.Amount.includes(
+                                                  "INR",
+                                                )
+                                                  ? item.Amount.replace(
+                                                      /INR/i,
+                                                      "₹",
+                                                    )
+                                                  : item.Amount;
+                                              } else if (item?.Percentage) {
+                                                return `${item.Percentage}%`;
+                                              } else {
+                                                return "N/A";
+                                              }
+                                            };
+                                            return cancelItem ? (
+                                              <tr>
+                                                <td>
+                                                  {cancelItem.PenaltyApplies}
+                                                </td>
+                                                <td>
+                                                  {formatValue(cancelItem)}
+                                                </td>
+                                              </tr>
+                                            ) : (
+                                              <tr>
+                                                <td colSpan={2}>
+                                                  No cancellation policy found
+                                                </td>
+                                              </tr>
+                                            );
+                                          })()}
+
+                                          <tr>
+                                            <th colSpan={2}>Date Change</th>
+                                          </tr>
+                                          {(() => {
+                                            const cancelItem =
+                                              CancellationData1G?.ChangePenalty;
+                                            const formatValue = (item) => {
+                                              if (item?.Amount) {
+                                                return item.Amount.includes(
+                                                  "INR",
+                                                )
+                                                  ? item.Amount.replace(
+                                                      /INR/i,
+                                                      "₹",
+                                                    )
+                                                  : item.Amount;
+                                              } else if (item?.Percentage) {
+                                                return `${item.Percentage}%`;
+                                              } else {
+                                                return "N/A";
+                                              }
+                                            };
+                                            return cancelItem ? (
+                                              <tr>
+                                                <td>
+                                                  {cancelItem.PenaltyApplies}
+                                                </td>
+                                                <td>
+                                                  {formatValue(cancelItem)}
+                                                </td>
+                                              </tr>
+                                            ) : (
+                                              <tr>
+                                                <td colSpan={2}>
+                                                  No Date Change policy found
+                                                </td>
+                                              </tr>
+                                            );
+                                          })()}
+                                        </tbody>
+                                      </table>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="mb-3 shadow-md">
+                            <span className="Returnflight-heading">
+                              {ReturnFlight?.originAirport?.CityName}{" "}
+                              <ArrowForwardSharp style={{ width: "70%" }} />{" "}
+                              {ReturnFlight?.destinationAirport?.CityName}
+                            </span>
+                            {ReturnFlight && (
+                              <div className="mb-6">
+                                {/* Check Source Type for Return Flight */}
+                                {ReturnSourceType === "Tbo" ? (
+                                  // TBO Cancellation Display for Return
+                                  <table className="styled-table">
+                                    <thead>
+                                      <tr>
+                                        <th colSpan={2}>Cancellation</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {Array.isArray(ReturnCancellationData) &&
+                                        ReturnCancellationData.filter(
+                                          (item) =>
+                                            item.Type === "Cancellation",
+                                        ).map((item, index) => {
+                                          const formatDate = (d) =>
+                                            d.toLocaleString("en-GB", {
+                                              day: "2-digit",
+                                              month: "short",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            });
+
+                                          const hasValidFrom =
+                                            item.From !== null &&
+                                            item.From !== "";
+                                          const hasValidTo =
+                                            item.To !== null && item.To !== "";
+
+                                          if (!hasValidFrom && !hasValidTo) {
+                                            const details =
+                                              item.Details?.replace(
+                                                /INR/i,
+                                                "₹",
+                                              ) || "₹ 0";
+                                            return (
+                                              <tr key={index}>
+                                                <td colSpan={2}>{details}</td>
+                                              </tr>
+                                            );
+                                          }
+
+                                          const fromHours =
+                                            parseFloat(item.From) *
+                                            (item.Unit === "DAYS" ? 24 : 1);
+                                          const toHours =
+                                            hasValidTo && item.To
+                                              ? parseFloat(item.To) *
+                                                (item.Unit === "DAYS" ? 24 : 1)
+                                              : null;
+
+                                          const fromDate = new Date(
+                                            new Date(
+                                              ReturnFlight?.depTime,
+                                            ).getTime() -
+                                              fromHours * 60 * 60 * 1000,
+                                          );
+                                          const toDate = toHours
+                                            ? new Date(
+                                                new Date(
+                                                  ReturnFlight?.depTime,
+                                                ).getTime() -
+                                                  toHours * 60 * 60 * 1000,
+                                              )
+                                            : null;
+
+                                          const rangeText = toDate
+                                            ? `${formatDate(fromDate)} to ${formatDate(toDate)}`
+                                            : `Before ${formatDate(fromDate)}`;
+
+                                          const details =
+                                            item.Details?.replace(
+                                              /INR/i,
+                                              "₹",
+                                            ) || "₹ 0";
+
+                                          return (
+                                            <tr key={index}>
+                                              <td>{rangeText}</td>
+                                              <td>{details}</td>
+                                            </tr>
+                                          );
+                                        })}
+
+                                      <tr>
+                                        <th colSpan={2}>Date Change</th>
+                                      </tr>
+
+                                      {Array.isArray(ReturnCancellationData) &&
+                                        ReturnCancellationData.filter(
+                                          (item) => item.Type === "Reissue",
+                                        ).map((item, index) => {
+                                          const formatDate = (d) =>
+                                            d.toLocaleString("en-GB", {
+                                              day: "2-digit",
+                                              month: "short",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            });
+
+                                          const hasValidFrom =
+                                            item.From !== null &&
+                                            item.From !== "";
+                                          const hasValidTo =
+                                            item.To !== null && item.To !== "";
+
+                                          if (!hasValidFrom && !hasValidTo) {
+                                            const details =
+                                              item.Details?.replace(
+                                                /INR/i,
+                                                "₹",
+                                              ) || "₹ 0";
+                                            return (
+                                              <tr key={index}>
+                                                <td colSpan={2}>{details}</td>
+                                              </tr>
+                                            );
+                                          }
+
+                                          const fromHours =
+                                            parseFloat(item.From) *
+                                            (item.Unit === "DAYS" ? 24 : 1);
+                                          const toHours =
+                                            hasValidTo && item.To
+                                              ? parseFloat(item.To) *
+                                                (item.Unit === "DAYS" ? 24 : 1)
+                                              : null;
+
+                                          const fromDate = new Date(
+                                            new Date(
+                                              ReturnFlight?.depTime,
+                                            ).getTime() -
+                                              fromHours * 60 * 60 * 1000,
+                                          );
+                                          const toDate = toHours
+                                            ? new Date(
+                                                new Date(
+                                                  ReturnFlight?.depTime,
+                                                ).getTime() -
+                                                  toHours * 60 * 60 * 1000,
+                                              )
+                                            : null;
+
+                                          const rangeText = toDate
+                                            ? `${formatDate(fromDate)} to ${formatDate(toDate)}`
+                                            : `Before ${formatDate(fromDate)}`;
+
+                                          const details =
+                                            item.Details?.replace(
+                                              /INR/i,
+                                              "₹",
+                                            ) || "₹ 0";
+
+                                          return (
+                                            <tr key={index}>
+                                              <td>{rangeText}</td>
+                                              <td>{details}</td>
+                                            </tr>
+                                          );
+                                        })}
+                                    </tbody>
+                                  </table>
+                                ) : (
+                                  // UAPI Cancellation Display for Return
+                                  <>
+                                    {ReturnSegments?.some(
+                                      (seg) =>
+                                        seg.Airline?.AirlineCode === "6E",
+                                    ) ? (
+                                      <table className="styled-table">
+                                        <thead>
+                                          <tr>
+                                            <th colSpan={2}>Cancellation</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {(() => {
+                                            const cancelItem =
+                                              ReturnCancellationData?.Cancellation?.find(
+                                                (item) =>
+                                                  item.fare_name === fare_type,
+                                              ) ||
+                                              CancellationData?.Cancellation?.find(
+                                                (item) =>
+                                                  item.fare_name === fare_type,
+                                              );
+                                            return cancelItem ? (
+                                              <tr>
+                                                <td>
+                                                  {cancelItem.fare_name} (
+                                                  {
+                                                    cancelItem.airline_short_name
+                                                  }
+                                                  )
+                                                </td>
+                                                <td>
+                                                  {cancelItem.fee.replace(
+                                                    /INR/i,
+                                                    "₹",
+                                                  )}
+                                                </td>
+                                              </tr>
+                                            ) : (
+                                              <tr>
+                                                <td colSpan={2}>
+                                                  No cancellation policy found
+                                                </td>
+                                              </tr>
+                                            );
+                                          })()}
+
+                                          <tr>
+                                            <th colSpan={2}>Date Change</th>
+                                          </tr>
+
+                                          {(() => {
+                                            const dateChangeItem =
+                                              ReturnCancellationData?.Date_Change?.find(
+                                                (item) =>
+                                                  item.fare_name === fare_type,
+                                              ) ||
+                                              CancellationData?.Date_Change?.find(
+                                                (item) =>
+                                                  item.fare_name === fare_type,
+                                              );
+                                            return dateChangeItem ? (
+                                              <tr>
+                                                <td>
+                                                  {dateChangeItem.fare_name}(
+                                                  {
+                                                    dateChangeItem.airline_short_name
+                                                  }
+                                                  )
+                                                </td>
+                                                <td>
+                                                  {dateChangeItem.fee.replace(
+                                                    /INR/i,
+                                                    "₹",
+                                                  )}
+                                                </td>
+                                              </tr>
+                                            ) : (
+                                              <tr>
+                                                <td colSpan={2}>
+                                                  No date change policy found
+                                                </td>
+                                              </tr>
+                                            );
+                                          })()}
+                                        </tbody>
+                                      </table>
+                                    ) : (
+                                      <table className="styled-table">
+                                        <thead>
+                                          <tr>
+                                            <th colSpan={2}>Cancellation</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {(() => {
+                                            const cancelItem =
+                                              ReturnCancellationData1G?.CancelPenalty ||
+                                              CancellationData1G?.CancelPenalty;
+                                            const formatValue = (item) => {
+                                              if (item?.Amount) {
+                                                return item.Amount.includes(
+                                                  "INR",
+                                                )
+                                                  ? item.Amount.replace(
+                                                      /INR/i,
+                                                      "₹",
+                                                    )
+                                                  : item.Amount;
+                                              } else if (item?.Percentage) {
+                                                return `${item.Percentage}%`;
+                                              } else {
+                                                return "N/A";
+                                              }
+                                            };
+                                            return cancelItem ? (
+                                              <tr>
+                                                <td>
+                                                  {cancelItem.PenaltyApplies}
+                                                </td>
+                                                <td>
+                                                  {formatValue(cancelItem)}
+                                                </td>
+                                              </tr>
+                                            ) : (
+                                              <tr>
+                                                <td colSpan={2}>
+                                                  No cancellation policy found
+                                                </td>
+                                              </tr>
+                                            );
+                                          })()}
+
+                                          <tr>
+                                            <th colSpan={2}>Date Change</th>
+                                          </tr>
+                                          {(() => {
+                                            const cancelItem =
+                                              ReturnCancellationData1G?.ChangePenalty ||
+                                              CancellationData1G?.ChangePenalty;
+                                            const formatValue = (item) => {
+                                              if (item?.Amount) {
+                                                return item.Amount.includes(
+                                                  "INR",
+                                                )
+                                                  ? item.Amount.replace(
+                                                      /INR/i,
+                                                      "₹",
+                                                    )
+                                                  : item.Amount;
+                                              } else if (item?.Percentage) {
+                                                return `${item.Percentage}%`;
+                                              } else {
+                                                return "N/A";
+                                              }
+                                            };
+                                            return cancelItem ? (
+                                              <tr>
+                                                <td>
+                                                  {cancelItem.PenaltyApplies}
+                                                </td>
+                                                <td>
+                                                  {formatValue(cancelItem)}
+                                                </td>
+                                              </tr>
+                                            ) : (
+                                              <tr>
+                                                <td colSpan={2}>
+                                                  No Date Change policy found
+                                                </td>
+                                              </tr>
+                                            );
+                                          })()}
+                                        </tbody>
+                                      </table>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
                           <p className="note">* From the Time of Departure</p>
                         </div>
 
