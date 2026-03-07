@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import "./styles.css";
+import "../styles.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parse, parseISO, isValid } from "date-fns";
@@ -9,7 +9,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { Nav } from "react-bootstrap";
-import CONFIG from "./config";
+import CONFIG from "../config";
 import Cookies from "js-cookie";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -28,7 +28,7 @@ import {
   FlightTakeoffSharp,
   FlightTakeoffTwoTone,
 } from "@mui/icons-material";
-import useOnlineStatus from "./useOnlineStatus";
+import useOnlineStatus from "../useOnlineStatus";
 import { Modal, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
 import axios from "axios";
@@ -40,6 +40,7 @@ const FinalSearchFlight = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const hasFetchedRef = useRef(false);
+  const hasFetchedRefForCancellation = useRef(false);
   const response = location.state.responseData;
   // console.log("response from taxivaxi", location.state.responseData);
   const isOnline = useOnlineStatus();
@@ -338,6 +339,7 @@ const FinalSearchFlight = () => {
   useEffect(() => {
     if (!hasFetchedRef.current) {
       Keyfetch();
+      // fetchCancellationForUapiFare();
       hasFetchedRef.current = true;
     }
   }, []);
@@ -694,10 +696,51 @@ const FinalSearchFlight = () => {
         }
 
         setLoadingg(false);
+      } else if (data.status === false) {
+        setLoadingg(false);
+        Swal.fire({
+          title: "Error",
+          text: data.message,
+          iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
+          confirmButtonText: "Try Again",
+          allowOutsideClick: false,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Otherwise, go to home page
+            window.location.href = "/";
+          }
+        });
+      }
+      else{
+        setLoadingg(false);
+        Swal.fire({
+          title: "Error",
+          text: "Something went wrong. Please try again later.",
+          iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
+          confirmButtonText: "Try Again",
+          allowOutsideClick: false,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Otherwise, go to home page
+            window.location.href = "/";
+          }
+        });
       }
       setLoadingg(false);
     } catch (error) {
       setLoadingg(false);
+        Swal.fire({
+          title: "Error",
+          text: "Something went wrong. Please try again later.",
+          iconHtml: '<i class="fa fa-exclamation" aria-hidden="true"></i>',
+          confirmButtonText: "Try Again",
+          allowOutsideClick: false,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Otherwise, go to home page
+            window.location.href = "/";
+          }
+        });
       console.error("Error:", error);
     }
   };
@@ -711,12 +754,12 @@ const FinalSearchFlight = () => {
 
   // Function to handle showing policy popup
   const handleShowPolicy = (flightData, fare, flightId, basefare) => {
-    console.log("Showing policy for fare:", { flightData, fare, flightId });
+    
 
     // Get the policy key
     const policyKey = `${flightId}_${fare.type}`;
     const policyData = cancellationPolicies[policyKey];
-
+  
     // Store the selected fare data for popup
     setSelectedFareForPopup({
       flightData,
@@ -745,7 +788,8 @@ const FinalSearchFlight = () => {
   };
   // 2. flightFares ko ID-based banao
   const [flightFares, setFlightFares] = useState({}); // key: flightId, value: fareData
-
+  // Add this new state
+  const [allFaresList, setAllFaresList] = useState({});
   // 3. Getfares function update karo
   const Getfares = async (data, flightId) => {
     const requestData = {
@@ -773,16 +817,29 @@ const FinalSearchFlight = () => {
         [flightId]: fareData,
       }));
 
+      // Get flight info from fareData
+      const flightInfo = {
+        originCity: fareData.flight?.originAirport?.CityName || "",
+        destinationCity: fareData.flight?.destinationAirport?.CityName || "",
+        originCode: fareData.flight?.originAirport?.AirportCode || "",
+        destinationCode: fareData.flight?.destinationAirport?.AirportCode || "",
+        airlineName: fareData.flight?.segments?.[0]?.Airline?.AirlineName || "",
+      };
+
+      console.log("Fare data received for flightId:", { fareData, flightInfo });
+
       // AFTER getting fares, fetch cancellation policies for each fare
       if (fareData) {
-        // Combine all fares from uapi and tbo
+        // Combine all fares from uapi and tbo with additional info
         const allFares = [
           ...(fareData.uapi_fares || []).map((fare) => ({
             ...fare,
             from: "Uapi",
-            type: fare.SupplierFareClass || "",
+            type: fare.SupplierFareClass || fare.FareType || "",
             Resultindex: fare.ResultIndex,
             TraceId: fare.trace_id,
+            // Add flight info to each fare
+            ...flightInfo,
           })),
           ...(fareData.tbo_fares || []).map((fare) => ({
             ...fare,
@@ -790,25 +847,34 @@ const FinalSearchFlight = () => {
             type: fare.SupplierFareClass || "Regular Fare",
             Resultindex: fare.ResultIndex,
             TraceId: fare.trace_id,
+            // Add flight info to each fare
+            ...flightInfo,
           })),
         ];
+
+        // Store all fares with their info in state for later use
+        setAllFaresList((prev) => ({
+          ...prev,
+          [flightId]: allFares,
+        }));
 
         // Fetch policies for all unique fares
         for (const fare of allFares) {
           const resultIndex = fare.Resultindex || fare.ResultIndex || fare.key;
           if (resultIndex) {
-            // Don't await, fetch in background
+            // ✅ CORRECT: Use fare which already has all flightInfo
             fetchCancellationPolicy(fare, flightId, resultIndex);
           }
         }
       }
 
       setFareloadingg((prev) => ({ ...prev, [flightId]: false }));
-    } catch {
+    } catch (error) {
+      console.error("Error in Getfares:", error);
       setFareloadingg((prev) => ({ ...prev, [flightId]: false }));
     }
   };
-
+  // console.log("selectedFarePolicy:", selectedFarePolicy);
   // 4. showPrices ko bhi ID-based banao
 
   const toggleShowPrices = (flightId) => {
@@ -837,10 +903,10 @@ const FinalSearchFlight = () => {
   // Selected flight options
 
   const handleFareToggle = async (flightData, fare, flightId, basefare) => {
-    console.log("handleFareToggle called with:", {
-      flightId,
-      fareType: fare.type,
-    });
+    // console.log("handleFareToggle called with:", {
+    //   flightId,
+    //   fareType: fare.type,
+    // });
     // Check if this is a selection or deselection
     const isAlreadySelected = selectedFares.some(
       (f) => f.flightId === flightId && f.fareType === fare.type,
@@ -1018,18 +1084,30 @@ const FinalSearchFlight = () => {
         ...prev,
         [flightId]: fareData,
       }));
-      
+
+      // Get flight info from fareData
+      const flightInfo = {
+        originCity: fareData.flight?.originAirport?.CityName || "",
+        destinationCity: fareData.flight?.destinationAirport?.CityName || "",
+        originCode: fareData.flight?.originAirport?.AirportCode || "",
+        destinationCode: fareData.flight?.destinationAirport?.AirportCode || "",
+        airlineName: fareData.flight?.segments?.[0]?.Airline?.AirlineName || "",
+      };
+
+      console.log("Fare data received for flightId:", { fareData, flightInfo });
 
       // AFTER getting fares, fetch cancellation policies for each fare
       if (fareData) {
-        // Combine all fares from uapi and tbo
+        // Combine all fares from uapi and tbo with additional info
         const allFares = [
           ...(fareData.uapi_fares || []).map((fare) => ({
             ...fare,
             from: "Uapi",
-            type: fare.SupplierFareClass || "",
+            type: fare.SupplierFareClass || fare.FareType || "",
             Resultindex: fare.ResultIndex,
             TraceId: fare.trace_id,
+            // Add flight info to each fare
+            ...flightInfo,
           })),
           ...(fareData.tbo_fares || []).map((fare) => ({
             ...fare,
@@ -1037,6 +1115,8 @@ const FinalSearchFlight = () => {
             type: fare.SupplierFareClass || "Regular Fare",
             Resultindex: fare.ResultIndex,
             TraceId: fare.trace_id,
+            // Add flight info to each fare
+            ...flightInfo,
           })),
         ];
 
@@ -1203,129 +1283,6 @@ const FinalSearchFlight = () => {
     return "after6PM";
   };
 
-  // //Flitered data
-  // const filteredFlights = FlightOptions.filter((response) => {
-  //   // // console.log("FlightOptions",FlightOptions)
-  //   const flight = response.flight;
-  //   if (!flight) return false;
-
-  //   // 1. Stops filter
-  //   const stopsCount = flight.segments.length - 1;
-  //   if (selectedStops.size > 0 && !selectedStops.has(stopsCount)) return false;
-
-  //   const depTime = new Date(flight?.depTime);
-  //   const depSlot = getTimeSlot(depTime.getHours());
-  //   if (selectedDepartures.length > 0 && !selectedDepartures.includes(depSlot))
-  //     return false;
-
-  //   // Arrival Time filter
-  //   const arrTime = new Date(flight?.arrTime);
-  //   const arrSlot = getTimeSlot(arrTime.getHours());
-  //   if (selectedArrivals.length > 0 && !selectedArrivals.includes(arrSlot))
-  //     return false;
-  //   // Airlines filter
-  //   if (selectedAirlines.size > 0) {
-  //     const flightAirlines = new Set(
-  //       flight.segments.map((s) => s.Airline.AirlineName)
-  //     );
-  //     let airlineMatch = false;
-  //     for (let airline of selectedAirlines) {
-  //       if (flightAirlines.has(airline)) {
-  //         airlineMatch = true;
-  //         break;
-  //       }
-  //     }
-  //     if (!airlineMatch) return false;
-  //   }
-
-  //   // Price range filter
-  //   const price = Number(response.prices?.TotalPrice);
-  //   if (price < priceRange[0] || price > priceRange[1]) {
-  //     return false;
-  //   }
-  //   return true; // passed all filters
-  // });
-
-  // //data storing
-  // const sortedFlights = [...filteredFlights].sort((a, b) => {
-  //   // // console.log("filteredFlights", filteredFlights)
-  //   const getTime = (timeStr) => new Date(timeStr).getTime();
-
-  //   const flightA = a;
-  //   const flightB = b;
-  //   switch (sortField) {
-  //     case "departure":
-  //       return sortOrder === "asc"
-  //         ? getTime(flightA.flight.depTime) - getTime(flightB.flight.depTime)
-  //         : getTime(flightB.flight.depTime) - getTime(flightA.flight.depTime);
-
-  //     // case "arrival":
-  //     //   return sortOrder === "asc"
-  //     //     ? getTime(flightA.flight.arrTime) - getTime(flightB.flight.arrTime)
-  //     //     : getTime(flightB.flight.arrTime) - getTime(flightA.flight.arrTime);
-  //     case "arrival": {
-  //       const parseArrivalDate = (value) => {
-  //         if (!value) return 0;
-
-  //         // Extract +XDays
-  //         let extraDays = 0;
-  //         const dayMatch = value.match(/\+(\d+)Days/);
-  //         if (dayMatch) extraDays = parseInt(dayMatch[1]);
-
-  //         // Remove +XDays to isolate the datetime part
-  //         let cleaned = value.replace(/\+\d+Days/, "").trim();
-
-  //         // Try to convert cleaned string into Date
-  //         let baseDate = new Date(cleaned);
-
-  //         // If invalid date AND only time provided → fallback to today
-  //         if (isNaN(baseDate.getTime())) {
-  //           const [time] = cleaned.split(" ");
-  //           const [h, m] = time.split(":").map(Number);
-  //           baseDate = new Date();
-  //           baseDate.setHours(h, m, 0, 0);
-  //         }
-
-  //         // Add the extra days
-  //         baseDate.setDate(baseDate.getDate() + extraDays);
-
-  //         return baseDate.getTime();
-  //       };
-
-  //       const A = parseArrivalDate(flightA.flight.arrTime);
-  //       const B = parseArrivalDate(flightB.flight.arrTime);
-
-  //       return sortOrder === "asc" ? A - B : B - A;
-  //     }
-
-  //     case "travelTime": {
-  //       const durationA =
-  //         new Date(flightA.flight.arrTime).getTime() -
-  //         new Date(flightA.flight.depTime).getTime();
-  //       const durationB =
-  //         new Date(flightB.flight.arrTime).getTime() -
-  //         new Date(flightB.flight.depTime).getTime();
-  //       return sortOrder === "asc"
-  //         ? durationA - durationB
-  //         : durationB - durationA;
-  //     }
-
-  //     case "stops": {
-  //       const stopsA = flightA.flight.segments.length - 1;
-  //       const stopsB = flightB.flight.segments.length - 1;
-  //       return sortOrder === "asc" ? stopsA - stopsB : stopsB - stopsA;
-  //     }
-  //     case "price": {
-  //       const minFareA = Math.min(Number(flightA.prices.TotalPrice));
-  //       const minFareB = Math.min(Number(flightB.prices.TotalPrice));
-  //       return sortOrder === "asc" ? minFareA - minFareB : minFareB - minFareA;
-  //     }
-
-  //     default:
-  //       return 0;
-  //   }
-  // });
-  // Filtered Onward Flights
   const filteredFlights = React.useMemo(() => {
     if (!FlightOptions?.length) return [];
 
@@ -1460,6 +1417,11 @@ const FinalSearchFlight = () => {
     setSelectedAirlines(new Set());
     setPriceRange([minFare, maxFare]); // or your initial default range
     setShowPrices(new Set());
+    setReturnSelectedStops(new Set());
+    setSelectedReturnDepartures([]);
+    setSelectedReturnArrivals([]);
+    setSelectedReturnAirlines(new Set());
+    setPriceReturnRange([minFare, maxFare]);
   };
 
   // -------------------------------------------- Return Filter ---------------------------------------------
@@ -1619,7 +1581,7 @@ const FinalSearchFlight = () => {
         return false;
       }
 
-      if (idx < 5) console.log(`Flight ${idx} ACCEPTED all filters`);
+      if (idx < 5);
       return true;
     });
 
@@ -1736,10 +1698,18 @@ const FinalSearchFlight = () => {
 
   // -----------------------------------------------------Fare selection for booking---------------------------------------------------
 
-  const handleSingleSelect = (flight, fare, index, baseFare, journey) => {
+  const handleSingleSelect = (flight, fare, flightId, baseFare, journey) => {
+    console.log("flight", flight);
+    console.log("fare", fare);
+    console.log(flightId);
+    console.log("jounery", journey);
+    //  const EffectiveFlightId = flightId;
+    //   const policyKey = `${EffectiveFlightId}_${fare.type}`;
+    //   const policyData = cancellationPolicies[policyKey];
+    //   console.log("Policy data for booking:", policyData); // Debug log
     setSelectedFareforbooking((prev) => ({
       ...prev,
-      [journey]: { flight: flight, fare: fare }, // replace the array with only the selected fare for the given journey
+      [journey]: { flight: flight, fare: fare, flightId: flightId }, // replace the array with only the selected fare for the given journey
     }));
     setFlightBookingOpen(true);
   };
@@ -1828,6 +1798,7 @@ const FinalSearchFlight = () => {
 
   const AddClientPrice = (
     fare,
+    flightId,
     segments,
     Cabinclass,
     inputValue,
@@ -1835,9 +1806,12 @@ const FinalSearchFlight = () => {
     isRoundTrip = false,
     returnData = null,
   ) => {
-    // For one-way flight or onward flight only
+    const EffectiveFlightId = flightId;
+    const policyKey = `${EffectiveFlightId}_${fare.type}`;
+    const policyData = cancellationPolicies[policyKey];
     const bookingData = {
       fare,
+      flightId,
       segments,
       Cabinclass,
       inputValue,
@@ -1860,13 +1834,13 @@ const FinalSearchFlight = () => {
           ? (fare?.price || 0) + (returnData.fare?.price || 0)
           : fare?.price || 0,
     };
-
+    console.log("Policy data for booking:", policyData); // Debug log
     // console.log("Booking Data:", bookingData); // Debug log
 
     setBookingPayload(bookingData);
     setIsModalOpen2(true);
   };
-  console.log("Booking Payload:", bookingPayload); // Debug log
+  // console.log("Booking Payload:", bookingPayload); // Debug log
   const NavigatetoBookingflow = (
     fare,
     segments,
@@ -1874,6 +1848,7 @@ const FinalSearchFlight = () => {
     inputValue,
     FlightInfo,
     ClientPrice,
+    onwardPolicyData,
   ) => {
     const adultCount = inputValue.adult
       ? Number(inputValue.adult)
@@ -1903,6 +1878,7 @@ const FinalSearchFlight = () => {
       FlightDetails: location.state.responseData || "",
       // ClientPrice: Number(ClientPrice) || 0,
       ClientPrice: Number(ClientPriceOnward) || 0,
+      cancellationPolicy: onwardPolicyData,
       // ClientPriceOnward: Number(ClientPriceOnward) || 0,
     };
     sessionStorage.setItem("PriceResponse", JSON.stringify(PriceResponse));
@@ -1930,8 +1906,10 @@ const FinalSearchFlight = () => {
       : Number(infant);
 
     const PriceResponse = {
-      onward: { ...FlightData.Onward },
-      return: { ...FlightData.Return },
+      onward: { ...FlightData.Onward ,  cancellationPolicy: FlightData.Onward.cancellationPolicy,
+      flightId: FlightData.Onward.flightId, },
+      return: { ...FlightData.Return , cancellationPolicy: FlightData.Return.cancellationPolicy,
+      flightId: FlightData.Return.flightId, },
       CabinClass: cabinClass,
       Passenger_info: {
         Adult: adultCount,
@@ -2039,66 +2017,205 @@ const FinalSearchFlight = () => {
 
     return `${hours}h ${minutes}m`;
   }
+
   const [cancellationPolicies, setCancellationPolicies] = useState({}); // key: flightId_fareType, value: policy data
+  const [cancellationPoliciesUapi, setCancellationPoliciesUapi] = useState({});
   const [policyLoading, setPolicyLoading] = useState({});
 
-  const fetchCancellationPolicy = async (fare, flightId, resultIndex) => {
-    console.log("Fetching policy with:", { fare, flightId, resultIndex });
+  const fetchCancellationForUapiFare = async () => {
+    try {
+      const response = await fetch(
+        `${CONFIG.MAIN_API}/api/flights/getCancellationDateChangePolicy`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        },
+      );
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const Data = await response.json();
+      setCancellationPoliciesUapi(Data.data);
+    } catch (error) {
+      console.error("Error fetching cancellation policy:", error);
+      // Optionally set an error state to show to user
+      // setCancellationError(error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (!hasFetchedRefForCancellation.current) {
+      fetchCancellationForUapiFare();
+      hasFetchedRefForCancellation.current = true;
+    }
+  }, []); // Empty dependency array is fine with the ref pattern
+  const fetchCancellationPolicy = async (fare, flightId, resultIndex) => {
     if (!resultIndex) {
-      console.error("No resultIndex found for fare");
       return null;
     }
 
     const policyKey = `${flightId}_${fare.type}`;
-    console.log("Policy key:", policyKey);
 
     // Don't fetch if already have policy or currently loading
     if (cancellationPolicies[policyKey] || policyLoading[policyKey]) {
-      console.log("Policy already exists or loading:", policyKey);
       return cancellationPolicies[policyKey];
     }
 
     try {
       setPolicyLoading((prev) => ({ ...prev, [policyKey]: true }));
 
-      const requestData = {
-        onwardKeys: {
-          key: resultIndex,
-          traceId: fare.trace_id || fare.traceId || fare.TraceId || "", // Make sure trace_id is available in fare object
-          source_type: fare.from  ,// Get source from fare
-          flighttype: FLightType,
-          isLCC: fare.isLCC,
-          FareClass: fare.SupplierFareClass || "",
-        },
-      };
+      // Check source type
+      if (fare.from === "Tbo") {
+        // For TBO - Always call cancellationsPolicies API
+        const requestData = {
+          onwardKeys: {
+            key: resultIndex,
+            traceId: fare.trace_id || fare.traceId || fare.TraceId || "",
+            source_type: fare.from,
+            flighttype: FLightType,
+            isLCC: fare.isLCC,
+            FareClass: fare.SupplierFareClass || "",
+          },
+          passengerDetails: PassengerDetails,
+        };
 
-      console.log("API Request Data:", requestData);
-
-      const response = await fetch(
-        `${base_url}cancellationsPolicies`,
-        // "https://www.nirixak.com/testuapi/api/flights/cancellationsPolicies",
-        {
+        const response = await fetch(`${base_url}cancellationsPolicies`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(requestData),
-        },
-      );
+        });
 
-      console.log("API Response status:", response.status);
+        const data = await response.json();
 
-      const data = await response.json();
-      console.log("API Response data:", data);
+        if (data.status && data.data) {
+          // Store TBO policy WITH all the fare info
+          setCancellationPolicies((prev) => ({
+            ...prev,
+            [policyKey]: {
+              source: "Tbo",
+              type: "api",
+              data: data.data,
+              // Add all the fare info here
+              originCity: fare.originCity,
+              destinationCity: fare.destinationCity,
+              originCode: fare.originCode,
+              destinationCode: fare.destinationCode,
+              airlineName: fare.airlineName,
+              fareType: fare.type || fare.SupplierFareClass,
+            },
+          }));
+          return data.data;
+        }
+      } else if (fare.from === "Uapi") {
+        // For UAPI - First check in pre-fetched cancellation policies
+        const uapiCancellationPolicies =
+          cancellationPoliciesUapi?.Cancellation || [];
+        const uapiDateChangePolicies =
+          cancellationPoliciesUapi?.Date_Change || [];
 
-      if (data.status && data.data) {
-        // Store the policy
-        setCancellationPolicies((prev) => ({
-          ...prev,
-          [policyKey]: data.data,
-        }));
-        return data.data;
+        // Find matching fare type in UAPI policies
+        const matchingCancellationPolicy = uapiCancellationPolicies.find(
+          (policy) =>
+            policy.fare_name?.toLowerCase() === fare.type?.toLowerCase(),
+        );
+
+        const matchingDateChangePolicy = uapiDateChangePolicies.find(
+          (policy) =>
+            policy.fare_name?.toLowerCase() === fare.type?.toLowerCase(),
+        );
+
+        if (matchingCancellationPolicy || matchingDateChangePolicy) {
+          // Fare type found in UAPI predefined policies
+          setCancellationPolicies((prev) => ({
+            ...prev,
+            [policyKey]: {
+              source: "Uapi",
+              type: "predefined",
+              data: {
+                onward: {
+                  fareTypeFound: fare.type,
+                  cancellation: matchingCancellationPolicy
+                    ? {
+                        charges: matchingCancellationPolicy.charges,
+                        fee: matchingCancellationPolicy.fee,
+                        timeframe: matchingCancellationPolicy.timeframe,
+                      }
+                    : null,
+                  dateChange: matchingDateChangePolicy
+                    ? {
+                        charges: matchingDateChangePolicy.charges,
+                        fee: matchingDateChangePolicy.fee,
+                        timeframe: matchingDateChangePolicy.timeframe,
+                      }
+                    : null,
+                },
+              },
+              // Add all the fare info here
+              originCity: fare.originCity,
+              destinationCity: fare.destinationCity,
+              originCode: fare.originCode,
+              destinationCode: fare.destinationCode,
+              airlineName: fare.airlineName,
+              fareType: fare.type || fare.SupplierFareClass,
+            },
+          }));
+          return {
+            onward: {
+              fareTypeFound: fare.type,
+              cancellation: matchingCancellationPolicy,
+              dateChange: matchingDateChangePolicy,
+            },
+          };
+        } else {
+          // Fare type not found in UAPI policies - Call cancellationsPolicies API
+          const requestData = {
+            onwardKeys: {
+              key: resultIndex,
+              traceId: fare.trace_id || fare.traceId || fare.TraceId || "",
+              source_type: fare.from,
+              flighttype: FLightType,
+              isLCC: fare.isLCC,
+              FareClass: fare.SupplierFareClass || "",
+            },
+            passengerDetails: PassengerDetails,
+          };
+
+          const response = await fetch(`${base_url}cancellationsPolicies`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestData),
+          });
+
+          const data = await response.json();
+
+          if (data.status && data.data) {
+            // Store UAPI policy from API WITH all the fare info
+            setCancellationPolicies((prev) => ({
+              ...prev,
+              [policyKey]: {
+                source: "Uapi",
+                type: "api",
+                data: data.data,
+                // Add all the fare info here
+                originCity: fare.originCity,
+                destinationCity: fare.destinationCity,
+                originCode: fare.originCode,
+                destinationCode: fare.destinationCode,
+                airlineName: fare.airlineName,
+                fareType: fare.type || fare.SupplierFareClass,
+              },
+            }));
+            return data.data;
+          }
+        }
       }
 
       return null;
@@ -2109,7 +2226,11 @@ const FinalSearchFlight = () => {
       setPolicyLoading((prev) => ({ ...prev, [policyKey]: false }));
     }
   };
-
+  // Add this helper function to get policy data for a fare
+  const getPolicyForFare = (flightId, fareType) => {
+    const policyKey = `${flightId}_${fareType}`;
+    return cancellationPolicies[policyKey] || null;
+  };
   const Shareflight = async () => {
     // Helper function to clean text
 
@@ -3568,7 +3689,13 @@ const FinalSearchFlight = () => {
       // 5. Prepare the final request with cleaned HTML (no highlights, no outlines)
       const finalRequest = {
         ...updatedRequestData,
-        htmlContent: emailHtmlContent, // Use the cleaned HTML without any highlights or outlines
+        // Add current email values from state
+        email: Array.isArray(spocEmails) ? spocEmails.filter(Boolean) : [],
+        cc_email: Array.isArray(ccEmails) ? ccEmails.filter(Boolean) : [],
+        additional_emails: Array.isArray(additionalEmails)
+          ? additionalEmails.filter(Boolean)
+          : [],
+        htmlContent: emailHtmlContent,
         flag: "send",
       };
 
@@ -4311,35 +4438,43 @@ const FinalSearchFlight = () => {
                 </div>
               </div>
               <button
-  type="button"
-  className="srch-btn"
-  style={{
-    width: "98px",
-    marginBottom: "-5px",
-    height: "39px",
-    fontSize: "14px",
-    // Add cursor style for disabled state
-    cursor: (inputValue.bookingType === "1" || 
-             (bookingid !== null && bookingid !== undefined && bookingid !== "")) 
-             ? "not-allowed" : "pointer",
-    // Optional: make it look more disabled
-    opacity: (inputValue.bookingType === "1" || 
-             (bookingid !== null && bookingid !== undefined && bookingid !== "")) 
-             ? 0.6 : 1
-  }}
-  disabled={
-    inputValue.bookingType === "1" ||
-    (bookingid !== null &&
-      bookingid !== undefined &&
-      bookingid !== "")
-  }
-  onClick={() => {
-    fetchData();
-    handleserachfunction();
-  }}
->
-  Search
-</button>
+                type="button"
+                className="srch-btn"
+                style={{
+                  width: "98px",
+                  marginBottom: "-5px",
+                  height: "39px",
+                  fontSize: "14px",
+                  // Add cursor style for disabled state
+                  cursor:
+                    inputValue.bookingType === "1" ||
+                    (bookingid !== null &&
+                      bookingid !== undefined &&
+                      bookingid !== "")
+                      ? "not-allowed"
+                      : "pointer",
+                  // Optional: make it look more disabled
+                  opacity:
+                    inputValue.bookingType === "1" ||
+                    (bookingid !== null &&
+                      bookingid !== undefined &&
+                      bookingid !== "")
+                      ? 0.6
+                      : 1,
+                }}
+                disabled={
+                  inputValue.bookingType === "1" ||
+                  (bookingid !== null &&
+                    bookingid !== undefined &&
+                    bookingid !== "")
+                }
+                onClick={() => {
+                  fetchData();
+                  handleserachfunction();
+                }}
+              >
+                Search
+              </button>
             </div>
           </div>
         </form>
@@ -4619,7 +4754,7 @@ const FinalSearchFlight = () => {
                                 </span>
                               )}
                             </div>
-                            <div
+                            {/* <div
                               className="col-md-2 stopsfilter cursor-pointer"
                               onClick={() => handleSort("stops")}
                               style={{
@@ -4632,7 +4767,7 @@ const FinalSearchFlight = () => {
                                   {sortOrder === "asc" ? "↓" : "↑"}
                                 </span>
                               )}
-                            </div>
+                            </div> */}
                             <div
                               className="col-md-3 pricefilter cursor-pointer"
                               onClick={() => handleSort("price")}
@@ -4841,8 +4976,9 @@ const FinalSearchFlight = () => {
                                   }`}
                                 >
                                   <div className="flt-i-a flex flex-col">
-                                    <div className="flt-i-b ">
+                                    <div className="flt-i-b">
                                       <div className="flt-l-b">
+                                        {/* Airline logos and names section */}
                                         <div className="mb-1">
                                           {[
                                             ...new Set(
@@ -4872,7 +5008,7 @@ const FinalSearchFlight = () => {
                                             ].join(" , ")}
                                           </p>
                                         </div>
-                                        <p className=" text-[11px] font-Montserrat mb-1">
+                                        <p className="text-[11px] font-Montserrat mb-1">
                                           {FlightInfo?.segments
                                             ?.map(
                                               (segment) =>
@@ -4884,6 +5020,7 @@ const FinalSearchFlight = () => {
 
                                       <div className="flt-l-c">
                                         <div className="flt-l-cb flight-line">
+                                          {/* Departure section */}
                                           <div
                                             className="flight-line-a"
                                             style={{ width: "58px" }}
@@ -4908,46 +5045,53 @@ const FinalSearchFlight = () => {
                                               }
                                             </div>
                                           </div>
+
+                                          {/* Flight path line */}
                                           <div className="flight-line-d1"></div>
-                                          <div className="flight-line-a mt-7 text-center font-Montserrat">
+
+                                          {/* Duration and stops section */}
+                                          <div className="flight-line-a  text-center font-Montserrat">
                                             <div className="stop-badge-container relative group">
-                                              <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 z-10">
-                                                <div className="bg-white text-black text-[8px] font-Montserrat px-3 py-2 rounded border shadow-md whitespace-nowrap relative">
-                                                  {segments.length === 1 ? (
-                                                    <span className="text-[8px]">
-                                                      This is a direct flight
-                                                      with no stops
-                                                    </span>
-                                                  ) : (
-                                                    <span
-                                                      className=" leading-tight"
-                                                      style={{
-                                                        fontSize: "10px",
-                                                      }}
-                                                    >
-                                                      <p className="mb-0">
-                                                        Plane Change
-                                                      </p>
-                                                      <p className="mb-1">
-                                                        {
-                                                          segments[0]
-                                                            .Destination.Airport
-                                                            .CityName
-                                                        }{" "}
-                                                        | {Totallayover}
-                                                      </p>
-                                                    </span>
-                                                  )}
-                                                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-white"></div>
-                                                </div>
-                                              </div>
+                                              {/* Tooltip - Now positioned at the bottom */}
+                                              {/* <div className="absolute hidden group-hover:block top-full mt-2 left-1/2 -translate-x-1/2 z-10">
+    <div className="bg-white text-black text-[8px] font-Montserrat px-3 py-2 rounded border shadow-md whitespace-nowrap relative">
+      {segments.length === 1 ? (
+        <span className="text-[8px]">
+          This is a direct flight with no stops
+        </span>
+      ) : (
+        <span
+          className="leading-tight"
+          style={{
+            fontSize: "10px",
+          }}
+        >
+          <p className="mb-0">
+            Plane Change
+          </p>
+          <p className="mb-1">
+            {
+              segments[0]
+                .Destination.Airport
+                .CityName
+            }{" "}
+            | {Totallayover}
+          </p>
+        </span>
+      )}
+    
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-b-8 border-b-white"></div>
+    </div>
+  </div> */}
+
+                                              {/* Your existing stop badge content */}
                                               <div className="flight-line-a">
                                                 <span className="text-sm">
                                                   {duration}
                                                 </span>
                                                 <div className="w-fit mx-auto stop-badge">
                                                   {segments.length === 1 ? (
-                                                    <p className=" cursor-pointer leading-tight">
+                                                    <p className="cursor-pointer leading-tight">
                                                       Non-stop
                                                     </p>
                                                   ) : (
@@ -4967,7 +5111,11 @@ const FinalSearchFlight = () => {
                                               </div>
                                             </div>
                                           </div>
+
+                                          {/* Flight path line */}
                                           <div className="flight-line-d2"></div>
+
+                                          {/* Arrival section */}
                                           <div
                                             className="flight-line-a"
                                             style={{ width: "90px" }}
@@ -5016,214 +5164,256 @@ const FinalSearchFlight = () => {
                                               }
                                             </div>
                                           </div>
-                                          <div className="flt-i-price">
-                                            ₹{" "}
-                                            {Number(response.prices.TotalPrice)}
-                                            <br />
-                                            <span className="text-[10px] text-gray-500">
-                                              Per Passenger{" "}
-                                            </span>
+
+                                          {/* Price and Actions Container - NEW */}
+                                          <div className="price-actions-container">
+                                            {/* Price Display */}
+                                            <div className="price-display">
+                                              ₹{" "}
+                                              {Number(
+                                                response.prices.TotalPrice,
+                                              )}
+                                              <br />
+                                              <span className="text-[10px] text-gray-900 float-right font-normal">
+                                                /adult
+                                              </span>
+                                            </div>
+
+                                            {/* Actions Container */}
+                                            <div className="actions-container">
+                                              {/* View Prices Button */}
+                                              <button
+                                                className="view-prices-btn"
+                                                onClick={() => {
+                                                  if (!flightFares[flightId]) {
+                                                    Getfares(
+                                                      response,
+                                                      flightId,
+                                                    );
+                                                  }
+                                                  toggleShowPrices(flightId);
+                                                }}
+                                              >
+                                                <span className="text-[12px]">
+                                                  View Prices
+                                                </span>
+                                              </button>
+
+                                              {/* Show Flight Details Link */}
+                                              <div className="flight-details-link">
+                                                <b
+                                                  onClick={() =>
+                                                    setShowFlightDetails(
+                                                      showFlightDetails ===
+                                                        index
+                                                        ? null
+                                                        : index,
+                                                    )
+                                                  }
+                                                >
+                                                  Show Flight Details
+                                                </b>
+                                              </div>
+                                            </div>
                                           </div>
                                         </div>
                                       </div>
                                     </div>
 
                                     {/*  Price Display Section - flightId based */}
-                                  
-  {showPrices.has(flightId) && (
-                                          <div className="price-fixed-container">
-                                            {fareloadingg[flightId] && (
-                                              <div className="flex items-center justify-center bg-white/30">
-                                                <div className="big-loader flex items-center justify-center">
-                                                  <img
-                                                    style={{
-                                                      width: "100px",
-                                                      height: "100px",
-                                                    }}
-                                                    src="/img/cotravloader.gif"
-                                                    alt="Loader"
-                                                  />
-                                                  <p className="text-center ml-4 text-gray-600 text-xs">
-                                                    Retrieving flight fares.
-                                                    Please wait a moment.
-                                                  </p>
-                                                </div>
-                                              </div>
-                                            )}
 
-                                            <div className="fare-mini-grid-onward">
-                                              {uniqueFares.map((fare, idx) => {
-                                                const isSelected =
-                                                  selectedFares.some(
-                                                    (f) =>
-                                                      f.flightId === flightId &&
-                                                      f.fareType === fare.type,
-                                                  );
-                                                const policyKey = `${flightId}_${fare.type}`;
-                                                const isPolicyLoading =
-                                                  policyLoading[policyKey];
-                                                const hasPolicy =
-                                                  cancellationPolicies[
-                                                    policyKey
-                                                  ];
+                                    {showPrices.has(flightId) && (
+                                      <div className="price-fixed-container">
+                                        {fareloadingg[flightId] && (
+                                          <div className="flex items-center justify-center bg-white/30">
+                                            <div className="big-loader flex items-center justify-center">
+                                              <img
+                                                style={{
+                                                  width: "100px",
+                                                  height: "100px",
+                                                }}
+                                                src="/img/cotravloader.gif"
+                                                alt="Loader"
+                                              />
+                                              <p className="text-center ml-4 text-gray-600 text-xs">
+                                                Retrieving flight fares. Please
+                                                wait a moment.
+                                              </p>
+                                            </div>
+                                          </div>
+                                        )}
 
-                                                // Check if Book Now button should be hidden
-                                                const hideBookNow = false; // Replace with your actual condition
+                                        <div className="fare-mini-grid-onward">
+                                          {uniqueFares.map((fare, idx) => {
+                                            const isSelected =
+                                              selectedFares.some(
+                                                (f) =>
+                                                  f.flightId === flightId &&
+                                                  f.fareType === fare.type,
+                                              );
+                                            const policyKey = `${flightId}_${fare.type}`;
+                                            const isPolicyLoading =
+                                              policyLoading[policyKey];
+                                            const hasPolicy =
+                                              cancellationPolicies[policyKey];
 
-                                                return (
-                                                  <div
-                                                    className={`fare-mini-card ${isSelected ? "mini-selected" : ""}`}
-                                                    key={idx}
-                                                  >
-                                                    <div className="fare-mini-content">
-                                                      {/* Fare Type and Policy Icon */}
-                                                      <div className="fare-mini-header">
-                                                        <span className="fare-mini-type">
-                                                          {fare.type}
+                                            // Check if Book Now button should be hidden
+                                            const hideBookNow = false; // Replace with your actual condition
+
+                                            return (
+                                              <div
+                                                className={`fare-mini-card ${isSelected ? "mini-selected" : ""}`}
+                                                key={idx}
+                                              >
+                                                <div className="fare-mini-content">
+                                                  {/* Fare Type and Policy Icon */}
+                                                  <div className="fare-mini-header">
+                                                    <span className="fare-mini-type">
+                                                      {fare.type}
+                                                    </span>
+                                                    <button
+                                                      className="fare-mini-policy"
+                                                      type="button"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleShowPolicy(
+                                                          FlightInfo,
+                                                          fare,
+                                                          flightId,
+                                                          currentFlightFares?.base_fare,
+                                                        );
+                                                      }}
+                                                      title="View Cancellation & Date Change Policy"
+                                                    >
+                                                      {isPolicyLoading ? (
+                                                        <span className="mini-policy-loading">
+                                                          ...
                                                         </span>
+                                                      ) : (
+                                                        <svg
+                                                          width="10"
+                                                          height="10"
+                                                          viewBox="0 0 24 24"
+                                                          fill="none"
+                                                          xmlns="http://www.w3.org/2000/svg"
+                                                          className={`mini-policy-icon ${hasPolicy ? "mini-policy-active" : ""}`}
+                                                        >
+                                                          <path
+                                                            d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                          />
+                                                          <path
+                                                            d="M12 16V12"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                          />
+                                                          <path
+                                                            d="M12 8H12.01"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                          />
+                                                        </svg>
+                                                      )}
+                                                    </button>
+                                                  </div>
+
+                                                  {/* Source - Highlighted */}
+                                                  {fare.from && (
+                                                    <div className="fare-mini-source">
+                                                      ({fare.from})
+                                                    </div>
+                                                  )}
+
+                                                  {/* Price Row - Conditional rendering based on hideBookNow */}
+                                                  {hideBookNow ? (
+                                                    <div className="fare-mini-price-row">
+                                                      <span className="fare-mini-price">
+                                                        ₹{fare.price}
+                                                      </span>
+                                                      <button
+                                                        className={`fare-mini-toggle ${isSelected ? "toggle-active" : ""}`}
+                                                        type="button"
+                                                        title={
+                                                          isSelected
+                                                            ? "Remove Fare"
+                                                            : "Select fare and share"
+                                                        }
+                                                        onClick={() =>
+                                                          AddClientPrice(
+                                                            fare,
+                                                            flightId,
+                                                            FlightInfo?.segments,
+                                                            cabinClass,
+                                                            inputValue,
+                                                            FlightInfo,
+                                                          )
+                                                        }
+                                                      >
+                                                        {isSelected ? "−" : "+"}
+                                                      </button>
+                                                    </div>
+                                                  ) : (
+                                                    <>
+                                                      <div className="fare-mini-price">
+                                                        ₹{fare.price}
+                                                      </div>
+                                                      {/* Button Group with Book Now and Toggle */}
+                                                      <div className="fare-mini-button-group">
                                                         <button
-                                                          className="fare-mini-policy"
                                                           type="button"
-                                                          onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleShowPolicy(
+                                                          className="fare-mini-book"
+                                                          onClick={() =>
+                                                            AddClientPrice(
+                                                              fare,
+                                                              flightId,
+                                                              FlightInfo?.segments,
+                                                              cabinClass,
+                                                              inputValue,
+                                                              FlightInfo,
+                                                            )
+                                                          }
+                                                        >
+                                                          BOOK NOW
+                                                        </button>
+
+                                                        <button
+                                                          className={`fare-mini-toggle ${isSelected ? "toggle-active" : ""}`}
+                                                          type="button"
+                                                          title={
+                                                            isSelected
+                                                              ? "Remove Fare"
+                                                              : "Select fare and share"
+                                                          }
+                                                          onClick={() =>
+                                                            handleFareToggle(
                                                               FlightInfo,
                                                               fare,
                                                               flightId,
                                                               currentFlightFares?.base_fare,
-                                                            );
-                                                          }}
-                                                          title="View Cancellation & Date Change Policy"
+                                                            )
+                                                          }
                                                         >
-                                                          {isPolicyLoading ? (
-                                                            <span className="mini-policy-loading">
-                                                              ...
-                                                            </span>
-                                                          ) : (
-                                                            <svg
-                                                              width="10"
-                                                              height="10"
-                                                              viewBox="0 0 24 24"
-                                                              fill="none"
-                                                              xmlns="http://www.w3.org/2000/svg"
-                                                              className={`mini-policy-icon ${hasPolicy ? "mini-policy-active" : ""}`}
-                                                            >
-                                                              <path
-                                                                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                                                                stroke="currentColor"
-                                                                strokeWidth="2"
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                              />
-                                                              <path
-                                                                d="M12 16V12"
-                                                                stroke="currentColor"
-                                                                strokeWidth="2"
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                              />
-                                                              <path
-                                                                d="M12 8H12.01"
-                                                                stroke="currentColor"
-                                                                strokeWidth="2"
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                              />
-                                                            </svg>
-                                                          )}
+                                                          {isSelected
+                                                            ? "−"
+                                                            : "+"}
                                                         </button>
                                                       </div>
-
-                                                      {/* Source - Highlighted */}
-                                                      {fare.from && (
-                                                        <div className="fare-mini-source">
-                                                          ({fare.from})
-                                                        </div>
-                                                      )}
-
-                                                      {/* Price Row - Conditional rendering based on hideBookNow */}
-                                                      {hideBookNow ? (
-                                                        <div className="fare-mini-price-row">
-                                                          <span className="fare-mini-price">
-                                                            ₹{fare.price}
-                                                          </span>
-                                                          <button
-                                                            className={`fare-mini-toggle ${isSelected ? "toggle-active" : ""}`}
-                                                            type="button"
-                                                            title={
-                                                              isSelected
-                                                                ? "Remove Fare"
-                                                                : "Select fare and share"
-                                                            }
-                                                              onClick={() =>
-                                                    AddClientPrice(
-                                                      fare,
-                                                      FlightInfo?.segments,
-                                                      cabinClass,
-                                                      inputValue,
-                                                      FlightInfo,
-                                                    )
-                                                  }
-                                                          >
-                                                            {isSelected
-                                                              ? "−"
-                                                              : "+"}
-                                                          </button>
-                                                        </div>
-                                                      ) : (
-                                                        <>
-                                                          <div className="fare-mini-price">
-                                                            ₹{fare.price}
-                                                          </div>
-                                                          {/* Button Group with Book Now and Toggle */}
-                                                          <div className="fare-mini-button-group">
-                                                            <button
-                                                              type="button"
-                                                              className="fare-mini-book"
-                                                              onClick={() =>
-                                                                handleSingleSelect(
-                                                                  FlightInfo,
-                                                                  fare,
-                                                                  flightId,
-                                                                  currentFlightFares?.base_fare,
-                                                                  "Onward",
-                                                                )
-                                                              }
-                                                            >
-                                                              BOOK NOW
-                                                            </button>
-
-                                                            <button
-                                                              className={`fare-mini-toggle ${isSelected ? "toggle-active" : ""}`}
-                                                              type="button"
-                                                              title={
-                                                                isSelected
-                                                                  ? "Remove Fare"
-                                                                  : "Select fare and share"
-                                                              }
-                                                              onClick={() =>
-                                                                handleFareToggle(
-                                                                  FlightInfo,
-                                                                  fare,
-                                                                  flightId,
-                                                                  currentFlightFares?.base_fare,
-                                                                )
-                                                              }
-                                                            >
-                                                              {isSelected
-                                                                ? "−"
-                                                                : "+"}
-                                                            </button>
-                                                          </div>
-                                                        </>
-                                                      )}
-                                                    </div>
-                                                  </div>
-                                                );
-                                              })}
-                                            </div>
-                                          </div>
-                                        )}
+                                                    </>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    )}
                                     {/* Flight Details Section */}
                                     <div className="flt-l-cr">
                                       {showFlightDetails === index && (
@@ -5270,8 +5460,6 @@ const FinalSearchFlight = () => {
                                                   FARE SUMMARY
                                                 </Nav.Link>
                                               </Nav.Item>
-                                            
-                                            
                                             </Nav>
 
                                             <div>
@@ -5670,38 +5858,6 @@ const FinalSearchFlight = () => {
                                   </div>
 
                                   {/*  Action Buttons - flightId based */}
-                                  <div className="flt-i-c">
-                                    <div className="flt-i-padding">
-                                      <button
-                                        className="srch-btn"
-                                        style={{ borderRadius: "18px" }}
-                                        onClick={() => {
-                                          //  flightId use karo, index nahi
-                                          if (!flightFares[flightId]) {
-                                            Getfares(response, flightId); //  flightId bhejo
-                                          }
-                                          toggleShowPrices(flightId); //  flightId bhejo
-                                        }}
-                                      >
-                                        <span className="text-[12px]">
-                                          View Prices
-                                        </span>
-                                      </button>
-                                    </div>
-                                    <div className="flight-line-b">
-                                      <b
-                                        onClick={() =>
-                                          setShowFlightDetails(
-                                            showFlightDetails === index
-                                              ? null
-                                              : index,
-                                          )
-                                        }
-                                      >
-                                        Show Flight Details
-                                      </b>
-                                    </div>
-                                  </div>
                                 </div>
                               );
                             })
@@ -6208,7 +6364,7 @@ const FinalSearchFlight = () => {
                                   </span>
                                 )}
                               </div>
-                              <div
+                              {/* <div
                                 className="col-md-2 stopsfilter cursor-pointer"
                                 onClick={() => handleSort("stops")}
                                 style={{
@@ -6221,7 +6377,7 @@ const FinalSearchFlight = () => {
                                     {sortOrder === "asc" ? "↓" : "↑"}
                                   </span>
                                 )}
-                              </div>
+                              </div> */}
                               <div
                                 className="col-md-3 pricefilter cursor-pointer"
                                 onClick={() => handleSort("price")}
@@ -6612,6 +6768,10 @@ const FinalSearchFlight = () => {
                                                   response.prices.TotalPrice,
                                                 )}
                                               </span>
+                                              <br />
+                                              <span className="text-[10px] text-gray-900 float-right">
+                                                /adult
+                                              </span>
                                             </div>
                                           </div>
                                         </div>
@@ -6901,8 +7061,6 @@ const FinalSearchFlight = () => {
                                                       FARE SUMMARY
                                                     </Nav.Link>
                                                   </Nav.Item>
-                                                  
-                                                  
                                                 </Nav>
 
                                                 <div>
@@ -7433,7 +7591,7 @@ const FinalSearchFlight = () => {
                                   )}
                                 </div>
 
-                                <div
+                                {/* <div
                                   className="col-md-2 stopsfilter cursor-pointer"
                                   onClick={() => handleReturnSort("stops")}
                                   style={{
@@ -7447,7 +7605,7 @@ const FinalSearchFlight = () => {
                                       {sortReturnOrder === "asc" ? "↑" : "↓"}
                                     </span>
                                   )}
-                                </div>
+                                </div> */}
 
                                 <div
                                   className="col-md-3 pricefilter cursor-pointer"
@@ -7851,6 +8009,10 @@ const FinalSearchFlight = () => {
                                                     response.prices.TotalPrice,
                                                   )}
                                                 </span>
+                                                <br />
+                                                <span className="text-[10px] text-gray-900 float-right">
+                                                  /adult
+                                                </span>
                                               </div>
                                             </div>
                                           </div>
@@ -8150,7 +8312,6 @@ const FinalSearchFlight = () => {
                                                         FARE SUMMARY
                                                       </Nav.Link>
                                                     </Nav.Item>
-                                                  
                                                   </Nav>
 
                                                   <div>
@@ -9086,15 +9247,29 @@ const FinalSearchFlight = () => {
                         onwardFlight: selectedFareforbooking.Onward.flight,
                         onwardSegments:
                           selectedFareforbooking?.Onward.flight.segments,
+                        onwardFlightId:
+                          selectedFareforbooking?.Onward?.flightId,
                         returnFare: selectedFareforbooking.Return?.fare,
                         returnFlight: selectedFareforbooking.Return?.flight,
                         returnSegments:
                           selectedFareforbooking?.Return?.flight?.segments,
+                        returnFlightId:
+                          selectedFareforbooking?.Return?.flightId,
                         cabinClass: cabinClass,
                         inputValue: inputValue,
                         totalPrice:
                           (selectedFareforbooking.Onward.fare.price || 0) +
                           (selectedFareforbooking.Return?.fare?.price || 0),
+                      });
+                      console.log("Booking payload set for round trip:", {
+                        onwardFlightId:
+                          selectedFareforbooking?.Onward?.flightId,
+                        returnFlightId:
+                          selectedFareforbooking?.Return?.flightId,
+                        onwardFareType:
+                          selectedFareforbooking.Onward?.fare?.type,
+                        returnFareType:
+                          selectedFareforbooking.Return?.fare?.type,
                       });
 
                       setIsModalOpen2(true);
@@ -9108,166 +9283,319 @@ const FinalSearchFlight = () => {
           </div>
         </div>
       )}
-  {showPolicyPopup && selectedFarePolicy?.onward && (
-  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      {showPolicyPopup && selectedFarePolicy && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-xl bg-white shadow-2xl max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="relative z-20 shrink-0 bg-gradient-to-r from-[#0c1a2e] to-[#1e3a5f] px-3 py-2 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div>
+                  <h2 className="text-white font-semibold text-sm">
+                    Fare Rules
+                    {/* {selectedFarePolicy.source === "Uapi" && selectedFarePolicy.type === "predefined" && " (Predefined)"} */}
+                  </h2>
+                  <p className="text-white/90 text-xs">
+                    <span className="font-medium">
+                      {selectedFarePolicy.originCity || "N/A"}
+                    </span>
+                    {selectedFarePolicy.originCode &&
+                      ` (${selectedFarePolicy.originCode})`}
+                    <span className="mx-2">→</span>
+                    <span className="font-medium">
+                      {selectedFarePolicy.destinationCity || "N/A"}
+                    </span>
+                    {selectedFarePolicy.destinationCode &&
+                      ` (${selectedFarePolicy.destinationCode})`}{" "}
+                    |{" "}
+                    <span className="font-medium">
+                      {selectedFarePolicy.airlineName || "N/A"}
+                    </span>{" "}
+                    |{" "}
+                    <span className="font-medium">
+                      {selectedFarePolicy.fareType || "N/A"}
+                    </span>
+                  </p>
+                </div>
+              </div>
 
-    <div className="w-full max-w-xl bg-white  shadow-2xl max-h-[90vh] flex flex-col">
+              <button
+                onClick={() => setShowPolicyPopup(false)}
+                className="w-8 h-8 cursor-pointer bg-white/10 hover:bg-white/20 rounded-lg text-slate-300 hover:text-white flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </div>
 
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-0">
+              {/* CASE 1: UAPI Predefined Policy (from getCancellationDateChangePolicy) */}
+              {selectedFarePolicy.source === "Uapi" &&
+                selectedFarePolicy.type === "predefined" && (
+                  <div className="space-y-4">
+                    {/* Fare Type Header */}
+                    <div className="border rounded-xl overflow-hidden border-slate-200">
+                      <div className="bg-blue-50 px-4 py-2 border-t-4 border-blue-500">
+                        <span className="text-xs font-semibold text-slate-800">
+                          {selectedFarePolicy.data?.onward?.fareTypeFound ||
+                            "Fare Policy"}
+                        </span>
+                      </div>
 
-      {/* ================= HEADER ================= */}
-     <div className="relative z-20 shrink-0 bg-gradient-to-r from-[#0c1a2e] to-[#1e3a5f] px-3 py-2 flex justify-between items-center">
-      
-        <div className="flex items-center gap-3">
-          {/* <div className="w-9 h-9 bg-sky-500/20 text-sky-400 rounded-lg flex items-center justify-center">
-            📄
-          </div> */}
-          <div>
-            <h2 className="text-white font-semibold text-sm">
-              Fare Rules
-            </h2>
-            <p className="text-slate-400 text-[11px]">
-              Applicable charges & conditions
-            </p>
+                      {/* Cancellation Policy */}
+                      {selectedFarePolicy.data?.onward?.cancellation && (
+                        <div className="px-4 py-3 border-t">
+                          <span className="text-[10px] uppercase text-slate-400 font-semibold">
+                            Cancellation Policy
+                          </span>
+                          <div className="mt-2 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-slate-600">
+                                Charges:
+                              </span>
+                              <span className="text-sm font-semibold text-red-600">
+                                {
+                                  selectedFarePolicy.data.onward.cancellation
+                                    .charges
+                                }
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-slate-600">
+                                Fee:
+                              </span>
+                              <span className="text-sm text-slate-700">
+                                {
+                                  selectedFarePolicy.data.onward.cancellation
+                                    .fee
+                                }
+                              </span>
+                            </div>
+                            <div className="text-xs text-slate-500 mt-1">
+                              {
+                                selectedFarePolicy.data.onward.cancellation
+                                  .timeframe
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Date Change Policy */}
+                      {selectedFarePolicy.data?.onward?.dateChange && (
+                        <div className="px-4 py-3 border-t">
+                          <span className="text-[10px] uppercase text-slate-400 font-semibold">
+                            Date Change Policy
+                          </span>
+                          <div className="mt-2 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-slate-600">
+                                Charges:
+                              </span>
+                              <span className="text-sm font-semibold text-green-600">
+                                {
+                                  selectedFarePolicy.data.onward.dateChange
+                                    .charges
+                                }
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-slate-600">
+                                Fee:
+                              </span>
+                              <span className="text-sm text-slate-700">
+                                {selectedFarePolicy.data.onward.dateChange.fee}
+                              </span>
+                            </div>
+                            <div className="text-xs text-slate-500 mt-1">
+                              {
+                                selectedFarePolicy.data.onward.dateChange
+                                  .timeframe
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              {/* CASE 2: UAPI API Response (from cancellationsPolicies) */}
+              {selectedFarePolicy.source === "Uapi" &&
+                selectedFarePolicy.type === "api" && (
+                  <div className="border rounded-xl overflow-hidden border-slate-200">
+                    <div className="bg-purple-50 px-4 py-2 border-t-4 border-purple-500">
+                      <span className="text-xs font-semibold text-slate-800">
+                        {selectedFarePolicy.data?.onward?.fareTypeFound ||
+                          "Fare Policy"}
+                      </span>
+                    </div>
+
+                    {selectedFarePolicy.data?.onward?.cancellation && (
+                      <div className="px-4 py-3 border-t">
+                        <span className="text-[10px] uppercase text-slate-400 font-semibold">
+                          Cancellation Policy
+                        </span>
+                        <div className="text-xs text-slate-700 mt-1">
+                          {selectedFarePolicy.data.onward.cancellation}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedFarePolicy.data?.onward?.reissue && (
+                      <div className="px-4 py-3 border-t">
+                        <span className="text-[10px] uppercase text-slate-400 font-semibold">
+                          Date Change Policy
+                        </span>
+                        <div className="text-xs text-slate-700 mt-1">
+                          {selectedFarePolicy.data.onward.reissue}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedFarePolicy.data?.onward?.["No-show"] && (
+                      <div className="px-4 py-3 border-t">
+                        <span className="text-[10px] uppercase text-slate-400 font-semibold">
+                          No-show Policy
+                        </span>
+                        <div className="text-xs text-slate-700 mt-1">
+                          {selectedFarePolicy.data.onward["No-show"]}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              {/* CASE 3: TBO API Response */}
+              {selectedFarePolicy.source === "Tbo" && (
+                <>
+                  {/* Cancellation Section */}
+                  {selectedFarePolicy.data?.onward?.MiniFareRules?.[0]?.filter(
+                    (r) => r.Type === "Cancellation",
+                  ).length > 0 && (
+                    <div className="border rounded-xl overflow-hidden border-slate-200">
+                      <div className="bg-orange-50 px-4 py-2 flex justify-between items-center border-t-4 border-orange-500">
+                        <span className="text-xs font-semibold text-slate-800">
+                          Cancellation
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          Per passenger
+                        </span>
+                      </div>
+
+                      {selectedFarePolicy.data?.onward?.MiniFareRules[0]
+                        .filter((r) => r.Type === "Cancellation")
+                        .map((rule, i) => {
+                          const text =
+                            rule.To === ""
+                              ? `Cancellation before ${rule.From} ${rule.Unit?.toLowerCase() || "hours"} of departure`
+                              : `Cancellation between ${rule.From} to ${rule.To} ${rule.Unit?.toLowerCase() || "hours"} of departure`;
+
+                          const amount =
+                            rule.Details?.replace("INR ", "") || rule.Details;
+
+                          return (
+                            <div
+                              key={i}
+                              className="flex justify-between items-center px-3 py-2 border-t"
+                            >
+                              <div>
+                                <span className="text-[10px] uppercase text-slate-400 font-semibold">
+                                  Time before departure
+                                </span>
+                                <div className="text-xs text-slate-700 font-medium">
+                                  {text}
+                                </div>
+                              </div>
+
+                              {amount === "0" ? (
+                                <span className="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full border border-green-200">
+                                  FREE
+                                </span>
+                              ) : (
+                                <span className="font-semibold text-red-600">
+                                  ₹ {amount}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+
+                  {/* Reschedule Section */}
+                  {selectedFarePolicy.data?.onward?.MiniFareRules?.[0]?.filter(
+                    (r) => r.Type === "Reissue",
+                  ).length > 0 && (
+                    <div className="border rounded-xl overflow-hidden border-slate-200">
+                      <div className="bg-green-50 px-4 py-2 flex justify-between items-center border-t-4 border-green-500">
+                        <span className="text-xs font-semibold text-slate-800">
+                          Reschedule
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          Per passenger
+                        </span>
+                      </div>
+
+                      {selectedFarePolicy.data?.onward?.MiniFareRules[0]
+                        .filter((r) => r.Type === "Reissue")
+                        .map((rule, i) => {
+                          const text =
+                            rule.To === ""
+                              ? `Reschedule before ${rule.From} ${rule.Unit?.toLowerCase() || "hours"} of departure`
+                              : `Reschedule between ${rule.From}-${rule.To} ${rule.Unit?.toLowerCase() || "hours"} of departure`;
+
+                          const amount =
+                            rule.Details?.replace("INR ", "") || rule.Details;
+
+                          return (
+                            <div
+                              key={i}
+                              className="flex justify-between items-center px-3 py-2 border-t"
+                            >
+                              <div>
+                                <span className="text-[10px] uppercase text-slate-400 font-semibold">
+                                  Time before departure
+                                </span>
+                                <div className="text-xs text-slate-700 font-medium">
+                                  {text}
+                                </div>
+                              </div>
+
+                              {amount === "0" ? (
+                                <span className="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full border border-green-200">
+                                  FREE
+                                </span>
+                              ) : (
+                                <span className="font-semibold text-green-600">
+                                  ₹ {amount}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Terms and Conditions for all types (if available) */}
+              {selectedFarePolicy.data?.onward?.FareRules?.[0]
+                ?.FareRuleDetail && (
+                <div className="bg-slate-50 border rounded-xl p-4 text-[11px] text-slate-500 leading-relaxed">
+                  {/* <div className="text-xs font-semibold text-slate-700 mb-2">Terms & Conditions</div> */}
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        selectedFarePolicy.data.onward.FareRules[0]
+                          .FareRuleDetail,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
-      <button
-  onClick={() => setShowPolicyPopup(false)}
-  className="w-8 h-8 cursor-pointer bg-white/10 hover:bg-white/20 rounded-lg text-slate-300 hover:text-white flex items-center justify-center"
->
-  ✕
-</button>
-      </div>
-
-      {/* ================= BODY ================= */}
-  <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-0">
-
-        {/* ================= Cancellation ================= */}
-        {selectedFarePolicy.onward.MiniFareRules?.[0]
-          ?.filter((r) => r.Type === "Cancellation").length > 0 && (
-          <div className="border rounded-xl overflow-y-auto border-slate-200">
-            
-            <div className="bg-orange-50 px-4 py-2 flex justify-between items-center border-t-4 border-orange-500">
-              <span className="text-xs font-semibold text-slate-800">
-                Cancellation
-              </span>
-              <span className="text-[10px] text-slate-400">
-                Per passenger
-              </span>
-            </div>
-
-            {selectedFarePolicy.onward.MiniFareRules[0]
-              .filter((r) => r.Type === "Cancellation")
-              .map((rule, i) => {
-                const text =
-                  rule.To === ""
-                    ? `Cancellation before ${rule.From} ${rule.Unit.toLowerCase()} of departure`
-                    : `Cancellation between ${rule.From} to ${rule.To} ${rule.Unit.toLowerCase()} of departure`;
-
-                const amount = rule.Details.replace("INR ", "");
-
-                return (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center px-3 py-2 border-t marginbottom-0"
-                  >
-                    <div>
-                      <span className="text-[10px] uppercase text-slate-400 font-semibold">
-                        Time before departure
-                      </span>
-                      <div className="text-xs text-slate-700 font-medium">
-                        {text}
-                      </div>
-                    </div>
-
-                    {amount === "0" ? (
-                      <span className="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full border border-green-200">
-                        FREE
-                      </span>
-                    ) : (
-                      <span className="font-semibold text-red-600">
-                        ₹ {amount}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-          </div>
-        )}
-
-        {/* ================= Reschedule ================= */}
-        {selectedFarePolicy.onward.MiniFareRules?.[0]
-          ?.filter((r) => r.Type === "Reissue").length > 0 && (
-          <div className="border rounded-xl overflow-hidden border-slate-200">
-            
-          <div className="bg-green-50 px-4 py-2 flex justify-between items-center border-t-4 border-green-500">
-              <span className="text-xs font-semibold text-slate-800">
-                Reschedule
-              </span>
-              <span className="text-[10px] text-slate-400">
-                Per passenger
-              </span>
-            </div>
-
-            {selectedFarePolicy.onward.MiniFareRules[0]
-              .filter((r) => r.Type === "Reissue")
-              .map((rule, i) => {
-                const text =
-                  rule.To === ""
-                    ? `Reschedule before ${rule.From} ${rule.Unit.toLowerCase()} of departure`
-                    : `Reschedule between ${rule.From}-${rule.To} ${rule.Unit.toLowerCase()} of departure`;
-
-                const amount = rule.Details.replace("INR ", "");
-
-                return (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center px-3 py-2 border-t"
-                  >
-                    <div>
-                      <span className="text-[10px] uppercase text-slate-400 font-semibold">
-                        Time before departure
-                      </span>
-                      <div className="text-xs text-slate-700 font-medium">
-                        {text}
-                      </div>
-                    </div>
-
-                    {amount === "0" ? (
-                      <span className="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full border border-green-200">
-                        FREE
-                      </span>
-                    ) : (
-                      <span className="font-semibold text-green-600">
-                        ₹ {amount}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-          </div>
-        )}
-
-        {/* ================= Terms ================= */}
-        {/* {selectedFarePolicy.onward.FareRules?.[0]?.FareRuleDetail && (
-          <div className="bg-slate-50 border rounded-xl p-4 text-[11px] text-slate-500 leading-relaxed">
-          
-
-            <div
-              dangerouslySetInnerHTML={{
-                __html:
-                  selectedFarePolicy.onward.FareRules[0].FareRuleDetail,
-              }}
-            />
-          </div>
-        )} */}
-
-      </div>
-
-    
-    </div>
-  </div>
-)}
+      )}
       <Modal
         show={isModalOpen2}
         onHide={() => {
@@ -9328,7 +9656,7 @@ const FinalSearchFlight = () => {
                 )}
 
                 <div className="border rounded-lg p-4 bg-white mb-3">
-                  <div className="text-xs bg-[#785ef7] bg-opacity-10 text-[#785ef7] px-2 py-1 rounded font-medium w-25 mb-2">
+                  <div className="text-xs bg-[#785ef7] bg-opacity-10 text-[#785ef7] px-2 py-1  font-medium w-25 mb-2">
                     {bookingPayload.onwardFlight.depTime
                       ? format(
                           new Date(bookingPayload.onwardFlight.depTime),
@@ -9456,6 +9784,56 @@ const FinalSearchFlight = () => {
                         <div className="flex items-center mb-3">
                           <div className="text-sm font-semibold text-gray-700 mr-3">
                             Client Price (Per Passenger)
+                            <button
+                              className="fare-mini-policy inline-flex items-center justify-center ml-1"
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+
+                                const flightId =
+                                  bookingPayload.flightId ||
+                                  bookingPayload.onwardFlightId;
+
+                                handleShowPolicy(
+                                  bookingPayload.onwardFlight,
+                                  bookingPayload.onwardFare,
+                                  flightId,
+                                  bookingPayload.onwardFare?.base_fare,
+                                );
+                              }}
+                              title="View Cancellation & Date Change Policy"
+                            >
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                className={`mini-policy-icon ${selectedFarePolicy ? "mini-policy-active" : ""}`}
+                              >
+                                <path
+                                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M12 16V12"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M12 8H12.01"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
                           </div>
                           <div className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
                             Min: ₹{bookingPayload.onwardFare?.price || 0}
@@ -9564,7 +9942,7 @@ const FinalSearchFlight = () => {
                   Return Flight
                 </div>
                 <div className="border rounded-lg p-4 bg-white">
-                  <div className="text-xs bg-[#785ef7] bg-opacity-10 text-[#785ef7] px-2 py-1 rounded font-medium w-25 mb-2">
+                  <div className="text-xs bg-[#785ef7] bg-opacity-10 text-[#785ef7] px-2 py-1  font-medium w-25 mb-2">
                     {bookingPayload.returnFlight.depTime
                       ? format(
                           new Date(bookingPayload.returnFlight.depTime),
@@ -9679,8 +10057,59 @@ const FinalSearchFlight = () => {
                       <div className="w-2/3">
                         <div className="flex items-center mb-3">
                           <div className="text-sm font-semibold text-gray-700 mr-3">
-                            Client Price (Per Passenger)
+                            Client Price (Per Passenger){" "}
+                            <button
+                              className="fare-mini-policy inline-flex items-center justify-center ml-1"
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+
+                                const flightId =
+                                  // bookingPayload.flightId ||
+                                  bookingPayload.returnFlightId;
+
+                                handleShowPolicy(
+                                  bookingPayload.reeturnFlight,
+                                  bookingPayload.returnFare,
+                                  flightId,
+                                  bookingPayload.returnFare?.base_fare,
+                                );
+                              }}
+                              title="View Cancellation & Date Change Policy"
+                            >
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                className={`mini-policy-icon ${selectedFarePolicy ? "mini-policy-active" : ""}`}
+                              >
+                                <path
+                                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M12 16V12"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M12 8H12.01"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
                           </div>
+
                           <div className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
                             Min: ₹{bookingPayload.returnFare?.price || 0}
                           </div>
@@ -9792,25 +10221,6 @@ const FinalSearchFlight = () => {
               </div>
             )}
           </div>
-
-          {/* Total Summary */}
-          {/* {(ClientPriceOnward || ClientPriceReturn) && (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-        <div className="flex justify-between items-center mb-2">
-          <div className="text-sm font-semibold text-blue-700">
-            Total Client Price
-          </div>
-          <div className="font-bold text-blue-800 text-lg">
-            ₹{(Number(ClientPriceOnward || 0) + Number(ClientPriceReturn || 0)) || 0}
-          </div>
-        </div>
-        <div className="text-xs text-blue-600">
-          {bookingPayload?.inputValue?.adult || 1} Adult × 
-          (₹{Number(ClientPriceOnward || 0)} + ₹{Number(ClientPriceReturn || 0)}) = 
-          ₹{(Number(ClientPriceOnward || 0) + Number(ClientPriceReturn || 0)) * (bookingPayload?.inputValue?.adult || 1)}
-        </div>
-      </div>
-    )} */}
         </Modal.Body>
 
         <Modal.Footer className="border-t pt-4">
@@ -9845,6 +10255,26 @@ const FinalSearchFlight = () => {
                     Number(ClientPriceReturn) >=
                       (bookingPayload.returnFare?.price || 0));
 
+// Check which flightId is available and use that
+let onwardPolicyKey;
+if (bookingPayload.onwardFlightId) {
+  onwardPolicyKey = `${bookingPayload.onwardFlightId}_${bookingPayload.onwardFare?.type}`;
+} else if (bookingPayload.flightId) {
+  onwardPolicyKey = `${bookingPayload.flightId}_${bookingPayload.onwardFare?.type}`;
+} else {
+  // console.error("No flightId available for policy lookup");
+  onwardPolicyKey = null;
+}
+
+
+const onwardPolicyData = onwardPolicyKey ? cancellationPolicies[onwardPolicyKey] : undefined;
+// console.log("Onward Policy Data:", onwardPolicyData);
+      
+      // Get policy data for return flight if exists
+      const returnPolicyKey = bookingPayload.returnFlightId 
+        ? `${bookingPayload.returnFlightId}_${bookingPayload.returnFare?.type}`
+        : null;
+      const returnPolicyData = returnPolicyKey ? cancellationPolicies[returnPolicyKey] : null;
                 if (onwardValid && returnValid) {
                   if (bookingPayload?.isRoundTrip) {
                     // Handle round trip booking
@@ -9854,12 +10284,14 @@ const FinalSearchFlight = () => {
                           fare: bookingPayload.onwardFare,
                           flight: bookingPayload.onwardFlight,
                           clientPrice: Number(ClientPriceOnward),
+                           cancellationPolicy: onwardPolicyData,
                         },
                         Return: bookingPayload.returnFlight
                           ? {
                               fare: bookingPayload.returnFare,
                               flight: bookingPayload.returnFlight,
                               clientPrice: Number(ClientPriceReturn),
+                              cancellationPolicy: returnPolicyData,
                             }
                           : null,
                       },
@@ -9877,6 +10309,8 @@ const FinalSearchFlight = () => {
                       bookingPayload.inputValue,
                       bookingPayload.FlightInfo,
                       Number(ClientPriceOnward),
+                      onwardPolicyData,
+                      
                     );
                   }
                   setIsModalOpen2(false);
@@ -10056,7 +10490,32 @@ const FinalSearchFlight = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="flex flex-col gap-2 mb-4">
+          {/* <div className="alert alert-warning" style={{ marginBottom: "15px" }}>
+            <div className="text-[12px]">
+              <i className="fas fa-edit mr-2 "></i>
+              <strong>Editing Instructions:</strong> Click on the
+              yellow-highlighted prices to edit them.
+            </div>
+            <div style={{ marginTop: "5px", fontSize: "10px" }}>
+              <strong>Note:</strong> Prices will auto-format with commas. Edit
+              values and click outside to save.
+            </div>
+          </div> */}
+
+          <div
+            // ref={contentRef}
+            // dangerouslySetInnerHTML={{ __html: htmlContent }}
+            style={{
+              minHeight: "400px",
+              maxHeight: "500px",
+              // border: "1px solid #ddd",
+              padding: "8px",
+              overflow: "auto",
+
+              // backgroundColor: "#f9f9f9",
+            }}
+            className="space-y-2"
+          >
             <form className="email-compose-form">
               <div className="email-field-row">
                 {/* To Field */}
@@ -10145,31 +10604,11 @@ const FinalSearchFlight = () => {
                 </div>
               </div>
             </form>
+            <div
+              ref={contentRef}
+              dangerouslySetInnerHTML={{ __html: htmlContent }}
+            ></div>
           </div>
-          <div className="alert alert-warning" style={{ marginBottom: "15px" }}>
-            <div className="text-[12px]">
-              <i className="fas fa-edit mr-2 "></i>
-              <strong>Editing Instructions:</strong> Click on the
-              yellow-highlighted prices to edit them.
-            </div>
-            <div style={{ marginTop: "5px", fontSize: "10px" }}>
-              <strong>Note:</strong> Prices will auto-format with commas. Edit
-              values and click outside to save.
-            </div>
-          </div>
-
-          <div
-            ref={contentRef}
-            dangerouslySetInnerHTML={{ __html: htmlContent }}
-            style={{
-              minHeight: "400px",
-              maxHeight: "500px",
-              border: "1px solid #ddd",
-              padding: "15px",
-              overflow: "auto",
-              // backgroundColor: "#f9f9f9",
-            }}
-          />
         </Modal.Body>
         <Modal.Footer>
           <button

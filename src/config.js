@@ -12,7 +12,8 @@ const CONFIG = {
 
   //Live Apis
 // MAIN_API: "https://corporate.taxivaxi.com",  //Live
-//   BASE_URL: "https://www.nirixak.com/uapi/api/flights/", //live
+// BASE_URL:"https://chjlmk5d-3000.inc1.devtunnels.ms/api/flights/"
+  // BASE_URL: "https://www.nirixak.com/uapi/api/flights/", //live
 //  ASSIGN_API:"https://corporate.taxivaxi.com/api/flights/assignSbtCotravFlightBookingNew", //Live
 
 // };

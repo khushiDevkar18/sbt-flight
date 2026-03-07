@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import CONFIG from "./config";
+import CONFIG from "../config";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Swal from "sweetalert2";
@@ -12,67 +12,42 @@ import {
   Tooltip,
   IconButton,
 } from "@mui/material";
-const CompleteFlightbookingReturn = () => {
+const CompleteFlightbookinguapi = () => {
   const base_url = `${CONFIG.BASE_URL}`;
   const location = useLocation();
   const hasFetchedRef = useRef(false);
   const hasFetched = useRef(false);
-  const FinalDetails = location.state && location.state.FlightBooking;
-    const FareDetails = location.state && location.state.fares;
+  const FareDetails = location.state && location.state.fares;
   console.log(FareDetails);
-  // console.log(FinalDetails);
+  const FinalDetails = location.state && location.state.FlightBooking;
   const Passenger = localStorage.getItem("Passengerdetails");
   const PassengerInfo = JSON.parse(Passenger);
   const responseData = location.state && location.state.responseData;
-  console.log("REponse", responseData);
   const [finalresponse, setfinalresponse] = useState([]);
   const [taxivaxiresponse, settaxivaxiresponse] = useState([]);
   const [PNR, setPNR] = useState("");
-  const [PNRReturn, setPNRReturn] = useState("");
   const [Segments, setSegments] = useState([]);
-  const [SegmentsReturn, setSegmentsReturn] = useState([]);
   const [PassengerDetails, setPassengerDetails] = useState([]);
-  const [PassengerDetailsReturn, setPassengerDetailsReturn] = useState([]);
   const [FlightDetails, setFlightDetails] = useState([]);
-  const [FlightDetailsReturn, setFlightDetailsReturn] = useState([]);
+  const [SeatData, setSeatdata] = useState([]);
   const [loadingg, setLoadingg] = useState(false);
   const [Seatloading, setSeatloading] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [showTooltip2, setShowTooltip2] = useState(false);
-  const [showTooltip3, setShowTooltip3] = useState(false);
-  const [showTooltip4, setShowTooltip4] = useState(false);
-  const [showTooltip5, setShowTooltip5] = useState(false);
-  const [showTooltip6, setShowTooltip6] = useState(false);
-  const [showTooltip7, setShowTooltip7] = useState(false);
-  const [showTooltip8, setShowTooltip8] = useState(false);
-  const [showTooltip9, setShowTooltip9] = useState(false);
-const hasAssigned = useRef(false);
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [currentFlightIndex, setCurrentFlightIndex] = useState(0);
+  const [selectedPassengerKey, setSelectedPassengerKey] = useState(
+    PassengerInfo?.[0]?.Key
+  );
+  const [selectedPassengerIndex, setSelectedPassengerIndex] = useState(0);
+  const [accordion3Expanded, setAccordion3Expanded] = useState(true);
+  // console.log('Booking resposne', responseData)
 
-useEffect(() => {
-  finalfetch();
-  finalfetchReturn();
-}, []);
-
-useEffect(() => {
-  if (
-    !hasAssigned.current && // ensure it runs only once
-    FlightDetails && 
-    Object.keys(FlightDetails).length > 0 &&
-    FlightDetailsReturn && 
-    Object.keys(FlightDetailsReturn).length > 0
-  ) {
-    hasAssigned.current = true; // mark as executed
-    UapiAssignbooking(FlightDetails, FlightDetailsReturn);
-  }
-}, [FlightDetails, FlightDetailsReturn]);
-
-  //For Onwasrd Flight
+  const totalServicePrice = Number(FlightDetails?.extra_baggage_charges) +(Number(FlightDetails?.meal_charges))+(Number(FlightDetails?.seat_charges))
+  console.log(totalServicePrice)
   const finalfetch = async () => {
     setLoadingg(true);
     const requestData = {
-      traceId: FinalDetails?.onwards?.traceId,
+      traceId: FinalDetails?.traceId || FinalDetails?.Response?.TraceId,
     };
-    // console.log(requestData);
     try {
       setLoadingg(true);
       const response = await fetch(`${CONFIG.BASE_URL}getTicketData`, {
@@ -83,197 +58,104 @@ useEffect(() => {
         body: JSON.stringify(requestData),
       });
       const Data = await response.json();
-
-      setLoadingg(false);
       if (Data.status) {
         const finalresponse = Data.data;
         setFlightDetails(finalresponse);
-        const PNR = finalresponse.locatorCode.UniversalLocatorCode;
-        setPNR(PNR);
+        setPNR(finalresponse?.PNR);
         const segmentsData = finalresponse?.flight_details;
-        // console.log(segmentsData)
+        console.log(segmentsData);
         setSegments(
           Array.isArray(segmentsData) ? segmentsData : [segmentsData]
         );
         // setSegments(finalresponse?.FlightItinerary?.AirReservation?.AirSegment);
         setPassengerDetails(finalresponse?.data?.flight_details?.Passengers);
-
-        // console.log('PNR',PNR)
-        // UapiAssignbooking(finalresponse);
+        UapiAssignbooking(finalresponse);
       }
     } catch {
       setLoadingg(false);
     }
   };
-
-  //For Return Flight
-  const finalfetchReturn = async () => {
-    setLoadingg(true);
-    const requestData = {
-      traceId: FinalDetails?.returns?.traceId,
-    };
-    console.log(requestData);
-    try {
-      setLoadingg(true);
-      const response = await fetch(`${CONFIG.BASE_URL}getTicketData`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestData),
-      });
-      const Data = await response.json();
-      // console.log('HELLO');
-      // console.log(Data);
-      setLoadingg(false);
-      if (Data.status) {
-        // console.log('HELLO2');
-        const finalresponse = Data.data;
-        setFlightDetailsReturn(finalresponse);
-        const PNR = finalresponse.locatorCode.UniversalLocatorCode;
-        setPNRReturn(PNR);
-        const segmentsData = finalresponse?.flight_details;
-        console.log(segmentsData);
-        setSegmentsReturn(
-          Array.isArray(segmentsData) ? segmentsData : [segmentsData]
-        );
-        // setSegments(finalresponse?.FlightItinerary?.AirReservation?.AirSegment);
-        setPassengerDetailsReturn(
-          finalresponse?.data?.flight_details?.Passengers
-        );
-
-        // console.log('PNR',PNR)
-        // UapiAssignbooking(finalresponse);
-      }
-    } catch {
-      setLoadingg(false);
+  console.log(Segments);
+  useEffect(() => {
+    if (!hasFetched.current) {
+      finalfetch();
+      hasFetched.current = true;
     }
-  };
+  }, []);
 
-    console.log("flight details",  FlightDetails?.fareDetails?.fareType[0])
-
-  const UapiAssignbooking = async (FlightDetails, FlightDetailsReturn) => {
+  const UapiAssignbooking = async (finalresponse) => {
     // setLoadingg(false)
     // console.log("live or demo",finalresponse?.productionMode)
     // console.log("URL", finalresponse?.productionMode == 'live' ? CONFIG.LIVE_ASSIGN : CONFIG.DEMO_ASSIGN)
     const taxivaxipassenger = responseData?.Passengerdetails;
-    // console.log(taxivaxipassenger)
-    const flight_details_Onward = FlightDetails?.flight_details?.map(
-      (flight) => ({
-        from_city: flight?.from_city,
-        to_city: flight?.to_city,
-        departure_datetime: formatDateTime(flight.departure_datetime),
-        arrival_datetime: formatDateTime(flight.arrival_datetime),
-        flight_name: `${flight.flight} (${responseData.flighttype})`,
-        flight_no: flight?.flight_no,
-        checked_bg: "15 kg", // placeholder
-        cabin_bg: "7 kg", // placeholder
-        pnr_no: FlightDetails?.PNR || "NA",
-        seat_type: flight?.CabinClass,
-        via: flight?.via,
-        no_of_stops: flight?.no_of_stops,
-        passenger_details: flight.Passengers?.map((p, idx) => {
-          const seatService = p.OptionalServices?.find(
-            (s) => s.Type === "PreReservedSeatAssignment"
-          );
-          const mealService = p.OptionalServices?.find(
-            (s) => s.Type === "MealOrBeverage"
-          );
-          const matchingEmployee = taxivaxipassenger.find(
-            (emp) =>
-              emp.firstName?.toLowerCase() === p.First?.toLowerCase() &&
-              // emp.lastName?.toLowerCase() === p.Last?.toLowerCase() &&
-              emp.user_type === p.TravelerType
-          );
-          return {
-            people_id: matchingEmployee?.id,
-            seat_no: seatService?.ServiceData?.Data || "NA",
-            ticket_no: finalresponse?.PNR || "NA",
-            meal_include: mealService?.Value || "NA",
-          };
-        }),
-      })
-    );
-    const flight_details_Return = FlightDetailsReturn?.flight_details?.map(
-      (flight) => ({
-        from_city: flight?.from_city,
-        to_city: flight?.to_city,
-        departure_datetime: formatDateTime(flight.departure_datetime),
-        arrival_datetime: formatDateTime(flight.arrival_datetime),
-        flight_name: `${flight.flight} (${responseData.flighttype})`,
-        flight_no: flight?.flight_no,
-        checked_bg: "15 kg", // placeholder
-        cabin_bg: "7 kg", // placeholder
-        pnr_no: FlightDetails?.PNR || "NA",
-        seat_type: flight?.CabinClass,
-        via: flight?.via,
-          no_of_stops: flight?.no_of_stops,
-        passenger_details: flight.Passengers?.map((p, idx) => {
-          const seatService = p.OptionalServices?.find(
-            (s) => s.Type === "PreReservedSeatAssignment"
-          );
-          const mealService = p.OptionalServices?.find(
-            (s) => s.Type === "MealOrBeverage"
-          );
-          const matchingEmployee = taxivaxipassenger.find(
-            (emp) =>
-              emp.firstName?.toLowerCase() === p.First?.toLowerCase() &&
-              // emp.lastName?.toLowerCase() === p.Last?.toLowerCase() &&
-              emp.user_type === p.TravelerType
-          );
-          return {
-            people_id: matchingEmployee?.id,
-            seat_no: seatService?.ServiceData?.Data || "NA",
-            ticket_no: finalresponse?.PNR || "NA",
-            meal_include: mealService?.Value || "NA",
-          };
-        }),
-      })
-    )
-
-
+    console.log(taxivaxipassenger)
+    const flight_details = finalresponse?.flight_details?.map((flight) => ({
+      from_city: flight?.from_city,
+      to_city: flight?.to_city,
+      departure_datetime: formatDateTime(flight.departure_datetime),
+      arrival_datetime: formatDateTime(flight.arrival_datetime),
+      flight_name: `${flight.flight} (${responseData.flighttype})`,
+      flight_no: flight?.flight_no,
+      checked_bg: "15 kg", // placeholder
+      cabin_bg: "7 kg", // placeholder
+      pnr_no: finalresponse?.PNR || "NA",
+      seat_type: flight?.CabinClass,
+      via: flight?.via,
+      passenger_details: flight.Passengers?.map((p, idx) => {
+        const seatService = p.OptionalServices?.find(
+          (s) => s.Type === "PreReservedSeatAssignment"
+        );
+        const mealService = p.OptionalServices?.find(
+          (s) => s.Type === "MealOrBeverage"
+        );
+        const matchingEmployee = taxivaxipassenger.find(
+          (emp) =>
+            emp.firstName?.toLowerCase() === p.First?.toLowerCase() &&
+            // emp.lastName?.toLowerCase() === p.Last?.toLowerCase() &&
+            emp.user_type === p.TravelerType
+        );
+          // console.log("flight details", matchingEmployee?.id)
+        return {
+          people_id: matchingEmployee?.id,
+          seat_no: seatService?.ServiceData?.Data || "NA",
+          ticket_no: finalresponse?.PNR || "NA",
+          meal_include: mealService?.Value || "NA",
+        };
+      }),
+    }));
+  
     const requestData = {
       access_token: responseData?.accessToken,
       booking_id: responseData?.bookingid,
-      flight_type: responseData?.flighttype,
       trip_type: responseData?.bookingtype,
-      fare_type: FlightDetails?.fareDetails?.fareType[0],
-      is_extra_baggage_included: FlightDetails?.is_extra_baggage_included,
-      extra_baggage: FlightDetails?.baggage_count,
-      no_of_stops: FlightDetails?.no_of_stops,
-      no_of_seats: responseData?.no_of_seats,
-      universallocatorCode: FlightDetails?.universallocatorCode,
-      discount: FlightDetails?.discount,
-      date_change_charges:( FlightDetails?.date_change_charges || 0)+ ( FlightDetailsReturn?.date_change_charges || 0),
-      seat_charges:( FlightDetails?.seat_charges || 0)+ ( FlightDetailsReturn?.seat_charges || 0),
-      meal_charges:( FlightDetails?.meal_charges || 0)+ ( FlightDetailsReturn?.meal_charges || 0),
-      extra_baggage_charges: FlightDetails?.extra_baggage_charges,
-      fast_forward_charges: 0,
-      vip_service_charges: 0,
-      applied_markup: (FareDetails?.OnwardMarkup || 0) + (FareDetails?.ReturnMarkup || 0),
-      actual_markup: "",
-      total_ex_tax_fees: (FlightDetails?.fareDetails?.total_ex_tax_fees || 0) + (FlightDetailsReturn?.fareDetails?.total_ex_tax_fees || 0),
+      fare_type: finalresponse?.fareDetails?.fareType[0],
+      flight_type: responseData?.flighttype,
+      total_ex_tax_fees: finalresponse?.fareDetails?.total_ex_tax_fees,
       // total_price: removeCurrency(Totalprice) + removeCurrency(seatcharge)+removeCurrency(mealcharge),
-      tax_and_fees: (FlightDetails?.fareDetails?.tax_and_fees || 0) + (FlightDetailsReturn?.fareDetails?.tax_and_fees || 0) ,
-      gst_k3:  (FlightDetails?.fareDetails?.gst_k3 || 0) + (FlightDetailsReturn?.fareDetails?.gst_k3 || 0),
-      //
-
-      portal_used: FlightDetails?.portal_used,
-      portal_used_return: FlightDetailsReturn?.portal_used,
-      fare_type_return: FlightDetailsReturn?.fareDetails?.fareType[0],
-      is_extra_baggage_included_return:
-      FlightDetailsReturn?.is_extra_baggage_included,
-      no_of_stops_return: FlightDetailsReturn?.no_of_stops,
-      extra_baggage_return: FlightDetailsReturn?.extra_baggage,
-      universallocatorCode_return: FlightDetailsReturn?.universallocatorCode,
-
-      flight_details : flight_details_Onward,
-      return_flight_details: flight_details_Return,
-
+      tax_and_fees:
+        finalresponse?.fareDetails?.tax_and_fees,
+      gst_k3: finalresponse?.fareDetails?.gst_k3,
+      flight_details,
+      is_extra_baggage_included: finalresponse?.is_extra_baggage_included,
+      no_of_stops: finalresponse?.no_of_stops,
+      no_of_seats: responseData?.no_of_seats,
+      date_change_charges: finalresponse?.date_change_charges,
+      seat_charges: finalresponse?.seat_charges,
+      meal_charges: finalresponse?.meal_charges,
+      extra_baggage_charges: finalresponse?.extra_baggage_charges,
+      fast_forward_charges: 0,
+      universallocatorCode: finalresponse?.universallocatorCode,
+      applied_markup: FareDetails?.markupValue,
+      actual_markup: "",
+      discount: finalresponse?.discount,
+      extra_baggage: finalresponse?.baggage_count,
       // returns: '',
       // reservationStatus: bookingStatus,
+      vip_service_charges: 0,
+      portal_used: finalresponse?.portal_used,
     };
-// console.log("Request Data for Assign Booking", requestData);
+    console.log(requestData);
+
     try {
       // const response = await fetch(finalresponse?.productionMode == 'live' ? CONFIG.LIVE_ASSIGN : CONFIG.DEMO_ASSIGN, {
       const response = await fetch(`${CONFIG.ASSIGN_API}`, {
@@ -547,7 +429,6 @@ useEffect(() => {
                               ></div>
                             </>
                           </div>
-
                           <div className="baggagae_policy">
                             <>
                               <span
@@ -705,164 +586,6 @@ useEffect(() => {
                               </div>
                             ))}
                           </div>
-                          {/* Return Flight Details */}
-                          <div className="baggagae_policy">
-                            <>
-                              <span
-                                className="Bookingheading"
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  alignItems: "center",
-                                }}
-                              >
-                                Confirmed Flight Details
-                                <span>PNR No. {PNRReturn}</span>
-                              </span>
-                              <div
-                                className="modal fade bd-example-modal-lg multipleflight"
-                                tabIndex={-1}
-                                role="dialog"
-                                aria-labelledby="myLargeModalLabel"
-                                aria-hidden="true"
-                              ></div>
-                            </>
-
-                            {SegmentsReturn.map((data, index) => (
-                              <div
-                                key={index}
-                                className="border border-gray-300 rounded-md overflow-hidden mb-4 bg-white shadow-sm"
-                              >
-                                {/* Top Row: Route and Date */}
-                                <div className="flex justify-between items-center px-4 py-2 bg-gray-50">
-                                  <div className="text-lg font-semibold text-[#0E0E3E]">
-                                    {data?.from_city}{" "}
-                                    <span className="mx-2">→</span>{" "}
-                                    {data?.to_city}
-                                  </div>
-                                  <span className="block text-sm text-gray-500">
-                                    {handleweekdatemonthyear(
-                                      data?.departure_datetime
-                                    )}
-                                  </span>
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-blue-500 text-xs font-semibold px-2 py-1 rounded">
-                                      {data?.seat_type}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Flight Info */}
-                                <div className="flex items-center justify-between px-4 py-3 gap-6">
-                                  <div className="flex items-center gap-2 max-w-[120px]">
-                                    <img
-                                      className="w-8 h-8"
-                                      src={`https://devapi.taxivaxi.com/airline_logo_images/${data?.carrier}.png`}
-                                      alt="Airline logo"
-                                    />
-                                    <div>
-                                      <div className="font-medium text-gray-800">
-                                        {data?.flight}
-                                      </div>
-                                      <div className="text-xs text-gray-500">
-                                        {data?.flight_no}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="text-center max-w-[180px]">
-                                    <div className="text-lg font-semibold">
-                                      {dateTime(data?.departure_datetime)}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                      {data?.from_city}
-                                    </div>
-                                  </div>
-                                  <div className="text-center max-w-[100px]">
-                                    <div className="text-sm font-medium text-gray-700">
-                                      {Hrscaculator(data?.TravelTime)}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                      Duration
-                                    </div>
-                                  </div>
-                                  <div className="text-center max-w-[180px]">
-                                    <div className="text-lg font-semibold">
-                                      {dateTime(data?.arrival_datetime)}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                      {data?.to_city}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Passenger Details */}
-                                <div className="px-4 py-3 border-t bg-gray-50">
-                                  <h4 className="font-semibold text-sm text-gray-700 mb-2">
-                                    Passenger Details
-                                  </h4>
-
-                                  {data?.Passengers?.map(
-                                    (passenger, pIndex) => (
-                                      <div
-                                        key={pIndex}
-                                        className="border border-gray-200 rounded-lg p-3 mb-3 bg-white shadow-sm"
-                                      >
-                                        <div className="flex justify-between items-center">
-                                          <div>
-                                            <span className="font-medium">
-                                              {passenger.First} {passenger.Last}
-                                            </span>{" "}
-                                            <span className="text-xs text-gray-500 ml-2">
-                                              ({passenger.TravelerType})
-                                            </span>
-                                          </div>
-                                          <span className="text-xs text-gray-500">
-                                            Age: {passenger.Age || "NA"}
-                                          </span>
-                                        </div>
-
-                                        {/* Optional Services */}
-                                        {passenger?.OptionalServices?.length >
-                                          0 && (
-                                          <div className="mt-2">
-                                            <p className="text-xs font-semibold text-gray-600 mb-1">
-                                              Selected Services:
-                                            </p>
-                                            <ul className="list-disc list-inside text-xs text-gray-700 space-y-1">
-                                              {passenger.OptionalServices.map(
-                                                (service, sIndex) => (
-                                                  <li key={sIndex}>
-                                                    {service.Type ===
-                                                    "PreReservedSeatAssignment" ? (
-                                                      <>
-                                                        Seat:{" "}
-                                                        <span className="font-medium">
-                                                          {
-                                                            service?.ServiceData
-                                                              ?.Data
-                                                          }
-                                                        </span>{" "}
-                                                        (₹{service.TotalPrice})
-                                                      </>
-                                                    ) : (
-                                                      <>
-                                                        {service.Value} (₹
-                                                        {service.TotalPrice})
-                                                      </>
-                                                    )}
-                                                  </li>
-                                                )
-                                              )}
-                                            </ul>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -885,420 +608,91 @@ useEffect(() => {
                         </span>
                         <div className="clear" />
                       </div>
-                      <div className="chk-line relative items-start gap-2">
-                        <div className="chk-l">Cabin Class</div>
+                      <div className="chk-line">
+                        <span className="chk-l">Cabin Class</span>
                         <span className="chk-r">
-                          <button
-                            className="cursor-pointer"
-                            onClick={() => setShowTooltip((prev) => !prev)}
-                          >
-                            <img
-                              src="../img/i_icon.svg"
-                              alt="Info"
-                              className="w-4 h-4 cursor-pointer mt-1"
-                            />
-                          </button>
+                          {FlightDetails?.seat_type}
                         </span>
-
-                        {showTooltip && (
-                          <div
-                            className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
-                            onMouseLeave={() => setShowTooltip(false)}
-                          >
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1">
-                                Onward Airlines:
-                              </p>
-                              <span className="chk-r">
-                                {FlightDetails?.seat_type}
-                              </span>
-                            </div>
-
-                            <hr className="my-2" />
-
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1 flex">
-                                Return Airlines:
-                              </p>
-
-                              <span className="chk-r">
-                                {FlightDetailsReturn?.seat_type}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="clear" />
-                      </div>
-                      <div className="chk-line relative items-start gap-2">
-                        <div className="chk-l">27GST</div>
-                        <span className="chk-r">
-                          <button
-                            className="cursor-pointer"
-                            onClick={() => setShowTooltip2((prev) => !prev)}
-                          >
-                            <img
-                              src="../img/i_icon.svg"
-                              alt="Info"
-                              className="w-4 h-4 cursor-pointer mt-1"
-                            />
-                          </button>
-                        </span>
-
-                        {showTooltip2 && (
-                          <div
-                            className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
-                            onMouseLeave={() => setShowTooltip2(false)}
-                          >
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1">
-                                Onward Airlines:
-                              </p>
-                              <span className="chk-r">
-                                ₹
-                                {FlightDetails?.fareDetails?.gst_k3?.toFixed(2)}
-                              </span>
-                            </div>
-
-                            <hr className="my-2" />
-
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1 flex">
-                                Return Airlines:
-                              </p>
-
-                              <span className="chk-r">
-                                ₹
-                                {FlightDetailsReturn?.fareDetails?.gst_k3?.toFixed(
-                                  2
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="clear" />
-                      </div>
-                      <div className="chk-line relative items-start gap-2">
-                        <div className="chk-l">Meal Charges</div>
-                        <span className="chk-r">
-                          <button
-                            className="cursor-pointer"
-                            onClick={() => setShowTooltip3((prev) => !prev)}
-                          >
-                            <img
-                              src="../img/i_icon.svg"
-                              alt="Info"
-                              className="w-4 h-4 cursor-pointer mt-1"
-                            />
-                          </button>
-                        </span>
-
-                        {showTooltip3 && (
-                          <div
-                            className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
-                            onMouseLeave={() => setShowTooltip3(false)}
-                          >
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1">
-                                Onward Airlines:
-                              </p>
-                              <span className="chk-r">
-                                {" "}
-                                ₹{FlightDetails?.meal_charges?.toFixed(2)}
-                              </span>
-                            </div>
-
-                            <hr className="my-2" />
-
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1 flex">
-                                Return Airlines:
-                              </p>
-
-                              <span className="chk-r">
-                                ₹{FlightDetailsReturn?.meal_charges?.toFixed(2)}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
                         <div className="clear" />
                       </div>
 
-                      <div className="chk-line relative items-start gap-2">
-                        <div className="chk-l">Baggage Charges</div>
-                        <span className="chk-r">
-                          <button
-                            className="cursor-pointer"
-                            onClick={() => setShowTooltip4((prev) => !prev)}
-                          >
-                            <img
-                              src="../img/i_icon.svg"
-                              alt="Info"
-                              className="w-4 h-4 cursor-pointer mt-1"
-                            />
-                          </button>
-                        </span>
-
-                        {showTooltip4 && (
-                          <div
-                            className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
-                            onMouseLeave={() => setShowTooltip4(false)}
-                          >
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1">
-                                Onward Airlines:
-                              </p>
-                              <span className="chk-r">
-                                {" "}
-                                ₹
-                                {FlightDetails?.extra_baggage_charges?.toFixed(
-                                  2
-                                )}
-                              </span>
-                            </div>
-
-                            <hr className="my-2" />
-
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1 flex">
-                                Return Airlines:
-                              </p>
-
-                              <span className="chk-r">
-                                ₹
-                                {FlightDetailsReturn?.extra_baggage_charges?.toFixed(
-                                  2
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="clear" />
+                      <div className="chk-line">
+                        <div className="chk-line-item">
+                          <span className="chk-l">27GST</span>
+                          <span className="chk-r">
+                            ₹ {FlightDetails?.fareDetails?.gst_k3?.toFixed(2)}
+                          </span>
+                          <div className="clear" />
+                        </div>
                       </div>
-                      <div className="chk-line relative items-start gap-2">
-                        <div className="chk-l">Seat Charges</div>
+
+                      <div className="chk-line">
+                        <span className="chk-l">Meal Charges</span>
                         <span className="chk-r">
-                          <button
-                            className="cursor-pointer"
-                            onClick={() => setShowTooltip5((prev) => !prev)}
-                          >
-                            <img
-                              src="../img/i_icon.svg"
-                              alt="Info"
-                              className="w-4 h-4 cursor-pointer mt-1"
-                            />
-                          </button>
+                          ₹ {FlightDetails?.meal_charges?.toFixed(2)}
                         </span>
-
-                        {showTooltip5 && (
-                          <div
-                            className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
-                            onMouseLeave={() => setShowTooltip5(false)}
-                          >
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1">
-                                Onward Airlines:
-                              </p>
-                              <span className="chk-r">
-                                ₹{FlightDetails?.seat_charges?.toFixed(2)}
-                              </span>
-                            </div>
-
-                            <hr className="my-2" />
-
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1 flex">
-                                Return Airlines:
-                              </p>
-
-                              <span className="chk-r">
-                                ₹{FlightDetailsReturn?.seat_charges?.toFixed(2)}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
                         <div className="clear" />
                       </div>
 
-                      <div className="chk-line relative items-start gap-2">
-                        <div className="chk-l">Flight Charges</div>
+                      <div className="chk-line">
+                        <span className="chk-l">Baggage Charges </span>
                         <span className="chk-r">
-                          <button
-                            className="cursor-pointer"
-                            onClick={() => setShowTooltip6((prev) => !prev)}
-                          >
-                            <img
-                              src="../img/i_icon.svg"
-                              alt="Info"
-                              className="w-4 h-4 cursor-pointer mt-1"
-                            />
-                          </button>
+                          ₹{FlightDetails?.extra_baggage_charges?.toFixed(2)}
                         </span>
-
-                        {showTooltip6 && (
-                          <div
-                            className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
-                            onMouseLeave={() => setShowTooltip6(false)}
-                          >
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1">
-                                Onward Airlines:
-                              </p>
-                              <span className="chk-r">
-                                ₹
-                                {FlightDetails?.fareDetails?.total_ex_tax_fees?.toFixed(
-                                  2
-                                )}
-                              </span>
-                            </div>
-
-                            <hr className="my-2" />
-
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1 flex">
-                                Return Airlines:
-                              </p>
-
-                              <span className="chk-r">
-                                ₹
-                                {FlightDetailsReturn?.fareDetails?.total_ex_tax_fees?.toFixed(
-                                  2
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
                         <div className="clear" />
                       </div>
-
-                      <div className="chk-line relative items-start gap-2">
-                        <div className="chk-l">Other Charges</div>
+                      <div className="chk-line">
+                        <span className="chk-l">Seat Charges </span>
                         <span className="chk-r">
-                          <button
-                            className="cursor-pointer"
-                            onClick={() => setShowTooltip7((prev) => !prev)}
-                          >
-                            <img
-                              src="../img/i_icon.svg"
-                              alt="Info"
-                              className="w-4 h-4 cursor-pointer mt-1"
-                            />
-                          </button>
+                          ₹{FlightDetails?.seat_charges?.toFixed(2)}
                         </span>
-
-                        {showTooltip7 && (
-                          <div
-                            className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
-                            onMouseLeave={() => setShowTooltip7(false)}
-                          >
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1">
-                                Onward Airlines:
-                              </p>
-                              <span className="chk-r">
-                                {" "}
-                                ₹
-                                {FlightDetails?.fareDetails?.tax_and_fees?.toFixed(
-                                  2
-                                )}
-                              </span>
-                            </div>
-
-                            <hr className="my-2" />
-
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1 flex">
-                                Return Airlines:
-                              </p>
-
-                              <span className="chk-r">
-                                ₹
-                                {FlightDetailsReturn?.fareDetails?.tax_and_fees?.toFixed(
-                                  2
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
                         <div className="clear" />
                       </div>
-                        <div className="chk-line relative items-start gap-2">
-                        <div className="chk-l">Client Price Per Pax</div>
+                      <div className="chk-line">
+                        <span className="chk-l">Flight Charges</span>
                         <span className="chk-r">
-                          <button
-                            className="cursor-pointer"
-                            onClick={() => setShowTooltip9((prev) => !prev)}
-                          >
-                            <img
-                              src="../img/i_icon.svg"
-                              alt="Info"
-                              className="w-4 h-4 cursor-pointer mt-1"
-                            />
-                          </button>
+                          ₹{" "}
+                          {FlightDetails?.fareDetails?.total_ex_tax_fees?.toFixed(
+                            2
+                          )}
                         </span>
-
-                        {showTooltip9 && (
-                          <div
-                            className="absolute right-0 top-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-sm z-50 w-40 "
-                            onMouseLeave={() => setShowTooltip9(false)}
-                          >
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1">
-                                Onward Airlines:
-                              </p>
-                              <span className="chk-r">
-                                ₹
-                                {FareDetails?.OnwardClientPrice
-                                }
-                              </span>
-                            </div>
-
-                            <hr className="my-2" />
-
-                            <div className="flex gap-2">
-                              <p className="font-semibold text-xs text-gray-800 mb-1 flex">
-                                Return Airlines:
-                              </p>
-
-                              <span className="chk-r">
-                                ₹
-                                {FareDetails?.ReturnClientPrice
-                                }
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
                         <div className="clear" />
                       </div>
-
+                      <div className="chk-line">
+                        <span className="chk-l">Other Charges</span>
+                        <span className="chk-r">
+                          ₹{" "}
+                          {(
+                            Number(
+                              FlightDetails?.fareDetails?.tax_and_fees || 0
+                            ) + Number(FareDetails?.markupValue || 0)
+                          ).toFixed(2)}
+                        </span>
+                        <div className="clear" />
+                      </div>
+                        <div className="chk-line">
+                        <span className="chk-l">Client Price (per pax)</span>
+                        <span className="chk-r">
+                          ₹{" "}
+                          {
+                            Number(
+                            FareDetails?.ClientPriceValue || 0
+                            
+                          ).toFixed(2)}
+                        </span>
+                        <div className="clear" />
+                      </div>
                     </div>
                     <div className="chk-total">
                       <div className="chk-total-l">Total Price</div>
                       <div className="chk-total-r" style={{ fontWeight: 700 }}>
-                        {(() => {
-                          const onwardTotal =
-                            Number(FlightDetails?.fareDetails?.total)  + (FareDetails?.OnwardMarkup) || 0;
-                          const returnTotal =
-                            Number(FlightDetailsReturn?.fareDetails?.total) + (FareDetails?.ReturnMarkup) ||
-                            0;
-                          const grandTotal = onwardTotal + returnTotal;
-                          console.log(FlightDetails?.fareDetails?.total);
-                          console.log(FareDetails?.OnwardClientPrice)
-                          console.log(onwardTotal);
-                          console.log(returnTotal);
-                          console.log(grandTotal);
-                          return `₹${grandTotal.toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}`;
-                        })()}
+                        ₹{" "}
+                        {(
+                          Number(FlightDetails?.fareDetails?.total || 0) +
+                          Number(FareDetails?.markupValue || 0)+ (Number(totalServicePrice))
+                        ).toFixed(2)}
+                        {/* ₹ {FlightDetails?.fareDetails?.total?.toFixed(2)} */}
+                        {/* ₹ {(((Number(FareData?.PublishedFare) || 0) + (Number(totalServicePrice))).toFixed(2))} */}
                       </div>
                       <div className="clear" />
                     </div>
@@ -1666,4 +1060,4 @@ useEffect(() => {
   );
 };
 
-export default CompleteFlightbookingReturn;
+export default CompleteFlightbookinguapi;

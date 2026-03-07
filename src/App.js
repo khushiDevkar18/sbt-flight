@@ -13,8 +13,8 @@ import HotelDetail from './HotelDetail';
 import HotelBooking from './HotelBooking';
 import HotelPayment from './HotelPayment';
 import DateChange from './DateChange';
-import FlightBookingComplete from "./CompleteFlightbookingtbo";
-import CompleteFlightbookinguapi from "./Completedflightbookingupi";
+import FlightBookingComplete from "./flight/CompleteFlightbookingtbo";
+import CompleteFlightbookinguapi from "./flight/Completedflightbookingupi";
 import Newbookflow from "./Newbookflow";
 import PageNotFound from './PageNotFound';
 import TryAgainLater from './TryAgainLater';
@@ -33,12 +33,12 @@ import SearchBus from "./SearchBus";
 import TESTPAGE from "./TESTPAGE";
 import HotelCancellation from "./HotelCancellation";
 import ScrollToTop from './ScrollToTop';
-import FinalSearchFlight from "./FinalSearchFlight";   //NEW
-import FlightTbobookingflow from "./FlightTbobookingflow";  //NEW
-import FlightUapibookingflow from "./FlightUapibookingflow";  //NEW
+import FinalSearchFlight from "./flight/FinalSearchFlight";   //NEW
+import FlightTbobookingflow from "./flight/FlightTbobookingflow";  //NEW
+import FlightUapibookingflow from "./flight/FlightUapibookingflow";  //NEW
 import { ToastContainer } from 'react-toastify';
-import ReturnFlightBookingFlow from "./ReturnFlightBookingFlow";
-import CompleteFlightbookingReturn from "./Completeflighbookingreturn";
+import ReturnFlightBookingFlow from "./flight/ReturnFlightBookingFlow";
+import CompleteFlightbookingReturn from "./flight/Completeflighbookingreturn";
 
 const App = () => {
   return (

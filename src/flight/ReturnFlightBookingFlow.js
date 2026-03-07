@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import CONFIG from "./config";
+import CONFIG from "../config";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import Tabs from "@mui/material/Tabs";
@@ -2160,19 +2160,53 @@ const ReturnBookingFlow = () => {
   const ReturnFinalTotal = ReturnTotal + ReturnMarkup;
   const Total = OnwardFinalTotal + ReturnFinalTotal;
   const OnwardOthers = OnwardTax - OnwardGst_k3 + OnwardMarkup;
-  console.log(ClientReturnPrice);
-  // console.log(OnwardGst_k3);
-  const ReturnOthers = ReturnTax - ReturnGst_k3 + ReturnMarkup;
-  console.log("onwardclientprice", OnwardClientPrice);
-  console.log("ReturnClientPrice", ReturnClientPrice);
-  console.log("onwardTotal", OnwardTotal);
-  console.log("ReturnTotal", ReturnTotal);
-  console.log("Total", Total);
-  console.log("onwardMarkup", OnwardMarkup);
-  console.log("ReturnMarkup", ReturnMarkup);
-  console.log("OnwardOthers", OnwardOthers);
-  console.log("ReturnOthers", ReturnOthers);
+    const ReturnOthers = ReturnTax - ReturnGst_k3 + ReturnMarkup;
+// ----------------------------------------------------Calculate Layover , time and duration---------------------------------------------
+const formatTime = (dateTimeString) => {
+  return new Date(dateTimeString).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+};
 
+// Calculate segment duration
+const calculateSegmentDuration = (depTime, arrTime) => {
+  const dep = new Date(depTime);
+  const arr = new Date(arrTime);
+  const diffMs = arr - dep;
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  
+  return `${hours}h ${minutes}m`;
+};
+
+// Calculate layover time
+const calculateLayoverTime = (arrTime, nextDepTime) => {
+  const arr = new Date(arrTime);
+  const nextDep = new Date(nextDepTime);
+  const diffMs = nextDep - arr;
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${minutes}m`;
+};
+
+// Calculate total journey time
+const calculateTotalJourneyTime = (segments) => {
+  if (!segments || segments.length === 0) return '';
+  
+  const firstDep = new Date(segments[0]?.Origin?.DepTime);
+  const lastArr = new Date(segments[segments.length - 1]?.Destination?.ArrTime);
+  const diffMs = lastArr - firstDep;
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  
+  return `${hours}h ${minutes}m`;
+};
   return (
     <div className="yield-content" style={{ background: "#e8e4ff" }}>
       {Seatloading && (
@@ -2320,305 +2354,164 @@ const ReturnBookingFlow = () => {
                                 aria-hidden="true"
                               ></div>
                             </>
-                            <div className="mb-3 shadow-md">
-                              <span className="Returnflight-heading">
-                                {OnwardFlight?.originAirport?.CityName}{" "}
-                                <ArrowForwardSharp style={{ width: "70%" }} />{" "}
-                                {OnwardFlight?.destinationAirport?.CityName}
-                              </span>
-                              {OnwardSegments?.map((data, index) => (
-                                <div
-                                  key={index}
-                                  className="row"
-                                  style={{
-                                    border: "1px solid #e3e3e3",
-                                    margin: "0% 0%",
-                                  }}
-                                >
-                                  <div className="Flight-segment-container">
-                                    <div>
-                                      <div className="row accordionfarename apiairportname">
-                                        <div className="airport-flight-row">
-                                          <div className="airport-flight-container">
-                                            {/* Airline Logo */}
-                                            <img
-                                              className="airport-airline-img w-9 h-9"
-                                              src={`https://devapi.taxivaxi.com/airline_logo_images/${data?.Airline?.AirlineCode}.png`}
-                                              alt="Airline logo"
-                                            />
-                                            <div className="airport-flight-details text-black font-bold">
-                                              <span className="airport-airline-name">
-                                                {data?.Airline?.AirlineName}{" "}
-                                                {data?.Airline?.AirlineCode}
-                                                <br />
-                                                <span className="airport-flight-number">
-                                                  {data?.Airline?.FlightNumber}
-                                                </span>
-                                              </span>
-                                            </div>
+                  <div className="journey-card-wrapper">
+  <div className="route-header-panel space-y-2">
+    <div className="route-city-display">
+      {OnwardFlight?.originAirport?.CityName} → {OnwardFlight?.destinationAirport?.CityName}
+      <span className="fare-rules-link">
+        Fare Rules
+        </span>
+    </div>
+    <div className="flight-info-bar">
+      <span className="flight-date">
+        {handleweekdatemonthyear(OnwardSegments?.[0]?.Origin?.DepTime)}
+      </span>
+      <span className="flight-duration">
+        {OnwardSegments?.length > 1 
+          ? `${calculateTotalJourneyTime(OnwardSegments)} • ${OnwardSegments.length - 1} Stop${OnwardSegments.length - 1 > 1 ? 's' : ''}` 
+          : 'Non-stop'}
+      </span>
+    </div>
+  </div>
 
-                                            {/* Cabin Class */}
-                                            <div className="airport-cabin-class">
-                                              {responseData?.CabinClass}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      {/* <div className="flight-details-container">
-                                        <div className="row accordionfarename apiairportname">
-                                          <span className="apicircle">◯</span>
-                                          <span className="CityName">
-                                            {data?.Origin?.Airport?.CityName}
-                                          </span>
-                                          <span className="airport">
-                                            {data?.Origin?.Airport?.AirportName}{" "}
-                                            {data?.Origin?.Airport?.Terminal}
-                                          </span>
-                                        </div>
-                                        <div className="row accordionfarename apiairportname">
-                                          <span className="vertical_line"></span>
-                                          {handleweekdatemonthyear(
-                                            data?.Origin?.DepTime
-                                          )}
-                                        </div>
-                                        <div className="row accordionfarename apiairportname">
-                                          <span className="apicircle">◯</span>
-                                          <span className="CityName">
-                                            {
-                                              data?.Destination?.Airport
-                                                ?.CityName
-                                            }
-                                          </span>
-                                          <span className="airport">
-                                            {
-                                              data?.Destination?.Airport
-                                                ?.AirportName
-                                            }{" "}
-                                            {
-                                              data?.Destination?.Airport
-                                                ?.Terminal
-                                            }
-                                          </span>
-                                        </div>
-                                        <div className="baggage-info">
-                                          <span className="cabin-baggage">
-                                            <img
-                                              src="/img/cabin_bag.svg"
-                                              alt="Cabin Baggage"
-                                              className="baggage-icon"
-                                            />
-                                            <strong>Cabin Baggage:</strong>{" "}
-                                            {formatWeight(data?.CabinBaggage) ||
-                                              "7KG"}
-                                          </span>
-                                          <span className="checkin-baggage">
-                                            <img
-                                              src="/img/checkin_bag.svg"
-                                              alt="Cabin Baggage"
-                                              className="baggage-icon"
-                                            />
-                                            <strong>Check-In Baggage:</strong>{" "}
-                                            {formatWeight(data?.Baggage) ||
-                                              "15KG"}
-                                          </span>
-                                        </div>
-                                      </div> */}
-                                      <div className="flight-details-container">
-                                        {/* Departure Row - Time, City, Airport on same line */}
-                                        <div
-                                          className="row accordionfarename apiairportname"
-                                          style={{
-                                            display: "flex",
-                                            alignItems: "baseline",
-                                            marginBottom: "4px",
-                                          }}
-                                        >
-                                          <span
-                                            className="CityName"
-                                            style={{
-                                              minWidth: "60px",
-                                              fontSize: "15px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
-                                            {new Date(
-                                              data?.Origin?.DepTime,
-                                            ).toLocaleTimeString("en-GB", {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                            })}
-                                          </span>
-                                          <span
-                                            className="CityName"
-                                            style={{
-                                              fontSize: "15px",
-                                              fontWeight: "500",
-                                              marginRight: "6px",
-                                            }}
-                                          >
-                                            {data?.Origin?.Airport?.CityName}
-                                          </span>
-                                          <span
-                                            className="airport"
-                                            style={{
-                                              fontSize: "13px",
-                                              color: "#666",
-                                            }}
-                                          >
-                                            {data?.Origin?.Airport?.AirportName}{" "}
-                                            {data?.Origin?.Airport?.Terminal}
-                                          </span>
-                                        </div>
+  {OnwardSegments?.map((data, index) => (
+    <div key={index} className="travel-segment-block">
+      <div className="travel-details-panel">
+        {/* Airline Info - Show only for first segment or when airline changes */}
+        {(index === 0 || data?.Airline?.AirlineCode !== OnwardSegments[index-1]?.Airline?.AirlineCode) && (
+          <div className="carrier-info-row">
+            <div className="carrier-details-flex">
+              <img
+                className="carrier-logo-image"
+                src={`https://devapi.taxivaxi.com/airline_logo_images/${data?.Airline?.AirlineCode}.png`}
+                alt={data?.Airline?.AirlineName}
+              />
+              <div className="carrier-name-block">
+                <span className="carrier-title">
+                  {data?.Airline?.AirlineName} {data?.Airline?.AirlineCode}
+                </span>
+                <span className="flight-identifier">
+                  {data?.Airline?.FlightNumber}
+                </span>
+                {data?.Aircraft && (
+                  <span className="aircraft-link">
+                    {data?.Aircraft}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
-                                        {/* Date Row - On the same line as time (aligned under time) */}
-                                        <div
-                                          className="row accordionfarename apiairportname"
-                                          style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            marginBottom: "8px",
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              minWidth: "60px",
-                                              fontSize: "12px",
-                                              color: "#777",
-                                              marginLeft: "8px",
-                                            }}
-                                          >
-                                            {handleweekdatemonthyear(
-                                              data?.Origin?.DepTime,
-                                            )}
-                                          </span>
-                                        </div>
+        <div className="flight-details-container">
+          {/* Journey Timeline */}
+          <div className="journey-timeline">
+            {/* Departure */}
+            <div className="timeline-item">
+              <span className="time-display">
+                {formatTime(data?.Origin?.DepTime)}
+              </span>
+              <div className="timeline-dot-wrapper">
+                <span className="timeline-dot"></span>
+              </div>
+              <div className="timeline-content">
+                <div className="location-block">
+                  <span className="city_names">
+                    {data?.Origin?.Airport?.CityName}
+                  </span>
+                  <span className="airport-detail">
+                    {data?.Origin?.Airport?.AirportName}
+                    {data?.Origin?.Airport?.Terminal && (
+                      <span className="terminal-info">
+                        , Terminal {data?.Origin?.Airport?.Terminal}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                {/* Flight duration for this segment */}
+                <div className="segment-duration">
+                  {calculateSegmentDuration(data?.Origin?.DepTime, data?.Destination?.ArrTime)}
+                </div>
+              </div>
+            </div>
 
-                                        {/* Arrival Row - Time, City, Airport on same line */}
-                                        <div
-                                          className="row accordionfarename apiairportname"
-                                          style={{
-                                            display: "flex",
-                                            alignItems: "baseline",
-                                            marginBottom: "4px",
-                                          }}
-                                        >
-                                          <span
-                                            className="CityName"
-                                            style={{
-                                              minWidth: "60px",
-                                              fontSize: "15px",
-                                              fontWeight: "500",
-                                            }}
-                                          >
-                                            {new Date(
-                                              data?.Destination?.ArrTime,
-                                            ).toLocaleTimeString("en-GB", {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                            })}
-                                          </span>
-                                          <span
-                                            className="CityName"
-                                            style={{
-                                              fontSize: "15px",
-                                              fontWeight: "500",
-                                              marginRight: "6px",
-                                            }}
-                                          >
-                                            {
-                                              data?.Destination?.Airport
-                                                ?.CityName
-                                            }
-                                          </span>
-                                          <span
-                                            className="airport"
-                                            style={{
-                                              fontSize: "13px",
-                                              color: "#666",
-                                            }}
-                                          >
-                                            {
-                                              data?.Destination?.Airport
-                                                ?.AirportName
-                                            }{" "}
-                                            {
-                                              data?.Destination?.Airport
-                                                ?.Terminal
-                                            }
-                                          </span>
-                                        </div>
+            {/* Arrival */}
+            <div className="timeline-item">
+              <span className="time-display">
+                {formatTime(data?.Destination?.ArrTime)}
+              </span>
+              <div className="timeline-dot-wrapper">
+                <span className="timeline-dot"></span>
+              </div>
+              <div className="timeline-content">
+                <div className="location-block">
+                  <span className="city-names">
+                    {data?.Destination?.Airport?.CityName}
+                  </span>
+                  <span className="airport-detail">
+                    {data?.Destination?.Airport?.AirportName}
+                    {data?.Destination?.Airport?.Terminal && (
+                      <span className="terminal-info">
+                        , Terminal {data?.Destination?.Airport?.Terminal}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                                        {/* Baggage Info */}
-                                        <div
-                                          className="baggage-info"
-                                          style={{
-                                            display: "flex",
-                                            gap: "24px",
-                                            marginTop: "7px",
-                                            borderTop: "1px dashed #e0e0e0",
-                                          }}
-                                        >
-                                          <span
-                                            className="cabin-baggage"
-                                            style={{
-                                              display: "flex",
-                                              alignItems: "center",
-                                              gap: "6px",
-                                              fontSize: "13px",
-                                            }}
-                                          >
-                                            <img
-                                              src="/img/cabin_bag.svg"
-                                              alt="Cabin Baggage"
-                                              className="baggage-icon"
-                                              style={{
-                                                width: "18px",
-                                                height: "18px",
-                                                opacity: 0.7,
-                                              }}
-                                            />
-                                            <strong
-                                              style={{ fontWeight: "600" }}
-                                            >
-                                              Cabin Baggage:
-                                            </strong>{" "}
-                                            {formatWeight(data?.CabinBaggage) ||
-                                              "NA"}
-                                          </span>
-                                          <span
-                                            className="checkin-baggage"
-                                            style={{
-                                              display: "flex",
-                                              alignItems: "center",
-                                              gap: "6px",
-                                              fontSize: "13px",
-                                            }}
-                                          >
-                                            <img
-                                              src="/img/checkin_bag.svg"
-                                              alt="Check-in Baggage"
-                                              className="baggage-icon"
-                                              style={{
-                                                width: "18px",
-                                                height: "18px",
-                                                opacity: 0.7,
-                                              }}
-                                            />
-                                            <strong
-                                              style={{ fontWeight: "600" }}
-                                            >
-                                              Check-In Baggage:
-                                            </strong>{" "}
-                                            {formatWeight(data?.Baggage) ||
-                                              "NA"}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
+          {/* Layover Info - Show between segments */}
+          {index < OnwardSegments.length - 1 && (
+            <div className="layover-info-panel">
+              <div className="layover-header">
+                <span className="layover-title">Change of planes</span>
+                <span className="layover-duration">
+                  {calculateLayoverTime(
+                    data?.Destination?.ArrTime,
+                    OnwardSegments[index + 1]?.Origin?.DepTime
+                  )} Layover in {data?.Destination?.Airport?.CityName}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Baggage Info - Show for each segment or once at the end */}
+          {(index === OnwardSegments.length - 1 || data?.Baggage !== OnwardSegments[index+1]?.Baggage) && (
+            <div className="baggage-info-section">
+              <div className="baggage-info">
+                <span className="cabin-baggage">
+                  <img
+                    src="/img/cabin_bag.svg"
+                    alt="Cabin Baggage"
+                    className="baggage-icon"
+                  />
+                  <strong>Cabin Baggage:</strong>{' '}
+                  {formatWeight(data?.CabinBaggage) || 'NA'}
+                  {data?.CabinBaggageRule && (
+                    <span className="baggage-rule"> ({data?.CabinBaggageRule})</span>
+                  )}
+                </span>
+                <span className="checkin-baggage">
+                  <img
+                    src="/img/checkin_bag.svg"
+                    alt="Check-in Baggage"
+                    className="baggage-icon"
+                  />
+                  <strong>Check-In Baggage:</strong>{' '}
+                  {formatWeight(data?.Baggage) || 'NA'}
+                  {data?.BaggageRule && (
+                    <span className="baggage-rule"> ({data?.BaggageRule})</span>
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
 
                             <div>
                               <span className="Returnflight-heading">
@@ -2989,8 +2882,8 @@ const ReturnBookingFlow = () => {
                                         </div>
                                       </div>
                                     </div>
+                                    </div>
                                   </div>
-                                </div>
                               ))}
                             </div>
                           </div>

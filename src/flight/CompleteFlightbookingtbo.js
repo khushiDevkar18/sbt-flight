@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom';
-import CONFIG from './config';
+import CONFIG from '../config';
 
 const FlightBookingComplete = () => {
     const location = useLocation();

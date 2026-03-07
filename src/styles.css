@@ -4626,10 +4626,10 @@ nav ul li {
   width: 100%;
   float: left;
 }
-
+/* 
 .flt-i-b {
   margin: 0px 117px 0px 0px;
-}
+} */
 
 .flt-i-bb {
   width: 100%;
@@ -17366,7 +17366,7 @@ input:checked+.slider:before {
 
 .multipleflight .modal-header .modal-title {
   font-weight: 700;
-  font-size: 19px;
+  font-size: 16px;
   /* margin-left: 2%; */
   font-family: 'Montserrat';
   text-transform: uppercase;
@@ -17376,7 +17376,9 @@ input:checked+.slider:before {
   font-size: 13px;
   text-transform: capitalize;
 }
-
+.modal-header{
+  padding:0.5rem 0.5rem !important;
+}
 .multipleflight .modal-header .close {
   border: none;
     border-radius: 50%;
@@ -17465,9 +17467,9 @@ input:checked+.slider:before {
   
   text-transform: uppercase;
 }
-.modal-header .modal-title{
+/* .modal-header .modal-title{
   margin-left: 0 !important;
-}
+} */
 .modal-body .continuebutton:hover {
   background: #644ed4;
   border-color: #644ed4;
@@ -17755,7 +17757,7 @@ color: #fff;
 }
 .modal-header .modal-title{
   font-weight: 700;
-  font-size: 19px;
+  font-size: 16px;
   margin-left: 2%;
   font-family: 'Montserrat';
   text-transform: uppercase;
@@ -18049,7 +18051,7 @@ color: #fff;
 }
 .catalog-row .catalog_filters .departurefilter{
   text-align: right;
-  padding-left: 5%;
+  padding-left: 12%;
   cursor: pointer;
 }
 .catalog-row .catalog_filters .travelfilter{
