@@ -1,0 +1,32 @@
+type AppConfig = {
+  DEV_API: string;
+  MAIN_API: string;
+  BASE_URL: string;
+  ASSIGN_API: string;
+};
+
+const CONFIG: AppConfig = {
+
+  
+  DEV_API: "https://devapi.taxivaxi.com", //DEV_API
+
+  //Demo Apis
+    MAIN_API: "https://demo.taxivaxi.com", //MAIN_API demo
+  BASE_URL : "https://www.nirixak.com/testuapi/api/flights/", //test
+  
+//   BASE_URL:"https://f8l4sd56-3000.inc1.devtunnels.ms/api/", //local
+  ASSIGN_API:"https://demo.taxivaxi.com/api/flights/assignSbtCotravFlightBookingNew", //demo
+
+  //Live Apis
+// MAIN_API: "https://corporate.taxivaxi.com",  //Live
+// BASE_URL:"https://chjlmk5d-3000.inc1.devtunnels.ms/api/flights/"
+  // BASE_URL: "https://www.nirixak.com/uapi/api/flights/", //live
+//  ASSIGN_API:"https://corporate.taxivaxi.com/api/flights/assignSbtCotravFlightBookingNew", //Live
+
+// };
+
+// const CONFIG = {
+//     MAIN_API: "https://demo.taxivaxi.com",        //MAIN_API
+//     DEV_API: "https://demodevapi.taxivaxi.com"          //DEV_API
+} as const;
+export default CONFIG;
